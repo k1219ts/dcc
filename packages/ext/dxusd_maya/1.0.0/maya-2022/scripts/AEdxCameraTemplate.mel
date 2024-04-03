@@ -1,0 +1,66 @@
+//--------------------------------------------------------------------------------
+//
+//	Dexter OpenSource customNodes
+//
+//	CG-Supervisor
+//		DaeSeok Chae, cds7031@gmail.com
+//
+//		dxCamera
+//
+//	daeseok.chae 2019.11.21
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+// fileName
+global proc dxCameraFileDialog( string $attr )
+{
+	string $loc[] = `fileDialog2 -caption "Import File Select"
+					 -fm 1
+					 -okc "import"`;
+	if( size($loc) > 0 ) {
+		python( "import dxCameraUI as dc; dc.import_cameraFile(\"" + $attr + "\", \"" + $loc[0] + "\")" );
+		dxCameraFileReplace $attr;
+	}
+}
+
+global proc dxCameraFileChange( string $attr )
+{
+}
+
+global proc dxCameraFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout -adjustableColumn true;
+			textField dxCameraFileWidget;
+			button -l "Import" dxCameraFileButtonWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxCameraFileReplace( $attr );
+}
+
+global proc dxCameraFileReplace( string $attr )
+{
+	button -e -c ("dxCameraFileDialog(\"" + $attr + "\")") dxCameraFileButtonWidget;
+	string $fn = `getAttr $attr`;
+	textField -e -tx $fn -cc ("dxCameraFileChange(\"" + $attr + "\")") dxCameraFileWidget;
+	textField -e -en false dxCameraFileWidget;
+}
+//--------------------------------------------------------------------------------
+
+
+global proc AEdxCameraTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "dxCamera" -collapse 0;
+			editorTemplate -label "Action" -addControl "action";
+		editorTemplate -endLayout;
+		editorTemplate -beginLayout "File" -collapse 0;
+			editorTemplate -ccu "dxCameraFileNew" "dxCameraFileReplace" "fileName";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}

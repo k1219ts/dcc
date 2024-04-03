@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mayapy ${REZ_DXUSD_MAYA_ROOT}/scripts/DXBatch/BatchGroom.py $*
+
+

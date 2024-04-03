@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xterm -hold -e /backstage/dcc/DCC rez-env pyside2 usd_core dxusd_maya -- DXPackage

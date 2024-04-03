@@ -1,0 +1,13 @@
+#!/bin/bash
+
+result=$(python /backstage/dcc/packages/ext/dxusd_maya/1.0.0/share/nautilus/scripts/variantRun.py)
+echo $result
+if [ $result == "2022" ]; then
+	gnome-terminal -- bash -c "/backstage/dcc/DCC rez-env python-2 pyside2-5.15.2 maya-2022 dxusd_maya usd_core-21.05 -- CacheExportTool"
+
+elif [ $result == "2018" ]; then
+	gnome-terminal -- bash -c "/backstage/dcc/DCC rez-env python-2 pyside2-5.12.6 maya-2018 dxusd_maya usd_maya-19.11 -- CacheExportTool"
+fi
+
+
+

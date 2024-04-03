@@ -1,0 +1,79 @@
+//------------------------------------------------------------------------------
+//
+//  Menus
+//
+//------------------------------------------------------------------------------
+
+proc addDxsMainMenus()
+{
+    global string $gMainWindow;
+
+    string $dxsMainMenu = "dxsMainMenu";
+
+    // main menu
+    setParent $gMainWindow;
+    menu -label "DXUSD" -to true $dxsMainMenu;
+
+    menuItem -label "Reload DXUSD Shelf"
+        -annotation (uiRes("m_backstageInitUI.kUsdShelfAnnot"))
+        -command ( "reloadPxrUsdShelf()" )
+        -image "out_pxrUsdReferenceAssembly.xpm"
+    backstage_usdShelfItem;
+
+    menuItem -label "Nodes" -sm true -to true -aob true;
+        menuItem -label "Create dxBlock" -command ("createNode dxBlock");
+        menuItem -label "Create dxRig" -command ("createNode dxRig");
+        menuItem -label "Update dxRig Attributes" - command ("python(\"import dxRigUI as drg; drg.updateAttributes()\")");
+        menuItem -label "Create dxCamera" -command ("createNode dxCamera");
+    setParent -m ..;
+
+    menuItem -label "Import" -sm true -to true -aob true;
+        menuItem -label "Import PxrReference" -command ("python(\"import dxBlockUtils as xutl; xutl.ImportPxrReferenceDialog()\")");
+        menuItem -label "Import PxrProxy" -command ("python(\"import dxBlockUtils as xutl; xutl.ImportPxrProxyDialog()\")");
+        menuItem -label "ReferenceAssembly Collapsed" -command ("python(\"import dxBlockUtils as xutl; xutl.extra.puraCollapsed()\")");
+        menuItem -label "ReferenceAssembly Reload" -command ("python(\"import dxBlockUtils as xutl; xutl.extra.reloadReferenceAssembly()\")");
+        menuItem -divider 1;
+        menuItem -label "Import UsdGeom" -command ("python(\"import dxBlockUtils; dxBlockUtils.UsdImportDialog()\")");
+        menuItem -label "Merge UsdGeom" -command ("python(\"import dxBlockUtils; dxBlockUtils.UsdMergeDialog()\")");
+        menuItem -divider 1;
+        menuItem -label "Import FeatherGeom" -command ("python(\"import dxBlockUtils; dxBlockUtils.UsdFeatherImportDialog()\")");
+    setParent -m ..;
+
+    // menuItem -label "Export" -sm true -to true -aob true;
+    //    menuItem -label "Asset Export Tool" -command ("python(\"from dxUI.AssetExporter import AssetExportMain; AssetExportMain.main()\")");
+    //    menuItem -label "Import PxrProxy" -command ("python(\"from dxUsd import dxsExport; dxsExport.ImportPxrProxyShapeDialog()\")");
+    // setParent -m ..;
+
+    menuItem -label "TimeOffset" -sm true -to true -aob true;
+        menuItem -label "Add Offset" -command ("python(\"import dxBlockUtils as xutl; xutl.extra.ConnectTimeOffset()\")");
+        menuItem -label "Setup Tool" -command ("python(\"from DXUSD_UI.timeOffsetTool import OffsetSetupMain; OffsetSetupMain.main()\")");
+        menuItem -label "Connect Clips" -command ("python(\"import dxBlockUtils as xutl; xutl.extra.ClipEdit().doIt()\")");
+    setParent -m ..;
+
+    setParent -m ..; // for main menu
+}
+
+
+global proc dxsMenu_Create()
+{
+    dxsMenu_Delete();
+
+    addDxsMainMenus();
+}
+
+global proc dxsMenu_Delete()
+{
+    if (`menu -ex dxsMainMenu`) {
+        deleteUI -menu dxsMainMenu;
+    }
+}
+
+global proc reloadPxrUsdShelf()
+{
+    // Delete shelf if it exists
+    if(`shelfLayout -ex DXUSD`){
+        deleteShelfTab DXUSD;
+    }
+    $rootPath = `getenv REZ_DXUSD_MAYA_ROOT`;
+    loadNewShelf($rootPath + "/scripts/shelf_DXUSD.mel");
+}

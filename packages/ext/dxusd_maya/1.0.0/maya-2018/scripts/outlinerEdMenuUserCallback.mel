@@ -1,0 +1,86 @@
+
+proc pxrUsdNodeMenu()
+{
+    string $all[] = `ls -sl -type "pxrUsdReferenceAssembly"`;
+    if(size($all) > 0)
+    {
+        menuItem -l "to pxrUsdProxyShape";
+    }
+    else
+    {
+        menuItem -l "to pxrUsdReferenceAssembly";
+    }
+}
+
+
+global proc outlinerEdMenuUserCallback(string $parent)
+{
+    int $inPopupMenu = 0;
+    if (`popupMenu -exists $parent`) {
+        setParent -menu $parent;
+        $inPopupMenu = 1;
+    }
+
+    if ($inPopupMenu == 1) {
+        menuItem -divider true;
+
+        menuItem -label "USD" -sm true -to true -aob true;
+        string $ALL[] = `ls -sl -type "dxBlock" -type "dxRig" -type "pxrUsdReferenceAssembly"`;
+        if(size($ALL) > 0)
+        {
+            menuItem -l "dxBlock Represent" -command ("python(\"import dxBlockUtils; dxBlockUtils.extra.unpackPURATodxBlock()\")");
+            string $assemblys[] = `ls -sl type "pxrUsdReferenceAssembly"`;
+            if(size($assemblys) > 0)
+            {
+                menuItem -l "import xBlockGeom" -command ("python(\"import dxBlockUtils; dxBlockUtils.extra.xBlockImport()\")");
+                menuItem -l "pxrUsd lodVariant Set" -sm true -to true -aob true;
+                    menuItem -l "high" -command ("python(\"import dxOutline; dxOutline.pxrUsdLodVariantSet('high')\")");
+                    menuItem -l "low"  -command ("python(\"import dxOutline; dxOutline.pxrUsdLodVariantSet('low')\")");
+                setParent -m ..;
+            }
+        }
+        else
+        {
+            string $pxrProxys[] = `ls -sl -dag -type "pxrUsdProxyShape"`;
+            if(size($pxrProxys) > 0)
+            {
+                menuItem -l "UsdProxyShape To UsdReferenceAssembly" -command ("python(\"import dxBlockUtils; dxBlockUtils.extra.ProxyShapeToSceneAssembly()\")");
+                menuItem -l "UsdProxyShape To Mesh" -sm true -to true -aob true;
+                    menuItem -l "proxy" -command ("python(\"import dxBlockUtils; dxBlockUtils.extra.ProxyShapeToMesh('Proxy')\")");
+                    menuItem -l "render" -command ("python(\"import dxBlockUtils; dxBlockUtils.extra.ProxyShapeToMesh('Render')\")");
+                setParent -m ..;
+            }
+        }
+        setParent -m ..;
+
+        menuItem -label "Rig" -sm true -to true -aob true;
+        string $rig[], $tane[];
+        $rig = `ls -sl -type "pxrUsdReferenceAssembly" -type "dxRig"`;
+        if(size($rig) > 0)
+        {
+            menuItem -l "Rig Represent" -command ("python(\"import dxOutline; dxOutline.rigRepresentCtrl()\")");
+        }
+        else
+        {
+            string $proxyShape[] = `ls -sl -dag -type "pxrUsdProxyShape"`;
+            if(size($proxyShape) > 0)
+            {
+                menuItem -l "Rig Represent" -command ("python(\"import dxOutline; dxOutline.rigRepresentCtrl()\")");
+            }
+        }
+        if(`pluginInfo -q -l "TaneForMaya"` == 1)
+        {
+            $tane = `ls -hl -dag -type "TN_Tane"`;
+            if(size($tane) > 0)
+            {
+                menuItem -l "Rig Represent" -command ("python(\"import dxOutline; dxOutline.rigRepresentCtrl()\")");
+            }
+        }
+        $rig = `ls -sl -type "dxRig"`;
+        if(size($rig) > 0)
+        {
+            menuItem -l "Version Control" -command ("python(\"import dxOutline; dxOutline.dxRigVersionControl()\")");
+        }
+        setParent -m ..;
+    }
+}

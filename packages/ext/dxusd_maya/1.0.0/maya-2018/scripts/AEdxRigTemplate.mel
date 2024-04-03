@@ -1,0 +1,558 @@
+//--------------------------------------------------------------------------------
+//
+//	Dexter OpenSource customNodes
+//
+//	CG-Supervisor
+//		DaeSeok Chae, cds7031@gmail.com
+//
+//		dxRig
+//
+//	daeseok.chae 2019.11.21
+//--------------------------------------------------------------------------------
+
+// add meshes stringArray attribute
+global proc dxRigMeshesAdd( string $attr, string $widget )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	if( `getAttr ($node[0] + ".editable")` == 0 )
+		return;
+
+	python( "import dxRigUI as drg; drg.addSelectedMeshes(\"" + $attr + "\")" );
+
+	// ui replace
+	string $render = `match "RenderMeshes" $widget`;
+	if( size($render) > 0 ) dxRigRenderMeshesReplace( $attr );
+	string $mid = `match "MidMeshes" $widget`;
+	if( size($mid) > 0 ) dxRigMidMeshesReplace( $attr );
+	string $low = `match "LowMeshes" $widget`;
+	if( size($low) > 0 ) dxRigLowMeshesReplace( $attr );
+	string $sim = `match "SimMeshes" $widget`;
+	if( size($sim) > 0 ) dxRigSimMeshesReplace( $attr );
+}
+
+// clear stringArray attribute
+global proc dxRigStringArrayClear( string $attr, string $widget )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	if( `getAttr ($node[0] + ".editable")` == 0 )
+		return;
+	textScrollList -edit -removeAll $widget;
+	setAttr $attr -type stringArray 0;
+}
+
+// select stringArray attribute
+global proc dxRigStringArraySelect( string $attr )
+{
+	python( "import dxRigUI as drg; drg.selectAttributeObjects(\"" + $attr + "\")" );
+}
+
+// select menu items
+global proc dxRigStringArrayMenuSelect( string $attr, string $widget )
+{
+	string $items[] = `textScrollList -q -si $widget`;
+	python( "import dxRigUI as drg; drg.selectItemsObjects(\"" + $attr + "\", \"" + stringArrayToString($items,",") + "\")" );
+}
+
+// remove menu items
+global proc dxRigStringArrayMenuRemove( string $attr, string $widget )
+{
+	string $items[] = `textScrollList -q -si $widget`;
+	python( "import dxRigUI as drg; drg.removeItemsObjects(\"" + $attr + "\", \"" + stringArrayToString($items,",") + "\")" );
+
+	// ui replace
+	string $render = `match "RenderMeshes" $widget`;
+	if( size($render) > 0 ) dxRigRenderMeshesReplace( $attr );
+	string $mid = `match "MidMeshes" $widget`;
+	if( size($mid) > 0 ) dxRigMidMeshesReplace( $attr );
+	string $low = `match "LowMeshes" $widget`;
+	if( size($low) > 0 ) dxRigLowMeshesReplace( $attr );
+	string $sim = `match "SimMeshes" $widget`;
+	if( size($sim) > 0 ) dxRigSimMeshesReplace( $attr );
+	string $ctrls = `match "controllers" $widget`;
+	if( size($ctrls) > 0 ) dxRigControllersReplace( $attr );
+	string $joints = `match "SkinJoints" $widget`;
+	if( size($joints) > 0 ) dxRigSkinJointsReplace( $attr );
+    string $stepms = `match "StepMeshes" $widget`;
+    if( size($stepms) > 0 ) dxRigStepMeshesReplace( $attr );
+}
+
+
+//--------------------------------------------------------------------------------
+//
+//	renderMeshes
+global proc dxRigRenderMeshesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 100 100 100;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 100 drigRenderMeshesAddWidget;
+			button -l "Clear" -h 18 -w 100 drigRenderMeshesClearWidget;
+			button -l "Select" -h 18 -w 100 drigRenderMeshesSelectWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			textScrollList -ams true -h 150 -w 300 drigRenderMeshesListWidget;
+			popupMenu -p drigRenderMeshesListWidget  -b 3;
+			menuItem -l "Select" drigRenderMeshesMenuSelectWidget;
+			menuItem -l "Remove" drigRenderMeshesMenuRemoveWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxRigRenderMeshesReplace( $attr );
+}
+
+global proc dxRigRenderMeshesReplace( string $attr )
+{
+	string $widget = `textScrollList -e drigRenderMeshesListWidget`;
+
+	button -e -c ("dxRigMeshesAdd(\"" + $attr + "\", \"" + $widget + "\")") drigRenderMeshesAddWidget;
+	button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigRenderMeshesClearWidget;
+	button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") drigRenderMeshesSelectWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") drigRenderMeshesMenuSelectWidget;
+	menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") drigRenderMeshesMenuRemoveWidget;
+
+	textScrollList -e -ra $widget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] $widget;
+	}
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+//
+//	midMeshes
+global proc dxRigMidMeshesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 100 100 100;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 100 drigMidMeshesAddWidget;
+			button -l "Clear" -h 18 -w 100 drigMidMeshesClearWidget;
+			button -l "Select" -h 18 -w 100 drigMidMeshesSelectWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			textScrollList -ams true -h 150 -w 300 drigMidMeshesListWidget;
+			popupMenu -p drigMidMeshesListWidget -b 3;
+			menuItem -l "Select" drigMidMeshesMenuSelectWidget;
+			menuItem -l "Remove" drigMidMeshesMenuRemoveWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxRigMidMeshesReplace( $attr );
+}
+
+global proc dxRigMidMeshesReplace( string $attr )
+{
+	string $widget = `textScrollList -e drigMidMeshesListWidget`;
+
+	button -e -c ("dxRigMeshesAdd(\"" + $attr + "\", \"" + $widget + "\")") drigMidMeshesAddWidget;
+	button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigMidMeshesClearWidget;
+	button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") drigMidMeshesSelectWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") drigMidMeshesMenuSelectWidget;
+	menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") drigMidMeshesMenuRemoveWidget;
+
+	textScrollList -e -ra $widget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] $widget;
+	}
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+//
+//	lowMeshes
+global proc dxRigLowMeshesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 100 100 100;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 100 drigLowMeshesAddWidget;
+			button -l "Clear" -h 18 -w 100 drigLowMeshesClearWidget;
+			button -l "Select" -h 18 -w 100 drigLowMeshesSelectWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			textScrollList -ams true -h 150 -w 300 drigLowMeshesListWidget;
+			popupMenu -p drigLowMeshesListWidget -b 3;
+			menuItem -l "Select" drigLowMeshesMenuSelectWidget;
+			menuItem -l "Remove" drigLowMeshesMenuRemoveWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxRigLowMeshesReplace( $attr );
+}
+
+global proc dxRigLowMeshesReplace( string $attr )
+{
+	string $widget = `textScrollList -e drigLowMeshesListWidget`;
+
+	button -e -c ("dxRigMeshesAdd(\"" + $attr + "\", \"" + $widget + "\")") drigLowMeshesAddWidget;
+	button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigLowMeshesClearWidget;
+	button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") drigLowMeshesSelectWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") drigLowMeshesMenuSelectWidget;
+	menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") drigLowMeshesMenuRemoveWidget;
+
+	textScrollList -e -ra $widget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] $widget;
+	}
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+//
+//	simMeshes
+global proc dxRigSimMeshesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 100 100 100;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 100 drigSimMeshesAddWidget;
+			button -l "Clear" -h 18 -w 100 drigSimMeshesClearWidget;
+			button -l "Select" -h 18 -w 100 drigSimMeshesSelectWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			textScrollList -ams true -h 150 -w 300 drigSimMeshesListWidget;
+			popupMenu -p drigSimMeshesListWidget -b 3;
+			menuItem -l "Select" drigSimMeshesMenuSelectWidget;
+			menuItem -l "Remove" drigSimMeshesMenuRemoveWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxRigSimMeshesReplace( $attr );
+}
+
+global proc dxRigSimMeshesReplace( string $attr )
+{
+	string $widget = `textScrollList -e drigSimMeshesListWidget`;
+
+	button -e -c ("dxRigMeshesAdd(\"" + $attr + "\", \"" + $widget + "\")") drigSimMeshesAddWidget;
+	button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigSimMeshesClearWidget;
+	button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") drigSimMeshesSelectWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") drigSimMeshesMenuSelectWidget;
+	menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") drigSimMeshesMenuRemoveWidget;
+
+	textScrollList -e -ra $widget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] $widget;
+	}
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+//
+//	rig controllers
+global proc dxRigControllersAdd( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	if( `getAttr ($node[0] + ".editable")` == 0 )
+		return;
+	python( "import dxRigUI as drg; drg.addControllers(\"" + $attr + "\")" );
+	dxRigControllersReplace( $attr );
+}
+
+global proc dxRigControllersInit( string $attr )
+{
+	python( "import dxRigUI as drg; drg.controllersInit(\"" + $attr + "\")" );
+}
+
+global proc dxRigControllersInitWorld( string $attr )
+{
+	python( "import dxRigUI as drg; drg.controllersInitWorld(\"" + $attr + "\")" );
+}
+
+global proc dxRigControllersNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 100 100 100;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 100 drigControllersAddWidget;
+			button -l "Clear" -h 18 -w 100 drigControllersClearWidget;
+			button -l "Select" -h 18 -w 100 drigControllersSelectWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			textScrollList -ams true -h 300 -w 300 drigControllersListWidget;
+			popupMenu -p drigControllersListWidget -b 3;
+			menuItem -l "Select" drigControllersMenuSelectWidget;
+			menuItem -l "Remove" drigControllersMenuRemoveWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			button -l "Initialize" -h 18 -w 300 drigControllersInitWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			button -l "Initialize World" -h 18 -w 300 drigControllersInitWorldWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxRigControllersReplace( $attr );
+}
+
+global proc dxRigControllersReplace( string $attr )
+{
+	string $widget = `textScrollList -e drigControllersListWidget`;
+
+	button -e -c ("dxRigControllersAdd(\"" + $attr + "\")") drigControllersAddWidget;
+	button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigControllersClearWidget;
+	button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") drigControllersSelectWidget;
+	button -e -c ("dxRigControllersInit(\"" + $attr + "\")") drigControllersInitWidget;
+	button -e -c ("dxRigControllersInitWorld(\"" + $attr + "\")") drigControllersInitWorldWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") drigControllersMenuSelectWidget;
+	menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") drigControllersMenuRemoveWidget;
+
+	textScrollList -e -ra $widget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] $widget;
+	}
+}
+
+//--------------------------------------------------------------------------------
+//      rootCon
+global proc dxRigRootConNew( string $attr )
+{
+        setUITemplate -pst attributeEditorTemplate;
+                rowLayout -nc 2 -cw2 100 300;
+                        text -l "Root Con  " -w 100;
+                        textField dxRigRootConWidget;
+        setUITemplate -ppt;
+        dxRigRootConReplace $attr;
+}
+
+global proc dxRigRootConReplace( string $attr )
+{
+        string $gv = `getAttr $attr`;
+        textField -e -tx $gv -cc ("dxRigRootConChange(\"" + $attr + "\")") dxRigRootConWidget;
+}
+
+global proc dxRigRootConChange( string $attr )
+{
+        string $gv = `textField -q -tx dxRigRootConWidget`;
+        setAttr -type "string" $attr $gv;
+}
+
+//--------------------------------------------------------------------------------
+//	scriptString
+global proc dxRigCtrlScriptNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "Control Script  " -w 100;
+			textField drigControlScriptWidget;
+	setUITemplate -ppt;
+	dxRigCtrlScriptReplace $attr;
+}
+
+global proc dxRigCtrlScriptReplace( string $attr )
+{
+	string $gv = `getAttr $attr`;
+	textField -e -tx $gv -cc ("dxRigCtrlScriptChange(\"" + $attr + "\")") drigControlScriptWidget;
+}
+
+global proc dxRigCtrlScriptChange( string $attr )
+{
+	string $gv = `textField -q -tx drigControlScriptWidget`;
+	setAttr -type "string" $attr $gv;
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+//
+//	rig skin joints
+global proc dxRigSkinJointsAdd( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	if( `getAttr ($node[0] + ".editable")` == 0 )
+		return;
+	python( "import dxRigUI as drg; drg.addSkinJoints(\"" + $attr + "\")" );
+	dxRigSkinJointsReplace( $attr );
+}
+
+global proc dxRigSkinJointsNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 100 100 100;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 100 drigSkinJointsAddWidget;
+			button -l "Clear" -h 18 -w 100 drigSkinJointsClearWidget;
+			button -l "Select" -h 18 -w 100 dxRigSkinJointsSelectWidget;
+		setParent ..;
+		columnLayout -adj true;
+		rowLayout -nc 2 -cw2 100 300;
+			text -l "" -w 100;
+			textScrollList -ams true -h 300 -w 300 drigSkinJointsListWidget;
+			popupMenu -p drigSkinJointsListWidget -b 3;
+			menuItem -l "Select" dxRigSkinJoinsMenuSelectWidget;
+			menuItem -l "Remove" dxRigSkinJointsMenuRemoveWidget;
+		setParent ..;
+		setParent ..;
+	setUITemplate -ppt;
+	dxRigSkinJointsReplace( $attr );
+}
+
+global proc dxRigSkinJointsReplace( string $attr )
+{
+	string $widget = `textScrollList -e drigSkinJointsListWidget`;
+
+	button -e -c ("dxRigSkinJointsAdd(\"" + $attr + "\")") drigSkinJointsAddWidget;
+	button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigSkinJointsClearWidget;
+	button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") dxRigSkinJointsSelectWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") dxRigSkinJoinsMenuSelectWidget;
+	menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") dxRigSkinJointsMenuRemoveWidget;
+
+	textScrollList -e -ra $widget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] $widget;
+	}
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+//
+//  step meshes
+global proc dxRigStepMeshesAdd( string $attr )
+{
+    string $node[];
+    tokenize( $attr, ".", $node);
+    if( `getAttr ($node[0] + ".editable")` == 0 )
+        return;
+    python( "import dxRigUI as drg; drg.addStepMeshes(\"" + $attr + "\")" );
+    dxRigStepMeshesReplace( $attr );
+}
+
+global proc dxRigStepMeshesNew( string $attr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 4 -cw4 100 100 100 100;
+            text -l "" -w 100;
+            button -l "Add" -h 18 -w 100 drigStepMeshesAddWidget;
+            button -l "Clear" -h 18 -w 100 drigStepMeshesClearWidget;
+            button -l "Select" -h 18 -w 100 drigStepMeshesSelectWidget;
+        setParent ..;
+        columnLayout -adj true;
+        rowLayout -nc 2 -cw2 100 300;
+            text -l "" -w 100;
+            textScrollList -ams true -h 300 -w 300 drigStepMeshesListWidget;
+            popupMenu -p drigStepMeshesListWidget -b 3;
+            menuItem -l "Select" dxRigStepMeshesMenuSelectWidget;
+            menuItem -l "Remove" dxRigStepMeshesMenuRemoveWidget;
+        setParent ..;
+        setParent ..;
+    setUITemplate -ppt;
+    dxRigStepMeshesReplace( $attr );
+}
+
+global proc dxRigStepMeshesReplace( string $attr )
+{
+    string $widget = `textScrollList -e drigStepMeshesListWidget`;
+
+    button -e -c ("dxRigStepMeshesAdd(\"" + $attr + "\")") drigStepMeshesAddWidget;
+    button -e -c ("dxRigStringArrayClear(\"" + $attr + "\", \"" + $widget + "\")") drigStepMeshesClearWidget;
+    button -e -c ("dxRigStringArraySelect(\"" + $attr + "\")") drigStepMeshesSelectWidget;
+
+    // popupMenu
+    menuItem -e -c ("dxRigStringArrayMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") dxRigStepMeshesMenuSelectWidget;
+    menuItem -e -c ("dxRigStringArrayMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") dxRigStepMeshesMenuRemoveWidget;
+
+    textScrollList -e -ra $widget;
+    string $objects[] = `getAttr $attr`;
+    int $i;
+    for( $i=0; $i<size($objects); $i++ ) {
+        textScrollList -e -a $objects[$i] $widget;
+    }
+}
+//--------------------------------------------------------------------------------
+
+
+global proc AEdxRigTemplate( string $nodeName )
+{
+//	string $connected[] = `listConnections ($nodeName + ".output")`;
+//	if( size($connected) == 0 )
+//		connectAttr ($nodeName+".output") ($nodeName+".dynamics");
+
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "dxRig" -collapse 0;
+			editorTemplate -label "Asset Path" -addControl "assetPath";
+			editorTemplate -label "Asset Name" -addControl "assetName";
+			//editorTemplate -label "Version" -addControl "version";
+			editorTemplate -label "Type" -addControl "rigType";
+			editorTemplate -label "Action" -addControl "action";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controllers" -collapse 1;
+		    editorTemplate -label "Rig Bake" -addControl "rigBake";
+			editorTemplate -callCustom "dxRigControllersNew" "dxRigControllersReplace" "controllers";
+            editorTemplate -callCustom "dxRigRootConNew" "dxRigRootConReplace" "rootCon";
+			editorTemplate -callCustom "dxRigCtrlScriptNew" "dxRigCtrlScriptReplace" "scriptString";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "SkinJoints" -collapse 1;
+			editorTemplate -callCustom "dxRigSkinJointsNew" "dxRigSkinJointsReplace" "skinJoints";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Simulation Meshes" -collapse 1;
+			editorTemplate -callCustom "dxRigSimMeshesNew" "dxRigSimMeshesReplace" "simMeshes";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Render Meshes" -collapse 1;
+			editorTemplate -callCustom "dxRigRenderMeshesNew" "dxRigRenderMeshesReplace" "renderMeshes";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Mid Meshes" -collapse 1;
+			editorTemplate -callCustom "dxRigMidMeshesNew" "dxRigMidMeshesReplace" "midMeshes";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Low Meshes" -collapse 1;
+			editorTemplate -callCustom "dxRigLowMeshesNew" "dxRigLowMeshesReplace" "lowMeshes";
+		editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "USD Options" -collapse 1;
+            editorTemplate -label "Variant" -addControl "variant";
+            editorTemplate -label "Export UVs" -addControl "exportUVs";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Subframe Options" -collapse 1;
+            editorTemplate -label "Export Step" -addControl "exportStep";
+            editorTemplate -label "Frame Step Size" -addControl "frameStepSize";
+            editorTemplate -callCustom "dxRigStepMeshesNew" "dxRigStepMeshesReplace" "stepMeshes";
+            editorTemplate -label "File Step Size" -addControl "fileStepSize";
+        editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+	editorTemplate -suppress "output";
+}

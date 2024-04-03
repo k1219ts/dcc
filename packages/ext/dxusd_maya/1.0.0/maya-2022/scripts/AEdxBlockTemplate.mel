@@ -1,0 +1,190 @@
+//Main
+
+global proc dxBlockExtraUiNew(string $attr)
+{
+
+}
+
+global proc dxBlockExtraUiReplace(string $attr)
+{
+
+}
+
+
+global proc AEdxBlockVariantsWidget(string $node, string $attrs[])
+{
+    setUITemplate -pst attributeEditorTemplate;
+    columnLayout -adjustableColumn true;
+
+    if( size($attrs) > 0 ) {
+        for($i=0; $i<size($attrs); $i++) {
+            print ($attrs[$i] + "\n");
+            string $ln = $attrs[$i];
+            string $token[];
+            $num = `tokenize $ln "_" $token`;
+            rowLayout -w 360 -nc 3 -cw3 150 100 100 -co3 5 5 0;
+            text -label $token[$num-1];
+            optionMenu -label "" -width 100;
+            string $val = `getAttr ($node + "." + $ln)`;
+            print $val;
+            text -label $val;
+            setParent ..;
+        }
+    }
+    setParent ..;
+
+    setUITemplate -ppt;
+}
+
+global proc AEdxBlockVariantsNew(string $attr)
+{
+    string $name[];
+    $numTokens = `tokenize $attr "." $name`;
+    string $attrs[] = `listAttr -st "usdVariantSet_*" $name[0]`;
+
+    AEdxBlockVariantsWidget ($name[0], $attrs);
+    AEdxBlockVariantsReplace $attr;
+}
+
+global proc AEdxBlockVariantsReplace(string $plug)
+{
+    print ("# Debug : " + $plug + "\n");
+    string $node[];
+    $n_num = `tokenize $plug "." $node`;
+    string $attrs[] = `listAttr -st "usdVariantSet_*" $node[0]`;
+}
+
+
+global proc AEreferencedXBlockMenuItemUpdate(string $menu, string $node)
+{
+    string $dxBlocks[] = `ls -type "dxBlock" -l`;
+    popupMenu -e -dai $menu;
+
+    string $cmd = ("dxBlock_disconnectReferencedXBlock(\"" + $node + "\")");
+    menuItem -label ("Disconnect") -p $menu -c $cmd;
+    menuItem -divider true -p $menu;
+
+    for($dxBlock in $dxBlocks)
+    {
+        if(isSameObject($dxBlock, $node)) continue;
+        $cmd = ("dxBlock_connectReferencedXBlock(\"" + $dxBlock + "\", \"" + $node + "\")");
+        menuItem -label (shortNameOf($dxBlock)) -p $menu -c $cmd;
+    }
+}
+
+global proc dxBlock_addPopup (string $widget, string $node, string $pmenu)
+{
+
+    if($pmenu == "")
+        $pmenu = `popupMenu -button 3 -parent $widget`;
+
+    string $nodeName[] = stringToStringArray($node, ".");
+    string $pmc = ("AEreferencedXBlockMenuItemUpdate(\"" + $pmenu + "\", \""+ $nodeName[0] +"\")");
+    popupMenu -e -pmc $pmc $pmenu;
+}
+
+global proc dxBlock_disconnectReferencedXBlock(string $node)
+{
+    string $attr = $node + ".referencedXBlock";
+    string $inputs[] = `listConnections -s on -d off -p on $attr`;
+    if(!size($inputs))
+        error ("No connections");
+
+    disconnectAttr ($inputs[0]) $attr;
+}
+
+global proc dxBlock_connectReferencedXBlock(string $src, string $dst)
+{
+    string $inputs[] = `listConnections -s on -d off ($dst + ".referencedXBlock")`;
+    for($input in $inputs)
+    {
+        if(isSameObject($input, $dst))
+            error ($dst + " already connected to " + $src);
+    }
+
+    connectAttr -f ($src + ".message") ($dst + ".referencedXBlock");
+}
+
+
+global proc AEdxBlockUsdNew ( string $pxrStageNode,
+                             string $referencedXBlock,
+                             string $node )
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	attrNavigationControlGrp
+		-label "Pxr Stage Node"
+        -relatedNodes "dxBlockTest"
+		-at $pxrStageNode
+		pxrStageNodeControl;
+
+	string $widget = `attrNavigationControlGrp
+                		-label "Referenced XBlock"
+                		-at $referencedXBlock
+                		referencedXBlockControl`;
+
+    dxBlock_addPopup($widget, $node, "");
+	setUITemplate -ppt;
+}
+
+
+
+global proc AEdxBlockUSDReplace ( string $pxrStageNode,
+                                 string $referencedXBlock,
+                                 string $node)
+{
+	attrNavigationControlGrp -edit
+		-at $pxrStageNode
+		pxrStageNodeControl;
+
+	string $widget = `attrNavigationControlGrp -edit
+                		-at $referencedXBlock
+                		referencedXBlockControl`;
+
+    string $popups[] = `attrNavigationControlGrp -q -pma $widget`;
+    string $popup = "";
+    if(size($popups))
+        $popup = $popups[0];
+
+    dxBlock_addPopup ($widget, $node, $popup);
+}
+
+global proc AEdxBlockTemplate(string $nodeName)
+{
+
+    editorTemplate -beginScrollLayout;
+
+        /* AEtransformMain $nodeName; */
+
+        editorTemplate -beginLayout "Default" -collapse 0;
+            editorTemplate -label "Block Type" -addControl "type";
+            editorTemplate -label "Action" -addControl "action";
+            editorTemplate -label "Root PrimPath" -addControl "rootPrimPath";
+            editorTemplate -label "NS Layer" -addControl "nsLayer";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "File" -collapse 0;
+            editorTemplate -label "Import File" -addControl "importFile";
+            editorTemplate -label "Merge File" -addControl "mergeFile";
+        editorTemplate -endLayout;
+
+        editorTemplate -callCustom "dxBlockExtraUiNew" "dxBlockExtraUiReplace" "output";
+
+        editorTemplate -beginLayout "VariantSets" -collapse 0;
+            /* editorTemplate -callCustom "AEdxBlockVariantsNew" "AEdxBlockVariantsReplace" ""; */
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "USD" -collapse 0;
+            editorTemplate -callCustom "AEdxBlockUsdNew" "AEdxBlockUSDReplace"
+                                        "pxrStageNode" "referencedXBlock"
+                                        $nodeName;
+        editorTemplate -endLayout;
+
+        AEdagNodeInclude $nodeName;
+        /* AEtransformNoScroll $nodeName; */
+
+    editorTemplate -addExtraControls;
+    editorTemplate -endScrollLayout;
+
+    editorTemplate -suppress "output";
+}

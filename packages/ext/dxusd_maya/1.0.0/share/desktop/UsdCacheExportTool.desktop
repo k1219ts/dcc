@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=USD CacheExportTool 3.0
+Comment=USD CacheExportTool 3.0
+Exec=/backstage/dcc/DCC rez-env python-2 pyside2-5.15.2 maya-2018 dxusd_maya usd_maya-19.11 -- CacheExportTool
+Terminal=true
+Type=Application
+Icon=/backstage/share/icons/pxh_gusdIcon.png
+Categories=dexter

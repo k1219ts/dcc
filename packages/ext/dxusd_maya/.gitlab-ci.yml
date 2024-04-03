@@ -1,0 +1,4 @@
+test:
+  script:
+  - DCC maya -v 2018 --terminal
+  - mayapy 1.0.0/testenv/test_RigExporter.py

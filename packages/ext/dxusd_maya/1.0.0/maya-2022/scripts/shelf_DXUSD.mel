@@ -1,0 +1,167 @@
+global proc shelf_DXUSD () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+    shelfButton
+        -enableCommandRepeat 0
+        -enable 1
+        -width 33
+        -height 33
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "USD AssetExportTool"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "USD AssetExportTool"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "Export"
+        -overlayLabelColor 1 0.8153 0
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "USDLogo30.png"
+        -image1 "USDLogo30.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from DXUSD_UI.AssetExporter import AssetExportMain\nAssetExportMain.main()\n"
+        -sourceType "python"
+        -commandRepeatable 0
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "MayaToKatana"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "MtoK Tool"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "MtoK"
+        -overlayLabelColor 0 1 0
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "kat_28.png"
+        -image1 "kat_28.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from DXUSD_UI.mayaToKatana import MainForm\nMainForm.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 0
+        -enable 1
+        -width 33
+        -height 33
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "USD AssetImportTool"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "USD AssetImportTool"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "Import"
+        -overlayLabelColor 1 0.8153 0
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "USDLogo30.png"
+        -image1 "USDLogo30.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from DXUSD_UI.AssetImporter import AssetImportMain\nAssetImportMain.main()\n"
+        -sourceType "python"
+        -commandRepeatable 0
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "MayaToMari"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "MtoM Tool"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "MtoM"
+        -overlayLabelColor 0 1 0
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "Mari.png"
+        -image1 "Mari.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from DXUSD_UI.mayaToMari import MainForm\nMainForm.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 0
+        -enable 1
+        -width 33
+        -height 33
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "USD AttributeController"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "USD AttributeController"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "Attribute"
+        -overlayLabelColor 1 0.8153 0
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "USDLogo30.png"
+        -image1 "USDLogo30.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from DXUSD_UI.txAttrTools import MainForm\nMainForm.main()\n"
+        -sourceType "python"
+        -commandRepeatable 0
+        -flat 1
+    ;
+}
