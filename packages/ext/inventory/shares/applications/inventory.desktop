@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=Inventory
+Comment=Dexter Inventory
+Exec=sh /backstage/dcc/DCC rez-env inventory -- inventory
+Terminal=false
+Type=Application
+Icon=/backstage/share/icons/inventory_icon.png
+Categories=dexter
+

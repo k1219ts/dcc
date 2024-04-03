@@ -1,0 +1,81 @@
+#!/backstage/dcc/DCC rez-env python-2 -- python
+
+import os, sys, argparse, getpass
+
+def makegif(movFilePath):
+    ffmpegCmd = ['/backstage/dcc/DCC', 'rez-env', 'ffmpeg-4.2.0', '--', 'ffmpeg']
+    options = ['-vf', 'scale=320:-1,format=rgb8,format=rgb24', '-r', '10']
+    options += ['-f', 'image2pipe', '-vcodec', 'ppm', '-', '|', 'convert', '-delay']
+    options += ['5', '-loop', '0', '-', 'gif:-', '|', 'convert', '-layers', 'Optimize', '-']
+
+    movDirPath = os.path.dirname(movFilePath)
+    movFileName = os.path.basename(movFilePath)
+
+    tempDir = os.path.join(movDirPath, '.thumbTemp')
+    if not os.path.exists(tempDir):
+        os.makedirs(tempDir)
+
+    gifPath = os.path.join(tempDir, movFileName + '.gif')
+    if os.path.exists(gifPath):
+        return
+    else:
+        cmd = '%s -i "%s" %s "%s"' % (' '.join(ffmpegCmd), movFilePath, ' '.join(options), gifPath)
+        os.system(cmd)
+
+
+def makePreviewJpg(movFilePath):
+    movDirPath = os.path.dirname(movFilePath)
+    movFileName = os.path.basename(movFilePath)
+
+    tempDir = os.path.join(movDirPath, '.thumbTemp')
+    if not os.path.exists(tempDir):
+        os.makedirs(tempDir)
+
+    imageFilePath = os.path.join(tempDir, movFileName + '.jpg')
+
+    point = (20 / 24.0)
+    size = "180x125"
+    ffmpegCmd = ['/backstage/dcc/DCC', 'rez-env', 'ffmpeg-4.2.0', '--', 'ffmpeg']
+    ffmpegCmd += ['-y', '-i', '"%s"' % movFilePath, '-f', 'image2', '-ss', '%f' % point, '-vframes', '1']
+    ffmpegCmd += ['-s', size, '-an', '"%s"' % imageFilePath]
+
+    print ("##")
+    print (' '.join(ffmpegCmd))
+    print ("##")
+    os.system(' '.join(ffmpegCmd))
+
+
+def createThumbnailFunc(dirPath):
+    if not os.path.isdir(dirPath):
+        return
+
+    for movFile in sorted(os.listdir(dirPath)):
+        if not movFile.startswith('.') and (movFile.endswith('.mov') or movFile.endswith('.mp4') or movFile.endswith('.MOV')):
+            movFilePath = os.path.join(dirPath, movFile)
+            if ' ' in movFilePath:
+                movFilePath = os.rename(movFilePath, movFilePath.replace(' ', '_'))
+
+            makegif(movFilePath)
+            makePreviewJpg(movFilePath)
+
+if __name__ == '__main__':
+    selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+    if getpass.getuser() != "render":
+        print ("# please render login.")
+        sys.exit(0)
+    if selected:
+        fileList = selected.split('\n')
+        for selDir in fileList:
+            createThumbnailFunc(selDir)
+        print ("## Complete")
+        sys.exit(0)
+
+    parser = argparse.ArgumentParser(description='inventory make gif')
+
+    parser.add_argument('-s', '--src', type=str, default='', help='inventory mov directory')
+    args, extra = parser.parse_known_args()
+
+    createThumbnailFunc(args.src)
+
+    print ("## Complete")
+    sys.exit(0)

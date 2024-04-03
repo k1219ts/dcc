@@ -1,0 +1,74 @@
+#!/backstage/dcc/DCC rez-env python-2 -- python
+
+import os, sys, argparse, datetime, getpass
+from pymongo import MongoClient
+from dxname import tag_parser
+import dxConfig
+
+DBIP = dxConfig.getConf("DB_IP")
+
+client = MongoClient(DBIP)
+db = client['inventory']
+coll = db['assets']
+
+def insertDBItemInInventory(srcDirPath):
+    print srcDirPath
+    for movFile in sorted(os.listdir(srcDirPath)):
+        if not movFile.startswith('.') and (movFile.endswith('.mov') or movFile.endswith('.mp4') or movFile.endswith('.MOV')):
+            # Find MOV File
+            movFilePath = os.path.join(srcDirPath, movFile)
+            orgPath, ext = os.path.splitext(movFilePath)
+            if not os.path.exists(orgPath):
+                orgPath = movFilePath
+            gifPath = os.path.join(srcDirPath, '.thumbTemp', movFile + '.gif')
+            jpgPath = os.path.join(srcDirPath, '.thumbTemp', movFile + '.jpg')
+            splitPath = orgPath.split('/')
+
+            splitIndex = 0
+            if 'Reference_Comp' not in splitPath:
+                continue
+            else:
+                splitIndex = splitPath.index("Reference_Comp")
+
+
+            doc = {}
+            doc['files'] = {'org': orgPath,
+                            'gif': gifPath,
+                            'thumbnail': jpgPath,
+                            'mov': movFilePath,
+                            'preview': movFilePath}
+            doc['name'] = movFile[:-4]
+            doc['tags'] = tag_parser.run(orgPath)
+            doc['type'] = 'COMP_SRC'
+            doc['project'] = splitPath[splitIndex + 1]
+            doc['category'] = splitPath[splitIndex + 2]
+            doc['project_desc'] = splitPath[splitIndex + 1]
+            doc['enabled'] = True
+            doc['time'] = datetime.datetime.now().isoformat()
+
+            coll.insert_one(doc)
+
+
+if __name__ == '__main__':
+    selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+    if getpass.getuser() != "render":
+        print "# please render login."
+        sys.exit(0)
+    if selected:
+        fileList = selected.split('\n')
+        for selDir in fileList:
+            if selDir == '':
+                continue
+            insertDBItemInInventory(selDir)
+        print "## Complete"
+        sys.exit(0)
+
+    parser = argparse.ArgumentParser(description='inventory update DB')
+
+    parser.add_argument('-s', '--src', type=str, default='', help='inventory mov directory')
+    args, extra = parser.parse_known_args()
+
+    insertDBItemInInventory(args.src)
+
+    print "## Complete"
+    sys.exit(0)

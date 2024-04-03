@@ -1,0 +1,6 @@
+#!/bin/bash
+ 
+export QT_PREFERRED_BINDING=PyQt4
+export PYTHONPATH=/others/backstage/libs/python_lib
+# /backstage/dcc/DCC rez-env python-2 inventory -- python ${REZ_INVENTORY_ROOT}/scripts/inventory.py
+python ${INVENTORY_PATH}/scripts/inventory.py 

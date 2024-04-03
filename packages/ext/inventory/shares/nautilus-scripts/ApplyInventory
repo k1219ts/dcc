@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xterm -hold -e /backstage/dcc/DCC dev rez-env inventory python-2 -- applyInventory $*
