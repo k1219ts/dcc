@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mainMenu>
+  <addScriptItem id="incSave">
+	<parent>file_menu</parent>
+	<label>Save Incremental</label>
+    <scriptCode>
+<![CDATA[
+import hou
+exec(hou.shelves.tool('incSave').script())
+]]>
+    </scriptCode>
+	<insertAfter>h.save_as</insertAfter>
+  </addScriptItem>
+</mainMenu>

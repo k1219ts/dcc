@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<menuDocument>
+    <menu>
+
+        <scriptItem id="dragdrop">
+            <label>Drag &amp; Drop</label>
+            <insertBefore />
+            <context>
+                <expression>len(kwargs["parms"]) > 0 and kwargs["parms"][0].parmTemplate().type().name() == "String" and not 'string_type=NodeReference' in repr(kwargs["parms"][0].parmTemplate().type)</expression>
+            </context>
+            <scriptCode>
+<![CDATA[
+from drop import dropoverlay
+dropoverlay.startup(kwargs["parms"][0])
+]]>
+            </scriptCode>
+        </scriptItem>
+
+        <scriptItem id="open_folder">
+            <label>Open Folder</label>
+            <insertBefore />
+            <context>
+                <expression>len(kwargs["parms"]) > 0 and kwargs["parms"][0].parmTemplate().type().name() == "String" and not 'string_type=NodeReference' in repr(kwargs["parms"][0].parmTemplate().type)</expression>
+            </context>
+            <scriptCode>
+<![CDATA[
+import os
+from utils import openFolder
+
+path = kwargs["parms"][0].eval()
+if not os.path.isdir(path):
+    path = os.path.dirname(path)
+
+openFolder.open( path )
+]]>
+            </scriptCode>
+        </scriptItem>
+
+        <scriptItem id="active_cam">
+            <label>Get Active Camera</label>
+            <insertBefore />
+            <context>
+                <expression>len(kwargs["parms"]) > 0 and 'string_type=NodeReference' in repr(kwargs["parms"][0].parmTemplate().type)</expression>
+            </context>
+            <scriptCode>
+<![CDATA[
+from utils import activeCam
+
+cam = activeCam.get()
+if cam: kwargs["parms"][0].set(cam)
+]]>
+            </scriptCode>
+        </scriptItem>
+
+    </menu>
+</menuDocument>

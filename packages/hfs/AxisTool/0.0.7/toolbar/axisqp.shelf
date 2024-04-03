@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="axisquickplace" label="Quick Place">
+    <memberTool name="quickplacegen"/>
+    <memberTool name="qpsetupsaver"/>
+    <memberTool name="merge0"/>
+    <memberTool name="switchqp"/>
+    <memberTool name="xformQuickPlace"/>
+    <memberTool name="polyextrude::2.0QuickPlace"/>
+    <memberTool name="fuse::2.0QuickPlace"/>
+    <memberTool name="polybevel::2.0QuickPlace"/>
+    <memberTool name="normalQuickPlace"/>
+    <memberTool name="xformQuickPlace0"/>
+  </toolshelf>
+
+  <tool name="quickplacegen" label="Quick Place Generator" icon="BUTTONS_list_add.svg">
+    <script scriptType="python"><![CDATA[import sys
+from hutil.Qt.QtCore import *
+from hutil.Qt.QtGui import *
+from hutil.Qt.QtWidgets import *
+from PySide2 import QtCore, QtUiTools, QtWidgets, QtGui
+
+sel = hou.selectedNodes()
+
+class MyDialog(QDialog):
+    def __init__(self, *args, **kwargs):
+        super(MyDialog, self).__init__()
+        self.setWindowTitle('Quick Place Setup')            
+        self.resize(300, 5)
+        self.setParent(hou.ui.mainQtWindow(), QtCore.Qt.Window)
+       
+        sh = hou.ui.qtStyleSheet()
+        self.setStyleSheet(sh)
+       
+        layout = QVBoxLayout()    
+        layout.setSpacing(5)
+        layout.setSizeConstraint(QLayout.SetMinimumSize)
+       
+        line1 = QHBoxLayout()
+        line1.setSpacing(5)
+        layout.addLayout(line1)
+       
+        # Name Label
+        self.nlabel = QLabel('Node Name(s)')
+        line1.addWidget(self.nlabel)
+       
+        # Group Name
+        init = ''
+        for node in sel:
+            type = node.type().name()
+            if type not in init:
+                init += type+', '
+        if init.endswith(', '): init = init[:-2]
+        self.line = QLineEdit(init)
+        line1.addWidget(self.line)
+       
+        # Layout
+        layout2 = QVBoxLayout()    
+        layout2.setSpacing(15)
+        layout2.setSizeConstraint(QLayout.SetMinimumSize)
+        layout.addLayout(layout2)
+       
+        line2 = QHBoxLayout()
+        line2.setSpacing(30)
+        layout2.addLayout(line2)
+       
+        # Drop on Wire
+        self.drop = QCheckBox('Drop on wire')
+        self.drop.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.drop)
+       
+        # Display Flags
+        self.flag = QCheckBox('Enable Display Flags')
+        self.flag.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.flag)
+                       
+        # Set Selected
+        self.sel = QCheckBox('Select Node')
+        self.sel.setChecked(1)
+        self.sel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.sel)
+       
+        # Conjoin Mode
+        self.conj = QCheckBox('Conjoin Mode')
+        self.conj.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        #line2.addWidget(self.conj)
+       
+        self.sep = hou.qt.Separator()
+        layout2.addWidget(self.sep)
+       
+        # ButtonBox
+        confirm = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)    
+        confirm.setMinimumSize(0, 40)  
+        confirm.accepted.connect(self.accept)
+        confirm.rejected.connect(self.reject)
+        layout2.addWidget(confirm)
+       
+        self.setLayout(layout)
+       
+    def getValues(self):
+        return [self.line.text(),self.drop.isChecked(),self.flag.isChecked(),self.sel.isChecked()]
+       
+dialog = MyDialog()
+dialog.exec_()
+
+if dialog.result() != 1:    sys.exit()
+else:   item = dialog.getValues()
+
+
+# Shelf Tool Build
+def shelff():
+    path = hou.shelves.tool(hou.shelves.runningTool().name()).filePath()
+    path = path.replace('/','\\')
+
+    newtool = hou.shelves.newTool(file_path=path, name=name2+'QuickPlace',
+    label=name2.capitalize()+' Quick Place',
+    script=scriptb,
+    icon=icon)
+
+    shelf = hou.shelves.shelves().get('axisquickplace')
+    tools = shelf.tools()
+    tools = tools + (newtool,)
+   
+    shelf.setTools(tools)
+
+# Icon Function
+def iconf():
+    global icon
+    global cont
+    global cat
+    cont = 0
+
+    # Node Category & Icon
+    if hou.nodeType(hou.sopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.sopNodeTypeCategory(), i).icon()
+        cat = 'hou.sopNodeTypeCategory()'
+    elif hou.nodeType(hou.objNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.objNodeTypeCategory(), i).icon()
+        cat = 'hou.objNodeTypeCategory()'
+    elif hou.nodeType(hou.dopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.dopNodeTypeCategory(), i).icon()
+        cat = 'hou.dopNodeTypeCategory()'
+    elif hou.nodeType(hou.cop2NodeTypeCategory(), i):
+        icon = hou.nodeType(hou.cop2NodeTypeCategory(), i).icon()
+        cat = 'hou.cop2NodeTypeCategory()'
+    elif hou.nodeType(hou.shopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.shopNodeTypeCategory(), i).icon()
+        cat = 'hou.shopNodeTypeCategory()'
+    elif hou.nodeType(hou.vopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.vopNodeTypeCategory(), i).icon()
+        cat = 'hou.vopNodeTypeCategory()'
+    elif hou.nodeType(hou.chopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.chopNodeTypeCategory(), i).icon()
+        cat = 'hou.chopNodeTypeCategory()'
+    else:   cont = 1
+
+# ----------------
+# Create Scripts
+# ----------------
+if type:
+    type = item[0].split(', ')
+    len = len(type)
+    for ind, i in enumerate(type):
+        name2 = i
+        
+        # Node Category & Icon
+        iconf()
+        if cont:    continue
+       
+        # Script
+        scriptb = '''sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if node.type().category() == '''+cat+''':
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode(\"'''+i+'''\")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+'''
+        if item[3]==1:
+            scriptb+='''            n.setSelected(True, True, False)
+'''
+        if item[2]==1:
+            scriptb+='''            n.setDisplayFlag(True)
+            n.setRenderFlag(True)
+'''
+        if item[1]==1:
+            scriptb+='''            if repr(chl) != '()':
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                n.moveToGoodPosition(True, False, True, True)'''
+                
+        shelff()]]></script>
+  </tool>
+
+  <tool name="materialQuickPlace" label="Material Quick Place" icon="SOP_material">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if 1==1:
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode("material")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+            n.setSelected(True, True, False)
+]]></script>
+  </tool>
+
+  <tool name="merge0" label="Merge" icon="SOP_merge">
+    <script scriptType="python"><![CDATA[nodes = hou.selectedNodes()
+parent = nodes[0].parent()
+
+merge = parent.createNode("merge")
+
+def move():
+    merge.moveToGoodPosition(True, False, True, True)
+    #merge.setSelected(True, True, False)
+def flag():
+    merge.setRenderFlag(True)
+    merge.setDisplayFlag(True)
+
+for node in nodes:
+    if(node.type().category() == hou.sopNodeTypeCategory()):
+        merge.setNextInput(node)
+        move()
+        flag()
+    elif(node.type().category() == hou.dopNodeTypeCategory()):
+        merge.setNextInput(node)
+        move()]]></script>
+  </tool>
+
+  <tool name="switchqp" label="Switch" icon="SOP_switch">
+    <script scriptType="python"><![CDATA[nodes = hou.selectedNodes()
+parent = nodes[0].parent()
+
+switch = parent.createNode("switch")
+
+def move():
+    switch.moveToGoodPosition(True, False, True, True)
+    #switch.setSelected(True, True, False)
+def flag():
+    switch.setRenderFlag(True)
+    switch.setDisplayFlag(True)
+
+for node in nodes:
+    if(node.type().category() == hou.sopNodeTypeCategory()):
+        switch.setNextInput(node)
+        move()
+        flag()
+    elif(node.type().category() == hou.dopNodeTypeCategory()):
+        switch.setNextInput(node)
+        move()]]></script>
+  </tool>
+
+  <tool name="qpsetupsaver" label="Quick Place Setup Saver" icon="BUTTONS_list_add.svg">
+    <script scriptType="python"><![CDATA[import sys
+from hutil.Qt.QtCore import *
+from hutil.Qt.QtGui import *
+from hutil.Qt.QtWidgets import *
+from PySide2 import QtCore, QtUiTools, QtWidgets, QtGui
+
+sel = hou.selectedNodes()
+
+try:    sel[0]
+except: sys.exit()
+
+path = sel[0].parent().path()
+
+class MyDialog(QDialog):
+    def __init__(self, *args, **kwargs):
+        super(MyDialog, self).__init__()
+        self.setWindowTitle('Quick Place Setup Saver')            
+        #self.setFixedSize(300, 5)
+        self.resize(300, 5)
+        self.setParent(hou.ui.mainQtWindow(), QtCore.Qt.Window)
+       
+        sh = hou.ui.qtStyleSheet()
+        self.setStyleSheet(sh)
+       
+        layout = QVBoxLayout()    
+        layout.setSpacing(5)
+        layout.setSizeConstraint(QLayout.SetMinimumSize)
+              
+        
+        groupBox = QGroupBox("Rearrange Node Order")
+        layout.addWidget(groupBox)
+        
+        line1 = QHBoxLayout()
+        line1.setSpacing(5)
+        groupBox.setLayout(line1)
+        
+        self.list = QListWidget()
+        self.list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.list.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        for node in sel:
+            self.list.addItem(node.name())
+        line1.addWidget(self.list)
+        
+        
+                        
+        groupBox = QGroupBox("Settings")
+        layout.addWidget(groupBox)
+       
+        line2 = QHBoxLayout()
+        line2.setSpacing(15)
+        groupBox.setLayout(line2)
+       
+        # Drop on Wire
+        self.drop = QCheckBox('Drop on wire')
+        self.drop.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.drop)
+       
+        # Display Flags
+        self.flag = QCheckBox('Enable Display Flags')
+        self.flag.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.flag)
+                       
+        # Set Selected
+        self.sel = QCheckBox('Select Node')
+        self.sel.setChecked(1)
+        self.sel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.sel)
+        
+        
+        # Layout
+        layout2 = QVBoxLayout()
+        layout2.setSpacing(15)
+        layout2.setSizeConstraint(QLayout.SetMinimumSize)
+        layout.addLayout(layout2)
+        
+        groupBox = QGroupBox("Shelf Options")
+        layout2.addWidget(groupBox)
+       
+        line3 = QHBoxLayout()
+        line3.setSpacing(15)
+        groupBox.setLayout(line3)
+       
+        # Name Check
+        self.namecheck = QCheckBox('Default Name')
+        self.namecheck.setChecked(1)
+        self.namecheck.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        self.namecheck.clicked.connect(self.enable)
+        line3.addWidget(self.namecheck)
+       
+        # Name line edit
+        self.name = QLineEdit('')
+        self.name.setEnabled(0)
+        line3.addWidget(self.name)
+                                    
+        self.sep = hou.qt.Separator()
+        layout2.addWidget(self.sep)
+       
+        # ButtonBox
+        confirm = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)    
+        confirm.setMinimumSize(0, 40)  
+        confirm.accepted.connect(self.accept)
+        confirm.rejected.connect(self.reject)
+        layout2.addWidget(confirm)
+       
+        self.setLayout(layout)
+       
+        
+    def enable(self):
+        if self.namecheck.isChecked():
+            self.name.setEnabled(0)
+        else:
+            self.name.setEnabled(1)
+        
+    def getValues(self):
+        return [[str(self.list.item(i).text()) for i in range(self.list.count())],self.drop.isChecked(),self.flag.isChecked(),self.sel.isChecked(),self.namecheck.isChecked(),self.name.text()]
+       
+dialog = MyDialog()
+dialog.exec_()
+
+if dialog.result() != 1:    sys.exit()
+else:   item = dialog.getValues()
+
+
+# Shelf Tool Build
+def shelff():
+    path = hou.shelves.tool(hou.shelves.runningTool().name()).filePath()
+    path = path.replace('/','\\')
+    
+    if not item[4] and item[5]:
+        name3 = item[5]
+    else:
+        name3 = name2.capitalize() + ' Quick Place'
+
+    newtool = hou.shelves.newTool(file_path=path, name=name2+'QuickPlace',
+    label=name3,
+    script=scriptb,
+    icon=icon)
+
+    shelf = hou.shelves.shelves().get('axisquickplace')
+    tools = shelf.tools()
+    tools = tools + (newtool,)
+   
+    shelf.setTools(tools)
+
+# Icon Function
+def iconf():
+    global icon
+    global cont
+    global cat
+    cont = 0
+
+    # Node Category & Icon
+    if hou.nodeType(hou.sopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.sopNodeTypeCategory(), i).icon()
+        cat = 'hou.sopNodeTypeCategory()'
+    elif hou.nodeType(hou.objNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.objNodeTypeCategory(), i).icon()
+        cat = 'hou.objNodeTypeCategory()'
+    elif hou.nodeType(hou.dopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.dopNodeTypeCategory(), i).icon()
+        cat = 'hou.dopNodeTypeCategory()'
+    elif hou.nodeType(hou.cop2NodeTypeCategory(), i):
+        icon = hou.nodeType(hou.cop2NodeTypeCategory(), i).icon()
+        cat = 'hou.cop2NodeTypeCategory()'
+    elif hou.nodeType(hou.shopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.shopNodeTypeCategory(), i).icon()
+        cat = 'hou.shopNodeTypeCategory()'
+    elif hou.nodeType(hou.vopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.vopNodeTypeCategory(), i).icon()
+        cat = 'hou.vopNodeTypeCategory()'
+    elif hou.nodeType(hou.chopNodeTypeCategory(), i):
+        icon = hou.nodeType(hou.chopNodeTypeCategory(), i).icon()
+        cat = 'hou.chopNodeTypeCategory()'
+    else:   cont = 1
+
+# ----------------
+# Create Scripts
+# ----------------
+if 1==1:
+    scriptb = ''
+   
+    resetsel = '''# Reset Selection
+for i, node in enumerate(selog):
+    if i == 0:    node.setSelected(True, True, False)
+    else:   node.setSelected(True, False, False)'''
+   
+    for ind, node in enumerate(item[0]):
+       
+        # Define Node
+        hnode = hou.node(path+'/'+node)
+        i = hnode.type().name()
+        nodeName = hnode.name()
+       
+        # Parameter Dictionary
+        namelist = []
+        evallist = []
+        explist = []
+        for parm in hnode.parms():
+            name = parm.name()
+            val = parm.eval()
+            namelist.append(name)
+            evallist.append(val)
+            try:    explist.append(parm.expression())
+            except: explist.append('')
+                 
+        # Node Category & Icon
+        if ind == 0:
+            name2 = i
+            iconf()
+            if cont:    continue
+       
+           
+        if ind == 0:    scriptb += '''selog = hou.selectedNodes()
+
+'''
+
+        # Script
+        if ind == 0:
+            scriptb += '''sel = hou.selectedNodes()
+if sel:
+    for node in selog:
+        node1 = node'''
+        else:   scriptb += '''        node = hou.selectedNodes()[0]'''
+       
+        scriptb += '''
+        if node.type().category() == '''+cat+''':
+            parent = node.parent()
+            n = parent.createNode(\"'''+i+'''\",\"'''+nodeName+'''\")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+           
+            namelist = '''+repr(namelist)+'''
+            evallist = '''+repr(evallist)+'''
+            explist = '''+repr(explist)+'''
+            for p in range(len(namelist)):
+                name = namelist[p]
+                val = evallist[p]
+                exp = explist[p]
+                n.parm(name).set(val)
+                if exp: n.parm(name).setExpression(exp)
+'''
+        if ind == 0:    scriptb += '''            chl = node.outputs()
+            n1 = n
+'''
+        if item[3]==1 or ind != len(item[0])-1:
+            scriptb+='''            n.setSelected(True, True, False)
+'''
+        if item[2]==1:
+            scriptb+='''            n.setDisplayFlag(True)
+            n.setRenderFlag(True)
+'''
+        if item[1]==1 and ind == len(item[0])-1:
+            scriptb+='''            if chl:
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node1 and child != n1:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                            child.moveToGoodPosition(True, False, True, True)
+                n.moveToGoodPosition(True, False, True, True)
+
+'''            
+        if ind == len(item[0])-1 and not item[3]:  scriptb += resetsel
+               
+    shelff()
+]]></script>
+  </tool>
+
+  <tool name="xformQuickPlace" label="Xform Quick Place" icon="SOP_xform">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if node.type().category() == hou.sopNodeTypeCategory():
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode("xform")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+            n.setSelected(True, True, False)
+            if repr(chl) != '()':
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                n.moveToGoodPosition(True, False, True, True)]]></script>
+  </tool>
+
+  <tool name="polyextrude::2.0QuickPlace" label="Polyextrude::2.0 Quick Place" icon="SOP_polyextrude-2.0">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if node.type().category() == hou.sopNodeTypeCategory():
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode("polyextrude::2.0")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+            n.setSelected(True, True, False)
+            if repr(chl) != '()':
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                n.moveToGoodPosition(True, False, True, True)]]></script>
+  </tool>
+
+  <tool name="fuse::2.0QuickPlace" label="Fuse::2.0 Quick Place" icon="SOP_fuse-2.0">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if node.type().category() == hou.sopNodeTypeCategory():
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode("fuse::2.0")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+            n.setSelected(True, True, False)
+            if repr(chl) != '()':
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                n.moveToGoodPosition(True, False, True, True)]]></script>
+  </tool>
+
+  <tool name="polybevel::2.0QuickPlace" label="Polybevel::2.0 Quick Place" icon="SOP_polybevel-2.0">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if node.type().category() == hou.sopNodeTypeCategory():
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode("polybevel::2.0")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+            n.setSelected(True, True, False)
+            if repr(chl) != '()':
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                n.moveToGoodPosition(True, False, True, True)]]></script>
+  </tool>
+
+  <tool name="normalQuickPlace" label="Normal Quick Place" icon="SOP_normal">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+if sel:
+    for node in sel:
+        if node.type().category() == hou.sopNodeTypeCategory():
+            chl = node.outputs()
+            parent = node.parent()
+            n = parent.createNode("normal")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+            n.setSelected(True, True, False)
+            if repr(chl) != '()':
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                n.moveToGoodPosition(True, False, True, True)]]></script>
+  </tool>
+
+  <tool name="xformQuickPlace0" label="droptofloor" icon="SOP_xform">
+    <script scriptType="python"><![CDATA[selog = hou.selectedNodes()
+
+sel = hou.selectedNodes()
+if sel:
+    for node in selog:
+        node1 = node
+        if node.type().category() == hou.sopNodeTypeCategory():
+            parent = node.parent()
+            n = parent.createNode("xform","centre")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+           
+            namelist = ['group', 'grouptype', 'xOrd', 'rOrd', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz', 'shear1', 'shear2', 'shear3', 'scale', 'parmgroup_pivotxform', 'px', 'py', 'pz', 'prx', 'pry', 'prz', 'parmgroup_prexform', 'prexform_xOrd', 'prexform_rOrd', 'prexform_tx', 'prexform_ty', 'prexform_tz', 'prexform_rx', 'prexform_ry', 'prexform_rz', 'prexform_sx', 'prexform_sy', 'prexform_sz', 'prexform_shear1', 'prexform_shear2', 'prexform_shear3', 'movecentroid', 'attribs', 'updatenmls', 'updateaffectednmls', 'vlength', 'invertxform', 'addattrib', 'outputattrib', 'outputmerge']
+            evallist = ['', 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, '0', '*', 0, 1, 1, 0, 0, 'xform', 2]
+            explist = ['', '', '', '', '-$CEX', '-$CEY', '-$CEZ', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+            for p in range(len(namelist)):
+                name = namelist[p]
+                val = evallist[p]
+                exp = explist[p]
+                n.parm(name).set(val)
+                if exp: n.parm(name).setExpression(exp)
+            chl = node.outputs()
+            n1 = n
+            n.setSelected(True, True, False)
+        node = hou.selectedNodes()[0]
+        if node.type().category() == hou.sopNodeTypeCategory():
+            parent = node.parent()
+            n = parent.createNode("xform","drop_to_floor")
+            n.setNextInput(node)
+            n.moveToGoodPosition(True, False, True, True)
+           
+            namelist = ['group', 'grouptype', 'xOrd', 'rOrd', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz', 'shear1', 'shear2', 'shear3', 'scale', 'parmgroup_pivotxform', 'px', 'py', 'pz', 'prx', 'pry', 'prz', 'parmgroup_prexform', 'prexform_xOrd', 'prexform_rOrd', 'prexform_tx', 'prexform_ty', 'prexform_tz', 'prexform_rx', 'prexform_ry', 'prexform_rz', 'prexform_sx', 'prexform_sy', 'prexform_sz', 'prexform_shear1', 'prexform_shear2', 'prexform_shear3', 'movecentroid', 'attribs', 'updatenmls', 'updateaffectednmls', 'vlength', 'invertxform', 'addattrib', 'outputattrib', 'outputmerge']
+            evallist = ['', 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, '0', '*', 0, 1, 1, 0, 0, 'xform', 2]
+            explist = ['', '', '', '', '', '$YMAX', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+            for p in range(len(namelist)):
+                name = namelist[p]
+                val = evallist[p]
+                exp = explist[p]
+                n.parm(name).set(val)
+                if exp: n.parm(name).setExpression(exp)
+            n.setSelected(True, True, False)
+            if chl:
+                for child in chl:
+                    for ind, c2 in enumerate(child.inputs()):
+                        if c2 == node1 and child != n1:
+                            child.setInput(ind, None)
+                            child.insertInput(ind, n)
+                            child.moveToGoodPosition(True, False, True, True)
+                n.moveToGoodPosition(True, False, True, True)
+
+]]></script>
+  </tool>
+</shelfDocument>

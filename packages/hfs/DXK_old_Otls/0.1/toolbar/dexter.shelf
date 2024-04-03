@@ -1,0 +1,734 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <tool name="tool_dx_global_scene_scale" label="Global Scale" icon="OBJ_null">
+    <script scriptType="python"><![CDATA[
+### created by geonhu.kim
+### last updated 2015/11/15 sun
+### description : 
+###     Create a null node that represents global scene scale / or change the scale value if the node already exists.
+
+
+def sceneScaleNode(nodename):
+    node = hou.node('/obj/%s'%nodename)
+
+    if not node: #new
+        message = 'Create a Global Scene Scale Node'
+        help = 'Input default scale value (e.g 0.2)'
+        buttons = ['Create', 'Cancel']
+        severity = hou.severityType.Message
+        default_choice = 0
+        close_choice = 1
+        title = 'Input'
+        initial_contents = '0.2'
+
+    else: #change
+        message = 'Change Current Scene Scale'
+        help = 'Warning : Related nodes will be affected'
+        buttons = ['Change', 'Cancel']
+        severity = hou.severityType.Warning
+        default_choice = 0
+        close_choice = 1
+        title = 'Input'
+        initial_contents = str(node.parm('scale').eval())
+
+    
+    sceneScale = hou.ui.readInput(message=message, help=help, buttons=buttons, severity=severity, default_choice=default_choice, close_choice=close_choice, title=title, initial_contents=initial_contents)
+
+    if sceneScale[0]: return
+    
+    if not node:
+        root=hou.node('/obj')
+        node = root.createNode('null', node_name=nodename)
+        node.setCurrent(True, clear_all_selected=True)
+        ##node.setPosition([0,0])
+        node.moveToGoodPosition()
+    parms = node.parms()
+    node.setParms({'scale':float(sceneScale[1])})
+    
+    for each in parms:
+        if each.name()=='scale':
+            each.setAutoscope(True)        
+            each.hide(False)
+        else:
+            each.hide(True)
+            
+    group = node.parmTemplateGroup()
+    group.hideFolder("Render", True)
+    group.hideFolder("Misc", True)
+    group.hideFolder("Transform", False)
+    node.setParmTemplateGroup(group)
+    template = group.find('scale')
+    template.setLabel('Global Scale')
+
+sceneScaleNode('Global_Scale')]]></script>
+  </tool>
+
+  <tool name="tool_dx_job_env" label="Auto $JOB" icon="/netapp/fx_cache/_library/toolbar/icons/bundle.png">
+    <script scriptType="python"><![CDATA[
+### created by geonhu.kim
+### last updated 2016/09/28 wed
+### description : 
+###     Set $JOB environment variable automatically according to current hipfile path.
+
+import os
+
+def setAutoJobPath():
+    hipname = hou.hipFile.name()
+    tokens = hipname.split('/')
+    
+    if tokens[3]=='asset' and tokens[4]=='fx':
+        # this task is an asset
+        jobpath = '/netapp/fx_cache/%s/%s/%s'%(tokens[2], tokens[3], tokens[5])
+        extrapath = '/netapp/fx_cache/extra/%s/%s/%s'%(tokens[2], tokens[3], tokens[5])
+    else:
+        # this task is a shot
+        jobpath = '/netapp/fx_cache/%s/%s/%s'%(tokens[2], tokens[4], tokens[5])
+        extrapath = '/netapp/fx_cache/extra/%s/%s/%s'%(tokens[2], tokens[4], tokens[5])
+    oldpath = str(hou.getenv("JOB"))
+    
+    
+    text = "Environment variable $JOB's going to be set automatically"
+    buttons=["OK", "Extra", "Cancel"]
+    severity=hou.severityType.Message
+    help = '%s  ->\n    %s\n    %s(extra)' %(oldpath, jobpath, extrapath)
+    title = 'Confirm'
+    confirm = hou.ui.displayMessage(text=text, buttons=buttons, severity=severity, help=help, default_choice=0, title=title)
+    if confirm==0:
+        targetpath = jobpath
+    elif confirm==1:
+        targetpath = extrapath
+    else:    
+        return
+
+    #set job path
+    os.environ.update({"JOB":targetpath})
+    hou.hscript('set -g JOB = "%s"'%targetpath)
+    hou.allowEnvironmentToOverwriteVariable("JOB", True)
+        
+setAutoJobPath()
+    
+    ]]></script>
+  </tool>
+
+  <tool name="tool_dx_create_geo" label="Geometry" icon="/netapp/fx_cache/_library/toolbar/icons/geo.png">
+    <script scriptType="python"><![CDATA[
+### created by geonhu.kim
+### last updated 2016/09/27 tue
+### description : 
+###     Create a geometry node with fewer clicks, and bring selected objects with object merge nodes.
+
+
+def createGeometryNode(name):
+    node = hou.node('/obj')
+    geoNode = node.createNode('geo', name)
+    return geoNode
+
+def createObjectMergeNode(parent, name, object):
+    omnode = parent.createNode('object_merge', node_name = name)
+    omnode.setParms({ 'objpath1' : object })
+    omnode.setParms({ 'xformtype' : 1 })
+    return omnode
+    
+def main():
+    initial_contents = 'geo1'
+    sel = hou.selectedNodes()
+
+    message = 'Geo Node Name'
+    buttons = ['Create', 'Cancel']
+    severity = hou.severityType.Message
+    default_choice = 0
+    close_choice = 1
+    title = 'Input'
+    
+    prompt = hou.ui.readInput(message=message, buttons=buttons, severity=severity, default_choice=default_choice, close_choice=close_choice, title=title, initial_contents=initial_contents)
+    if prompt[0]==1: return
+    else:
+        nodename = str(prompt[1])
+        new = createGeometryNode(nodename)
+        new.moveToGoodPosition()
+        child = new.children()[0]
+        child.setCurrent(True)
+        
+        if not sel: pass
+        elif len(sel)>0:
+            child.destroy()        
+            buffer = []
+            for each in sel:
+                k = createObjectMergeNode(new, each.name().upper(), each.path())
+                buffer.append(k)
+            new.layoutChildren(horizontal_spacing=-1.0, vertical_spacing=-1.0)
+            buffer[-1].setCurrent(True)
+        
+        
+main()
+
+]]></script>
+  </tool>
+
+  <shelfSet name="shelf_set_3" label="New Shelf Set">
+    <memberToolshelf name="shelf_DEXTER"/>
+  </shelfSet>
+
+  <toolshelf name="shelf_DEXTER" label="Dexter">
+    <memberTool name="tool_dx_job_env"/>
+    <memberTool name="tractor_bgeo"/>
+    <memberTool name="null_preset"/>
+    <memberTool name="merge"/>
+    <memberTool name="tool_dx_create_geo"/>
+    <memberTool name="tool_dx_global_scene_scale"/>
+    <memberTool name="tool_dx_open_folder"/>
+    <memberTool name="tool_5"/>
+    <memberTool name="tool_dx_fxsetuptool1"/>
+    <memberTool name="DX_CamScale"/>
+  </toolshelf>
+
+  <tool name="tool_dx_merge_selected" label="Merge Selected" icon="/netapp/fx_cache/_library/toolbar/icons/merge.png">
+    <script scriptType="python"><![CDATA[# Tuple containing node type categories that have Display flags.
+display_flags = (hou.sopNodeTypeCategory(), hou.dopNodeTypeCategory(), 
+                 hou.chopNodeTypeCategory(), hou.cop2NodeTypeCategory())
+# Tuple containing node type categories that have Render flags.
+render_flags = (hou.sopNodeTypeCategory(), hou.cop2NodeTypeCategory(),
+                hou.popNodeTypeCategory())
+ 
+# Get the pane the tool was invoked from.
+pane = kwargs["pane"]
+ 
+# If it isn't a Network Editor we need to look for one.
+if not isinstance(pane, hou.NetworkEditor):
+    # Get the current desktop
+    desktop = hou.ui.curDesktop()
+ 
+    # Search for Network Editor pane tabs in the desktop that are the
+    # current (displayed) tab.
+    for panetab in desktop.paneTabs():
+        if panetab.isCurrentTab() and isinstance(panetab, hou.NetworkEditor):
+            pane = panetab
+            break
+    # Throw an OperationFailed exception if none were found.
+    else:
+        raise hou.OperationFailed("No Network Editor pane tabs found.")
+ 
+# Get the current path of the editor.
+cwd = pane.pwd()
+ 
+# Get a list of selected nodes that we will merge.
+selected = [child for child in cwd.children() if child.isSelected()]
+ 
+# If there are nodes selected.
+if len(selected) > 0:
+    # Get the node type category for the context the pane is in.
+    type_category = cwd.childTypeCategory()
+    merge_node = cwd.createNode("merge")
+ 
+    for child in selected:
+        # Plug the each child into the merge.
+        merge_node.setNextInput(child)
+ 
+        # If this context uses Display flags and the display flag is
+        # set on one of the children, set the display flag on the
+        # Merge.
+        if type_category in display_flags and child.isDisplayFlagSet():
+            merge_node.setDisplayFlag(True)
+ 
+        # If this context uses Render flags and the render flag is
+        # set on one of the children, set the render flag on the
+        # Merge.
+        if type_category in render_flags and child.isRenderFlagSet():
+            merge_node.setRenderFlag(True)
+ 
+    merge_node.moveToGoodPosition()
+    merge_node.setSelected(True, True)]]></script>
+  </tool>
+
+  <tool name="tool_1" label="SET DCM" icon="$HFS/houdini/help/icons/large/COP2/zcomp.png">
+    <script scriptType="python"><![CDATA[import os
+import sys
+
+def setDCMparms():
+    sel = hou.selectedNodes()
+    ifdnodes = [each for each in sel if str(each.type()).find('ifd')>-1]
+    if not ifdnodes:
+        hou.ui.displayMessage("No mantra node is selected.", title='Confirm', buttons=['OK'])
+        return
+    """
+    for each in ifdnodes:
+        try:
+            addParms_by_hardcode(each)
+        except:
+            pass
+   """
+    
+"""
+nodes = hou.selectedNodes()
+
+ifdnodes = [each for each in nodes if str(each.type()).find('ifd')>-1]
+
+for each in ifdnodes:
+    each.setParms({'vm_deepresolver':'camera'})
+    filename = each.parm('vm_picture').eval()
+filename = '/home/geonhu.kim/render/untitled.mantra1.0001.exr'
+
+def getDeepFileName(filename):
+    file = filename.split('/')[-1]
+    token = file.split('.')[-3]
+    deepname = '%s_deep'%token
+    print os.path.join(file)
+    
+"""
+
+#getDeepFileName(filename)
+
+
+def addParms_by_hardcode(node):
+
+    hou_parm_template = hou.IntParmTemplate("vm_dcmcompression", "DCM Compression", 1, default_value=([2]), min=0, max=10, min_is_strict=False, max_is_strict=False, naming_scheme=hou.parmNamingScheme.Base1)
+    hou_parm_template.setConditional( hou.parmCondType.DisableWhen, "{ vm_deepresolver != camera }")
+    hou_parm_template.setHelp("Compression value between 0 and 10. Used to limit the number of samples which are stored in a lossy compression mode. The compression parameter applies to opacity values, and determines the maximum possible error in opacity for each sample. For compression greater than 0, the following relationship holds: OfError = 1/(2^(10-compression))")
+    hou_parm_template.setTags({"spare_category": "Deep Output"})
+    try:
+        node.addSpareParmTuple(hou_parm_template)
+    except:
+        pass
+    
+    hou_parm_template = hou.StringParmTemplate("vm_dcmpzstorage", "DCM Z Storage", 1, default_value=(["real16"]), naming_scheme=hou.parmNamingScheme.Base1, string_type=hou.stringParmType.Regular, menu_items=(["real16","real32","real64"]), menu_labels=(["16 bit float","32 bit float","64 bit float"]), icon_names=([]), item_generator_script="", item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
+    hou_parm_template.setConditional( hou.parmCondType.DisableWhen, "{ vm_deepresolver != camera }")
+    hou_parm_template.setHelp("Specifies the amount of bits to use to store opacity samples. The default is 32 bits. Smaller values may cause unnecessary discretization of samples of sample far away from the camera, but can save substantially on file size.")
+    hou_parm_template.setTags({"spare_category": "Deep Output"})
+    
+    try:
+        node.addSpareParmTuple(hou_parm_template)    
+    except:
+        pass
+
+    hou_parm_template = hou.FloatParmTemplate("vm_dcmzbias", "DCM Z-Bias", 1, default_value=([0.01]), min=0, max=10, min_is_strict=False, max_is_strict=False, look=hou.parmLook.Regular, naming_scheme=hou.parmNamingScheme.Base1)
+    hou_parm_template.setConditional( hou.parmCondType.DisableWhen, "{ vm_deepresolver != camera }")
+    hou_parm_template.setHelp("Used in compression to merge together samples which are closer than the given threshold. Samples that are closer together than this bias value, are merged into a single sample and storad at the average z value of all the merged samples.")
+    hou_parm_template.setTags({"spare_category": "Deep Output"})
+
+    try:
+        node.addSpareParmTuple(hou_parm_template)    
+    except:
+        pass
+
+    
+    
+def createDCMparmTemplateAsCode():
+    path = "/netapp/fx_cache/_library/toolbar/parmTemplateCodes/"
+    # Get a reference to the target parameter template.
+    node = hou.node("/out/mantra1")
+    parms = ['vm_dcmcompression', 'vm_dcmpzstorage', 'vm_dcmzbias']
+    for each in parms:
+        filename = os.path.join(path, '%s.py'%each)
+        parm_template = node.parm(each).parmTemplate()
+        # Execute asCode and write the function definition to a file.
+        #code = parm_template.asCode(function_name="createParmTemplate_%s"%each)
+        code = parm_template.asCode()
+        source_file = open(filename, 'w')
+        source_file.write(code)
+        source_file.close()
+
+#createDCMparmTemplateAsCode()
+
+def restoreDCMparmTemplateFromCode(node):
+    path = "/netapp/fx_cache/_library/toolbar/parmTemplateCodes/"
+    parms = ['vm_dcmcompression', 'vm_dcmpzstorage', 'vm_dcmzbias']    
+    sys.path.append(path)
+    for each in parms:
+        filename = os.path.join(path, '%s.py'%each)
+        execfile(filename)
+        print hou_parm_template
+        # Add a spare parameter to the node using the saved parameter
+        # template.
+        node.addSpareParmTuple(hou_parm_template)
+    
+        try:
+            filename = os.path.join(path, '%s.py'%each)
+            execfile(filename)
+            # Add a spare parameter to the node using the saved parameter
+            # template.
+            node.addSpareParmTuple(hou_parm_template)
+        except:
+            print 'raised'
+            pass
+
+setDCMparms()]]></script>
+  </tool>
+
+  <tool name="tractor_bgeo" label="BGEO / VDB" icon="/netapp/fx_cache/_library/toolbar/icons/std_tractor.png">
+    <script scriptType="python"><![CDATA[
+### created by geonhu.kim
+### last updated 2016/04/18 mon
+### description : 
+###     Create a pair of Dx_TractorSimulation node and file sop
+
+import hou
+
+def createdxQueueGeo():
+    selected = hou.selectedNodes()
+    if not len(selected)==1: return
+    
+    sel = selected[0]
+    
+    pos = sel.position()
+    
+    obj = sel.parent()
+    
+    dxQueue = obj.createNode('DX_Queue_Simulation')
+    dxQueue.setPosition([pos[0], pos[1]-1])
+    dxQueue.setFirstInput(sel)
+    dxQueue.setParms({'sopoutput':'$JOB/'})
+    
+    outFilePath = dxQueue.parm('sopoutput')
+    
+    hipname = hou.hipFile.name()
+    title = hipname.split('/')[-1].split('.')[0]
+    titleParm = dxQueue.parm('tr_title')
+    titleParm.set(title)
+    
+    fileSop = obj.createNode('file')
+    fileSop.parm('missingframe').set(1)
+    fileSop.setPosition([pos[0], pos[1]-2])
+    
+    inFilePath = fileSop.parm('file')
+    
+    inFilePath.set(outFilePath)
+    
+    cs = hou.Color((1, 0.7, 0.3))
+    
+    dxQueue.setColor(cs)
+    fileSop.setColor(cs)
+    
+    sel.setSelected(0)
+    dxQueue.setSelected(1)
+    
+createdxQueueGeo()
+    
+    
+]]></script>
+  </tool>
+
+  <tool name="tractor_alembic" label="Alembic" icon="/netapp/fx_cache/_library/toolbar/icons/std_tractor.png">
+    <script scriptType="python"><![CDATA[
+### created by geonhu.kim
+### last updated 2016/04/18 mon
+### description : 
+###     Create a pair of Dx_TractorAlembic node and alembic sop
+
+import hou
+
+def createDxTractorAlembic():
+    selected = hou.selectedNodes()
+    if not len(selected)==1: return
+    
+    sel = selected[0]
+    
+    pos = sel.position()
+    
+    obj = sel.parent()
+    
+    dxTractor = obj.createNode('DX_TractorAlembic')
+    dxTractor.setPosition([pos[0], pos[1]-1])
+    dxTractor.setFirstInput(sel)
+
+    outFilePath = dxTractor.parm('filename')
+    
+    alembicSop = obj.createNode('alembic')
+    alembicSop.parm('missingfile').set(1)
+    alembicSop.setPosition([pos[0], pos[1]-2])
+
+    inFilePath = alembicSop.parm('fileName')
+    
+    inFilePath.set(outFilePath)
+    
+    cs = hou.Color((0.3, 1, 0.7))
+    
+    hipname = hou.hipFile.name()
+    title = hipname.split('/')[-1].split('.')[0]
+    titleParm = dxTractor.parm('tr_title')
+    titleParm.set(title)
+    
+    dxTractor.setColor(cs)
+    alembicSop.setColor(cs)
+    
+    sel.setSelected(0)
+    dxTractor.setSelected(1)
+
+createDxTractorAlembic()
+    
+    
+]]></script>
+  </tool>
+
+  <tool name="tool_dx_open_folder" label="Open Folder" icon="/netapp/fx_cache/_library/toolbar/icons/folder.png">
+    <script scriptType="python"><![CDATA[
+### created by geonhu.kim
+### last updated 2016/06/13 mon
+### description : 
+###     Open a folder from selected file sop or mantra rop
+
+import os
+import subprocess
+
+def openFileFolder():
+    sel = hou.selectedNodes()
+    if not len(sel)==1: return
+    
+    node = sel[0]
+    nodeType = node.type()
+    #kw = ["ifd", "file"]
+    typeparms = {"<hou.SopNodeType for Sop file>":"file", "<hou.SopNodeType for Sop filecache>":"file", "<hou.SopNodeType for Sop DX_Queue_Simulation>":"sopoutput","<hou.NodeType for Sop rop_geometry>":"sopoutput", "<hou.NodeType for Driver ifd>":"vm_picture"}
+    
+    for each in typeparms:
+        if str(nodeType) == str(each):
+            parm = typeparms[each]
+            fullpath = node.parm(parm).eval()
+            tokens = fullpath.split('/')
+            if len(tokens)<2:
+                hou.ui.displayMessage("File folder can't be specified")
+                return
+                
+            folder = os.path.join(*tokens[1:-1])
+            folder = '/'+folder
+            #hou.ui.displayMessage(folder)
+            subprocess.Popen(['xdg-open', folder])
+
+openFileFolder()]]></script>
+  </tool>
+
+  <tool name="tool_dx_fxsetuptool1" label="Scene Setup" icon="/netapp/backstage/pub/lib/python_lib/houdini_python/setuplogo.png">
+    <script scriptType="python"><![CDATA[### created by kyoungha.kim
+### last updated 2016/06/30 Thu
+
+# -*- coding: utf-8 -*-
+
+
+from houdini_python import scene_setup
+scene_setup.main()]]></script>
+  </tool>
+
+  <tool name="null_preset" label="NULL:preset" icon="SOP_null">
+    <helpURL>operator:Sop/null</helpURL>
+    <toolMenuContext name="network">
+      <contextOpType>Sop/null</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputnode = None
+inputindex = -1
+inputnode = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputnode = pane_node.node(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputnode = pane_node.node(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputnode is None:
+            inputnode = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+    if not autoplace and not pane.autoPlaceNodes() and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputnode is None:
+            pos = pane.selectPosition(inputnode, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputnode, outputindex,
+                                      outputnode, inputindex)
+    if pos is None and pane.autoPlaceNodes():
+        pos = pane.cursorPosition()
+        
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('null'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script: Tuesday September 27, 18:32 2016
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_geo1_null1 (Sop/null)
+set _obj_geo1_null1 = `run("opadd -e -n -v null null1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_null1
+opspareds '    parm {   name    "copyinput"     baseparm        label   "Copy Input"    export  none     }     parm {   name    "cacheinput"    baseparm        label   "Cache Input"   export  none     }     parm {   name    "sepparm"       label   "Separator"     type    separator       default { "" }  range   { 0 1 }         export  none     }     parm {   name    "labelparm"     label   "    :: Presets ::"     type    label   default { "" }  range   { 0 1 }         export  none     }     parm {   name    "parm2"         label   "OUT"   type    button  joinnext        default { "1" }         range   { 0 1 }         export  none    parmtag { "script_callback" "hou.pwd().setName(\'OUT\')" }      parmtag { "script_callback_language" "python" }     }     parm {        name    "parm3"         label   "COLL"  type    button  joinnext        default { "1" }         range   { 0 1 }         export  none    parmtag { "script_callback" "hou.pwd().setName(\'COLL\')" }     parmtag { "script_callback_language" "python" }     }     parm {        name    "parm"  label   "RENDER"        type    button  default { "1" }         range   { 0 1 }         export  none    parmtag { "script_callback" "hou.pwd().setName(\'RENDER\');hou.pwd().setRenderFlag(True)" }     parmtag { "script_callback_language" "python" }     } ' $_obj_geo1_null1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -c off -e on -b off $_obj_geo1_null1
+opexprlanguage -s hscript $_obj_geo1_null1
+opuserdata -n '___toolcount___' -v '57' $_obj_geo1_null1
+opuserdata -n '___toolid___' -v 'null1' $_obj_geo1_null1
+opset -p on $_obj_geo1_null1
+
+opcf $arg1
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_geo1_null1
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_geo1_null1
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="merge" label="Merge" icon="/netapp/fx_cache/_library/toolbar/icons/merge.png">
+    <script scriptType="python"><![CDATA[def createMergeNode():
+    sel = hou.selectedNodes()
+    if not sel: return
+    
+    pwd = sel[-1].parent()
+    mergeNode = pwd.createNode('merge')
+    #mergeNode.moveToGoodPosition()
+    buffer = []
+    for each in sel:
+        buffer.append(each.position())
+        mergeNode.setNextInput(each)
+    
+    avg = [float(sum(col))/(len(col)) for col in zip(*buffer)]
+    
+    mergeNode.setPosition(avg)
+    mergeNode.move(hou.Vector2(0, -2))
+    try:
+        mergeNode.setParms({'affectortype':2})
+    except:
+        pass
+    mergeNode.setCurrent(True, clear_all_selected=True)
+    
+createMergeNode()
+    ]]></script>
+  </tool>
+
+  <tool name="tool_5" label="Transfer Parms" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[snode = hou.selectedNodes()[0]
+tnode = hou.selectedNodes()[1]
+
+for each in snode.parms():
+    try:
+        tnode.setParms({each.name():each.eval()})
+    except:
+        pass]]></script>
+  </tool>
+
+  <tool name="DX_CamScale" label="DX_CamScale" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import DX_Import
+
+def script(axis):
+    str="""import DX_Import
+return DX_Import.camScale({})
+""".format(axis)
+    return str
+    
+def DX_CamScale():
+    selNode = hou.selectedNodes()
+    if not selNode: 
+        hou.ui.displayMessage("Please select node.")    
+        return
+    camNode=[]
+    
+    for i in selNode:
+        if(i.type().name()=="cam"):
+            camNode.append(i)
+            
+        temp = i.recursiveGlob('*', hou.nodeTypeFilter.ObjCamera)
+        for j in temp:
+            camNode.append(j)
+        
+    for i in camNode:
+        i.parmTuple("s").deleteAllKeyframes()
+        i.parm("sx").setExpression(script(0),language =hou.exprLanguage.Python)
+        i.parm("sy").setExpression(script(1),language =hou.exprLanguage.Python)
+        i.parm("sz").setExpression(script(2),language =hou.exprLanguage.Python)    
+        
+        
+DX_CamScale()  
+]]></script>
+  </tool>
+</shelfDocument>

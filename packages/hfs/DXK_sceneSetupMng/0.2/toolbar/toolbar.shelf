@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="DXK_Tools" label="DXK_Tools">
+    <memberTool name="DXK_sceneSetupMng"/>
+    <memberTool name="USD Scene Setup"/>
+    <memberTool name="inventory"/>
+    <memberTool name="makeRenderJobSet"/>
+  </toolshelf>
+
+  <tool name="sceneSetupMng" label="sceneSetupMng" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import sceneSetupManager.Main as Main
+reload(Main)
+
+Main.main()
+
+#dialog = MainForm(hou.qt.mainWindow())
+# dialog.setParent(hou.qt.mainWindow(), QtCore.Qt.Dialog)
+
+#dialog.show()
+
+# Main.main()]]></script>
+  </tool>
+
+  <tool name="USD Scene Setup" label="Usd Scene Setup" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import DXUsdSceneSetup
+DXUsdSceneSetup.sceneSetup()]]></script>
+  </tool>
+  <tool name="inventory" label="inventory" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import inventory
+reload(inventory)
+window = inventory.Inventory()
+window.show()]]></script>
+  </tool>
+  <tool name="makeRenderJobSet" label="makeRenderJobSet" icon="PLASMA_App">
+    <script scriptType="python">
+      <![CDATA[import makeRenderJobSet
+reload(makeRenderJobSet) 
+makeRenderJobSet.main()]]>
+    </script>
+  </tool>
+
+</shelfDocument>

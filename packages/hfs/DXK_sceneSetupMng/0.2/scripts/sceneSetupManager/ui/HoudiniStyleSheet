@@ -1,0 +1,7 @@
+QWidget { background:#444444; }
+QGroupBox { background-color: #494949;}
+QGroupBox::title {
+    color: #c8c8c8;
+    font:bold 15px;
+}
+QListView { background: #2b2b2b; }

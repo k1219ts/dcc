@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<menuDocument>
+    <menu allowRedundantSeparators="True">
+
+        <scriptItem id="assignment">
+            <label>Material Assignment</label>
+            <insertBefore />
+            <context>
+                <expression>kwargs['node'].type().category().name() == 'Vop' and kwargs['node'].type().name() in ['octane_vopnet', 'redshift_vopnet', 'principledshadercore', 'principledshader::2.0', 'materialbuilder', 'arnold_materialbuilder'] or kwargs['node'].type().category().name() == 'Shop' and kwargs['node'].type().name() in ['arnold_vopnet', 'redshift_vopnet', 'octane_vopnet', 'vopmaterial']</expression>
+            </context>
+            <scriptCode>
+<![CDATA[
+from mat import assignment
+
+reload(assignment)
+
+assignment.run(kwargs['node'])
+]]>
+            </scriptCode>
+        </scriptItem>
+
+        <scriptItem id="textosprite">
+            <label>Change to Sprite</label>
+            <insertBefore />
+            <context>
+                <expression>kwargs['node'].type().name() == 'redshift::TextureSampler'</expression>
+            </context>
+            <scriptCode>
+<![CDATA[
+from utils import matConvert
+
+reload(matConvert)
+
+matConvert.sprite(kwargs['node'])
+]]>
+            </scriptCode>
+        </scriptItem>
+
+        <scriptItem id="normtobump">
+            <label>Change to Bump</label>
+            <insertBefore />
+            <context>
+                <expression>kwargs['node'].type().name() == 'redshift::NormalMap'</expression>
+            </context>
+            <scriptCode>
+<![CDATA[
+from utils import matConvert
+
+reload(matConvert)
+
+matConvert.normal(kwargs['node'])
+]]>
+            </scriptCode>
+        </scriptItem>
+
+        <separatorItem/>
+
+    </menu>
+</menuDocument>

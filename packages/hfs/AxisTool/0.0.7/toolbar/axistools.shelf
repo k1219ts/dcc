@@ -1,0 +1,2678 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <tool name="reverseframes" label="Reverse Frames" icon="hicon:/SVGIcons.index?BUTTONS_cook.svg">
+    <script scriptType="python"><![CDATA[import sys
+try:
+    channel_editor = hou.ui.paneTabOfType(hou.paneTabType.ChannelEditor)
+    keyframes = channel_editor.graph().selectedKeyframes()
+except:
+    hou.ui.displayMessage("Animation Editor not open.",title="Error",severity=hou.severityType.Error,close_choice=0)
+    sys.exit()
+    
+# Find Selected keyframes
+framelist = []
+for parm in keyframes.keys():
+    for key in keyframes[parm]:
+        framelist.append(key.frame())
+        parm.setKeyframe(key)
+
+try:
+    # Get info about keyframe list
+    min = min(framelist)
+    max = max(framelist)
+    shift = max - min
+except: 
+    hou.ui.displayMessage('No keyframes selected.',title="Error",severity=hou.severityType.Error,close_choice=0)
+    sys.exit()
+
+# Set reversed keyframes
+for parm in keyframes.keys():
+    for key in keyframes[parm]:
+        if key.frame() != min:
+            parm.deleteKeyframeAtFrame(key.frame())
+            
+            difference = key.frame() - min
+            key.setFrame(min-difference)
+            parm.setKeyframe(key)
+            
+# Shift Keyframes
+for parm in keyframes.keys():
+    for key in keyframes[parm]:
+        parm.deleteKeyframeAtFrame(key.frame())
+        key.setFrame(key.frame() + shift)
+        parm.setKeyframe(key)]]></script>
+  </tool>
+
+  <tool name="extractsel" label="Extract 1" icon="SHELF_extract_object">
+    <script scriptType="python"><![CDATA[import colorsys,sys
+
+sel = hou.selectedNodes()
+
+# Error message
+if not sel:
+    hou.ui.displayMessage('SOPs not selected.', buttons=('OK',), severity=hou.severityType.Error, default_choice=0, close_choice=0, help=None, title='Error')
+    sys.exit()
+
+# Dialogue
+Dialog = hou.ui.readInput('Geo Extractor', buttons=('Separate Objects','Instances','Extract Packed','Cancel'), default_choice=0, close_choice=3, help='Leave blank to use colour defaults.', title='Extractor')
+if Dialog[0] == 3:
+    sys.exit()
+
+#movelst = [hou.node(sel[0].path()+'/../')]
+movelst = []
+
+# Defaults
+if Dialog[0] == 0:
+    sep = hou.ui.displayMessage(text='Use Node Name?                                     ',title='Node Name',buttons=('Yes','No'),default_choice=1)
+    for node in sel:
+        # Paths
+        gnode2 = node.path()[:node.path().rfind('/')]
+        gnode = gnode2[gnode2.rfind('/')+1:]
+        if Dialog[1]:
+            gnode = Dialog[1]
+            if ' ' in gnode:
+                gnode = gnode.replace(' ','_')
+        # Color 
+        red = 0
+        orange = 0
+        yellow = 0
+        green = 0
+        cyan = 0
+        blue = 0
+        purple = 0
+        pink = 0
+        
+        for c in hou.node(node.path()+'/../').children():
+            if 'r_OUT' in c.name():
+                red = 1
+            elif 'o_OUT' in c.name():
+                orange = 1
+            elif 'y_OUT' in c.name():
+                yellow = 1
+            elif 'g_OUT' in c.name():
+                green = 1
+            elif 'c_OUT' in c.name():
+                cyan = 1
+            elif 'b_OUT' in c.name():
+                blue = 1
+            elif 'p_OUT' in c.name():
+                purple = 1
+            elif 'pnk_OUT' in c.name():
+                pink = 1
+        
+        if red != 1:
+            color = colorsys.hsv_to_rgb(0,1,1)
+            cd = 'r'
+        elif orange != 1:
+            color = colorsys.hsv_to_rgb(0.0472222,1,1)
+            cd = 'o'
+        elif yellow != 1:
+            color = colorsys.hsv_to_rgb(0.15,1,1)
+            cd = 'y'
+        elif green != 1:
+            color = colorsys.hsv_to_rgb(0.288889,1,1)
+            cd = 'g'
+        elif cyan != 1:
+            color = colorsys.hsv_to_rgb(0.494444,1,1)
+            cd = 'c'
+        elif blue != 1:
+            color = colorsys.hsv_to_rgb(0.663889,1,1)
+            cd = 'b'
+        elif purple != 1:
+            color = colorsys.hsv_to_rgb(0.708333,1,1)
+            cd = 'p'
+        elif pink != 1:
+            color = colorsys.hsv_to_rgb(0.841667,1,1)
+            cd = 'pnk'
+        else:
+            color = colorsys.hsv_to_rgb(0,0,1)
+            cd = '1'
+            
+        # Null
+        if sep == 0:    null = node.createOutputNode('null', node.name()+'_OUT')
+        else:   null = node.createOutputNode('null', gnode + '_' + cd + '_OUT')
+        null.setColor(hou.Color(color))
+        path = null.path()
+        # Geo Node
+        if sep == 0:    geo = hou.node('/obj').createNode('geo', node.name())
+        else:   geo = hou.node('/obj').createNode('geo', gnode + '_' + cd + '_OUT') 
+        geo.setColor(hou.Color(color))
+        upos = hou.node(gnode2)
+        cpos = upos.position()
+        cpos = (cpos[0]-2.5, cpos[1])
+        geo.setPosition(cpos)
+        geo.moveToGoodPosition()
+        omerge = geo.createNode('object_merge', null.name())
+        omerge.parm("objpath1").set(path)
+        omerge.moveToGoodPosition()
+        omerge.parm("xformtype").set(1)
+        movelst.append(geo)
+    hou.node('/obj/').layoutChildren(movelst)
+    
+# Instance
+elif Dialog[0] == 1:
+        
+    # Color 
+    red = 0
+    orange = 0
+    yellow = 0
+    green = 0
+    cyan = 0
+    blue = 0
+    purple = 0
+    pink = 0
+    
+    for c in hou.node(sel[0].path()+'/../').children():
+        if 'r_OUT' in c.name():
+            red = 1
+        elif 'o_OUT' in c.name():
+            orange = 1
+        elif 'y_OUT' in c.name():
+            yellow = 1
+        elif 'g_OUT' in c.name():
+            green = 1
+        elif 'c_OUT' in c.name():
+            cyan = 1
+        elif 'b_OUT' in c.name():
+            blue = 1
+        elif 'p_OUT' in c.name():
+            purple = 1
+        elif 'pnk_OUT' in c.name():
+            pink = 1
+    
+    if red != 1:
+        color = colorsys.hsv_to_rgb(0,1,1)
+        cd = 'r'
+    elif orange != 1:
+        color = colorsys.hsv_to_rgb(0.0472222,1,1)
+        cd = 'o'
+    elif yellow != 1:
+        color = colorsys.hsv_to_rgb(0.15,1,1)
+        cd = 'y'
+    elif green != 1:
+        color = colorsys.hsv_to_rgb(0.288889,1,1)
+        cd = 'g'
+    elif cyan != 1:
+        color = colorsys.hsv_to_rgb(0.494444,1,1)
+        cd = 'c'
+    elif blue != 1:
+        color = colorsys.hsv_to_rgb(0.663889,1,1)
+        cd = 'b'
+    elif purple != 1:
+        color = colorsys.hsv_to_rgb(0.708333,1,1)
+        cd = 'p'
+    elif pink != 1:
+        color = colorsys.hsv_to_rgb(0.841667,1,1)
+        cd = 'pnk'
+    else:
+        color = colorsys.hsv_to_rgb(0,0,1)
+        cd = '1'
+          
+    for node in sel:
+    
+        # Name Definition
+        gnode2 = node.path()[:node.path().rfind('/')]
+        name = gnode2[gnode2.rfind('/')+1:]
+        if Dialog[1]:
+            name = Dialog[1]
+        if ' ' in name:
+            name = name.replace(' ','_')
+                    
+        # Null
+        null = node.createOutputNode('null', name + '_' + cd +'_OUT1')
+        null.setColor(hou.Color(color))
+        path = null.path()
+        # Geo Node
+        geo = hou.node('/obj').createNode('geo', name + '_' + cd + '_OUT1')
+        geo.setColor(hou.Color(color))
+        upos = hou.node(gnode2)
+        cpos = upos.position()
+        cpos = (cpos[0]-2.5, cpos[1])
+        geo.setPosition(cpos)
+        geo.moveToGoodPosition()
+        omerge = geo.createNode('object_merge', null.name())
+        omerge.parm("objpath1").set(path)
+        omerge.moveToGoodPosition()
+        omerge.parm("xformtype").set(1)
+        movelst.append(geo)
+    hou.node('/obj/').layoutChildren(movelst)
+    
+# Pack
+elif Dialog[0] == 2:
+    movelst = [hou.node(sel[0].path()+'/../')]
+    for node in sel:
+        # Paths
+        gnode2 = node.path()[:node.path().rfind('/')]
+        gnode = gnode2[gnode2.rfind('/')+1:]
+        if Dialog[1]:
+            gnode = Dialog[1]
+            if ' ' in gnode:
+                gnode = gnode.replace(' ','_')
+                
+        # Color 
+        red = 0
+        orange = 0
+        yellow = 0
+        green = 0
+        cyan = 0
+        blue = 0
+        purple = 0
+        pink = 0
+        
+        for c in hou.node(node.path()+'/../').children():
+            if 'r_OUT' in c.name():
+                red = 1
+            elif 'o_OUT' in c.name():
+                orange = 1
+            elif 'y_OUT' in c.name():
+                yellow = 1
+            elif 'g_OUT' in c.name():
+                green = 1
+            elif 'c_OUT' in c.name():
+                cyan = 1
+            elif 'b_OUT' in c.name():
+                blue = 1
+            elif 'p_OUT' in c.name():
+                purple = 1
+            elif 'pnk_OUT' in c.name():
+                pink = 1
+        
+        if red != 1:
+            color = colorsys.hsv_to_rgb(0,1,1)
+            cd = 'r'
+        elif orange != 1:
+            color = colorsys.hsv_to_rgb(0.0472222,1,1)
+            cd = 'o'
+        elif yellow != 1:
+            color = colorsys.hsv_to_rgb(0.15,1,1)
+            cd = 'y'
+        elif green != 1:
+            color = colorsys.hsv_to_rgb(0.288889,1,1)
+            cd = 'g'
+        elif cyan != 1:
+            color = colorsys.hsv_to_rgb(0.494444,1,1)
+            cd = 'c'
+        elif blue != 1:
+            color = colorsys.hsv_to_rgb(0.663889,1,1)
+            cd = 'b'
+        elif purple != 1:
+            color = colorsys.hsv_to_rgb(0.708333,1,1)
+            cd = 'p'
+        elif pink != 1:
+            color = colorsys.hsv_to_rgb(0.841667,1,1)
+            cd = 'pnk'
+        else:
+            color = colorsys.hsv_to_rgb(0,0,1)
+            cd = '1'
+        
+        parent = node.parent()
+        
+        if repr(node.type()) == '<hou.SopNodeType for Sop assemble>':
+            if node.parm('pack_geo').eval() != 1:
+                node.parm('pack_geo').set(1)
+        else:
+            assemble = parent.createNode("assemble")
+            assemble.parm('pack_geo').set(1)
+            assemble.setNextInput(node)
+            assemble.moveToGoodPosition(True, False, True, True)
+            node = assemble
+            
+        geo1 = node.geometry()
+        blastlst    = []
+        unpacklst   = []
+        nulllst     = []
+        for ind, point in enumerate(geo1.points()):
+            blast = parent.createNode("blast")
+            blast.parm('negate').set(1)
+            blast.parm('group').set(repr(ind))
+            blast.setNextInput(assemble)
+            blast.moveToGoodPosition(True, False, True, True)
+            
+            parent = node.parent()
+            unpack = parent.createNode("unpack")
+            unpack.parm('transfer_attributes').set('*')
+            unpack.parm('transfer_groups').set('*')
+            unpack.setNextInput(blast)
+            unpack.moveToGoodPosition(True, False, True, True)
+            node = unpack
+                
+            # Null
+            null = node.createOutputNode('null', gnode + '_' + cd + '_OUT_1')
+            null.setColor(hou.Color(color))
+            path = null.path()
+            
+            # Geo Node
+            geo1 = hou.node(node.path()[:node.path().rfind('/')])
+            geo = geo1.createOutputNode('geo', gnode + '_' + cd + '_OUT_1')
+            geo.setColor(hou.Color(color))
+            tx = geo1.parm('tx').eval()
+            ty = geo1.parm('ty').eval()
+            tz = geo1.parm('tz').eval()
+            upos = hou.node(gnode2)
+            geo.moveToGoodPosition()
+            omerge = geo.createNode('object_merge', null.name())
+            omerge.parm("objpath1").set(path)
+            omerge.moveToGoodPosition()
+            
+            # Centre Pivot
+            ttrans = omerge.createOutputNode('xform')
+            ttrans.parm('movecentroid').pressButton()
+            px = ttrans.parm('px').eval()
+            py = ttrans.parm('py').eval()
+            pz = ttrans.parm('pz').eval()
+            geo.parm('px').set(px)
+            geo.parm('py').set(py)
+            geo.parm('pz').set(pz)
+            ttrans.destroy()
+            
+            movelst.append(geo)
+            
+            # Position Fixing List
+            if ind == 0:
+                bp = blast.position()
+                up = unpack.position()
+                np = null.position()
+            else:
+                blastlst.append(blast)
+                unpacklst.append(unpack)
+                nulllst.append(null)
+                
+        # Fixing Position
+        for blast in blastlst:
+            blast.setPosition((blast.position()[0], bp[1]))
+        for unpack in unpacklst:
+            unpack.setPosition((unpack.position()[0], up[1]))
+        for null in nulllst:
+            null.setPosition((null.position()[0], np[1]))
+            
+        hou.node('/obj/').layoutChildren(movelst)]]></script>
+  </tool>
+
+  <tool name="viewkeyframes0" label="Select Keyframed" icon="CHOP_trim">
+    <script scriptType="python"><![CDATA[hou.setUpdateMode(hou.updateMode.Manual)
+for ind, node in enumerate(hou.node('/obj').allSubChildren()):
+    if node.isTimeDependent():
+        if ind == 0:
+            node.setSelected(True, True, False)
+        else:
+            node.setSelected(True, False, False)
+hou.setUpdateMode(hou.updateMode.AutoUpdate)]]></script>
+  </tool>
+
+  <toolshelf name="groomtools" label="Hair Utils">
+    <memberTool name="object_groom_addfur"/>
+    <memberTool name="object_groom_guidegroom"/>
+    <memberTool name="object_groom_groommerge"/>
+    <memberTool name="object_groom_animateguides"/>
+    <memberTool name="object_groom_simguides"/>
+    <memberTool name="object_groom_hairgen"/>
+    <memberTool name="object_groom_isolateparts"/>
+    <memberTool name="object_groom_togglehairdisplay"/>
+    <memberTool name="object_groom_haircardgen"/>
+    <memberTool name="object_groom_haircardtexture"/>
+  </toolshelf>
+
+  <tool name="childcom" label="Child Combine" icon="SHELF_combine_objects">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+node_type = hou.nodeType(hou.objNodeTypeCategory(), 'geo')
+objnodes = node_type.instances()
+
+for ind, node in enumerate (sel):
+    chl = node.outputs()
+    for child in chl:
+        name = child.name()
+        
+#create geo nodes
+    geo = hou.node('/obj').createNode('geo', 'CombineAll')
+    try:
+        geo.node('file1').destroy()
+    except:
+        pass
+    geo.moveToGoodPosition()
+    merge = geo.createNode('merge', 'merge')
+    
+#add children
+    for ind, node in enumerate(chl):
+        if(node.isDisplayFlagSet()):
+            path = node.path()
+            name = node.name()
+            o = merge.createInputNode(ind, 'object_merge', name+"_merge")
+            o.parm("objpath1").set(path)
+            o.moveToGoodPosition()
+            o.parm("xformtype").set(1)
+    
+    merge.moveToGoodPosition()
+    merge.setCurrent(True, True)]]></script>
+  </tool>
+
+  <tool name="compiled_loop" label="Compiled For Loop" icon="hicon:/SVGIcons.index?SOP_compile_begin.svg">
+    <script scriptType="python"><![CDATA[import sys
+
+def takeSecond(elem):
+    return elem[1]
+
+sel = hou.selectedNodes()
+try:
+    if not sel[0].type().category() == hou.sopNodeTypeCategory():
+        hou.ui.displayMessage('Select a SOP.', buttons=('OK',), severity=hou.severityType.Error, default_choice=0, close_choice=0, help=None, title='Error')
+        sys.exit()
+except:
+    hou.ui.displayMessage('Select a SOP.', buttons=('OK',), severity=hou.severityType.Error, default_choice=0, close_choice=0, help=None, title='Error')
+    sys.exit()
+    
+Dialog = hou.ui.readInput('Compile Loop Builder                                              ', buttons=("Create","Cancel"), default_choice=0, close_choice=1, help='Enter number of geometry inputs', title='Compiled Loop')
+
+if not Dialog:  count = 1
+try:    count = int(Dialog[1])
+except: count = 1
+
+if count > 0 and Dialog[1]:
+    sel = hou.selectedNodes()
+    if sel:
+        path = sel[0].path().rfind('/')
+        path = sel[0].path()[:path+1]
+        if count > 1:
+            #Append Inputs
+            mul_sel = hou.ui.displayMessage("Set Inputs Now?                                                ", buttons=("Yes","No"), severity=hou.severityType.Message, title="Set Inputs",default_choice=1)
+            if mul_sel == 0:
+
+                dia = hou.ui.selectNode(initial_node=sel[0], 
+                node_type_filter=hou.nodeTypeFilter.Sop, title='Select Inputs', width=0, height=0, 
+                multiple_select=True, custom_node_filter_callback=None)
+                
+                applst = [hou.node(n) for n in dia]
+                applst = [(n,n.position().x())for n in applst]
+                applst.sort(key=takeSecond)
+                applst = [n[0] for n in applst]
+ 
+            complst = []
+            node = hou.selectedNodes()[0]
+            parent = node.parent()
+            wrangle = parent.createNode("attribwrangle")
+            wrangle.setNextInput(node)
+            wrangle.moveToGoodPosition(True, False, True, True) 
+            wrangle.setSelected(True, True, False)
+            spare = '../' + wrangle.name()
+            
+            
+        node = hou.selectedNodes()[0]
+        parent = node.parent()
+        cbeg = parent.createNode("compile_begin")
+        cbeg.setNextInput(node)
+        cbeg.moveToGoodPosition(True, False, True, True) 
+        cbeg.setSelected(True, True, False)
+        
+        node = hou.selectedNodes()[0]
+        parent = node.parent()
+        begin = parent.createNode("block_begin")
+        begin.setNextInput(node)
+        begin.moveToGoodPosition(True, False, True, True) 
+        begin.setSelected(True, True, False)
+        begin.parm('method').set(1)
+        bapath = begin.path()
+        bpath = '../' + begin.name()
+        
+        node = hou.selectedNodes()[0]
+        parent = node.parent()
+        copy = parent.createNode("copytopoints")
+        copy.insertInput(1, begin)
+        copy.moveToGoodPosition(True, False, True, True) 
+        copy.setSelected(True, True, False)
+        
+        node = hou.selectedNodes()[0]
+        parent = node.parent()
+        end = parent.createNode("block_end")
+        end.setNextInput(node)
+        end.moveToGoodPosition(True, False, True, True) 
+        end.setSelected(True, True, False)
+        end.parm('itermethod').set(1)
+        end.parm('method').set(1)
+        end.parm('useattrib').set(0)
+        end.parm('blockpath').set(bpath)
+        end.parm('templatepath').set(bpath)
+        end.parm('multithread').set(1)
+        path = '../' + end.name()
+        
+        node = hou.selectedNodes()[0]
+        parent = node.parent()
+        cend = parent.createNode("compile_end")
+        cend.setNextInput(node)
+        cend.moveToGoodPosition(True, False, True, True) 
+        cend.setSelected(True, True, False)
+        cpath = '../' + cend.name()
+    
+    cbeg.parm('blockpath').set(cpath)
+    
+    begin.parm('blockpath').set(path)
+    
+    if count > 1:
+        switch = copy.createInputNode(0,'switch')
+        hou_parm_template_group = hou.ParmTemplateGroup()
+        hou_parm_template = hou.StringParmTemplate("spare_input0", "Spare Input 0", 1, default_value=([bpath]), naming_scheme=hou.parmNamingScheme.Base1, string_type=hou.stringParmType.NodeReference, menu_items=([]), menu_labels=([]), icon_names=([]), item_generator_script="", item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
+        hou_parm_template.setHelp("Refer to this in expressions as -1, such as: npoint(-1)")
+        hou_parm_template.setTags({"opfilter": "!!SOP!!", "oprelative": "."})
+        hou_parm_template_group.append(hou_parm_template)
+        switch.setParmTemplateGroup(hou_parm_template_group)
+        
+        parm_group = switch.parmTemplateGroup()
+        parm_folder = hou.FolderParmTemplate('folder', 'Inputs')
+        inputs = parm_folder.addParmTemplate(hou.IntParmTemplate('amp', 'amp', 1, default_value=([0]), default_expression=(['opninputs(\'.\')'])))
+        parm_group.append(parm_folder)
+        switch.setParmTemplateGroup(parm_group)
+        
+        wrangle.parm('snippet').set('float rand = rand(@ptnum)*chi(\'seed\');\ni@switch = rand%`chs(\"../'+switch.name()+'/amp\")`;')
+        
+        parm_group = wrangle.parmTemplateGroup()
+        hou_parm_template2 = hou.IntParmTemplate('seed', 'Seed', 1, default_value=([250]),max=500)
+        hou_parm_template2.setJoinWithNext(True)
+        target_folder = ("Code",)
+        parm_group.appendToFolder(target_folder, hou_parm_template2)
+        wrangle.setParmTemplateGroup(parm_group)
+        
+        cpos = copy.position()
+        cpos = (cpos[0]-2.5, cpos[1])
+        switch.setPosition(cpos)
+        
+        switch.setSelected(True, True, False)
+        switch.parm('input').setExpression('point(\"-1\",0,\"switch\",0)')
+    
+        for node in range(count):
+            icbeg = switch.createInputNode(node,'block_begin')
+            icbeg.parm('blockpath').set(path)
+            icbeg.parm('method').set(3)
+            
+            bpos = icbeg.position()
+            bpos = (bpos[0] - (float(count)*1.7) + ((float(node)+1)*1.7), bpos[1])
+            icbeg.setPosition(bpos)
+            ibegin = icbeg.createInputNode(0,'compile_begin')
+            ibegin.parm('blockpath').set(cpath)
+            complst.append(ibegin)
+        for ind, c in enumerate(complst):
+            try:
+                c.setNextInput(applst[ind])
+            except:
+                break
+                
+        wrangle.setSelected(True, True, False)
+                
+    elif count == 1:
+        icbeg = copy.createInputNode(0,'block_begin')
+        icbeg.parm('blockpath').set(path)
+        icbeg.parm('method').set(3)
+        
+        bpos = begin.position()
+        bpos = (bpos[0]-3, bpos[1])
+        icbeg.setPosition(bpos)
+        
+        ibegin = icbeg.createInputNode(0,'compile_begin')
+        ibegin.parm('blockpath').set(cpath)
+        
+    cend.setDisplayFlag(True)
+    cend.setRenderFlag(True)]]></script>
+  </tool>
+
+  <tool name="Append_Copied" label="Append Copied" icon="SOP_duplicate">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+      <contextNetType>CHOP</contextNetType>
+      <contextNetType>ROP</contextNetType>
+      <contextNetType>SHOP</contextNetType>
+      <contextNetType>COP2</contextNetType>
+      <contextNetType>VOP</contextNetType>
+      <contextNetType>VOPNET</contextNetType>
+      <contextNetType>DOP</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[## Holding shift prepends node(s) ##
+## WIP :: Hold alt to change input /output ##
+
+from PySide2 import QtCore,QtWidgets
+from utils import inputSwitch
+
+reload(inputSwitch)
+
+Alt = (QtWidgets.QApplication.keyboardModifiers() & QtCore.Qt.AltModifier) == QtCore.Qt.AltModifier
+Shift = (QtWidgets.QApplication.keyboardModifiers() & QtCore.Qt.ShiftModifier) == QtCore.Qt.ShiftModifier
+Alt = 0
+
+def takeSecond(elem):
+    return elem[1]
+    
+def paste(sel):
+    pane = getPane(sel)
+
+    for node in sel:
+    
+        ## Paste nodes
+    
+        hou.pasteNodesFromClipboard(node.parent())
+        
+        pasted = hou.selectedNodes()
+        
+        ## Create move order from x/y pos
+        
+        nodecategory = node.type().category().name()
+        
+        if nodecategory == 'Vop':
+            moveorder = [(n,n.position().x()) for n in pasted]
+            
+        else:
+            moveorder = [(n,n.position().y()) for n in pasted]
+            
+        moveorder.sort(key=takeSecond)
+        if not Shift and nodecategory != 'Vop':
+            moveorder.reverse()
+        
+        ## Find input and output
+            
+        bottom = None
+        top = None
+        
+        for n in pasted:
+            if not n.outputs():
+                bottom = n
+                break
+                
+        for n in pasted:
+            if not n.inputs():
+                top = n
+                break
+                
+        if not top:
+        
+            ## Guess top and bottom
+            
+            top = moveorder[0][0]
+            [top.setInput(ind,None) for ind,i in enumerate(top.inputs()) if i]
+            
+        if not bottom:
+            bottom = moveorder[-1][0]
+            
+        out = node.outputs()
+        input = node.inputs()
+        
+        ## Append or prepend to selected
+        
+        if Shift:
+            inputnode = prependnodes(node,input,top,bottom)
+        else:
+            appendnodes(node,out,top,bottom)
+            
+        ## Move Node Positions
+        
+        if Shift and nodecategory != 'Vop':
+            bottom.setPosition(node.position())
+            bottom.move((0,1))
+            pos = bottom.position()
+            
+            for n in moveorder[1:]:
+                n = n[0]
+                n.setPosition(pos)
+                n.move((0,1))
+                pos = n.position()
+                
+            if inputnode:
+                if inputnode.inputs():
+                    inputnode.moveToGoodPosition(True, False, True, True)
+                    
+                else:
+                    pos0 = inputnode.position().y()
+                    pos1 = top.position().y()
+
+                    if pos0 <= pos1:
+                        corrected = (inputnode.position().x(),pos1)
+                        
+                        inputnode.setPosition(corrected)
+                        inputnode.move((0,1))
+            
+        elif Shift:
+            moveorder.reverse()
+            for n in moveorder:
+                n[0].moveToGoodPosition(False, True, False, False)
+                
+        else:
+            for n in moveorder:
+                n[0].moveToGoodPosition(True, False, True, False)
+                
+    hou.clearAllSelected()
+    [n.setSelected(1,0) for n in sel]
+    
+    ## Out/input switch
+    
+    if Alt and pane:
+        items = [top,bottom,pane]
+        inputSwitch.startup(items).loadOverlay()
+            
+def appendnodes(node,chl,top,bottom):
+   
+    output = False
+    if chl:
+        for child in chl:
+            for ind, c2 in enumerate(child.inputs()):
+                if c2 == node:
+                    if not output:
+                        outind = [index.outputIndex() for index in node.outputConnections() if index.outputItem() == child]
+                        top.insertInput(0,node,outind[0])
+                        output = True
+                        
+                    child.setInput(ind, None)
+                    child.insertInput(ind, bottom)
+                    
+    if not output:
+        top.setNextInput(node)
+                    
+def prependnodes(node,chl,top,bottom):
+    
+    if chl:
+        for ind,input in enumerate(chl):
+            if input:
+                outindex = [outputind.outputIndex() for outputind in input.outputConnections() if outputind.outputItem() == node]
+                node.setInput(ind, None)
+                node.insertInput(ind, bottom)
+                top.insertInput(0,input,outindex[0])
+                
+                return input
+                
+    node.insertInput(0, bottom)
+                
+    return None
+    
+def regularpaste():
+
+    ## Get active pane
+
+    activepane = getPane(None)
+    if not activepane: return
+    
+    ## Get cursor position and parent
+    
+    pos = activepane.cursorPosition()
+    parent = activepane.pwd()
+    
+    ## Paste clipboard
+    
+    hou.pasteNodesFromClipboard(parent)
+    pasted = hou.selectedNodes()
+    
+    ## Set paste position
+    
+    positions = [n.position() for n in pasted]
+    avgx = sum([p.x() for p in positions]) / len(positions)
+    avgy = sum([p.y() for p in positions]) / len(positions)
+    
+    sx = pos[0] - avgx - .45
+    sy = pos[1] - avgy - .2
+    [n.move((sx,sy)) for n in hou.selectedNodes()]
+    
+def getPane(sel):
+    
+    ## Pane under cursor
+
+    curdesk = hou.ui.curDesktop()
+    activepane = curdesk.paneTabUnderCursor()
+    
+    if activepane:
+        if activepane.type().name() == 'NetworkEditor':
+            if sel:
+                if activepane.pwd() == sel[0].parent():
+                    return activepane
+                    
+            else:
+                return activepane
+    
+    ## Pane from selected (backup)
+    
+    if sel:
+    
+        parent = sel[0].parent()
+        
+        network_editors = [p for p in hou.ui.paneTabs() if p.type().name() == 'NetworkEditor']
+        if not network_editors: return None
+        
+        network_editors = [p for p in network_editors if p.pwd().path() == parent]
+        
+        if network_editors:
+            return network_editors[0]
+            
+    return None
+    
+## Startup
+
+sel = hou.selectedNodes()
+if sel:
+    paste(sel)
+    
+else:
+    regularpaste()]]></script>
+  </tool>
+
+  <tool name="massgroup" label="Mass Group" icon="hicon:/SVGIcons.index?SOP_group.svg">
+    <script scriptType="python"><![CDATA[import sys
+from hutil.Qt.QtCore import *
+from hutil.Qt.QtGui import *
+from hutil.Qt.QtWidgets import *
+from PySide2 import QtCore, QtUiTools, QtWidgets, QtGui
+
+sel = hou.selectedNodes()
+
+class MyDialog(QDialog):
+    def __init__(self, *args, **kwargs):
+        super(MyDialog, self).__init__()
+        self.setWindowTitle('Group Options')             
+        self.setFixedSize(300, 5)
+        self.setParent(hou.ui.mainQtWindow(), QtCore.Qt.Window)
+        
+        sh = hou.ui.qtStyleSheet()
+        self.setStyleSheet(sh)
+        
+        layout = QVBoxLayout()     
+        layout.setSpacing(5)
+        layout.setSizeConstraint(QLayout.SetMinimumSize)
+        
+        line1 = QHBoxLayout()
+        line1.setSpacing(5)
+        layout.addLayout(line1)
+        
+        # Name Label
+        self.nlabel = QLabel('Group Name')
+        line1.addWidget(self.nlabel)
+        
+        # Group Name
+        self.line = QLineEdit()
+        line1.addWidget(self.line)
+        
+        line2 = QHBoxLayout()
+        line2.setSpacing(10)
+        layout.addLayout(line2)
+        
+        # Type Label
+        self.tlabel = QLabel('Group Type')
+        self.tlabel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        line2.addWidget(self.tlabel)
+        
+        # Group Type
+        self.combo = QComboBox()
+        self.combo.addItem('Primitives')
+        self.combo.addItem('Points')
+        self.combo.addItem('Edges')
+        self.combo.addItem('Vertices')
+        line2.addWidget(self.combo)
+                
+        # ButtonBox
+        confirm = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)    
+        confirm.setMinimumSize(0, 40)   
+        confirm.accepted.connect(self.accept)
+        confirm.rejected.connect(self.reject)
+        layout.addWidget(confirm)
+        
+        self.setLayout(layout)
+        
+    def getValues(self):
+        return [self.combo.currentIndex(),self.line.text()]
+        
+for node in sel:
+    if repr(node.type()) == '<hou.NodeType for Object geo>' or repr(node.type()) == '<hou.NodeType for Object instance>':
+        dialog = MyDialog()
+        dialog.exec_()
+
+        if dialog.result() != 1:    sys.exit()
+        else:   item = dialog.getValues()
+        
+        if item[1]:
+            gname = item[1]
+            if ' ' in gname: gname = gname.replace(' ','_')
+            for node in sel:
+                if repr(node.type()) == '<hou.NodeType for Object geo>' or repr(node.type()) == '<hou.NodeType for Object instance>':
+                    for child in node.children():
+                        name = child.name()
+                        if child.isDisplayFlagSet():
+                            group = node.createNode("groupcreate")
+                            group.setNextInput(child)
+                            group.moveToGoodPosition(True, False, True, True) 
+                            group.setSelected(True, True, False)  
+                            group.setDisplayFlag(True)
+                            group.setRenderFlag(True)
+                            group.parm("groupname").set(gname)
+                            group.parm("grouptype").set(item[0])
+                            break
+        break
+]]></script>
+  </tool>
+
+  <tool name="increment" label="Increment Save" icon="SOP_file">
+    <script scriptType="python"><![CDATA[import os, re
+
+def hipIncrementVersion():
+    # SETTINGS ==================
+    setToFirstFrame = True # Sets playback frame of saved file to first frame (does not affect open file)
+    setToManualUpdate = False # Sets update mode of saved file to manual (does not affect open file)
+    autoversion = True # If no versioning exists, create a new version
+    autoversionzfill = 3 # digit padding for autoversioning
+    debug = 0 # print some items to console
+    # ===========================
+
+    orighip = hou.hipFile.name()
+    hipname = hou.hipFile.basename()
+    # hipfile = hipname.split(".")[0]
+    # version which works for filenames with periods
+    hipfile = os.path.splitext(hipname)[0]
+    
+    # check current filename for version prefix and split accordingly
+    # Uses regex so a filename like myfile_verycool_v001.hip will get picked up correctly (not match the first _v)
+    versionSections = ""
+    versionType = ""
+    if len(re.findall('_v(?=\d+)', hipfile)) > 0:
+        versionSections = re.split('_v(?=\d+)', hipfile, 1)        
+        versionType = "_v"
+    elif len(re.findall('_V(?=\d+)', hipfile)) > 0:
+        versionSections = re.split('_V(?=\d+)', hipfile, 1)          
+        versionType = "_V"      
+
+    # if no version prefix found, create it
+    if versionSections == "":
+        if(autoversion):
+            versionSections = [hipfile, "0"*autoversionzfill]
+            versionType = "_v"
+            orighip = orighip.replace(hipfile, hipfile + versionType + "0"*autoversionzfill)
+            print "No version found in hip name - Autoversioning"
+        else:
+            print "No version found in hip name - Exiting"
+            return 1
+
+    # regex - match numbers after version splitter. Match until non-numeric value is hit.  
+    match = re.match('\d+', versionSections[1])    
+    if match:
+        versionNumber = match.group(0)
+    else:
+        print "Problem encountered matching version number - Exiting"
+        return 1
+    
+    # Create new filename
+    oldVersion = versionType + versionNumber
+    if debug:
+        print "Old version: " + oldVersion
+    newVersion = versionType + str(int(versionNumber) + 1).zfill(len(versionNumber))
+    newhip = orighip.replace(oldVersion, newVersion)
+    if debug:    
+        print "New file: " + newhip
+        
+    # ===================================
+    # set MVSM_VERSION
+    # ===================================
+    newver = str(int(versionNumber)+1).zfill(3)
+    hou.putenv('MVSM_VERSION', newver)
+        
+    # Save the file
+    confirm = 0
+    if os.path.isfile(newhip) :
+        text = "Overwrite existing hip file?"
+        confirm = hou.ui.displayMessage(text, buttons=("Yes", "No"), severity=hou.severityType.Message, title="New Hip")
+    if confirm == 0 :
+        # update mode and frame settings
+        updateMode = hou.updateModeSetting()
+        frame = hou.frame()
+        if (setToManualUpdate):
+            hou.setUpdateMode(hou.updateMode.Manual)
+        if (setToFirstFrame):
+            # hou.setFrame(1)
+            hou.setFrame(hou.playbar.playbackRange()[0])
+            
+        hou.hipFile.save(newhip)
+        # reset update mode and frame
+        hou.setUpdateMode(updateMode)
+        hou.setFrame(frame)
+
+hipIncrementVersion()]]></script>
+  </tool>
+
+  <tool name="hipfolder" label="Hip Folder" icon="hicon:/SVGIcons.index?DATATYPES_bundle.svg">
+    <script scriptType="python"><![CDATA[import os
+import hou
+import sys
+import subprocess
+
+hip = hou.getenv('HIP')
+
+platform = sys.platform
+if platform == "win32":
+    # subprocess.Popen(["explorer", self.job])
+    os.startfile(hip)
+elif platform == "darwin": #osx
+    subprocess.Popen(["open", hip])
+else: #linux
+    subprocess.Popen(["xdg-open", hip])]]></script>
+  </tool>
+
+  <tool name="swapnodes" label="Swap Nodes" icon="hicon:/SVGIcons.index?BUTTONS_cook.svg">
+    <script scriptType="python"><![CDATA[# TODO 
+# swap multiple outputs .. messy
+
+nodes = hou.selectedNodes()
+
+if len(nodes) == 2 or len(nodes) == 1:
+    # if 1 node selected, move up the graph if it has an input, otherwise move it down 
+    if(len(nodes) == 1):
+        b = nodes[0]
+        bin = b.inputs()
+        if bin:
+            a = bin[0]
+        else:
+            a, b = b, b.outputs()[0]
+    else:
+    # if 2 nodes selected, ensure a is always the higher node in the nodegraph 
+        a = nodes[0]
+        b = nodes[1]
+        a_anc = a.inputAncestors(True, False)
+        if b in a_anc:
+            a, b = b, a
+    
+    ain = a.inputs()
+    aout = a.outputs()
+    bin = b.inputs()
+    bout = b.outputs() 
+    
+    # get output connections of A/B which will be swapped    
+    aout_conn = a.outputConnections()
+    consa = [[c.outputNode(), c.inputIndex()] for c in aout_conn]     
+    bout_conn = b.outputConnections()
+    consb = [[c.outputNode(), c.inputIndex()] for c in bout_conn] 
+        
+    # set inputs/outputs
+    AIN = ain[0] if ain else None
+    AOUT = aout[0] if aout else None
+    BIN = bin[0] if bin else None
+    BOUT = bout[0] if bout else None
+    
+    # Swap, with case for a and b sequential. only first inputs/outputs modified at this time
+    if BIN == a:
+        b.setInput(0, AIN)
+        a.setInput(0, b)    
+        #if BOUT: BOUT.setInput(0, a)          
+        for it in consb:
+            it[0].setInput(it[1], a)
+            # print it[0].name() + "__" + it[1]
+    else:     
+        b.setInput(0, AIN)
+        a.setInput(0, BIN)
+        if BOUT:
+            BOUT.setInput(0, a)
+            for it in consb:
+                it[0].setInput(it[1], a)           
+        if AOUT:
+            AOUT.setInput(0, b)
+            for it in consa:
+                it[0].setInput(it[1], a)                    
+           
+    # set node positions
+    apos = a.position()
+    bpos = b.position()        
+    b.setPosition(apos)
+    a.setPosition(bpos)]]></script>
+  </tool>
+
+  <tool name="mergesel0" label="Merge Geo Nodes" icon="SOP_merge">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+
+for ind,node in enumerate(sel):
+    if 'hou.ObjNode of type geo' in repr(node.type):
+        if (node.isDisplayFlagSet()):
+            if ind == 0:    
+                hide = hou.ui.displayMessage(text='Hide original Geometry?                                     ',title='Hide Geometry',buttons=('Yes','No'),default_choice=1)
+                geo = hou.node(sel[0].path() + '/../').createNode('geo', 'Merge')
+                geo.moveToGoodPosition(True,False,True,True)
+                merge = geo.createNode('merge')
+                merge.moveToGoodPosition()
+                
+            #Find Material path
+            mat = node.parm('shop_materialpath').eval()
+            nodepath = node.path()
+            #Find Material inside of geo node
+            for mnode in node.children():
+                if 'hou.SopNodeType for Sop material' in repr(mnode.type()) and mnode.parm('shop_materialpath1').eval() != '':
+                    mat = ''
+                    nodepath = mnode.path()
+            #Absolute Path Correction
+            if '../' in mat:
+                slice = mat.rfind('../')
+                matadd = mat[slice+2:]
+                lookfor = '../'
+                count = mat.count(lookfor)
+                for x in range(count):
+                    slice = nodepath.rfind('/')
+                    nodepath = nodepath[:slice]
+                mat = nodepath + matadd
+    
+            #Create object merge, material and merge
+            path = node.path()
+            name = node.name()
+            omerge = hou.node(merge.path() + '/../').createNode('object_merge', name+"_merge")
+            matnode = hou.node(merge.path() + '/../').createNode('material',None)
+            matnode.setNextInput(omerge)
+            merge.setNextInput(matnode)
+            matnode.parm('shop_materialpath1').set(mat)
+            #Set Position
+            geo.layoutChildren()
+            for child2 in geo.children():
+                if 'object_merge' in repr(child2.type()):
+                    cpos = child2.position()
+                    cpos = (cpos[0], 2)
+                    child2.setPosition(cpos)
+                elif 'material' in repr(child2.type()):
+                    cpos = child2.position()
+                    cpos = (cpos[0], 1)
+                    child2.setPosition(cpos)
+                
+            if mat == '':
+                matnode.destroy()
+            omerge.parm("objpath1").set(path)
+            omerge.parm("xformtype").set(1)
+if hide == 0:  
+    for n in sel:   n.setDisplayFlag(False)
+            
+geo.setSelected(True, True, True)]]></script>
+  </tool>
+
+  <toolshelf name="axistools" label="Axis Tools">
+    <memberTool name="viewkeyframes0"/>
+    <memberTool name="reverseframes"/>
+    <memberTool name="velsetup"/>
+    <memberTool name="compiled_loop"/>
+    <memberTool name="extractsel"/>
+    <memberTool name="extract::2"/>
+    <memberTool name="mergesel0"/>
+    <memberTool name="mergenullchildren"/>
+    <memberTool name="projectsetup1"/>
+    <memberTool name="netbox0"/>
+    <memberTool name="focuspick0"/>
+    <memberTool name="Append_Copied"/>
+    <memberTool name="massgroup"/>
+    <memberTool name="updateMode"/>
+    <memberTool name="takeManager"/>
+    <memberTool name="incSave"/>
+    <memberTool name="verDir"/>
+    <memberTool name="jobSet"/>
+    <memberTool name="copypaste0"/>
+    <memberTool name="rainbow0"/>
+    <memberTool name="drop18"/>
+    <memberTool name="highlight_pref"/>
+    <memberTool name="promotehip"/>
+  </toolshelf>
+
+  <tool name="velsetup" label="Vellum Setup" icon="SHELF_vellum_cloth">
+    <script scriptType="python"><![CDATA[import sys
+
+try:    
+    sel = hou.selectedNodes()[0]
+except: 
+    hou.ui.displayMessage('Select a Node.',title="Error",severity=hou.severityType.Error,close_choice=0)
+    sys.exit()
+    
+
+# Create Dopnet and connect to vellum node.
+dop = sel.node(sel.path()+'/../').createNode('dopnet','vellum')
+dop.insertInput(0, sel)
+dop.setSelected(True,True)
+try:    dop.setInput(1, sel, 1)
+except: dop.insertInput(1, sel)
+dop.moveToGoodPosition(True,False,True,True)
+
+# Setup Dopnet
+velsolver = dop.createNode('vellumsolver')
+velobject = dop.createNode('vellumobject')
+velsource = dop.createNode('vellumsource')
+out = dop.node(dop.path()+'/output')
+
+# Setup Dopnet Inputs
+velsolver.insertInput(0, velobject)
+velsolver.insertInput(2, velsource)
+out.setNextInput(velsolver)
+
+# Set Parameters
+velsource.parm('soppath').set('`opinputpath("..", 0)`')
+velsource.parm('constraintpath').set('`opinputpath("..", 1)`')
+velobject.parm('displaysoppath').set('')
+velobject.parm('constraintsoppath').set('')
+
+dop.layoutChildren()]]></script>
+  </tool>
+
+  <tool name="focuspick0" label="Focus Pick" icon="SHELF_parent">
+    <helpText><![CDATA[Ctrl/Cmd click to create the 'focus object' parameter in your camera sampling tab.]]></helpText>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="cop_viewer">
+      <contextNetType>COP2</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils,toolutils,sys
+
+desktop = hou.ui.curDesktop()
+scene_viewer = desktop.paneTabOfType(hou.paneTabType.SceneViewer)
+viewport = scene_viewer.curViewport()
+if viewport.camera():
+    sel = viewport.camera()
+    if sel.type().name() == 'switcher': sel = sel.inputs()[int(sel.parm('camswitch').eval())]
+else:
+    try:
+        if hou.selectedNodes()[0].type().name() == 'cam':
+            sel = hou.selectedNodes()[0]
+        else:
+            sys.exit()
+    except: sys.exit()
+    
+if '<hou.ObjNode of type cam' in repr(sel.type):
+    if kwargs['ctrlclick'] or kwargs['cmdclick']:
+   
+        script = """import hou,sys
+n = hou.pwd()
+node = n.parm('focusob').eval()
+focusparm = n.parm('focus')
+
+def failed():
+    focusparm.disable(False)
+    sys.exit()
+
+if node:
+    try:
+        focusP = hou.Vector3(hou.Vector4(0,0,0,1) * hou.node(node).worldTransform())
+       
+        camP = n.worldTransform()
+        camPos = hou.Vector4(0,0,0,1)*camP
+        camPos = hou.Vector3(camPos)
+       
+        axis = hou.Vector3(hou.Vector4(0,0,-1,0)*camP).normalized()
+       
+        tar = hou.Vector3(focusP-camPos)
+       
+        focus = tar.dot(axis)
+        if not focus > 0:   focus = 0
+    except:
+        failed()
+
+    try:    focusparm.deleteAllKeyframes()
+    except: pass
+   
+    focusparm.disable(True)
+    focusparm.set(focus)
+   
+    return 'on'
+   
+else:
+    failed()"""
+       
+        # Create Focus Parms if they don't exist
+        try:
+            parm_group = sel.parmTemplateGroup()
+            hou_parm_template2 = hou.StringParmTemplate('focusexpression', 'focusexpression', 1, is_hidden=True, default_expression=[script], default_expression_language=([hou.scriptLanguage.Python]))
+            hou_parm_template2.setJoinWithNext(True)
+            target_folder = ("Sampling",)
+            parm_group.appendToFolder(target_folder, hou_parm_template2)
+            sel.setParmTemplateGroup(parm_group)
+           
+            parm_group = sel.parmTemplateGroup()
+            hou_parm_template2 = hou.StringParmTemplate("focusob", "Focus Object", 1, default_value=([""]), naming_scheme=hou.parmNamingScheme.Base1, string_type=hou.stringParmType.NodeReference, menu_items=([]), menu_labels=([]), icon_names=([]), item_generator_script="", item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
+            hou_parm_template2.setTags({"opfilter": "!!OBJ/GEOMETRY!!", "oprelative": "."})
+            hou_parm_template2.setJoinWithNext(True)
+            target_folder = ("Sampling",)
+            parm_group.appendToFolder(target_folder, hou_parm_template2)
+            sel.setParmTemplateGroup(parm_group)
+        except:
+            #print '\'Focus Object\' parameter already added to camera.'
+            pass
+   
+    else:
+        scene_viewer = toolutils.activePane(kwargs)
+   
+        positions = scene_viewer.selectPositions(
+                prompt='Click to specify the focus point.',
+                number_of_positions=1,
+                connect_positions=True,
+                show_coordinates=True,
+                bbox=hou.BoundingBox(),
+                position_type=hou.positionType.WorldSpace,
+                icon=None,
+                label=None)
+           
+        focuspos = positions[0]
+        campos = sel.worldTransform().extractTranslates()
+        focus =  hou.Vector3.distanceTo(focuspos,campos)
+        try:
+            if repr(sel.parm('focus').expressionLanguage()) == 'exprLanguage.Python':
+                sel.parm('focus').deleteAllKeyframes()
+        except: pass
+        try:    sel.parm('focusob').set('')
+        except: pass
+        sel.parm('focus').set(focus)]]></script>
+  </tool>
+
+  <tool name="netbox0" label="Network Box" icon="PLAYBAR_stop.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+      <contextNetType>CHOP</contextNetType>
+      <contextNetType>ROP</contextNetType>
+      <contextNetType>SHOP</contextNetType>
+      <contextNetType>COP2</contextNetType>
+      <contextNetType>VOP</contextNetType>
+      <contextNetType>VOPNET</contextNetType>
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[import sys,random,colorsys
+try:
+    sel = hou.selectedNodes()[0]
+except:
+    sys.exit()
+all = hou.selectedNodes()
+parent = sel.parent()
+
+Dialog = hou.ui.readInput('Network Box', buttons=('Ok','Cancel',), default_choice=0, close_choice=1, title='Set Description/ Comment')
+if Dialog[0] == 1:
+    sys.exit()
+    
+if not Dialog[1]:
+    name = ''
+else:
+    name = Dialog[1]
+    #name = name.replace(' ','_')
+    
+    poslistx = []
+    poslisty = []
+    
+    for n in all:
+        poslistx.append(n.position()[0])
+        poslisty.append(n.position()[1])
+        
+    pos = (( min(poslistx), max(poslisty) ))
+    size = .6
+    
+    note = parent.createStickyNote()
+    note.setDrawBackground(False)
+    note.setText(name)
+    note.setTextColor(hou.Color(( 1, 1, 1 )))
+    note.setTextSize(size)
+    note.setSize(( 1, size * 1.75 ))
+    note.setPosition(( pos[0]-.02, pos[1] + (size) ))
+    
+rand = random.uniform(0, 1)
+col = colorsys.hsv_to_rgb(rand,.6,.3)
+col = hou.Color(col)
+
+boxgeo = parent.createNetworkBox()
+boxgeo.setPosition(sel.position())
+
+# Add Items
+for node in all:
+    boxgeo.addItem(node)
+if name:
+    boxgeo.addStickyNote(note)
+    note.setSize(( boxgeo.size()[0], note.size()[1] ))
+    paddiv = 2
+else:
+    paddiv = 1
+    
+    
+# Set Colour/name
+boxgeo.setColor(col)
+
+boxgeo.fitAroundContents()
+
+size = boxgeo.size()
+center = boxgeo.position()
+pad = hou.Vector2(.5,.4)
+txtsize = 2
+
+bbox = hou.BoundingRect(
+boxgeo.position()[0] - pad[0], 
+boxgeo.position()[1] - pad[1],
+
+boxgeo.position()[0] + boxgeo.size()[0] + pad[0] + txtsize, 
+boxgeo.position()[1] + boxgeo.size()[1] + (pad[1] *.9 ))
+
+boxgeo.setBounds(bbox)]]></script>
+  </tool>
+
+  <tool name="projectsetup1" label="Project Setup" icon="BUTTONS_icons_large.svg">
+    <script scriptType="python"><![CDATA[all = hou.node('/obj').children()
+#sel = hou.selectedNodes()[0]
+
+layout = hou.ui.displayMessage('Select Layout', buttons=("Layout 1","Layout 2", "Layout 3", "Layout 4", "Cancel"), 
+severity=hou.severityType.Message, title="Layout")
+if layout == 4:
+    import sys
+    sys.exit()
+
+geo     = []
+light   = []
+dops    = []
+camera  = []
+
+gap = .1
+minsize = 6
+labelS = .3
+
+#Destroy Existing Layout
+for box in hou.node('/obj').networkBoxes():
+    if box.name() == 'DOPs' or box.name() == 'Cameras' or box.name() == 'Geometry' or box.name() == 'Lights':
+        box.destroy()
+        
+#Group Node Types
+for node in all:
+    type = repr(node.type()).lower()
+    if 'light' in type:
+        light.append(node)
+        if 'sun' not in type:
+            node.setColor(hou.Color(1,1,1))
+        else:
+            node.setColor(hou.Color(.94,.57,.052))
+            
+    elif 'object dopnet' in type:
+        dops.append(node)
+        
+    elif 'object cam' in type:
+        camera.append(node)
+    else:
+        geo.append(node)
+       
+#Size Lists
+sizelstx = []
+sizelsty = []
+        
+# =====
+# Geo
+# =====
+hou.node('/obj').layoutChildren(items=geo)
+
+boxgeo = hou.node('/obj').createNetworkBox()
+
+for node in geo:
+    boxgeo.addItem(node)
+
+# Set Colour
+boxgeo.setColor(hou.Color(0.3, 0.3, 0.3))
+
+boxgeo.fitAroundContents()
+
+size = boxgeo.size()
+center = boxgeo.position()
+pad = hou.Vector2(.75,.75)
+
+
+bbox = hou.BoundingRect(boxgeo.position()[0] - pad[0], boxgeo.position()[1] - pad[1], boxgeo.position()[0] + boxgeo.size()[0] + pad[0], boxgeo.position()[1] + boxgeo.size()[1] + pad[1])
+boxgeo.setBounds(bbox)
+sizelstx.append(boxgeo.size()[0])
+sizelsty.append(boxgeo.size()[1])
+
+boxgeo.setName('Geometry')
+boxgeo.setComment('Geometry')
+
+# =====
+# Light
+# =====
+hou.node('/obj').layoutChildren(items=light)
+
+boxlight = hou.node('/obj').createNetworkBox()
+
+for node in light:
+    boxlight.addItem(node)
+
+# Set Colour
+boxlight.setColor(hou.Color(0.3, 0.3, 0.3))
+
+boxlight.setName('Lights')
+boxlight.setComment('Lights')
+
+boxlight.fitAroundContents()
+
+size = boxlight.size()
+center = boxlight.position()
+pad = hou.Vector2(.75,.75)
+
+
+bbox = hou.BoundingRect(boxlight.position()[0] - pad[0], boxlight.position()[1] - pad[1], boxlight.position()[0] + boxlight.size()[0] + pad[0], boxlight.position()[1] + boxlight.size()[1] + pad[1])
+boxlight.setBounds(bbox)
+sizelstx.append(boxlight.size()[0])
+sizelsty.append(boxlight.size()[1])
+
+
+# =====
+# Dops
+# =====
+hou.node('/obj').layoutChildren(items=dops)
+
+boxdops = hou.node('/obj').createNetworkBox()
+
+for node in dops:
+    boxdops.addItem(node)
+
+# Set Colour
+boxdops.setColor(hou.Color(0.3, 0.3, 0.3))
+
+boxdops.fitAroundContents()
+
+size = boxdops.size()
+center = boxdops.position()
+pad = hou.Vector2(.75,.75)
+
+
+bbox = hou.BoundingRect(boxdops.position()[0] - pad[0], boxdops.position()[1] - pad[1], boxdops.position()[0] + boxdops.size()[0] + pad[0], boxdops.position()[1] + boxdops.size()[1] + pad[1])
+boxdops.setBounds(bbox)
+sizelstx.append(boxdops.size()[0])
+sizelsty.append(boxdops.size()[1])
+
+boxdops.setName('DOPs')
+boxdops.setComment('DOPs')
+
+# =====
+# Cameras
+# =====
+hou.node('/obj').layoutChildren(items=camera)
+
+boxcam = hou.node('/obj').createNetworkBox()
+
+for node in camera:
+    boxcam.addItem(node)
+
+# Set Colour
+boxcam.setColor(hou.Color(0.3, 0.3, 0.3))
+
+boxcam.fitAroundContents()
+
+size = boxcam.size()
+center = boxcam.position()
+pad = hou.Vector2(.75,.75)
+
+
+bbox = hou.BoundingRect(boxcam.position()[0] - pad[0], boxcam.position()[1] - pad[1], boxcam.position()[0] + boxcam.size()[0] + pad[0], boxcam.position()[1] + boxcam.size()[1] + pad[1])
+boxcam.setBounds(bbox)
+sizelstx.append(boxcam.size()[0])
+sizelsty.append(boxcam.size()[1])
+
+boxcam.setName('Cameras')
+boxcam.setComment('Cameras')
+
+# =====
+#Position Setting
+# =====
+maxx = max(sizelstx)
+maxy = max(sizelsty)
+minx = min(sizelstx)
+miny = min(sizelsty)
+
+list = [boxgeo,boxlight,boxdops,boxcam]
+#Layout 1
+if layout == 0:
+    #Set Min X size
+    for l in list:
+        if l.size()[0] < minsize:
+            l.setSize(hou.Vector2(minsize,maxy))
+
+    boxlight.setPosition(hou.Vector2(boxgeo.position()[0] + boxgeo.size()[0] + gap, boxgeo.position()[1]))
+    
+    boxdops.setPosition(hou.Vector2(boxlight.position()[0] + boxlight.size()[0] + gap, boxlight.position()[1]))
+    
+    boxcam.setPosition(hou.Vector2(boxdops.position()[0] + boxdops.size()[0] + gap, boxdops.position()[1]))
+    
+#Layout 2
+if layout == 1:
+    for l in list:
+        l.setSize(hou.Vector2(maxx,maxy))
+        
+    boxlight.setPosition(hou.Vector2(boxgeo.position()[0] + boxgeo.size()[0] + gap, boxgeo.position()[1]))
+    
+    boxdops.setPosition(hou.Vector2(boxlight.position()[0], boxlight.position()[1] - boxlight.size()[1] - gap - labelS,))
+    boxcam.setPosition(hou.Vector2(boxgeo.position()[0], boxgeo.position()[1] - boxgeo.size()[1] - gap - labelS,))
+
+#Layout 3
+if layout == 2:
+    for l in list:
+        l.setSize(hou.Vector2(maxx,l.size()[1]))
+        
+    boxlight.setPosition(hou.Vector2(boxgeo.position()[0], boxgeo.position()[1] - boxlight.size()[1] - gap - labelS,))
+    boxdops.setPosition(hou.Vector2(boxgeo.position()[0], boxlight.position()[1] - boxdops.size()[1] - gap - labelS,))
+    boxcam.setPosition(hou.Vector2(boxgeo.position()[0], boxdops.position()[1] - boxcam.size()[1] - gap - labelS,))
+
+#Layout 4
+    
+
+middle = []
+if layout == 3:
+    sizes = []
+    for l in list:
+        sizes.append(float(l.size()[0]))
+    sizes = sorted(sizes)
+    
+    ignore0 = 0
+    ignore1 = 0
+    ignore2 = 0
+    ignore3 = 0
+    middlesize = []
+    
+    for l in list:
+        size = l.size()[0]
+        if size == sizes[3] and ignore0 == 0:
+            first = l
+            ignore0 = 1
+            l.setSize(hou.Vector2(maxx,l.size()[1]))
+        elif size == sizes[0] and ignore1 == 0:
+            second = l
+            ignore1 = 1
+            l.setSize(hou.Vector2(maxx/2 - (gap/2),l.size()[1]))
+            middlesize.append(l.size()[1])
+        elif size == sizes[1] and ignore2 == 0:
+            third = l
+            ignore2 = 1
+            l.setSize(hou.Vector2(maxx/2 - (gap/2),l.size()[1]))
+            middlesize.append(l.size()[1])
+        elif size == sizes[2] and ignore3 == 0:
+            last = l
+            ignore3 = 1
+            l.setSize(hou.Vector2(maxx,l.size()[1]))
+                    
+    middlemax = max(middlesize)
+    second.setSize(hou.Vector2(second.size()[0],middlemax))
+    third.setSize(hou.Vector2(third.size()[0],middlemax))
+
+    first.setPosition(hou.Vector2(boxgeo.position()[0], boxgeo.position()[1]))
+    second.setPosition(hou.Vector2(first.position()[0], first.position()[1] - second.size()[1] - gap - labelS,))
+    third.setPosition(hou.Vector2(second.position()[0] + third.size()[0] + gap, second.position()[1]))
+    last.setPosition(hou.Vector2(second.position()[0], second.position()[1] - last.size()[1] - gap - labelS))]]></script>
+  </tool>
+
+  <tool name="rainbow0" label="RGB Nodes" icon="COP2_colorwheel.svg">
+    <script scriptType="python"><![CDATA[import colorsys, hou, random
+
+from PySide2 import QtCore
+from PySide2.QtCore import *
+
+def nodeCd():
+    sel = hou.selectedNodes()
+    if not sel:
+        hou.ui.displayMessage('Select Node(s)',title="Error")
+        return
+        
+    if len(sel) == 1:
+        selpath = sel[0].parent().children()
+    else:
+        selpath = sel
+        
+    rand = random.uniform(0, 1)
+    mrand = random.uniform(0, 1)
+    x = []
+    y = []
+    for node in selpath:
+        cpos = node.position()
+        x.append(cpos[0])
+        y.append(cpos[1])
+        
+    minx = min(x) 
+    maxx = max(x)
+    miny = min(y)
+    maxy = max(y)
+    
+    for node in selpath:
+        cpos = node.position()
+        fity = (hou.hmath.fit(cpos[1],miny,maxy,1,0) + rand) * mrand
+        fitx = (hou.hmath.fit(cpos[0],minx,maxx,0,1) + rand) * mrand
+        #mix = lerp(fitx,fity, .5)
+        amt = .5
+        mix = (amt * fitx) + ((1-amt) * fity)
+        color = colorsys.hsv_to_rgb(mix,1,1)
+        node.setColor(hou.Color(color))
+
+class animate():
+    def __init__(self):
+        self.count = 0
+        self.nodeCdAnimate()
+        
+    def nodeCdAnimate(self):
+        sel = hou.selectedNodes()
+        if not sel:
+            hou.ui.displayMessage('Select Node(s)',title="Error")
+            return
+            
+        if len(sel) == 1:
+            self.selpath = sel[0].parent().children()
+        else:
+            self.selpath = sel
+            
+        self.rand = random.uniform(0, 1)
+        self.mrand = random.uniform(0, 1)
+        x = []
+        y = []
+        for node in self.selpath:
+            cpos = node.position()
+            x.append(cpos[0])
+            y.append(cpos[1])
+            
+        self.minx = min(x) 
+        self.maxx = max(x)
+        self.miny = min(y)
+        self.maxy = max(y)
+        
+        hou.ui.addEventLoopCallback(self.animateCd)
+        
+            
+    def animateCd(self):
+        self.count *= .1
+        for node in self.selpath:
+            cpos = node.position()
+            fity = (hou.hmath.fit(cpos[1],self.miny,self.maxy,1,0) + self.rand) * self.mrand
+            fitx = (hou.hmath.fit(cpos[0],self.minx,self.maxx,0,1) + self.rand) * self.mrand
+            amt = .5
+            mix = (amt * fitx) + ((1-amt) * fity)
+            color = colorsys.hsv_to_rgb(mix+self.count,1,1)
+            node.setColor(hou.Color(color))
+                        
+        self.count += 1
+        
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            hou.ui.removeEventLoopCallback(self.animateCd)
+        
+if (not kwargs['ctrlclick'] and not kwargs['cmdclick']):
+    nodeCd()
+else:
+    animate()]]></script>
+  </tool>
+
+  <tool name="rainbow" label="RGB Nodes" icon="COP2_colorwheel.svg">
+    <script scriptType="python"><![CDATA[import colorsys, hou, random
+
+try:
+    sel = hou.selectedNodes()
+    if len(sel) == 1:
+        selpath = hou.node(sel[0].path() + '/../').children()
+    else:
+        selpath = sel
+        
+    rand = random.uniform(0, 1)
+    mrand = random.uniform(0, 1)
+    x = []
+    y = []
+    for node in selpath:
+        cpos = node.position()
+        x.append(cpos[0])
+        y.append(cpos[1])
+        
+    minx = min(x) 
+    maxx = max(x)
+    miny = min(y)
+    maxy = max(y)
+    
+    for node in selpath:
+        cpos = node.position()
+        fity = (hou.hmath.fit(cpos[1],miny,maxy,1,0) + rand) * mrand
+        fitx = (hou.hmath.fit(cpos[0],minx,maxx,0,1) + rand) * mrand
+        #mix = lerp(fitx,fity, .5)
+        amt = .5
+        mix = (amt * fitx) + ((1-amt) * fity)
+        color = colorsys.hsv_to_rgb(mix,1,1)
+        node.setColor(hou.Color(color))
+except:
+    hou.ui.displayMessage('Select Node(s)',title="Error")]]></script>
+  </tool>
+
+  <tool name="mergenullchildren" label="Merge Null Children" icon="SOP_merge">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+movelst = []
+
+for ind, null in enumerate(sel):
+    if repr(null.type()) == '<hou.NodeType for Object null>' and not null.inputs():
+        if ind == 0:    hide = hou.ui.displayMessage(text='Hide original Geometry?                                     ',title='Hide Geometry',buttons=('Yes','No'),default_choice=1)
+        geo = hou.node(null.path() + '/../').createNode('geo', null.name()+'_Merge')
+        geo.moveToGoodPosition(True,False,True,True)
+        geo.setColor(hou.Color((0.0941176,0.368627,0.690196)))
+        movelst.append(geo)
+        merge = geo.createNode('merge')
+        merge.moveToGoodPosition()
+       
+        nullouputs = null.outputs()
+        finallist = []
+        for n in null.outputs():
+            finallist.append(n)
+           
+        # Select Null Outputs
+        while nullouputs:
+            tempout = []
+            for node in nullouputs:
+                if node.outputs():
+                    for n in node.outputs():
+                        tempout.append(n)
+                        if repr(n.type()) == '<hou.NodeType for Object geo>':
+                            finallist.append(n)
+            nullouputs = tempout
+           
+        for node in finallist:
+            if 'hou.ObjNode of type geo' in repr(node.type):
+                if (node.isDisplayFlagSet()):
+                    #Find Material path
+                    mat = node.parm('shop_materialpath').eval()
+                    nodepath = node.path()
+                    nodeparent = node.parent()
+                    #Find Material inside of geo node
+                    for mnode in node.children():
+                        if 'hou.SopNodeType for Sop material' in repr(mnode.type()) and mnode.parm('shop_materialpath1').eval() != '':
+                            mat = ''
+                            nodepath = mnode.path()
+                    #Absolute Path Correction
+                    if '../' in mat:
+                        slice = mat.rfind('../')
+                        matadd = mat[slice+2:]
+                        lookfor = '../'
+                        count = mat.count(lookfor)
+                        for x in range(count):
+                            slice = nodepath.rfind('/')
+                            nodepath = nodepath[:slice]
+                        mat = nodepath + matadd
+           
+                    #Create object merge, material and merge
+                    path = node.path()
+                    name = node.name()
+                    omerge = hou.node(merge.path() + '/../').createNode('object_merge', name+"_merge")
+                    matnode = hou.node(merge.path() + '/../').createNode('material',None)
+                    matnode.setNextInput(omerge)
+                    merge.setNextInput(matnode)
+                    matnode.parm('shop_materialpath1').set(mat)
+                    #Set Position
+                    geo.layoutChildren()
+                    for child2 in geo.children():
+                        if 'object_merge' in repr(child2.type()):
+                            cpos = child2.position()
+                            cpos = (cpos[0], 2)
+                            child2.setPosition(cpos)
+                        elif 'material' in repr(child2.type()):
+                            cpos = child2.position()
+                            cpos = (cpos[0], 1)
+                            child2.setPosition(cpos)
+                       
+                    if mat == '':
+                        matnode.destroy()
+                    omerge.parm("objpath1").set(path)
+                    omerge.parm("xformtype").set(1)
+        if hide == 0:  
+            for n in finallist:   n.setDisplayFlag(False)
+           
+        if ind == 0:    geo.setSelected(True, False, True)
+        else:   geo.setSelected(True, False, True)
+        
+if movelst: hou.node(nodeparent.path()).layoutChildren(movelst)]]></script>
+  </tool>
+
+  <tool name="copypaste0" label="Copy Parms" icon="VOP_copy">
+    <script scriptType="python"><![CDATA[import hou
+sel = hou.selectedNodes()
+if len(sel) > 1:
+    #Parameters to copy
+    copiedparms = []
+    copiednames = []
+    
+    parms = sel[0].parms()
+    p = parms[0]
+    pr = repr(p)
+    start = pr.find(' ')
+    pr = pr[start+1:]
+    end = pr.find(' ')
+    pr = pr[:end]
+    """
+    dia = hou.ui.selectParm(category=None, bound_parms_only=True, 
+    relative_to_node=sel[0], message=None, title=None, initial_parms=('./' + pr), 
+    multiple_select=True, width=0, height=0)
+    
+    for n in dia:
+        pr = n[2:]
+        try:
+            value = sel[0].parm(pr).eval()
+            copiednames.append(pr)
+            copiedparms.append(value)
+        except:
+            pass
+    """
+    parms = sel[0].parms()
+    for p in parms:
+        pr = repr(p)
+        start = pr.find(' ')
+        pr = pr[start+1:]
+        end = pr.find(' ')
+        pr = pr[:end]
+        name = pr
+        value = sel[0].parm(pr).eval()
+        #Adding parm name and parm value to a list
+        copiedparms.append(value)
+        copiednames.append(name)
+    
+    #Pasting parameters
+    parms = sel[1].parms()
+    for p in parms:
+        pr = repr(p)
+        start = pr.find(' ')
+        pr = pr[start+1:]
+        end = pr.find(' ')
+        pr = pr[:end]
+        name = pr
+        #If parm name in first node, paste the values
+        if name in copiednames:
+            index = copiednames.index(name)
+            sel[1].parm(name).set(copiedparms[index])
+else:
+    hou.ui.displayMessage("Select 2 or more nodes.",title="Error")]]></script>
+  </tool>
+
+  <tool name="copypaste" label="Copy Parms" icon="VOP_copy">
+    <script scriptType="python"><![CDATA[import hou
+sel = hou.selectedNodes()
+if len(sel) > 1:
+    #Parameters to copy
+    copiedparms = []
+    copiednames = []
+    
+    parms = sel[0].parms()
+    p = parms[0]
+    pr = repr(p)
+    start = pr.find(' ')
+    pr = pr[start+1:]
+    end = pr.find(' ')
+    pr = pr[:end]
+    """
+    dia = hou.ui.selectParm(category=None, bound_parms_only=True, 
+    relative_to_node=sel[0], message=None, title=None, initial_parms=('./' + pr), 
+    multiple_select=True, width=0, height=0)
+    
+    for n in dia:
+        pr = n[2:]
+        try:
+            value = sel[0].parm(pr).eval()
+            copiednames.append(pr)
+            copiedparms.append(value)
+        except:
+            pass
+    """
+    parms = sel[0].parms()
+    for p in parms:
+        pr = repr(p)
+        start = pr.find(' ')
+        pr = pr[start+1:]
+        end = pr.find(' ')
+        pr = pr[:end]
+        name = pr
+        value = sel[0].parm(pr).eval()
+        #Adding parm name and parm value to a list
+        copiedparms.append(value)
+        copiednames.append(name)
+    
+    #Pasting parameters
+    parms = sel[1].parms()
+    for p in parms:
+        pr = repr(p)
+        start = pr.find(' ')
+        pr = pr[start+1:]
+        end = pr.find(' ')
+        pr = pr[:end]
+        name = pr
+        #If parm name in first node, paste the values
+        if name in copiednames:
+            index = copiednames.index(name)
+            sel[1].parm(name).set(copiedparms[index])
+else:
+    hou.ui.displayMessage("Select 2 or more nodes.",title="Error")]]></script>
+  </tool>
+
+  <tool name="focuspickver" label="Focus Pick Expression" icon="SHELF_parent">
+    <script scriptType="python"><![CDATA[import objecttoolutils,toolutils,sys
+
+# Previous Selection
+try:    
+    hou.selectedNodes()[0]
+    presel = hou.selectedNodes()
+except: pass
+
+# Active Camera
+desktop = hou.ui.curDesktop()
+scene_viewer = desktop.paneTabOfType(hou.paneTabType.SceneViewer)
+viewport = scene_viewer.curViewport()
+if viewport.camera():    sel = viewport.camera()
+else:   sys.exit()
+   
+# Get Position
+if '<hou.ObjNode of type cam' in repr(sel.type):
+    scene_viewer = toolutils.activePane(kwargs)
+
+    positions = scene_viewer.selectPositions(
+            prompt='Click to specify the focus point.',
+            number_of_positions=1,
+            connect_positions=True,
+            show_coordinates=True,
+            bbox=hou.BoundingBox(),
+            position_type=hou.positionType.WorldSpace,
+            icon=None,
+            label=None)
+       
+    focuspos = positions[0]
+   
+    # Set Expressions
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        tar = hou.node('/obj/').createNode('null','target')
+        tar.parmTuple('t').set(positions[0])
+        tar.moveToGoodPosition(True, False, True, True)
+        expression =  '''import hou
+return hou.Vector3.distanceTo(hou.node(\"'''+tar.path()+'''\").worldTransform().extractTranslates(),hou.pwd().worldTransform().extractTranslates())'''
+
+        # Restore Selection
+        if presel:  
+            for ind,node in enumerate(presel):
+                if ind == 0:    node.setSelected(1, clear_all_selected=True)
+                else:   node.setSelected(1, clear_all_selected=False)
+    else:
+        expression =  '''import hou
+return hou.Vector3.distanceTo(hou.Vector3('''+repr(focuspos[0])+''','''+repr(focuspos[1])+''','''+repr(focuspos[2])+'''),hou.pwd().worldTransform().extractTranslates())'''
+   
+    try:    sel.parm('focus').deleteAllKeyframes()
+    except: pass
+
+    sel.parm('focus').setExpression(expression, language=hou.exprLanguage.Python, replace_expression=True)]]></script>
+  </tool>
+
+  <tool name="extract::2" label="Extract 2" icon="SHELF_extract_object">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[import os,ast,sys
+from PySide2 import QtCore, QtUiTools, QtWidgets, QtGui
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+
+# Pref Location
+pref = hou.expandString('$HOUDINI_USER_PREF_DIR/extract.pref')
+
+class extractor2(QDialog):
+    def __init__(self, *args, **kwargs):
+        super(extractor2, self).__init__()
+        self.setWindowTitle("Extract")
+        cursor_position = [int(QtGui.QCursor.pos().x()), int(QtGui.QCursor.pos().y())]
+        winsize = [350,150]
+        self.setGeometry(cursor_position[0]-(winsize[0]/2),cursor_position[1]-80,winsize[0], winsize[1])
+        self.setFixedSize(winsize[0], winsize[1])
+        self.setParent(hou.ui.mainQtWindow(), QtCore.Qt.Window)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.CustomizeWindowHint)
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowStaysOnTopHint)
+       
+        panetab = hou.ui.curDesktop().paneTabUnderCursor()
+        if panetab:
+            panel = panetab.pane().floatingPanel()
+            self.setParent(hou.qt.floatingPanelWindow(panel), QtCore.Qt.Window)
+            
+        if sys.platform != 'win32':
+                self.setWindowFlags(QtCore.Qt.Window | Qt.WindowStaysOnTopHint)
+       
+        sh = hou.ui.qtStyleSheet()
+        self.setStyleSheet(sh)
+       
+        layout = QVBoxLayout()    
+        layout.setSpacing(5)
+        layout.setSizeConstraint(QLayout.SetMinimumSize)
+       
+        line0 = QHBoxLayout()
+        line0.setSpacing(5)
+        layout.addLayout(line0)
+       
+        groupBox = QGroupBox("Name")
+        line0.addWidget(groupBox)
+       
+        line1 = QHBoxLayout()
+        line1.setSpacing(5)
+        groupBox.setLayout(line1)
+       
+        self.name = QLineEdit()
+        self.name.setPlaceholderText('Extract Name')
+        self.name.setMinimumHeight(32)
+        self.name.setMinimumWidth(260)
+        self.name.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        line1.addWidget(self.name)
+        
+        self.namemode = QPushButton()
+        self.namemode.setIcon(hou.qt.Icon("BUTTONS_comment_out", 55, 55))
+        self.namemode.setFlat(True)
+        self.namemode.setCheckable(1)
+        self.namemode.setFixedSize(32, 32)
+        self.namemode.clicked.connect(self.switchType)
+        #line1.addWidget(self.namemode)
+       
+        groupBox = QGroupBox("Extract")
+        layout.addWidget(groupBox)
+       
+        line1 = QHBoxLayout()
+        line1.setSpacing(5)
+        groupBox.setLayout(line1)
+       
+        self.info = QLabel()
+        self.info.setEnabled(False)
+        line1.addWidget(self.info)
+        self.spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        line1.addItem(self.spacer)
+        self.extract = QPushButton('Extract')
+        self.extract.setMinimumHeight(38)
+        self.extract.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.extract.setMinimumWidth(100)
+       
+        # Menu Button
+        self.menu = hou.qt.Menu()
+        self.menu.addAction('Extract Right          ', lambda: self.extractFunct(0),'Alt+Right')
+        self.menu.addAction('Extract Left', lambda: self.extractFunct(1),'Alt+Left')
+        self.menu.addAction('Extract Up', lambda: self.extractFunct(2),'Alt+Up')
+        self.menu.addAction('Extract Down', lambda: self.extractFunct(3),'Alt+Down')
+       
+        self.menu.addSeparator()
+        self.xform = QAction('Transform into Object', self.menu, checkable=True)
+        self.xform.triggered.connect(self.xformchange)
+        self.xform.setShortcut("alt+t")  
+        self.menu.addAction(self.xform)
+        self.menu.addSeparator()
+        self.menu.addAction('Preferences', self.pref,'Ctrl+p')
+        
+        #shortcut2 = QShortcut(QKeySequence("Tab"), self)
+        #shortcut2.activated.connect(self.switchType)
+        #self.namemode.setToolTip('Get name from selected node. Tab')
+       
+        self.extract.setMenu(self.menu)
+        line1.addWidget(self.extract)
+               
+        self.setLayout(layout)
+        
+        if os.path.isfile(pref):
+            f = file(pref,'r')
+            with open(pref, 'r') as f:
+                recent = ast.literal_eval(f.read())
+                try: 
+                    if recent[7]: self.xform.setChecked(True)
+                except:
+                    print 'Corrupt extract preferences, reverting to defaults.'
+                    os.remove(pref)
+       
+    def extractFunct(self,dir):       
+        # Sel Checks
+        sel = hou.selectedNodes()
+        if not sel:
+            self.info.setText('No nodes selected.')
+            return
+       
+        if sel[0].type().category().name() == 'Sop':
+            sop = 1
+        elif sel[0].type().category().name() == 'Object':
+            sop = 0
+        else: 
+            self.info.setText('Wrong node type - select an OBJ\nto move or SOP to extract.')
+            return
+        
+        # Name Checks
+        if sop:
+            chars = list('1234567890qwertyuiopasdfghjklzxcvbnm_ ')
+            name = self.name.text()
+            if not name:
+                self.info.setText('Enter a name.')
+                return
+            for l in name.lower():
+                if l not in chars:
+                    self.info.setText('Illegal character in name.')
+                    return
+            if name.isdigit():
+                self.info.setText('Illegal name - can\'t exclusively\ncontain numbers.')
+                return
+            name = name.replace(' ','_')
+            geoname = name
+                   
+        # Preferences
+        setmode = 0
+        shiftPosx = 2.75
+        shiftPosy = 1.50
+        if os.path.isfile(pref):
+            f = file(pref,'r')
+            with open(pref, 'r') as f:
+                recent = ast.literal_eval(f.read())
+                try: 
+                    recent[7]
+                    shiftPosx = recent[2]
+                    shiftPosy = recent[3]
+                    setmode = 1
+                except:
+                    print 'Corrupt extract preferences, reverting to defaults.'
+                    os.remove(pref)
+               
+        nparent = sel[0].parent()
+        pos = nparent.position()
+        
+        with hou.undos.group("Extract"):
+            for n in sel:
+                if sop:
+                    # Geo
+                    geo = nparent.parent().createNode('geo',geoname)
+                    geo.setPosition(nparent.position())
+                    name = geo.name()
+                    
+                    # Null
+                    if setmode:
+                        if recent[4] == 1:
+                            name += '_out'
+                        elif recent[4] == 2:
+                            name = 'out_'+name
+                            
+                    else: name += '_out'
+                        
+                       
+                    null = nparent.createNode('null',name)
+                    null.setNextInput(n)
+                    null.moveToGoodPosition(True, False, True, True)
+                    if setmode:
+                        null.setUserData('nodeshape', recent[5])
+                        null.setColor(hou.Color(recent[6]))
+                        if not recent[0]:
+                            null.destroy()
+                            null = n
+                            
+                    # Object Merge
+                    obmerge = geo.createNode('object_merge')
+                    obmerge.parm('objpath1').set(null.path())
+                    if self.xform.isChecked(): obmerge.parm('xformtype').set(1)
+                    
+                    location = nparent.parent()
+                else:
+                    pos = n.position()
+                    location = nparent
+                    geo = n
+                    
+                # List Positions
+                plist = []
+                for chl in location.children():
+                    if dir < 2:
+                        if chl.position()[1] == pos[1]: plist.append(chl.position())
+                    else:  
+                        if chl.position()[0] == pos[0]: plist.append(chl.position())
+     
+                # Set Position
+                while geo.position() in plist:
+                    if dir == 0:
+                        geo.shiftPosition((shiftPosx,0))
+                    elif dir == 1:
+                        geo.shiftPosition((-shiftPosx,0))
+                    elif dir == 2:
+                        geo.shiftPosition((0,shiftPosy))
+                    else:
+                        geo.shiftPosition((0,-shiftPosy))
+               
+            # Restore Selection
+            for i, node in enumerate(sel):
+                if i == 0:    node.setSelected(True, True, False)
+                else:   node.setSelected(True, False, False)
+           
+        if sop: self.info.setText('Finished extract.')
+        else: self.info.setText('Finished position shift.')
+       
+        # Close
+        if setmode:
+            if recent[1]:
+                self.hide()
+        else:   self.hide()
+        
+    def xformchange(self):
+        self.info.setText('Transform into object: %s.'%(self.xform.isChecked()))
+        
+    def _onNodeChange(self, **kwargs):
+        print 'b'
+
+    def closeEvent(self, event):
+        self.setParent(None)
+
+    def hideEvent(self, event):
+        self.setParent(None)
+        
+    def switchType(self):
+        if self.namemode.isChecked():
+            self.name.setEnabled(0)
+        else:
+            self.name.setEnabled(1)
+    # -----------
+    # Preferences
+    # -----------
+    def pref(self):
+        class preferenceUI(QDialog):
+            def __init__(self, *args, **kwargs):
+                super(preferenceUI, self).__init__()
+                self.setWindowTitle('Preferences')            
+                cursor_position = [int(QtGui.QCursor.pos().x()), int(QtGui.QCursor.pos().y())]
+                winsize = [400,175]
+                self.setGeometry(cursor_position[0]-200-(winsize[0]/2),cursor_position[1]-200,winsize[0], winsize[1])
+                self.setFixedSize(winsize[0], winsize[1])
+                self.setParent(hou.ui.mainQtWindow(), QtCore.Qt.Window)
+
+                self.setStyleSheet(hou.ui.qtStyleSheet())
+               
+                layout = QVBoxLayout()
+                layout.setSpacing(10)
+                layout.setSizeConstraint(QLayout.SetMinimumSize)
+
+                # Corrupt check
+                setmode = 0
+                if os.path.isfile(pref):
+                    f = file(pref,'r')
+                    with open(pref, 'r') as f:
+                        recent = ast.literal_eval(f.read())
+                        try: 
+                            recent[7]
+                            setmode = 1
+                        except:
+                            print 'Corrupt extract preferences, reverting to defaults.'
+                            os.remove(pref)
+               
+                line1 = QHBoxLayout()
+                line1.setSpacing(12)
+                layout.addLayout(line1)
+               
+                self.addnull = QPushButton('Create Null')
+                self.addnull.setMinimumHeight(32)
+                self.addnull.setMinimumWidth(200)
+                self.addnull.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.addnull.setCheckable(True)
+                self.addnull.setChecked(True)
+                if setmode: self.addnull.setChecked(recent[0])
+                line1.addWidget(self.addnull)
+               
+                self.closeafter = QPushButton('Close After Extract')
+                self.closeafter.setMinimumWidth(200)
+                self.closeafter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.closeafter.setCheckable(True)
+                self.closeafter.setChecked(True)
+                if setmode: self.closeafter.setChecked(recent[1])
+                line1.addWidget(self.closeafter)
+               
+                line1 = QHBoxLayout()
+                line1.setSpacing(12)
+                layout.addLayout(line1)
+               
+                self.outaf = QPushButton('Add \'out\' after')
+                self.outaf.setMinimumHeight(32)
+                self.outaf.setMinimumWidth(200)
+                self.outaf.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.outaf.setCheckable(True)
+                if setmode:
+                    if recent[4] == 1:  self.outaf.setChecked(1)
+                else: self.outaf.setChecked(1)
+                self.outaf.clicked.connect(lambda: self.togfunct(0))
+                line1.addWidget(self.outaf)
+               
+                self.outb4 = QPushButton('Add \'out\' before')
+                self.outb4.setMinimumWidth(200)
+                self.outb4.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.outb4.setCheckable(True)
+                if setmode:
+                    if recent[4] == 2:  self.outb4.setChecked(1)
+                self.outb4.clicked.connect(lambda: self.togfunct(1))
+                line1.addWidget(self.outb4)
+                
+                self.xformcheck = QPushButton('Tranform into Object by Default')
+                self.xformcheck.setMinimumHeight(32)
+                self.xformcheck.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.xformcheck.setCheckable(True)
+                if setmode:
+                    if recent[7]: self.xformcheck.setChecked(True)
+                layout.addWidget(self.xformcheck)
+
+                groupBox = QGroupBox("Shift Position (x,y)")
+                layout.addWidget(groupBox)
+               
+                line1 = QHBoxLayout()
+                line1.setSpacing(5)
+                groupBox.setLayout(line1)
+               
+                self.posxpref = QDoubleSpinBox()
+                self.posxpref.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.posxpref.setMinimum(.01)
+                self.posxpref.setMaximum(99)
+                self.posxpref.setValue(2.75)
+                if setmode: self.posxpref.setValue(recent[2])
+                line1.addWidget(self.posxpref)
+               
+                self.posypref = QDoubleSpinBox()
+                self.posypref.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+                self.posypref.setMinimum(.01)
+                self.posypref.setMaximum(99)
+                self.posypref.setValue(1.50)
+                if setmode: self.posypref.setValue(recent[3])
+                line1.addWidget(self.posypref)
+                layout.addItem(QSpacerItem(0, 10, QSizePolicy.Expanding, QSizePolicy.Fixed))
+                
+                # Shape
+                line1 = QHBoxLayout()
+                line1.setSpacing(12)
+                layout.addLayout(line1)
+                
+                groupBox = QGroupBox("Null Shape")
+                line1.addWidget(groupBox)
+               
+                line3 = QHBoxLayout()
+                line3.setSpacing(5)
+                groupBox.setLayout(line3)
+                
+                shapedir = hou.expandString('$HFS') + '/houdini/config/NodeShapes'
+                self.shape = hou.qt.ComboBox()
+                for s in os.listdir(shapedir):
+                    self.shape.addItem(s.rsplit('.',1)[0])
+                self.shape.setCurrentText('null')
+                if setmode: self.shape.setCurrentText(recent[5])
+                line3.addWidget(self.shape)
+                
+                # Null Color
+                groupBox = QGroupBox("Null Colour")
+                line1.addWidget(groupBox)
+               
+                line2 = QHBoxLayout()
+                line2.setSpacing(5)
+                groupBox.setLayout(line2)
+                
+                self.cd = hou.qt.ColorField()
+                self.cd.setColor(hou.qt.toQColor(hou.Color((0.6, 0.7, 0.77))))
+                if setmode: self.cd.setColor(QColor(recent[6][0],recent[6][1],recent[6][2],255))
+                line2.addWidget(self.cd)
+                
+                # Seperator
+                self.sep = hou.qt.Separator()
+                layout.addWidget(self.sep)
+               
+                # ButtonBox
+                confirm = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)    
+                confirm.setMinimumSize(0, 40)  
+                confirm.accepted.connect(self.accept)
+                confirm.rejected.connect(self.reject)
+                layout.addWidget(confirm)
+               
+                self.setLayout(layout)
+                                   
+            # Write Preferences
+            def accept(self):
+                dialog.close()
+                if self.outb4.isChecked():
+                    outpref = 2
+                elif self.outaf.isChecked():
+                    outpref = 1
+                else:
+                    outpref = 0
+                item = [self.addnull.isChecked(),self.closeafter.isChecked(),self.posxpref.value(),self.posypref.value(),outpref,self.shape.currentText(),(self.cd.color().toRgb().red(),self.cd.color().toRgb().green(),self.cd.color().toRgb().blue()),self.xformcheck.isChecked()]
+                a = file(pref, 'w')
+                a.write(repr(item))
+               
+            def togfunct(self,tog):
+                if tog:
+                    if self.outb4.isChecked():
+                        self.outaf.setChecked(False)
+                else:
+                    if self.outaf.isChecked():
+                        self.outb4.setChecked(False)
+                        
+            def closeEvent(self, event):
+                self.setParent(None)
+        
+            def hideEvent(self, event):
+                self.setParent(None)
+               
+        dialog = preferenceUI()
+        dialog.show()
+                                           
+dialog = extractor2()
+dialog.show()]]></script>
+  </tool>
+
+  <tool name="updateMode" label="Update Mode Switcher" icon="hicon:/SVGIcons.index?BUTTONS_reload.svg">
+    <script scriptType="python"><![CDATA[if hou.updateModeSetting().name() in ['AutoUpdate','OnMouseUp']: hou.setUpdateMode(hou.updateMode.Manual)
+else: hou.setUpdateMode(hou.updateMode.AutoUpdate)]]></script>
+  </tool>
+
+  <tool name="takeManager" label="Take Manager" icon="PANETYPES_take_list">
+    <script scriptType="python"><![CDATA[from take import manager
+reload(manager)
+
+manager = manager.takeManager()
+manager.show()]]></script>
+  </tool>
+
+  <tool name="incSave" label="Incr Save" icon="DESKTOP_drive">
+    <script scriptType="python"><![CDATA[import re,os
+
+hipFile,ext = hou.hipFile.path().replace('\\','/').rsplit('.',1)
+path,hipName = hipFile.rsplit('/',1)
+
+verSplit = None
+verFormat = None
+if len(re.findall('_v(?=\d+)', hipName)) > 0:
+    verSplit = re.split('_v(?=\d+)', hipName)
+    verFormat = '_v'
+elif len(re.findall('_V(?=\d+)', hipName)) > 0:
+    verSplit = re.split('_V(?=\d+)', hipName)
+    verFormat = '_V'
+
+if verSplit:
+    padding = len(verSplit[1])
+    matchlist = []
+    
+    for f in os.listdir(path):
+        if f.endswith('.%s'%(ext)):
+            f = f.rsplit('.',1)[0]
+            if len(re.findall('%s(?=\d+)'%(verFormat), f)) > 0:
+                sec = re.split('%s(?=\d+)'%(verFormat), f)
+                if sec[0] == verSplit[0]:#and len(sec[1]) == padding
+                    matchlist.append(int(sec[1]))
+
+    version = str(max(matchlist)+1).zfill(padding)
+    
+    hipPath = '%s/%s%s%s.%s'%(path,verSplit[0],verFormat,version,ext)
+else:    # No version
+    padding = 3
+    matchlist = []
+    
+    for f in os.listdir(path):
+        if f.endswith('.%s'%(ext)):
+            f = f.rsplit('.',1)[0]
+            for vformat in ['_v','_V']:
+                if len(re.findall('%s(?=\d+)'%vformat, f)) > 0:
+                    sec = re.split('%s(?=\d+)'%vformat, f)
+                    if sec[0] == hipName:
+                        padding = len(sec[1])
+                        matchlist.append(int(sec[1]))
+                        break
+    
+    if matchlist:
+        version = str(max(matchlist)+1).zfill(padding)
+    else: 
+        version = '001'
+    
+    hipPath = '%s_v%s.%s'%(hipFile,version,ext)
+    
+hou.putenv('VERSION', str(int(version)))
+        
+hou.hipFile.save(hipPath,True)]]></script>
+  </tool>
+
+  <tool name="jobSet" label="$JOB Set" icon="hicon:/SVGIcons.index?TOP_downloadfile.svg">
+    <script scriptType="python"><![CDATA[from job import set as axisQt
+reload(axisQt)
+
+ui = axisQt.jobSet()
+ui.show()
+if not (not kwargs['ctrlclick'] and not kwargs['cmdclick']):
+    ui.changeJob()
+    ui.close()]]></script>
+  </tool>
+
+  <tool name="verDir" label="Vrsn Jump" icon="hicon:/SVGIcons.index?NETWORKS_vop.svg">
+    <script scriptType="python"><![CDATA[from ver import jump
+
+reload(jump)
+
+jump.initMenu().showMenu()]]></script>
+  </tool>
+
+  <tool name="drop18" label="Drop H18" icon="NODEFLAGS_select">
+    <script scriptType="python"><![CDATA[from drop import dropoverlay
+
+reload(dropoverlay)
+
+if kwargs['cmdclick'] or kwargs['ctrlclick']:
+    dropoverlay.activatePanel().show()
+else:
+    dropoverlay.startup(None)]]></script>
+  </tool>
+
+  <tool name="highlight_pref" label="Highlight Prefs" icon="CHANNELS_dope_select">
+    <script scriptType="python"><![CDATA[from network_editor import footprints_ui
+
+reload(footprints_ui)
+
+footprints_ui.footprintpref().show()]]></script>
+  </tool>
+
+  <tool name="promotehip" label="Promote HIP License" icon="MISC_logo_white">
+    <script scriptType="python"><![CDATA[import subprocess,os,sys
+from utils import promoteHip,openFolder
+
+reload(promoteHip)
+
+def run():
+    hip = promoteHip.convert(hou.hipFile.path(),1)
+
+    if hip:
+        if hip.startswith('File \''):
+            dia = hou.ui.displayMessage('%s\nOpen file?'%hip,buttons=('Yes','Open Folder','No'),severity=hou.severityType.Message, default_choice=0, close_choice=1, title='Info')
+            hip = hip.split('\'')[1]
+        else:
+            dia = hou.ui.displayMessage("Created: '$HIP/%s'\nOpen file?"%hip.rsplit('/',1)[1],buttons=('Yes','Open Folder','No'),severity=hou.severityType.Message, default_choice=0, close_choice=1, title='Info')
+            
+        if dia==0:
+            platform = sys.platform
+            if platform == "win32":
+                os.startfile(hip)
+            elif platform == "darwin":
+                subprocess.Popen(["open", hip])
+            else:
+                subprocess.Popen(["xdg-open", hip])
+            
+        elif dia==1:
+            openFolder.open(hip.rsplit('/',1)[0])
+
+    else:
+        hou.ui.displayMessage('Failed to create hip file.',buttons=('Ok',),severity=hou.severityType.Error, default_choice=0, close_choice=0, title='Error')
+        
+dia = hou.ui.displayMessage("Promote current file to highest available license?",buttons=('Yes','No'),severity=hou.severityType.Message, default_choice=0, close_choice=1, title='Info')
+if not dia:
+    run()]]></script>
+  </tool>
+</shelfDocument>

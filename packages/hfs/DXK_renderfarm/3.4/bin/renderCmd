@@ -1,0 +1,2 @@
+#!/bin/bash
+hython ${REZ_DXK_RENDERFARM_ROOT}/scripts/renderScript.py $*

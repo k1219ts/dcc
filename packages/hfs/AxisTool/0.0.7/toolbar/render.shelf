@@ -1,0 +1,1016 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="rendertools" label="Render Tools">
+    <memberTool name="assignMat"/>
+    <memberTool name="FBXtoRS1"/>
+    <memberTool name="mtos0"/>
+    <memberTool name="matclean"/>
+    <memberTool name="aovpaths"/>
+    <memberTool name="activecamera"/>
+    <memberTool name="Aphysicalsky0"/>
+    <memberTool name="cleanVOP"/>
+    <memberTool name="expandVOP"/>
+    <memberTool name="texManage"/>
+    <memberTool name="aovload"/>
+  </toolshelf>
+
+  <tool name="newAmat" label="Assign New Arnold Mat" icon="ROP_arnold">
+    <script scriptType="python"><![CDATA[import sys
+sel = hou.selectedNodes()
+
+Dialog = hou.ui.readInput('Arnold Material Creator', buttons=('Material','Volume','Cancel',), default_choice=0, close_choice=2, help='Insert material name or ignore and use defaults', title='Material Creator')
+if Dialog[0] == 2:
+    sys.exit()
+name = Dialog[1]
+if not Dialog[1]:
+    name = 'arnold_vopnet1'
+if ' ' in name:
+    name = name.replace(' ','_')
+    
+if Dialog[0] == 0 or Dialog[0] == 1:
+    #shop level
+    geo = hou.node('/shop').createNode('arnold_vopnet',name)
+    geo.moveToGoodPosition(True,False,True,True)
+    matpath = geo.path()
+    
+    #sop level
+    surface = geo.node('OUT_material')
+    if Dialog[0] == 0:
+        mat = geo.createNode("arnold::standard_surface")
+        surface.insertInput(0, mat)
+    else:
+        mat = geo.createNode("arnold::standard_volume")
+        surface.insertInput(2, mat)
+    
+    #move to good location
+    surface.moveToGoodPosition(True,False,True,True)
+    mat.moveToGoodPosition(True,False,True,True)
+    
+    for node in sel:
+        type = node.type
+        if 'ObjNode.type' in repr(type):
+            node.parm('shop_materialpath').set(matpath)
+        elif 'hou.SopNode of type material' in repr(type):
+            node.parm('shop_materialpath1').set(matpath)
+        elif node.type().category() == hou.sopNodeTypeCategory():
+            parent = node.parent()
+            material = parent.createNode("material")
+            material.setNextInput(node)
+            material.moveToGoodPosition(True, False, True, True)
+            material.parm('shop_materialpath1').set(matpath)
+    
+    #view dialogue
+    mat.setSelected(True, True, False)]]></script>
+  </tool>
+
+  <tool name="FBXtoRS1" label="FBX Mat Converter" icon="VOP_subnet">
+    <script scriptType="python"><![CDATA[import hou, sys
+
+sel = hou.selectedNodes()
+
+if 'hou.NodeType for Shop material' not in repr(sel[0].type()):
+    hou.ui.displayMessage('Select FBX Material',title="Error")
+    sys.exit()
+
+#Preset Lists
+plasticlst = ['plastic','gloss']
+chromelst = ['chrome','mirror','metal','rim','railing']
+glasslst = ['headlight','light','glass','window','bottle','water']
+goldlst = ['gold','champagne']
+
+#Colour Lists
+blacklst = ['black','blk']
+whitelst = ['white','grey']
+redlst = ['red']
+orangelst = ['orange']
+bluelst = ['blue','cyan']
+purplelst = ['purple']
+pinklst = ['pink']
+greenlst = ['green']
+yellowlst = ['yellow']
+
+#UI
+text = "How do you want to copy over settings?"
+update = hou.ui.displayMessage(text, buttons=("Guess from Names","The import incldues textures","RS Defaults", "Cancel"), 
+severity=hou.severityType.Message, title="Smart Conversion")
+
+#Guess from names and defaults
+if update == 0 or update == 2:
+    for count, node in enumerate(sel):
+        if 'hou.NodeType for Shop material' in repr(node.type()):
+            name = node.name()
+            cpos = node.position()
+            path = node.path() + '/../'
+            
+            #Create RS Mat
+            geo = hou.node(path).createNode('redshift_vopnet')
+            geo.setPosition(cpos)
+            
+            #sop level
+            surface = geo.node('redshift_material1')
+            mat = geo.createNode("redshift::Material")
+            surface.insertInput(0, mat)
+            
+            if update == 0:
+                #Preset attempt
+                #Plastic
+                try:
+                    plastic = [x for x in plasticlst if(x in name.lower())]
+                    mat.setName(plastic[0])
+                    mat.parm('preset').set('2')
+                    mat.parm('refl_ior').set(1.49)            
+                except:
+                    pass
+                #Chrome
+                try:
+                    chrome = [x for x in chromelst if(x in name.lower())]
+                    mat.setName(chrome[0])
+                    mat.parm('preset').set('3')
+                    mat.parm('refl_roughness').set(0,25)
+                    mat.parm('refl_samples').set(256)
+                    mat.parm('refl_brdf').set(1)
+                    mat.parm('refl_fresnel_mode').set(2)
+                    mat.parmTuple('refl_reflectivity').set((0.912466,0.913849,0.920509))
+                    mat.parmTuple('refl_edge_tint').set((0.97028,0.979256,0.988742))
+                except:
+                    pass
+                #Glass
+                try:
+                    glass = [x for x in glasslst if(x in name.lower())]
+                    mat.setName(glass[0])
+                    mat.parm('preset').set('0')
+                    mat.parm('refl_ior').set(1.51)
+                    mat.parm('refr_weight').set(1)
+                except:
+                    pass
+                #Gold
+                try:
+                    gold = [x for x in goldlst if(x in name.lower())]
+                    mat.setName(gold[0])
+                    mat.parm('preset').set('5')
+                    mat.parm('refl_roughness').set(0,25)
+                    mat.parm('refl_samples').set(256)
+                    mat.parm('refl_brdf').set(1)
+                    mat.parm('refl_fresnel_mode').set(2)
+                    mat.parmTuple('refl_reflectivity').set((0.944198,0.775706,0.37217))
+                    mat.parmTuple('refl_edge_tint').set((0.997783,0.981097,0.734475))
+                except:
+                    pass
+                    
+                #Colours
+                #Black
+                try:
+                    black = [x for x in blacklst if(x in name.lower())]
+                    black[0]
+                    mat.parmTuple('diffuse_color').set((0,0,0))
+                    mat.parmTuple('refl_reflectivity').set((.05,.05,.05))
+                except:
+                    pass
+                #White
+                try:
+                    white = [x for x in whitelst if(x in name.lower())]
+                    white[0]
+                    mat.parmTuple('diffuse_color').set((.9,.9,.9))
+                    mat.parmTuple('refl_reflectivity').set((.9,.9,.9))
+                except:
+                    pass
+                #Red
+                try:
+                    red = [x for x in redlst if(x in name.lower())]
+                    red[0]
+                    mat.parmTuple('diffuse_color').set((.65,0,0))
+                    mat.parmTuple('refl_reflectivity').set((.65,0,0))
+                except:
+                    pass
+                #Orange
+                try:
+                    orange = [x for x in orangelst if(x in name.lower())]
+                    orange[0]
+                    mat.parmTuple('diffuse_color').set((.65,.125,0))
+                    mat.parmTuple('refl_reflectivity').set((.65,.125,0))
+                except:
+                    pass
+                #Blue
+                try:
+                    blue = [x for x in bluelst if(x in name.lower())]
+                    blue[0]
+                    mat.parmTuple('diffuse_color').set((0,.5,.65))
+                    mat.parmTuple('refl_reflectivity').set((0,.5,.65))
+                except:
+                    pass
+                #Purple
+                try:
+                    purple = [x for x in purplelst if(x in name.lower())]
+                    purple[0]
+                    mat.parmTuple('diffuse_color').set((.5,.25,1))
+                    mat.parmTuple('refl_reflectivity').set((.5,.25,1))
+                except:
+                    pass
+                #Pink
+                try:
+                    pink = [x for x in pinklst if(x in name.lower())]
+                    pink[0]
+                    mat.parmTuple('diffuse_color').set((1,.5,.8))
+                    mat.parmTuple('refl_reflectivity').set((1,.5,.8))
+                except:
+                    pass
+                #Green
+                try:
+                    green = [x for x in greenlst if(x in name.lower())]
+                    green[0]
+                    mat.parmTuple('diffuse_color').set((0,.65,0))
+                    mat.parmTuple('refl_reflectivity').set((0,.65,0))
+                except:
+                    pass
+                #Yellow
+                try:
+                    yellow = [x for x in yellowlst if(x in name.lower())]
+                    yellow[0]
+                    mat.parmTuple('diffuse_color').set((.65,.65,0))
+                    mat.parmTuple('refl_reflectivity').set((.65,.65,0))
+                except:
+                    pass
+                    
+            surface.moveToGoodPosition(True,False,True,True)
+    
+            node.destroy()
+            geo.setName(name)
+            
+            #Progress %
+            perc = 100.0/float(len(sel))
+            perc = round(perc*(float(count)+1.0),2)
+            if perc == 100.00:
+                print int(perc),'%'
+            else:
+                print perc,'%'
+
+#Use prexisting textures
+if update == 1:
+    for count, node in enumerate(sel):
+        if 'hou.NodeType for Shop material' in repr(node.type()):
+            name = node.name()
+            cpos = node.position()
+            path = node.path() + '/../'
+            
+            #Create RS Mat
+            geo = hou.node(path).createNode('redshift_vopnet')
+            geo.setPosition(cpos)
+            
+            #sop level
+            surface = geo.node('redshift_material1')
+            mat = geo.createNode("redshift::Material")
+            surface.insertInput(0, mat)
+            #Preset attempt
+            for child in node.children():
+                if 'hou.ShopNodeType for Shop v_fbx' in repr(child.type()):
+                    cdiffuse = child.parmTuple('Cd').eval()
+                    
+                    for ind, p in enumerate(child.parms()):
+                        pr = repr(p)
+                        start = pr.find(' ')
+                        pr = pr[start+1:]
+                        end = pr.find(' ')
+                        pr = pr[:end]
+                        #Find map and attribute
+                        if len(pr) == 4 or len(pr) == 3 and 'map' in pr:
+                            if len(child.parm(pr).eval()) != 0:
+                                index = pr[3:]
+                                type = child.parm('apply' + index).eval()
+                                uv = child.parm('uvname' + index).eval()
+                                texpath = child.parm(pr).eval()
+                                
+                                childlst = []
+                                for child2 in geo.children():
+                                    childlst.append(child2.name())
+                                    
+                                #Diffuse
+                                if type == 'd':                                        
+                                    if 'd_add' not in childlst:
+                                        dadd = mat.createInputNode(0,'redshift::RSMathAddVector','d_add')
+                                        #color = geo.createNode('redshift::RSMathAbsVector', 'diffuse')
+                                        #color.parmTuple('input').set(cdiffuse)
+                                        #dadd.setNextInput(color)
+
+                                    tex = geo.createNode('redshift::TextureSampler', 'color')
+                                    tex.parm('tex0').set(texpath)
+                                    tex.parm('tspace_id').set(uv)
+                                    dadd.setNextInput(tex)
+                                    
+                                #Roughness
+                                if type == 'r' or type == 's' and type == 'shn':                                        
+                                    if 'r_add' not in childlst:
+                                        radd = mat.createInputNode(7,'redshift::RSMathAddVector','r_add')
+
+                                    tex = geo.createNode('redshift::TextureSampler', 'rough')
+                                    tex.parm('tex0').set(texpath)
+                                    tex.parm('tspace_id').set(uv)
+                                    radd.setNextInput(tex)
+                                    """
+                                #Roughness
+                                if type == 'shn':                                        
+                                    if 'r_add' not in childlst:
+                                        radd = mat.createInputNode(7,'redshift::RSMathAddVector','rough_add')
+
+                                    tex = geo.createNode('redshift::TextureSampler', 'rough')
+                                    tex.parm('tex0').set(texpath)
+                                    tex.parm('tspace_id').set(uv)
+                                    radd.setNextInput(tex)
+                                    """
+                                #Opacity
+                                if type == 'o':                                        
+                                    if 'o_add' not in childlst:
+                                        oadd = mat.createInputNode(47,'redshift::RSMathAddVector','o_add')
+
+                                    tex = geo.createNode('redshift::TextureSampler', 'opacity')
+                                    tex.parm('tex0').set(texpath)
+                                    tex.parm('tspace_id').set(uv)
+                                    oadd.setNextInput(tex)
+                                    
+                                #Emission
+                                if type == 'ems':                                        
+                                    if 'o_add' not in childlst:
+                                        oadd = mat.createInputNode(48,'redshift::RSMathAddVector','e_add')
+
+                                    tex = geo.createNode('redshift::TextureSampler', 'opacity')
+                                    tex.parm('tex0').set(texpath)
+                                    tex.parm('tspace_id').set(uv)
+                                    oadd.setNextInput(tex)
+                                    mat.parm('emission_weight').set(1)
+                                    
+                                #Bump
+                                if type == 'bump' or type == 'nml':                                        
+                                    if 'BumpBlender1' not in childlst:
+                                        blend = surface.createInputNode(2,'redshift::BumpBlender')
+                                        for w in range(2):
+                                            blend.parm('bumpWeight'+repr(w)).set(1)
+                                        blend.parm('additive').set(1)
+                                        
+                                    tex = geo.createNode('redshift::TextureSampler', 'bmp')
+                                    tex.parm('tex0').set(texpath)
+                                    tex.parm('tspace_id').set(uv)
+                                    bump = geo.createNode('redshift::BumpMap', 'bump')
+                                    #Insert tex into b blender
+                                    if len(blend.inputs()) != 0:
+                                        if len(blend.inputs()) == 1:
+                                            blend.insertInput(1, bump)
+                                        elif len(blend.inputs()) == 2:
+                                            blend.insertInput(3, bump)
+                                        elif len(blend.inputs()) == 3:
+                                            blend.insertInput(5, bump)
+                                            
+                                    else:    
+                                        blend.setNextInput(bump)
+                                    bump.setNextInput(tex)
+        
+        node.destroy()
+        geo.setName(name)
+        geo.layoutChildren()
+        
+        #Progress %
+        perc = 100.0/float(len(sel))
+        perc = round(perc*(float(count)+1.0),2)
+        if perc == 100.00:
+            print int(perc),'%'
+        else:
+            print perc,'%'
+            
+if update == 3:
+    sys.exit()
+    ]]></script>
+  </tool>
+
+  <tool name="mtos0" label="Quick Connect" icon="VOP_output">
+    <script scriptType="python"><![CDATA[class wireSurface:
+    def __init__(self):
+        try: self.sel = hou.selectedNodes()[0]
+        except: return
+
+        self.cat = self.sel.type().category().name()
+        self.type = self.sel.type().name()
+        self.parent = self.sel.parent()
+        self.count = 0
+        self.arnold_out = 'arnold_material'
+        
+        if self.cat != 'Vop': return
+        
+        self.inpt = self.getIndex()
+        if self.inpt == None: return
+        
+        self.search = self.getOutput()
+        if not self.search: return
+        
+        self.nodeConnect()
+        
+    def getIndex(self):
+        if self.type.startswith('redshift::'):
+            if self.type in ['redshift::DisplacementBlender','redshift::Displacement']:
+                return 1
+            elif self.type in ['redshift::BumpBlender','redshift::BumpMap']:
+                return 2
+            elif self.type == 'redshift::Environment':
+                return 3
+            elif self.type == 'redshift::Volume':
+                return 4
+            else:
+                return 0
+                
+        elif self.type.startswith('arnold::'):
+            if self.type == 'arnold::standard_volume':
+                return 2
+            elif self.type in ['arnold::atmosphere_volume','arnold::fog']:
+                self.arnold_out = 'arnold_environment'
+                return 0
+            elif self.type in ['arnold::physical_sky']:
+                self.arnold_out = 'arnold_environment'
+                return 1
+            elif self.type in ['arnold::gobo', 'arnold::light_blocker', 'arnold::light_decay', 'arnold::barndoor']:
+                self.arnold_out = 'arnold_light'
+                return 2
+            else:
+                return 0
+                
+        elif self.type.startswith('octane::'):
+            if self.type in ['octane::NT_MED_ABSORPTION', 'octane::NT_MED_SCATTERING', 'octane::NT_MED_VOLUME']:
+                return 1
+            else:
+                return 0
+                
+        else:
+            return None
+            
+    def getOutput(self):
+        out = ['redshift_material', self.arnold_out, 'octane_material']
+        search = [c for c in self.parent.children() if c.type().name() in out]
+        
+        if search:
+            return search[0]
+        else:
+            return None
+    
+    def nodeConnect(self):
+        
+        if not self.count:
+            with hou.undos.group('Quick Connect'):
+                self.search.setInput(self.inpt, None)
+            self.count=1
+            hou.ui.addEventLoopCallback(self.nodeConnect)
+            
+            return
+            
+        else:
+            with hou.undos.disabler():
+                self.search.insertInput(self.inpt, self.sel)
+            hou.ui.removeEventLoopCallback(self.nodeConnect)
+            
+            return
+        
+wireSurface()]]></script>
+  </tool>
+
+  <tool name="aovpaths" label="Set AOV Paths" icon="SOP_attribswap.svg">
+    <script scriptType="python"><![CDATA[import sys,PySide2
+from hutil.Qt.QtCore import *
+from hutil.Qt.QtGui import *
+from hutil.Qt.QtWidgets import *
+from PySide2 import QtCore, QtUiTools, QtWidgets, QtGui
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+
+for entry in PySide2.QtWidgets.QApplication.allWidgets():
+    if type(entry).__name__ == 'aovReplace':
+        entry.hide()
+
+class aovReplace(QDialog):
+    def __init__(self, *args, **kwargs):
+        super(aovReplace, self).__init__()
+        self.setWindowTitle('Axis AOV Paths')
+        #self.resize(400, 50)
+        self.setFixedSize(500,50)
+        self.setParent(hou.ui.mainQtWindow(), QtCore.Qt.Window)
+        self.showFullScreen()
+        
+        self.setStyleSheet(hou.qt.styleSheet())
+        
+        if sys.platform != 'win32':
+            self.setWindowFlags(QtCore.Qt.Window | Qt.WindowStaysOnTopHint)
+        
+        layout = QVBoxLayout()    
+        layout.setSpacing(10)        
+        layout.setSizeConstraint(QLayout.SetMinimumSize)
+        
+        # Explorer
+        line2 = QHBoxLayout()
+        line2.setSpacing(5)
+        layout.addLayout(line2)
+        
+        self.path = QLabel('AOV Path')
+        
+        # Path Function
+        def onFileSelected(file_path):
+            if file_path:
+                self.pathline.setText(file_path)
+                if self.exp.isChecked():    self.checkboxcheck()
+                self.clear()
+                
+        self.button2 = hou.qt.FileChooserButton()
+        self.button2.setFileChooserTitle("Set AOV Paths")
+        self.button2.setFileChooserMode(hou.fileChooserMode.Write)
+        self.button2.setFileChooserIsImageChooser(True)
+        self.button2.fileSelected.connect(onFileSelected)
+        
+        self.pathline = QLineEdit()
+        
+        line2.addWidget(self.path)
+        line2.addWidget(self.pathline)
+        line2.addWidget(self.button2)
+        
+        # Expand
+        line0 = QHBoxLayout()
+        line0.setSpacing(30)
+        layout.addLayout(line0)
+        self.exp = QCheckBox('Expand Houdini Path')
+        line0.addWidget(self.exp)        
+        
+        # Seperator
+        self.sep = hou.qt.Separator()
+        layout.addWidget(self.sep)
+        
+        # ButtonBox
+        line3 = QHBoxLayout()
+        line3.setSpacing(30)
+        layout.addLayout(line3)
+        
+        self.help = QLabel()
+        confirm = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)    
+        confirm.setMinimumSize(0, 40)  
+        confirm.accepted.connect(self.accept)
+        confirm.rejected.connect(self.reject)
+        line3.addWidget(self.help)
+        line3.addWidget(confirm)
+        
+        # Connected
+        self.exp.toggled.connect(self.checkboxcheck)
+        
+        self.setLayout(layout)
+        self.setAcceptDrops(True)
+        
+    # ----------
+    # Expand
+    # ----------
+    def checkboxcheck(self):
+        if self.exp.isChecked():
+            text = self.pathline.text()
+            home = hou.expandString('$HOME')
+            hip = hou.expandString('$HIP')
+            text = text.replace('$HOME/',home+'/')
+            text = text.replace('$HIP/',hip+'/')
+            
+            self.pathline.setText(text)
+            
+        self.clear()
+       
+    def clear(self):    self.help.setText('')
+    def error(self):    self.help.setText('Error: Path Not Set.')
+       
+    # ----------
+    # Accept
+    # ----------
+    def accept(self):
+        if self.pathline.text() and not self.pathline.text().startswith(' '):
+            if self.exp.isChecked():    self.checkboxcheck()
+            path = self.pathline.text()
+            
+            dialog.hide()
+            pathSet(path)
+            
+        elif self.pathline.text().startswith(' '):   self.help.setText('Error: Path Starts with Space.')
+        else:   self.error()
+        
+    # ----------
+    # Reject
+    # ----------
+    def reject(self):
+        dialog.hide()
+
+# Start Script
+try:
+    sel = hou.selectedNodes()[0]
+except:
+    import sys
+    sys.exit()
+        
+dialog = aovReplace()
+if repr(sel.type()) == '<hou.NodeType for Driver Redshift_ROP>':
+    if sel.parm('RS_aov').eval() > 0:
+        dialog.show()
+        engine = 0
+elif repr(sel.type()) == '<hou.NodeType for Driver arnold>':
+    if sel.parm('ar_aovs').eval() > 0:
+        dialog.show()
+        engine = 1
+else:   sys.exit()
+    
+# Set Paths
+def pathSet(path):
+    # RS
+    if engine == 0:
+        for i in range(sel.parm('RS_aov').eval()):
+            sel.parm('RS_aovCustomPrefix_'+repr(i+1)).set(path)
+
+    # Arnold
+    elif engine == 1:
+        for i in range(sel.parm('ar_aovs').eval()):
+            sel.parm('ar_aov_separate'+repr(i+1)).set(1)
+            aov = '`chs(\"ar_aov_label'+repr(i+1)+'\")`'
+            path = path.replace('$AOV',aov)
+    
+            sel.parm('ar_aov_separate_file'+repr(i+1)).set(path)]]></script>
+  </tool>
+
+  <tool name="activecamera" label="Set ROP to Active Camera" icon="OBJ_camera">
+    <toolMenuContext name="network">
+      <contextNetType>ROP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[import sys
+from utils import activeCam
+
+reload(activeCam)
+
+try:
+    sel = hou.selectedNodes()
+    if sel[0].type().category().name() != 'Driver': sys.exit()
+except:
+    sys.exit()
+
+# Find Active Camera
+cam = activeCam.get()
+
+if not cam:
+    sys.exit()
+    
+for n in sel:
+    # RS
+    if repr(n.type()) == '<hou.NodeType for Driver Redshift_ROP>':
+        n.parm('RS_renderCamera').set(cam)
+    
+    # Arnold, Mantra, OpenGL, RenderMan
+    elif n.type().name() in ['ifd','opengl','rib','ris','arnold']:
+        n.parm('camera').set(cam)]]></script>
+  </tool>
+
+  <tool name="Aphysicalsky0" label="Arnold Physical Sky" icon="OBJ_light">
+    <script scriptType="python"><![CDATA[# Create Light and Light Shader
+sky = hou.node('/obj/').createNode('arnold_light','Arnold_Sky1')
+sky.parm('ar_light_type').set(6)
+sky.parm('ar_light_color_type').set(2)
+sky.parm('l_iconscale').set(.01)
+sky.moveToGoodPosition(True, False, True, True) 
+mat = hou.node(sky.path()+'/shopnet/arnold_vopnet/OUT_light')
+sky = mat.createInputNode(0,'arnold::physical_sky')
+sky.setSelected(True,True,False)
+envout = hou.node(sky.path()+'/../').createNode('arnold_environment')
+envout.setInput(1,sky)
+mat.parent().layoutChildren()
+
+# Create Enviroment Shader
+shop = hou.node('/shop').createNode('arnold_vopnet','sky_enviroment1')
+shop.moveToGoodPosition(True,False,True,True)
+hou.node(shop.path()+'/OUT_material').destroy()
+envout = hou.node(shop.path()+'/').createNode('arnold_environment')
+fetch = envout.createInputNode(1,'arnold::fetch')
+fetch.parm('target').set(sky.path())
+
+# Enviroment Shader
+for rop in hou.node('/out/').children():
+    if repr(rop.type()) == '<hou.NodeType for Driver arnold>':
+        rop.parm('ar_environment').set(shop.path())]]></script>
+  </tool>
+
+  <tool name="assimport" label="Ass Importer" icon="NETWORKS_obj">
+    <script scriptType="python"><![CDATA[import sys
+Dialog = hou.ui.selectFile(start_directory=None, title='Choose Geometry:', collapse_sequences=False, 
+file_type=hou.fileType.Any, pattern=None, 
+default_value=None, multiple_select=True, image_chooser=False, 
+chooser_mode=hou.fileChooserMode.ReadAndWrite, width=0, height=0)
+
+# Read Paths
+if not Dialog:  sys.exit()
+Dialog = ' ' + Dialog
+dirlist = Dialog.split (";")
+
+# Name Dialogue
+Dialog = hou.ui.readInput('Set Name', buttons=('Set',), default_choice=0, close_choice=2, help='Insert procedural name or ignore and use defaults', title='Set Name')
+name = Dialog[1]
+if name:
+    if ' ' in name: name = name.replace(' ','_')
+else:   name = 'arnold_procedural1'
+    
+for i, path in enumerate(dirlist):
+    procedural = hou.node('/obj/').createNode('arnold_procedural',name)
+    procedural.parm('ar_filename').set(path[1:-1])
+    if i == 0:  procedural.moveToGoodPosition(True, False, True, True) 
+    else:   procedural.setPosition((pos[0],pos[1]-1))
+    pos = procedural.position()]]></script>
+  </tool>
+
+  <tool name="replacematerial" label="Replace Material" icon="BUTTONS_restore.svg">
+    <script scriptType="python"><![CDATA[import sys
+sel = hou.selectedNodes()
+
+try:    sel[0]
+except: sys.exit()
+    
+new = hou.ui.selectNode(node_type_filter=None, title='Select New Node', width=300, height=500, multiple_select=False)
+
+if new:
+    new = hou.node(new)
+    
+    if sel[0].parent() != new.parent():
+        hou.ui.displayMessage('You can\'t replace nodes in different networks.', buttons=('OK',), severity=hou.severityType.Error, default_choice=0, close_choice=0, help=None, title='Error')
+        sys.exit()
+    
+    rname = new.name()
+        
+    for node in sel:
+        name = node.name()
+        node.destroy()
+        new.setName(name)
+        
+    new.setName(rname)]]></script>
+  </tool>
+
+  <tool name="matclean" label="Clear Unused Mats" icon="SOP_clean.svg">
+    <script scriptType="python"><![CDATA[geo = hou.node('/obj').children()
+sugeo = hou.node('/obj').allSubChildren()
+mat = hou.node('/mat/').children()
+shop = hou.node('/shop/').children()
+
+#Find SHOP nets at obj Level
+shoplst = []
+for mat2 in sugeo:
+    if 'shopnet' in repr(mat2.type()) or 'matnet' in repr(mat2.type()):
+        for m in mat2.children():
+            shoplst.append(m)
+
+##RSL_lightShaderPath
+#Find Materials at geo level
+geolist = []
+for node in sugeo:
+    type = repr(node.type())
+    if 'hou.NodeType for Object geo' in type or 'hou.NodeType for Object instance' in type:
+        if node.parm('shop_materialpath').eval() != '':
+            nodepath = node.path()
+            objparm = node.parm('shop_materialpath').eval()
+            #Function Def
+            if '../' in objparm:
+                slice = objparm.rfind('../')
+                matadd = objparm[slice+2:]
+                lookfor = '../'
+                count = objparm.count(lookfor)
+                for x in range(count):
+                    slice = nodepath.rfind('/')
+                    nodepath = nodepath[:slice]
+                objparm = nodepath + matadd
+            if objparm not in geolist:
+                geolist.append(objparm)            
+
+#Find Materials in ROPs
+rop = hou.node('/out').children()
+roplist = []        
+if 'hou.RopNode of type Redshift_ROP' in repr(rop):
+    for node in rop:
+        if 'hou.RopNode of type Redshift_ROP' in repr(node):
+            #Parameters
+            objparm = node.parm('RS_defaultMaterialOverride').eval()
+            roplist.append(objparm)
+            objparm = node.parm('RS_globalEnvironment').eval()
+            roplist.append(objparm)
+            
+            for parm in roplist:
+                objparm = parm
+                nodepath = node.path()
+                #Function Def
+                if '../' in objparm:
+                    slice = objparm.rfind('../')
+                    matadd = objparm[slice+2:]
+                    lookfor = '../'
+                    count = objparm.count(lookfor)
+                    for x in range(count):
+                        slice = nodepath.rfind('/')
+                        nodepath = nodepath[:slice]
+                    objparm = nodepath + matadd
+                if objparm not in geolist:
+                    geolist.append(objparm)
+                
+                    
+#Arnold          
+if 'hou.RopNode of type arnold' in repr(rop):
+    for node in rop:
+        if 'hou.RopNode of type arnold' in repr(node):
+            #Enviroment
+            objparm = node.parm('ar_environment').eval()
+            roplist.append(objparm)
+            #Forced Mat
+            objparm = node.parm('ar_forced_materials').eval()
+            roplist.append(objparm)
+            #Override
+            objparm = node.parm('ar_shader_override').eval()
+            roplist.append(objparm)
+            
+            for parm in roplist:
+                objparm = parm
+                nodepath = node.path()
+                #Function Def
+                if '../' in objparm:
+                    slice = objparm.rfind('../')
+                    matadd = objparm[slice+2:]
+                    lookfor = '../'
+                    count = objparm.count(lookfor)
+                    for x in range(count):
+                        slice = nodepath.rfind('/')
+                        nodepath = nodepath[:slice]
+                    objparm = nodepath + matadd
+                if objparm not in geolist:
+                    geolist.append(objparm)
+                
+                
+                    
+#Find Materials at sop level and add to prior list
+for node in sugeo:
+    ntype = node.type
+    if 'hou.SopNode of type material' in repr(ntype):
+        try:
+            for i in range(1, 500):
+                nodepath = node.path()
+                objparm = node.parm('shop_materialpath' + repr(i)).eval()
+                #Function Def
+                if '../' in objparm:
+                    slice = objparm.rfind('../')
+                    matadd = objparm[slice+2:]
+                    lookfor = '../'
+                    count = objparm.count(lookfor)
+                    for x in range(count):
+                        slice = nodepath.rfind('/')
+                        nodepath = nodepath[:slice]
+                    objparm = nodepath + matadd
+                if objparm not in geolist:
+                    geolist.append(objparm)
+                
+        except: pass
+
+#VOP Destroy
+for mat in mat:
+    mname = mat.path()
+    if mname not in geolist:
+        try:
+            mat.destroy()
+        except:
+            pass
+            
+#SHOP Destroy
+for mat in shop:
+    mname = mat.path()
+    if mname not in geolist:
+        try:
+            mat.destroy()
+        except:
+            pass
+
+#OBJ SHOP Destroy
+for mat in shoplst:
+    mname = mat.path()
+    if mname not in geolist:
+        try:
+            mat.destroy()
+        except:
+            pass]]></script>
+  </tool>
+
+  <tool name="cleanVOP" label="Clean VOP Network" icon="NETWORKS_vop">
+    <helpText><![CDATA[1. Type 'clean' in a vopnet.
+2. Click enter.
+
+1. Select node in VOP network.
+2. Ctrl/cmd click shelf tool.
+
+OR
+
+1. Set shortcut via: Rightclick> Edit Tool... > Hotkeys > Network Pane.
+2. Hover over network you want to clear out and hit your shortcut key.]]></helpText>
+    <toolMenuContext name="network">
+      <contextNetType>VOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[import sys
+
+# Selection Mode
+if not (not kwargs['ctrlclick'] and not kwargs['cmdclick']):
+    try:
+        sel = hou.selectedNodes()[0].parent()
+    except:
+        sys.exit()
+else:
+    curdesk = hou.ui.curDesktop()
+    activepane = curdesk.paneTabUnderCursor()
+    sel = activepane.pwd()
+    
+# First Search
+out = []
+for node in sel.children():
+    out.append(node.outputs())        
+    
+# While Search & Delete
+while '()' in str(out):
+    for node in sel.children():
+        if node.outputNames():
+            if not node.outputs():
+                node.destroy()
+    
+    out = []
+    for node in sel.children():
+        if node.outputNames():
+            out.append(node.outputs())]]></script>
+  </tool>
+
+  <tool name="expandVOP" label="Expand/ Minimize VOP" icon="hicon:/SVGIcons.index?NETVIEW_verbose.svg">
+    <toolMenuContext name="network">
+      <contextNetType>VOP</contextNetType>
+      <contextNetType>VOPNET</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[import sys
+
+try:
+    sel = hou.selectedNodes()
+    if not sel[0].type().category() == hou.vopNodeTypeCategory():
+        sys.exit()
+except:
+    sys.exit()
+        
+for i,n in enumerate(sel):
+    if n.inputNames():
+    
+        if n.isDetailMediumFlagSet() or n.isDetailLowFlagSet():
+            n.setDetailHighFlag(1)
+        
+        if not i:
+            if n.isInputGroupExpanded(n.inputGroupNames()[0]):
+                n.setInputGroupExpanded(None, 0)
+                next = 0
+            else:
+                n.setInputGroupExpanded(None, 1)
+                next = 1
+        else:
+            n.setInputGroupExpanded(None, next)
+    
+        ]]></script>
+  </tool>
+
+  <tool name="texManage" label="Texture Manager" icon="hicon:/SVGIcons.index?BUTTONS_chooser.svg">
+    <script scriptType="python"><![CDATA[from tex import manager as axisQt
+import PySide2
+
+reload(axisQt)
+
+for entry in PySide2.QtWidgets.QApplication.allWidgets():
+    if type(entry).__name__ == 'axisFileReplace':
+        entry.close()
+        
+for p in hou.ui.paneTabs():
+    if p.type().name() == 'PythonPanel':
+        if p.activeInterface().name() == 'texManager':
+            p.close()
+
+axisQt.axisFileReplace().show()]]></script>
+  </tool>
+
+  <tool name="assignMat" label="Assign Material" icon="LOP_materiallibrary.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+      <contextNetType>SHOP</contextNetType>
+      <contextNetType>VOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Axis/Shelf</toolSubmenu>
+    <script scriptType="python"><![CDATA[from mat import assign
+
+reload(assign)
+
+assign.run(None)]]></script>
+  </tool>
+
+  <tool name="aovload" label="AOV Loader" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[from aov import loader
+
+reload(loader)
+
+loader.loadAOVs().show()]]></script>
+  </tool>
+</shelfDocument>
