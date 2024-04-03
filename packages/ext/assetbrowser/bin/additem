@@ -1,0 +1,4 @@
+#!/bin/bash
+
+python ${REZ_ASSETBROWSER_ROOT}/scripts/core/AddItem.py $*
+

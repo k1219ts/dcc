@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=AssetBrowser
+Comment=AssetLibBrowser
+Exec=/backstage/dcc/DCC rez-env assetbrowser pyside2 python-2 -- AssetBrowser
+Terminal=false
+Type=Application
+Icon=/backstage/dcc/packages/ext/assetbrowser/scripts/Resources/USDattr.png
+Categories=dexter;

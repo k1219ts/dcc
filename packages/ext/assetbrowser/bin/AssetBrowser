@@ -1,0 +1,5 @@
+#!/bin/bash
+python ${REZ_ASSETBROWSER_ROOT}/scripts/Main.py $*
+#python /WORK_DATA/Develop/dcc/packages/ext/assetbrowser/scripts/Main.py $*
+
+
