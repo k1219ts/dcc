@@ -1,0 +1,3 @@
+#!/bin/bash
+
+hython ${REZ_DXUSD_HOUDINI_ROOT}/scripts/DXBatch/BatchMain.py $*
