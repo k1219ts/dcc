@@ -1,0 +1,24 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global proc physxStartup()
+{
+	source "physxUI.mel";
+	source "ContactLayersHelper.mel";
+	
+    nxInitCommands;
+
+	if(!`about -batch`)
+		physxUI_startup();
+}
+
+
+global proc physxCleanup()
+{
+	if(!`about -batch`)
+		physxUI_cleanup();
+}

@@ -1,0 +1,519 @@
+#! /usr/local/Nuke7.0v5/Nuke7.0 -nx
+version 7.0 v5
+Gizmo {
+ inputs 4
+ tile_color 0xbf00ff
+ label "\[python -exec \{\nvalue = int(nuke.thisNode()\['Source'].value()\[0])\nnuke.thisNode()\['matchWhat_1'].setValue(value)\nnuke.thisNode()\['matchWhat_2'].setValue(value)\nnuke.thisNode()\['matchWhat'].setValue(value)\n\}]\n"
+ note_font "Arial Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold"
+ note_font_size 12
+ note_font_color 0x800ff
+ mapsize {0.15 0.15}
+ addUserKnob {20 User l "Clamp Mask"}
+ addUserKnob {4 Source l New_View M {"0 Left" "1 Right"}}
+ Source "1 Right"
+ addUserKnob {4 mode l View M {Plate ColourMatcher Clamp Output ""}}
+ mode Output
+ addUserKnob {41 blur l "Divide Blur" T Blur2.size}
+ addUserKnob {41 size_2 l "Clamp Blur" T Blur3.size}
+ addUserKnob {26 ""}
+ addUserKnob {20 maskcontrol l Mask n 1}
+ addUserKnob {4 mask l Mask M {"Clamp Mask" "Stencil Mask" "Roto Mask" ""}}
+ addUserKnob {41 size l Dilate T Dilate1.size}
+ addUserKnob {41 size_1 l Blur T Blur4.size}
+ addUserKnob {26 ""}
+ addUserKnob {4 matte l Matte M {Black White Merge "" ""}}
+ matte Merge
+ addUserKnob {26 ""}
+ addUserKnob {41 range l " " t "Black Keyer" -STARTLINE T Keyer1.range}
+ addUserKnob {41 range_1 l " " t "Black Keyer" -STARTLINE T Keyer2.range}
+ addUserKnob {26 ""}
+ addUserKnob {20 disparity l O_DisparityGenerator}
+ addUserKnob {41 interactKnob_1 l interactKnob T O_DisparityGenerator1.interactKnob}
+ addUserKnob {41 serializeKnob_1 l serializeKnob T O_DisparityGenerator1.serializeKnob}
+ addUserKnob {41 viewPair_1 l "Views to Use" T O_DisparityGenerator1.viewPair}
+ addUserKnob {41 ignoreMask l "Ignore Mask" T O_DisparityGenerator1.ignoreMask}
+ addUserKnob {41 foregroundMask l "Foreground Mask" T O_DisparityGenerator1.foregroundMask}
+ addUserKnob {41 noiseLevel l Noise T O_DisparityGenerator1.noiseLevel}
+ addUserKnob {41 strength l Strength T O_DisparityGenerator1.strength}
+ addUserKnob {41 consistency l Consistency T O_DisparityGenerator1.consistency}
+ addUserKnob {41 alignment l Alignment T O_DisparityGenerator1.alignment}
+ addUserKnob {41 sharpness l Sharpness T O_DisparityGenerator1.sharpness}
+ addUserKnob {41 smoothness l Smoothness T O_DisparityGenerator1.smoothness}
+ addUserKnob {26 "" l "Parallax Limits"}
+ addUserKnob {41 enforceParallaxLimits l "Enforce parallax limits" T O_DisparityGenerator1.enforceParallaxLimits}
+ addUserKnob {41 negativeParallaxLimitInPixels l Negative T O_DisparityGenerator1.negativeParallaxLimitInPixels}
+ addUserKnob {41 positiveParallaxLimitInPixels l Positive T O_DisparityGenerator1.positiveParallaxLimitInPixels}
+ addUserKnob {20 occlusion l O_OcclusionDetector}
+ addUserKnob {41 interactKnob_2 l interactKnob T O_OcclusionDetector1.interactKnob}
+ addUserKnob {41 serializeKnob_2 l serializeKnob T O_OcclusionDetector1.serializeKnob}
+ addUserKnob {41 viewPair_2 l "Views to Use" T O_OcclusionDetector1.viewPair}
+ addUserKnob {41 disparityError l "Depth Occlusions" T O_OcclusionDetector1.disparityError}
+ addUserKnob {41 colourError l "Colour Threshold" T O_OcclusionDetector1.colourError}
+ addUserKnob {26 "" l "Refinement Options"}
+ addUserKnob {41 occlusionSize l "Occlusion Size" T O_OcclusionDetector1.occlusionSize}
+ addUserKnob {41 occlusionDilate l "Occlusion Dilate" T O_OcclusionDetector1.occlusionDilate}
+ addUserKnob {41 occlusionFill l "Occlusion Fill" T O_OcclusionDetector1.occlusionFill}
+ addUserKnob {41 occlusionBlur l "Occlusion Blur" T O_OcclusionDetector1.occlusionBlur}
+ addUserKnob {20 O_Colourmatcher}
+ addUserKnob {6 basic l " Basic" +STARTLINE}
+ basic true
+ addUserKnob {41 matchWhat_1 l "      " -STARTLINE T O_ColourMatcher1.matchWhat}
+ addUserKnob {6 LUT l " 3D LUT" +STARTLINE}
+ LUT true
+ addUserKnob {41 matchWhat_2 l "   " -STARTLINE T O_ColourMatcher2.matchWhat}
+ addUserKnob {6 local l " Local" +STARTLINE}
+ local true
+ addUserKnob {41 matchWhat l "      " -STARTLINE T O_ColourMatcher3.matchWhat}
+ addUserKnob {26 ""}
+ addUserKnob {20 localmanu l "Local Matching" n 1}
+ addUserKnob {41 interactKnob_3 l interactKnob T O_ColourMatcher3.interactKnob}
+ addUserKnob {41 serializeKnob_3 l serializeKnob T O_ColourMatcher3.serializeKnob}
+ addUserKnob {41 viewPair_3 l "Views to Use" T O_ColourMatcher3.viewPair}
+ addUserKnob {26 "" l "Local Matching Options"}
+ addUserKnob {41 blockSize l "Block Size" T O_ColourMatcher3.blockSize}
+ addUserKnob {41 occlusionCompensate l "Occlusion Compensate" T O_ColourMatcher3.occlusionCompensate}
+ addUserKnob {41 edgeOcclusions l "Edge Occlusions" T O_ColourMatcher3.edgeOcclusions}
+ addUserKnob {41 colourSigma l "Colour Sigma" T O_ColourMatcher3.colourSigma}
+ addUserKnob {41 regionSize l "Region Size" T O_ColourMatcher3.regionSize}
+ addUserKnob {26 "" l "Multi-scale Options"}
+ addUserKnob {41 samples l "Number of Samples" T O_ColourMatcher3.samples}
+ addUserKnob {41 maxBlockSize l "Max Block Size" T O_ColourMatcher3.maxBlockSize}
+ addUserKnob {41 intervalType l "Sample Spacing" T O_ColourMatcher3.intervalType}
+ addUserKnob {41 correctionType l "Colour Correction Type" T O_ColourMatcher3.correctionType}
+ addUserKnob {26 "" l "Mask Options"}
+ addUserKnob {41 maskWith l "Mask Component" T O_ColourMatcher3.maskWith}
+ addUserKnob {20 endGroup n -1}
+}
+ Input {
+  inputs 0
+  name mask
+  xpos -224
+  ypos 772
+  number 2
+ }
+ Input {
+  inputs 0
+  name S_mask
+  xpos -230
+  ypos 708
+  number 1
+ }
+ Input {
+  inputs 0
+  name Solver
+  xpos 194
+  ypos -449
+  number 3
+ }
+ Input {
+  inputs 0
+  name source
+  xpos -31
+  ypos -562
+ }
+set N8450ca0 [stack 0]
+ Dot {
+  name Dot2
+  xpos 4
+  ypos -479
+ }
+set N8454a60 [stack 0]
+ O_DisparityGenerator3_0 {
+  inputs 2
+  serializeKnob ""
+  viewPair {left right}
+  strength 2
+  consistency 0.7
+  alignment 0
+  sharpness 0.9
+  smoothness 0.9
+  name O_DisparityGenerator1
+  xpos -30
+  ypos -362
+ }
+set N845a2f0 [stack 0]
+ O_OcclusionDetector3_0 {
+  serializeKnob ""
+  viewPair {left right}
+  occlusionFill 40
+  occlusionBlur 25
+  name O_OcclusionDetector1
+  xpos -30
+  ypos -315
+ }
+ O_ColourMatcher3_0 {
+  serializeKnob ""
+  viewPair {left right}
+  matchWhat "Right to Left"
+  name O_ColourMatcher1
+  xpos -30
+  ypos 124
+  disable {{!parent.basic.left}}
+ }
+ O_ColourMatcher3_0 {
+  serializeKnob ""
+  oculaPlugin true
+  viewPair {left right}
+  matchWhat "Right to Left"
+  matchingMode "3D LUT"
+  name O_ColourMatcher2
+  xpos -30
+  ypos 175
+  disable {{!parent.LUT.left i}}
+ }
+ O_ColourMatcher3_0 {
+  serializeKnob ""
+  viewPair {left right}
+  matchWhat "Right to Left"
+  matchingMode "Local Matching"
+  maxBlockSize 200
+  intervalType "Favour Small Block Sizes"
+  correctionType "Average Correction"
+  name O_ColourMatcher3
+  xpos -30
+  ypos 238
+  disable {{!parent.local.left i}}
+ }
+set N83e2340 [stack 0]
+ O_NewView3_0 {
+  serializeKnob ""
+  viewPair {left right}
+  inputImages Left
+  interpolatePosition 1
+  name O_NewView2
+  xpos -165
+  ypos 319
+ }
+push $N83e2340
+ O_NewView3_0 {
+  serializeKnob ""
+  viewPair {left right}
+  inputImages Right
+  interpolatePosition 0
+  name O_NewView1
+  xpos -30
+  ypos 319
+ }
+ Switch {
+  inputs 2
+  which {{parent.Source i}}
+  name Switch6
+  xpos -98
+  ypos 363
+ }
+ Blur {
+  channels rgb
+  size 7
+  name Blur2
+  xpos -30
+  ypos 391
+ }
+ set C840b590 [stack 0]
+push $N83e2340
+ Dot {
+  name Dot14
+  xpos 129
+  ypos 147
+ }
+ OneView {
+  view right
+  name OneView2
+  xpos 203
+  ypos 143
+ }
+push $N83e2340
+ OneView {
+  name OneView1
+  xpos 478
+  ypos 238
+ }
+ Dot {
+  name Dot11
+  xpos 512
+  ypos 347
+ }
+ Switch {
+  inputs 2
+  which {{parent.Source i}}
+  name Switch5
+  xpos 203
+  ypos 343
+ }
+set N84d41c0 [stack 0]
+clone $C840b590 {
+  xpos 87
+  ypos 343
+  selected false
+ }
+ Merge2 {
+  inputs 2
+  operation divide
+  name Merge1
+  xpos 87
+  ypos 391
+ }
+ Dot {
+  name Dot3
+  xpos 121
+  ypos 450
+ }
+set N84f1860 [stack 0]
+ Dot {
+  name Dot4
+  xpos -74
+  ypos 450
+ }
+set N84f5550 [stack 0]
+ Dot {
+  name Dot5
+  xpos -184
+  ypos 450
+ }
+ Grade {
+  add -1
+  name Grade2
+  xpos -218
+  ypos 479
+ }
+ Keyer {
+  operation "luminance key"
+  range {0.6408083359 0.7199265381 1 1}
+  name Keyer2
+  xpos -218
+  ypos 523
+ }
+set N8509ee0 [stack 0]
+push $N84f5550
+ Grade {
+  gamma 0.2
+  name Grade1
+  xpos -108
+  ypos 480
+ }
+ Keyer {
+  invert true
+  operation "luminance key"
+  range {0.05397408428 0.07716049383 1 1}
+  name Keyer1
+  xpos -113
+  ypos 521
+ }
+set N851dac0 [stack 0]
+ ChannelMerge {
+  inputs 2
+  name ChannelMerge1
+  xpos -113
+  ypos 570
+ }
+push $N8509ee0
+push $N851dac0
+ Switch {
+  inputs 3
+  which {{matte}}
+  name Switch2
+  xpos -218
+  ypos 639
+ }
+ Dilate {
+  channels alpha
+  size 7
+  name Dilate1
+  xpos -114
+  ypos 633
+ }
+set N8536d30 [stack 0]
+ ChannelMerge {
+  inputs 2
+  operation stencil
+  name ChannelMerge2
+  xpos -114
+  ypos 696
+ }
+set N853f980 [stack 0]
+ ChannelMerge {
+  inputs 2
+  name ChannelMerge3
+  xpos -114
+  ypos 760
+ }
+ Blur {
+  channels alpha
+  size 15
+  name Blur4
+  xpos -114
+  ypos 819
+ }
+ set C8553c90 [stack 0]
+push $N853f980
+clone $C8553c90 {
+  xpos -4
+  ypos 702
+  selected false
+ }
+push $N8536d30
+clone $C8553c90 {
+  xpos 38
+  ypos 633
+  selected false
+ }
+ Switch {
+  inputs 3
+  which {{mask i}}
+  name Switch1
+  xpos -2
+  ypos 825
+ }
+push $N84f1860
+ Clamp {
+  inputs 1+1
+  channels rgba
+  minimum 0.95
+  name Clamp1
+  xpos 87
+  ypos 825
+ }
+set N857a940 [stack 0]
+ Blur {
+  channels rgb
+  size 12
+  name Blur3
+  xpos 106
+  ypos 881
+ }
+set N8585d30 [stack 0]
+ Dot {
+  name Dot9
+  xpos 140
+  ypos 1301
+ }
+push $N845a2f0
+ Dot {
+  name Dot1
+  xpos 652
+  ypos -358
+ }
+ Dot {
+  name Dot15
+  xpos 652
+  ypos 1230
+ }
+set N85986a0 [stack 0]
+push $N8585d30
+push $N84d41c0
+ Merge2 {
+  inputs 2
+  operation multiply
+  name Merge2
+  xpos 232
+  ypos 888
+ }
+ Dot {
+  name Dot16
+  xpos 266
+  ypos 951
+ }
+set N85a8c40 [stack 0]
+push $N8454a60
+ Dot {
+  name Dot6
+  xpos -216
+  ypos -479
+ }
+ Dot {
+  name Dot10
+  xpos -216
+  ypos 912
+ }
+ PostageStamp {
+  name PostageStamp1
+  xpos -106
+  ypos 885
+  postage_stamp true
+ }
+set N85b4910 [stack 0]
+ JoinViews {
+  inputs 2
+  name JoinViews1
+  xpos -179
+  ypos 1034
+  viewassoc "left\nright"
+ }
+push $N85b4910
+push $N85a8c40
+ JoinViews {
+  inputs 2
+  name JoinViews2
+  xpos -27
+  ypos 1030
+  viewassoc "left\nright"
+ }
+ Switch {
+  inputs 2
+  which {{parent.Source i}}
+  name Switch4
+  xpos -106
+  ypos 1167
+ }
+ Merge2 {
+  inputs 2
+  Achannels disparity
+  output disparity
+  name Merge3
+  xpos -106
+  ypos 1220
+ }
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy1
+  selected true
+  xpos -106
+  ypos 1291
+ }
+set N85d50d0 [stack 0]
+push $N857a940
+push $N83e2340
+ Dot {
+  name Dot12
+  xpos -319
+  ypos 242
+ }
+ Dot {
+  name Dot13
+  xpos -296
+  ypos 1398
+ }
+push $N8450ca0
+ Dot {
+  name Dot7
+  xpos 337
+  ypos -558
+ }
+ Dot {
+  name Dot8
+  xpos 346
+  ypos 1398
+ }
+ Switch {
+  inputs 4
+  which {{mode i}}
+  name Switch3
+  xpos -17
+  ypos 1394
+ }
+ Output {
+  name Output2
+  xpos 241
+  ypos 1591
+ }
+push $N85986a0
+push $N85d50d0
+ Viewer {
+  inputs 2
+  input_process false
+  name Viewer1
+  xpos -410
+  ypos 596
+ }
+end_group

@@ -1,0 +1,168 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ inputs 3
+ tile_color 0x545454ff
+ label "\[value in User,in]\npass_control_advance"
+ note_font_color 0xff5f00ff
+ addUserKnob {20 Grade}
+ addUserKnob {41 in l "in 1" T Shuffle2.in}
+ addUserKnob {26 ""}
+ addUserKnob {41 blackpoint T Grade3.blackpoint}
+ addUserKnob {41 whitepoint T Grade3.whitepoint}
+ addUserKnob {41 black l lift T Grade3.black}
+ addUserKnob {41 white l gain T Grade3.white}
+ addUserKnob {41 multiply T Grade3.multiply}
+ addUserKnob {41 add l offset T Grade3.add}
+ addUserKnob {41 gamma T Grade3.gamma}
+ addUserKnob {41 maskChannelMask l mask T Grade3.maskChannelMask}
+ addUserKnob {41 inject -STARTLINE T Grade3.inject}
+ addUserKnob {41 invert_mask l invert -STARTLINE T Grade3.invert_mask}
+ addUserKnob {41 fringe -STARTLINE T Grade3.fringe}
+ addUserKnob {41 unpremult l "(un)premult by" T Grade3.unpremult}
+ addUserKnob {41 invert_unpremult l invert -STARTLINE T Grade3.invert_unpremult}
+ addUserKnob {41 enable_mix_luminance l mix_luminance T Grade3.enable_mix_luminance}
+ addUserKnob {41 mix_luminance l "" -STARTLINE T Grade3.mix_luminance}
+ addUserKnob {41 mix T Grade3.mix}
+ addUserKnob {26 ""}
+ addUserKnob {41 disable_1 l disable T Grade3.disable}
+ addUserKnob {20 ColorCorrect}
+ addUserKnob {20 master l "@b;master" n 1}
+ addUserKnob {41 saturation T ColorCorrect4.saturation}
+ addUserKnob {41 saturation_panelDropped l "panel dropped state" T ColorCorrect4.saturation_panelDropped}
+ addUserKnob {41 contrast T ColorCorrect4.contrast}
+ addUserKnob {41 contrast_panelDropped l "panel dropped state" T ColorCorrect4.contrast_panelDropped}
+ addUserKnob {41 gamma_1 l gamma T ColorCorrect4.gamma}
+ addUserKnob {41 gamma_panelDropped l "panel dropped state" T ColorCorrect4.gamma_panelDropped}
+ addUserKnob {41 gain T ColorCorrect4.gain}
+ addUserKnob {41 gain_panelDropped l "panel dropped state" T ColorCorrect4.gain_panelDropped}
+ addUserKnob {41 offset T ColorCorrect4.offset}
+ addUserKnob {41 offset_panelDropped l "panel dropped state" T ColorCorrect4.offset_panelDropped}
+ addUserKnob {20 "" n -1}
+ addUserKnob {20 shadows l "@b;shadows" n 1}
+ addUserKnob {41 shadows.saturation l saturation T ColorCorrect4.shadows.saturation}
+ addUserKnob {41 shadows.saturation_panelDropped l "panel dropped state" T ColorCorrect4.shadows.saturation_panelDropped}
+ addUserKnob {41 shadows.contrast l contrast T ColorCorrect4.shadows.contrast}
+ addUserKnob {41 shadows.contrast_panelDropped l "panel dropped state" T ColorCorrect4.shadows.contrast_panelDropped}
+ addUserKnob {41 shadows.gamma l gamma T ColorCorrect4.shadows.gamma}
+ addUserKnob {41 shadows.gamma_panelDropped l "panel dropped state" T ColorCorrect4.shadows.gamma_panelDropped}
+ addUserKnob {41 shadows.gain l gain T ColorCorrect4.shadows.gain}
+ addUserKnob {41 shadows.gain_panelDropped l "panel dropped state" T ColorCorrect4.shadows.gain_panelDropped}
+ addUserKnob {41 shadows.offset l offset T ColorCorrect4.shadows.offset}
+ addUserKnob {41 shadows.offset_panelDropped l "panel dropped state" T ColorCorrect4.shadows.offset_panelDropped}
+ addUserKnob {20 "" n -1}
+ addUserKnob {20 midtones l "@b;midtones" n 1}
+ addUserKnob {41 midtones.saturation l saturation T ColorCorrect4.midtones.saturation}
+ addUserKnob {41 midtones.saturation_panelDropped l "panel dropped state" T ColorCorrect4.midtones.saturation_panelDropped}
+ addUserKnob {41 midtones.contrast l contrast T ColorCorrect4.midtones.contrast}
+ addUserKnob {41 midtones.contrast_panelDropped l "panel dropped state" T ColorCorrect4.midtones.contrast_panelDropped}
+ addUserKnob {41 midtones.gamma l gamma T ColorCorrect4.midtones.gamma}
+ addUserKnob {41 midtones.gamma_panelDropped l "panel dropped state" T ColorCorrect4.midtones.gamma_panelDropped}
+ addUserKnob {41 midtones.gain l gain T ColorCorrect4.midtones.gain}
+ addUserKnob {41 midtones.gain_panelDropped l "panel dropped state" T ColorCorrect4.midtones.gain_panelDropped}
+ addUserKnob {41 midtones.offset l offset T ColorCorrect4.midtones.offset}
+ addUserKnob {41 midtones.offset_panelDropped l "panel dropped state" T ColorCorrect4.midtones.offset_panelDropped}
+ addUserKnob {20 "" n -1}
+ addUserKnob {20 highlights l "@b;highlights" n 1}
+ addUserKnob {41 highlights.saturation l saturation T ColorCorrect4.highlights.saturation}
+ addUserKnob {41 highlights.saturation_panelDropped l "panel dropped state" T ColorCorrect4.highlights.saturation_panelDropped}
+ addUserKnob {41 highlights.contrast l contrast T ColorCorrect4.highlights.contrast}
+ addUserKnob {41 highlights.contrast_panelDropped l "panel dropped state" T ColorCorrect4.highlights.contrast_panelDropped}
+ addUserKnob {41 highlights.gamma l gamma T ColorCorrect4.highlights.gamma}
+ addUserKnob {41 highlights.gamma_panelDropped l "panel dropped state" T ColorCorrect4.highlights.gamma_panelDropped}
+ addUserKnob {41 highlights.gain l gain T ColorCorrect4.highlights.gain}
+ addUserKnob {41 highlights.gain_panelDropped l "panel dropped state" T ColorCorrect4.highlights.gain_panelDropped}
+ addUserKnob {41 highlights.offset l offset T ColorCorrect4.highlights.offset}
+ addUserKnob {41 highlights.offset_panelDropped l "panel dropped state" T ColorCorrect4.highlights.offset_panelDropped}
+ addUserKnob {20 ddddddddddd l ddddddddddddd n -1}
+ addUserKnob {26 ""}
+ addUserKnob {41 disable_2 l disable T ColorCorrect4.disable}
+ addUserKnob {20 range}
+ addUserKnob {41 test T ColorCorrect4.test}
+ addUserKnob {41 lookup l "" +STARTLINE T ColorCorrect4.lookup}
+ addUserKnob {41 maskChannelMask_1 l mask T ColorCorrect4.maskChannelMask}
+ addUserKnob {41 inject_1 l inject -STARTLINE T ColorCorrect4.inject}
+ addUserKnob {41 invert_mask_1 l invert -STARTLINE T ColorCorrect4.invert_mask}
+ addUserKnob {41 fringe_1 l fringe -STARTLINE T ColorCorrect4.fringe}
+ addUserKnob {41 unpremult_1 l "(un)premult by" T ColorCorrect4.unpremult}
+ addUserKnob {41 invert_unpremult_1 l invert -STARTLINE T ColorCorrect4.invert_unpremult}
+ addUserKnob {41 enable_mix_luminance_1 l mix_luminance T ColorCorrect4.enable_mix_luminance}
+ addUserKnob {41 mix_luminance_1 l "" -STARTLINE T ColorCorrect4.mix_luminance}
+ addUserKnob {41 mix_1 l mix T ColorCorrect4.mix}
+}
+ Input {
+  inputs 0
+  name CC_M
+  label cc_M
+  note_font_size 8
+  xpos -669
+  ypos 779
+  number 2
+ }
+ Input {
+  inputs 0
+  name Grade_M
+  label g_M
+  note_font_size 8
+  xpos -668
+  ypos 707
+  number 1
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos -970
+  ypos 449
+ }
+ Dot {
+  name Dot6
+  xpos -954
+  ypos 544
+ }
+set Na11f350 [stack 0]
+ Shuffle {
+  name Shuffle2
+  label "\[value out]"
+  xpos -856
+  ypos 552
+ }
+set Na6f3700 [stack 0]
+ Grade {
+  inputs 1+1
+  black_clamp false
+  unpremult -rgba.alpha
+  name Grade3
+  xpos -856
+  ypos 724
+ }
+ ColorCorrect {
+  inputs 1+1
+  maskChannelInput -rgba.alpha
+  name ColorCorrect4
+  xpos -856
+  ypos 785
+ }
+push $Na6f3700
+push $Na11f350
+ Merge2 {
+  inputs 2
+  operation from
+  name Merge4
+  label "\[value mix]"
+  xpos -978
+  ypos 668
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge5
+  label "\[value mix]"
+  xpos -978
+  ypos 785
+ }
+ Output {
+  name Output1
+  xpos -978
+  ypos 970
+ }
+end_group

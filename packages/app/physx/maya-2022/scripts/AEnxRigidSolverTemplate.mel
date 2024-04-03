@@ -1,0 +1,867 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+// AEnxRigidSolverTemplate
+//
+// Author: Christian Laforte, Feeling Software Inc.(http://www.feelingsoftware.com)
+//
+
+global int $upgradeSettingsNum;
+
+global proc AEnxRigidSolverDeleteCacheNew(string $isDataCached)
+{
+	string $nodeName[];
+	tokenize($isDataCached, ".", $nodeName);
+
+	setUITemplate -pst attributeEditorTemplate;
+	
+	rowLayout -nc 2 rigidSolverDeleteCacheRow;
+		text -l "Delete Cache";
+		button -l "Delete" rigidSolverDeleteChacheButton;
+		setParent ..;
+
+	setUITemplate -ppt;
+	AEnxRigidSolverDeleteCacheReplace $isDataCached;
+}
+
+global proc AEnxRigidSolverDeleteCacheReplace(string $isDataCached)
+{
+	string $nodeName[];
+	tokenize($isDataCached, ".", $nodeName);
+
+	button -e -c("rigidSolver -e -deleteCache " + $nodeName[0]) rigidSolverDeleteChacheButton;
+		setParent ..;
+}
+
+global proc AEnxCheckRigidSolverIsDataCached(string $nodeName)
+{
+	int $isDataCachedValue = `getAttr($nodeName + ".cacheData")`;
+
+	if($isDataCachedValue) 
+	{
+		if(`rowLayout -exists rigidSolverDeleteCacheRow`)
+			rowLayout -e -en 1 rigidSolverDeleteCacheRow;
+	} else 
+	{
+		if(`rowLayout -exists rigidSolverDeleteCacheRow`)
+			rowLayout -e -en 0 rigidSolverDeleteCacheRow;
+	}
+}
+
+global string $solverName = "";
+global proc SwitchUseMultiThreading( int $onOff )
+{
+	global string $solverName;
+	if ( $onOff == 1 )
+	{
+		setAttr ($solverName + ".aUseMultiThreading") true;
+		NvSolverSetUseMultiThread 1;
+	}
+	else
+	{
+		setAttr ($solverName + ".aUseMultiThreading") false;
+		NvSolverSetUseMultiThread 0;
+	}
+}
+
+global proc UseMultithreadingNew( string $nodeName )
+{
+	global string $solverName;
+	string $buff[];
+	tokenize($nodeName, ".", $buff);
+	$solverName = $buff[0];
+
+	checkBoxGrp -label "" -label1 "Use Multithreading"
+						  -numberOfCheckBoxes 1
+						  -onCommand1 "SwitchUseMultiThreading( 1 );"
+						  -offCommand1 "SwitchUseMultiThreading( 0 );"
+						  -value1 `getAttr $nodeName`
+						  "AErigidSolver_UseMultithreading";
+	if ( `NvSolverGetMultiThreadSupported` == 1 )
+	{
+		checkBoxGrp -e -enable true "AErigidSolver_UseMultithreading";
+	}
+	else
+	{
+		checkBoxGrp -e -enable false -annotation "Multithreading is not supported" "AErigidSolver_UseMultithreading";
+	}
+}
+
+global proc UseMultithreadingReplace(string $nodeName)
+{
+	global string $solverName;
+	string $buff[];
+	tokenize($nodeName, ".", $buff);
+	$solverName = $buff[0];
+
+	if ( `NvSolverGetMultiThreadSupported` == 1 )
+	{
+		checkBoxGrp -e -enable true -value1 `getAttr $nodeName` "AErigidSolver_UseMultithreading";
+	}
+	else
+	{
+		checkBoxGrp -e -enable falsae -value1 false "AErigidSolver_UseMultithreading";
+		setAttr $nodeName false;
+	}
+}
+
+global proc SwitchHardwareAcceleration( int $onOff )
+{
+	global string $solverName;
+	if ( $onOff == 1 )
+	{
+		setAttr ($solverName + ".aUseHardwareAcceleration") true;
+		NvSolverSetUseHardwareAcceleration 1;
+	}
+	else
+	{
+		setAttr ($solverName + ".aUseHardwareAcceleration") false;
+		NvSolverSetUseHardwareAcceleration 0;
+	}
+}
+
+global proc UseHardwareAccelerationNew(string $nodeName)
+{
+	global string $solverName;
+	string $buff[];
+	tokenize($nodeName, ".", $buff);
+	$solverName = $buff[0];
+
+	checkBoxGrp -label "" -label1 "Hardware Acceleration"
+				-numberOfCheckBoxes 1
+				-onCommand1 "SwitchHardwareAcceleration( 1 );"
+				-offCommand1 "SwitchHardwareAcceleration( 0 );"
+				-value1 `getAttr $nodeName`
+				"AErigidSolver_HardwareAcceleration";
+	
+	if ( `NvSolverGetHardwareAccelerationSupported` == 1 )
+	{
+		checkBoxGrp -e -enable true "AErigidSolver_HardwareAcceleration";
+	}
+	else
+	{
+		checkBoxGrp -e -enable false -annotation "Hardware Acceleration is not supported" "AErigidSolver_HardwareAcceleration";
+	}
+}
+
+global proc UseHardwareAccelerationReplace(string $nodeName)
+{
+	global string $solverName;
+	string $buff[];
+	tokenize($nodeName, ".", $buff);
+	$solverName = $buff[0];
+
+	if ( `NvSolverGetHardwareAccelerationSupported` == 1 )
+	{
+		checkBoxGrp -e -enable true -value1 `getAttr $nodeName` "AErigidSolver_HardwareAcceleration";
+	}
+	else
+	{
+		checkBoxGrp -e -enable false -value1 false "AErigidSolver_HardwareAcceleration";
+		setAttr $nodeName false;
+	}
+}
+
+global string $AEnxRigidSolverTemplate_PhysxVersionControl = "AEnxRigidSolverTemplate_PhysxVersionControl";
+global string $PhysxVersionMode_Names[];
+global int $PhysxVersionMode_Values[];
+
+global proc string PhysxVersionMode_ValueToName( int $value )
+{
+	global string $PhysxVersionMode_Names[];
+	global int $PhysxVersionMode_Values[];
+	
+	int $i;
+	for($i = 0; $i < size($PhysxVersionMode_Values); $i++)
+	{
+		if($PhysxVersionMode_Values[$i] == $value)
+			return $PhysxVersionMode_Names[$i];
+	}
+	return "";
+}
+
+global proc AEnxRigidSolver_NativeTimeControlsNew ( string $arg)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	
+	rowLayout -numberOfColumns 2 -columnAlign2 "center" "center";
+	text -label "";
+	checkBox -label "Enable Native Time Controls" -onCommand "optionVar -iv nxNativeTimeControl 1" -offCommand "optionVar -iv nxNativeTimeControl 0" nativeTimeControl;
+	setParent ..;
+	
+	setUITemplate -ppt;
+	    
+    AEnxRigidSolver_NativeTimeControlsReplace( $arg );
+}
+
+global proc int AEnxRigidSolver_NativeTimeControlsReplace ( string $arg )
+{
+	checkBox -e -value `optionVar -q nxNativeTimeControl` nativeTimeControl;
+    return true;
+}
+
+global proc AEnxRigidSolverTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;
+
+	editorTemplate -beginLayout "Time Attributes" -collapse false;
+
+ 	editorTemplate -callCustom "AEnxRigidSolver_NativeTimeControlsNew"
+                         "AEnxRigidSolver_NativeTimeControlsReplace"
+                         $nodeName;
+
+		editorTemplate -label "Loop Without Rewind" -addControl "loopWithoutRewind";
+		editorTemplate -label "Steps" -addControl "steps";
+		editorTemplate -label "Step Method" -addControl "interpolationMode";
+
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Scene Attributes" -collapse false;
+
+		editorTemplate -beginNoOptimize;
+			
+			editorTemplate -label "Ground Plane" -addControl "useGroundPlane";
+			editorTemplate -label "Ground Height" -addControl "groundPlanePosition";
+			editorTemplate -addControl "gravity" "AEnxRigidSolver_gravityControls";
+		editorTemplate -endNoOptimize;
+
+		editorTemplate -label "Gravity Amount" -addControl "gravityMagnitude";
+		editorTemplate -label "Gravity Direction" -addControl "gravityDirection";
+
+		//editorTemplate -label "Scale To Units" -addControl "scaleToUnits";
+		//editorTemplate -label "Scale Manual" -addControl "scaleManual";
+
+		//editorTemplate -callCustom "GlobalContactLayersNew" "GlobalContactLayersReplace" "globalContactLayers";
+
+		editorTemplate -beginNoOptimize;
+			editorTemplate -callCustom "UseMultithreadingNew" "UseMultithreadingReplace" "aUseMultiThreading";
+			editorTemplate -callCustom "UseHardwareAccelerationNew" "UseHardwareAccelerationReplace" "aUseHardwareAcceleration";
+		editorTemplate -endNoOptimize;
+	
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "RigidBody Attributes" -collapse false;
+		
+		editorTemplate -beginNoOptimize;
+			editorTemplate -label "PhysxShape Bestfit Off" -addControl "physxShapeBestfitOff";
+			//editorTemplate -label "Use Global Iteration Count" -addControl "useGlobalIterationCount";
+			editorTemplate -label "Solver Iteration Count" -addControl "globalPositionIterationCount"; // "EnableDisablePhysXVersionRelatedControls positionIterationCount";
+			editorTemplate -label "Velocity Iteration Count" -addControl "globalVelocityIterationCount" "EnableDisablePhysXVersionRelatedControls globalVelocityIterationCount";
+		editorTemplate -endNoOptimize;
+		
+	editorTemplate -endLayout;
+	
+	editorTemplate -beginLayout "Contact Defaults" -collapse false;
+
+
+		editorTemplate -label "AutoCalculate (*s)" -addControl "contactShellAutomatic";
+
+		editorTemplate -addSeparator;			
+		
+		editorTemplate -label "Bounce Minimum Velocity*" -addControl "bounceMinVelocityValue";
+		
+		editorTemplate -addSeparator;			
+
+		editorTemplate -label "Contact Shell Invert" -addControl "contactShellInvert" "EnableDisablePhysXVersionRelatedControls contactShellInvert";
+		editorTemplate -label "Contact Shell Offset Default" -addControl "contactShellOffset" "EnableDisablePhysXVersionRelatedControls contactShellOffset";
+		editorTemplate -label "Contact Shell Depth Default*" -addControl "contactShellDepth";
+		
+		editorTemplate -addSeparator;	
+		
+		editorTemplate -label "High Velocity Contact Algorithm" -addControl "continuousCollisionDetection";
+		editorTemplate -label "High Velocity Contact Distance" -addControl "CCDEpsilon";
+	
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Sleep Defaults" -collapse true;
+
+		editorTemplate -beginNoOptimize;
+		editorTemplate -label "AutoCalculate (*s)" -addControl "sleepVelocityAutomatic";
+		editorTemplate -endNoOptimize;
+
+		editorTemplate -label "Energy Threshold" -addControl "sleepEnergyThreshold";
+
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Authoring Visualization" -collapse false;
+		editorTemplate -beginNoOptimize;
+		editorTemplate -label "Display Rigid Bodies" -addControl "displayRigidBody" "AEnxRigidSolver_rigidBodiesVizControls";
+		editorTemplate -label "    ...Only Selected" -addControl "displaySelectedRigidBody";
+		editorTemplate -label "Display Constraints" -addControl "displayConstraints" "AEnxRigidSolver_constraintsVizControls";
+		editorTemplate -label "    ...Show Limits" -addControl "displayConstraintsLimits";
+		editorTemplate -label "Display Ragdoll Helpers" -addControl "displayRagdollLocators" "AEnxRigidSolver_ragdollLocatorVizControls";
+		editorTemplate -endNoOptimize;
+	editorTemplate -endLayout;
+	
+	editorTemplate -beginLayout "Simulation Visualization" -collapse true;
+		editorTemplate -beginNoOptimize;
+		
+		editorTemplate -label "Enable" -addControl "visualize" "AEnxRigidSolver_visualizeControls";
+		editorTemplate -label "Scale" -addControl "visualizeScale";
+
+		editorTemplate -addSeparator;	
+
+		editorTemplate -label "Ragdoll Locators" -addControl "displaySimulateRagdollLocators";
+
+		editorTemplate -beginLayout "Object Properties" -collapse true;
+		editorTemplate -label "Rigid Body Shapes" -addControl "visualizeCollisionShapes";
+		editorTemplate -label "Rigid Body Axes" -addControl "visualizeActorAxes";
+		editorTemplate -label "Rigid Body Mass Frame" -addControl "visualizeBodyMassFrame";
+		editorTemplate -label "Rigid Body Linear Velocity" -addControl "visualizeBodyLinearVelocity";
+		editorTemplate -label "Rigid Body Angular Velocity" -addControl "visualizeBodyAngularVelocity";
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Constraint Properties" -collapse true;
+		editorTemplate -label "Constraint Lines" -addControl "displaySimulateConstraints";
+		editorTemplate -label "Constraint Limits" -addControl "visualizeJointLimits";
+		editorTemplate -label "Constraint Local Axes" -addControl "visualizeJointLocalAxes";
+		editorTemplate -label "Constraint World Axes" -addControl "visualizeJointWorldAxes";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Contact Markers" -collapse true;
+		editorTemplate -label "Contact Points" -addControl "visualizeContactPoint";
+		editorTemplate -label "Contact Normals" -addControl "visualizeContactNormal";
+		editorTemplate -label "Contact Forces" -addControl "visualizeContactForce";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Collision Markers" -collapse true;
+		editorTemplate -label "Collision Meshes" -addControl "visualizeCollisionShapes";
+		editorTemplate -label "Collision Groups" -addControl "visualizeCollisionCompounds";
+		editorTemplate -label "Collision Spheres" -addControl "visualizeCollisionSpheres";
+		editorTemplate -endLayout;
+
+		editorTemplate -endNoOptimize;
+	editorTemplate -endLayout;
+
+	// hide these options if the plugin is a non apex version
+	$isApexLoadedBool = `isApexLoaded`;
+	if ( 0 != $isApexLoadedBool )
+	{
+		editorTemplate -beginLayout "PhysX Clothing Visualization" -collapse true;
+			editorTemplate -beginNoOptimize;
+			editorTemplate -label "Enable" -addControl "visualizeApexClothing";
+			editorTemplate -beginLayout "Mesh and Bones" -collapse true;
+			editorTemplate -label "Physics Mesh Solid" -addControl "visualizeApexClothingPhysicalMeshSolid";
+			editorTemplate -label "Physics Mesh Wire" -addControl "visualizeApexClothingPhysicalMeshWire";
+			editorTemplate -label "Skinned Position" -addControl "visualizeApexClothingSkinnedPosition";
+			editorTemplate -label "Skinned Map Actual" -addControl "visualizeApexClothingSkinMap";
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Paint Channels" -collapse true;
+			editorTemplate -label "Max Distance" -addControl "visualizeApexClothingMaxDistanceOut";
+			editorTemplate -label "Backstop Offset" -addControl "visualizeApexClothingBackstop";
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Collision" -collapse true;
+			editorTemplate -label "Collision Shapes" -addControl "visualizeCollisionVolumes";
+			editorTemplate -label "Virtual Collision" -addControl "visualizeApexClothingVirtualCollision";
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Fibers" -collapse true;
+			editorTemplate -label "Length Fibers" -addControl "visualizeApexClothingLengthFibers";
+			editorTemplate -label "Cross Sec. Fibers" -addControl "visualizeApexClothingCrossSectionFibers";
+			editorTemplate -label "Bending Fibers" -addControl "visualizeApexClothingBendingFibers";
+			editorTemplate -label "Shearing Fibers" -addControl "visualizeApexClothingShearingFibers";
+			editorTemplate -label "Fiber Range" -addControl "visualizeApexClothingFiberRange";
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Misc" -collapse true;
+			editorTemplate -label "Velocities" -addControl "visualizeApexClothingVelocities";
+			editorTemplate -endLayout;
+		editorTemplate -endNoOptimize;
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endLayout;
+	
+	//editorTemplate -beginLayout "Advanced Attributes" -collapse true;
+	//editorTemplate -endLayout;
+
+
+	// include/call base class/node attributes
+	//AEdependNodeTemplate $nodeName;
+
+	// Hide some of the deprecated attributes
+	editorTemplate -suppress "visualizeContactPoint";
+	editorTemplate -suppress "visualizeContactNormal";
+	editorTemplate -suppress "visualizeContactError";
+	editorTemplate -suppress "visualizeContactForce";
+
+	editorTemplate -suppress "scaleToUnits";
+	editorTemplate -suppress "scaleManual";
+
+	editorTemplate -suppress "visualizeCollisionAABBs";
+	editorTemplate -suppress "visualizeCollisionAxes";
+	editorTemplate -suppress "visualizeCollisionVertexNormals";
+	editorTemplate -suppress "visualizeCollisionFaceNormals";
+	editorTemplate -suppress "visualizeCollisionEdges";
+	editorTemplate -suppress "visualizeCollisionDynamic";
+	editorTemplate -suppress "visualizeCollisionFree";
+	editorTemplate -suppress "visualizeCollisionCCD";
+	editorTemplate -suppress "visualizeCollisionSkeletons";
+
+	editorTemplate -suppress "interpenetrate";
+	editorTemplate -suppress "autoSolverTolerances";
+	editorTemplate -suppress "deprecated_stepSize";
+	editorTemplate -suppress "deprecated_displayCenterOfMass";
+	editorTemplate -suppress "deprecated_displayVelocity";
+	editorTemplate -suppress "deprecated_displayLabel";
+	editorTemplate -suppress "deprecated_contactData";
+	editorTemplate -suppress "deprecated_frameRate";
+	editorTemplate -suppress "deprecated_subSteps";
+	editorTemplate -suppress "deprecated_inCloth";
+	editorTemplate -suppress "deprecated_inClothing";
+	editorTemplate -suppress "deprecated_inFluid";
+	editorTemplate -suppress "deprecated_inSoftBody";
+	editorTemplate -suppress "deprecated_InSimulate";
+	editorTemplate -suppress "deprecated_InCurrentTime";
+	editorTemplate -suppress "deprecated_aFPS";
+	editorTemplate -suppress "deprecated_SleepLinearVelocity";
+	editorTemplate -suppress "version";
+	editorTemplate -suppress "date";
+	editorTemplate -suppress "changelist";
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "blackBox";
+	editorTemplate -suppress "rmbCommand";
+	editorTemplate -suppress "templateName";
+	editorTemplate -suppress "templatePath";
+	editorTemplate -suppress "viewName";
+	editorTemplate -suppress "iconName";
+	editorTemplate -suppress "viewMode";
+	editorTemplate -suppress "templateVersion";
+	editorTemplate -suppress "uiTreatment";
+	editorTemplate -suppress "customTreatment";
+	editorTemplate -suppress "creator";
+	editorTemplate -suppress "creationDate";
+	editorTemplate -suppress "containerType";
+	editorTemplate -suppress "visibility";
+	editorTemplate -suppress "intermediateObject";
+	editorTemplate -suppress "template";
+	editorTemplate -suppress "ghosting";
+
+	editorTemplate -suppress "ghostingControl";
+	editorTemplate -suppress "ghostPreSteps";
+	editorTemplate -suppress "ghostPostSteps";
+	editorTemplate -suppress "ghostStepSize";
+	editorTemplate -suppress "ghostColorPreA";
+	editorTemplate -suppress "ghostColorPre";
+	editorTemplate -suppress "ghostColorPostA";
+	editorTemplate -suppress "ghostColorPost";
+	editorTemplate -suppress "ghostRangeStart";
+	editorTemplate -suppress "ghostRangeEnd";
+	editorTemplate -suppress "ghostDriver";
+	editorTemplate -suppress "translate";
+	editorTemplate -suppress "rotate";
+	editorTemplate -suppress "rotateOrder";
+	editorTemplate -suppress "scale";
+	editorTemplate -suppress "shear";
+	editorTemplate -suppress "rotatePivot";
+	editorTemplate -suppress "rotatePivotTranslate";
+	editorTemplate -suppress "scalePivot";
+	editorTemplate -suppress "scalePivotTranslate";
+	editorTemplate -suppress "rotateAxis";
+	editorTemplate -suppress "selectHandle";
+	editorTemplate -suppress "inheritsTransform";
+	editorTemplate -suppress "displayHandle";
+	editorTemplate -suppress "displayScalePivot";
+	editorTemplate -suppress "displayRotatePivot";
+	editorTemplate -suppress "displayLocalAxis";
+	editorTemplate -suppress "dynamics";
+	editorTemplate -suppress "showManipDefault";
+	editorTemplate -suppress "rotateQuaternion";
+	editorTemplate -suppress "enableRestPosition";
+	editorTemplate -suppress "lockOutput";
+	editorTemplate -suppress "objectColorRGB";
+	editorTemplate -suppress "useObjectColor";
+	editorTemplate -suppress "objectColor";
+	editorTemplate -suppress "lodVisibility";
+	editorTemplate -suppress "selectionChildHighlighting";
+	editorTemplate -suppress "scvJoint";
+		
+	editorTemplate -suppress "drawOverride";
+	editorTemplate -suppress "instObjGroups";
+	editorTemplate -suppress "renderInfo";
+	editorTemplate -suppress "renderLayerInfo";
+	editorTemplate -suppress "target";
+
+	editorTemplate -suppress "ghostCustomSteps";
+	editorTemplate -suppress "ghostFrames";
+	editorTemplate -suppress "geometry";
+
+	editorTemplate -suppress "minTransLimit";
+	editorTemplate -suppress "maxTransLimit";
+	editorTemplate -suppress "minTransLimitEnable";
+	editorTemplate -suppress "maxTransLimitEnable";
+	editorTemplate -suppress "minRotLimit";
+	editorTemplate -suppress "maxRotLimit";
+	editorTemplate -suppress "minRotLimitEnable";
+	editorTemplate -suppress "maxRotLimitEnable";
+	editorTemplate -suppress "minScaleLimit";
+	editorTemplate -suppress "maxScaleLimit";
+	editorTemplate -suppress "minScaleLimitEnable";
+	editorTemplate -suppress "maxScaleLimitEnable";
+	editorTemplate -suppress "forceRecreateSDK";
+	editorTemplate -suppress "typicalLength";
+	editorTemplate -suppress "typicalMass";
+	editorTemplate -suppress "typicalSpeed";
+	editorTemplate -suppress "groundPlaneSkinWidth";
+	editorTemplate -suppress "deprecated_bounceMinVelocityAutomatic";
+	editorTemplate -suppress "goToEndOfPlaybackRange";
+	editorTemplate -suppress "useGlobalIterationCount";
+	editorTemplate -suppress "physXVersion";
+	editorTemplate -suppress "visualizeFluidEmitters";
+	editorTemplate -suppress "visualizeFluidPosition";
+	editorTemplate -suppress "visualizeFluidVelocity";
+	editorTemplate -suppress "visualizeFluidKernelRadius";
+	editorTemplate -suppress "visualizeFluidBounds";
+	editorTemplate -suppress "visualizeFluidPackets";
+	editorTemplate -suppress "visualizeFluidMotionLimit";
+	editorTemplate -suppress "visualizeFluidDynCollision";
+	editorTemplate -suppress "visualizeFluidDrains";
+	editorTemplate -suppress "visualizeClothCollisions";
+	editorTemplate -suppress "visualizeClothSelfCollisions";
+	editorTemplate -suppress "visualizeClothWorkPackets";
+	editorTemplate -suppress "visualizeClothSleep";
+
+	editorTemplate -suppress "visualizeApexClothingCollisionVolumes";
+	editorTemplate -suppress "visualizeApexClothingMaxDistanceIn";
+	editorTemplate -suppress "visualizeApexClothingPhysicalMeshNormals";
+	editorTemplate -suppress "visualizeApexClothingSkeleton";
+	editorTemplate -suppress "visualizeApexClothingGraphicalVertexBones";
+	editorTemplate -suppress "visualizeApexClothingPhysicalVertexBones";
+	editorTemplate -suppress "visualizeApexClothingSphereCollisionUmbrella";
+
+	editorTemplate -suppress "constraintsScaling";
+	editorTemplate -suppress "ragdollIconSize";
+	editorTemplate -suppress "visualizeCollisionStatic";
+
+	editorTemplate -suppress "deprecated_visualizeBodyJointGroups";
+	editorTemplate -suppress "deprecated_visualizeCollisionSAP";
+	editorTemplate -suppress "deprecated_visualizeCollisionDynamic";
+	editorTemplate -suppress "deprecated_visualizeApexClothingRenderNormals";
+	editorTemplate -suppress "deprecated_visualizeApexClothingRenderTangents";
+	editorTemplate -suppress "deprecated_visualizeApexClothingSphereCollision";
+	editorTemplate -suppress "deprecated_visualizeWorldAxes";
+
+
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}
+
+global proc AEnxRigidSolver_gravityControls(string $nodeName)
+{
+    string $attr = $nodeName + ".gravity";
+    int $isEnabled = `getAttr $attr`;
+	int $dimIt = false;
+
+	if ($isEnabled == 0)
+		$dimIt = true;
+
+	editorTemplate -dimControl $nodeName "gravityMagnitude" $dimIt;
+	editorTemplate -dimControl $nodeName "gravityDirection" $dimIt;
+}
+
+global proc AEnxRigidSolver_rigidBodiesVizControls(string $nodeName)
+{
+    string $attr = $nodeName + ".displayRigidBody";
+    int $isEnabled = `getAttr $attr`;
+	int $dimIt = false;
+
+	if ($isEnabled == 0)
+		$dimIt = true;
+
+	editorTemplate -dimControl $nodeName "displaySelectedRigidBody" $dimIt;
+}
+
+global proc AEnxRigidSolver_constraintsVizControls(string $nodeName)
+{
+    string $attr = $nodeName + ".displayConstraints";
+    int $isEnabled = `getAttr $attr`;
+	int $dimIt = false;
+
+	if ($isEnabled == 0)
+		$dimIt = true;
+
+	editorTemplate -dimControl $nodeName "displaySimulateConstraints" $dimIt;
+	editorTemplate -dimControl $nodeName "displayConstraintsLimits" $dimIt;
+}
+
+global proc AEnxRigidSolver_ragdollLocatorVizControls(string $nodeName)
+{
+    string $attr = $nodeName + ".displayRagdollLocators";
+    int $isEnabled = `getAttr $attr`;
+	int $dimIt = false;
+
+	if ($isEnabled == 0)
+		$dimIt = true;
+
+	editorTemplate -dimControl $nodeName "displaySimulateRagdollLocators" $dimIt;
+}
+
+global proc AEnxRigidSolver_visualizeControls(string $nodeName)
+{
+    string $attr = $nodeName + ".visualize";
+    int $isVisualizeEnabled = `getAttr $attr`;
+	int $dimIt = false;
+
+	if ($isVisualizeEnabled == 0)
+		$dimIt = true;
+
+	editorTemplate -dimControl $nodeName "visualizeScale" $dimIt;
+	//editorTemplate -dimControl $nodeName "visualizeWorldAxes" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyMassFrame" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyLinearVelocity" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyAngularVelocity" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodyLinearMomentum" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodyAngularMomentum" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodyLinearAcceleration" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodyAngularAcceleration" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodyLinearForce" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyAngularForce" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyReduced" $dimIt;
+	//editorTemplate -dimControl $nodeName "visualizeBodyJointGroups" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyContactList" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeBodyJointList" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodyDamping" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeBodySleep" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeJointLocalAxes" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeJointWorldAxes" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeJointLimits" $dimIt;	
+	editorTemplate -dimControl $nodeName "displaySimulateConstraints" $dimIt; //joint lines	
+	editorTemplate -dimControl $nodeName "visualizeJointError" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeJointForce" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeJointReduced" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeContactPoint" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeContactNormal" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeContactError" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeContactForce" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeActorAxes" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeCollisionAABBs" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeCollisionShapes" $dimIt;	
+	editorTemplate -dimControl $nodeName "visualizeCollisionAxes" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionCompounds" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionVertexNormals" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionFaceNormals" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionEdges" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionSpheres" $dimIt;		
+	//editorTemplate -dimControl $nodeName "visualizeCollisionSAP" $dimIt;		
+	//editorTemplate -dimControl $nodeName "visualizeCollisionStatic" $dimIt;		
+	//editorTemplate -dimControl $nodeName "visualizeCollisionDynamic" $dimIt;		
+	editorTemplate -dimControl $nodeName "visualizeCollisionFree" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionCCD" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeCollisionSkeletons" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeClothCollisions" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeClothSelfCollisions" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeClothWorkPackets" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeClothSleep" $dimIt;
+	editorTemplate -dimControl $nodeName "displaySimulateRagdollLocators" $dimIt;
+
+	/* Not implemented yet.
+	editorTemplate -dimControl $nodeName "visualizeFluidEmitters" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidPosition" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidVelocity" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidKernelRadius" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidBounds" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidPackets" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidMotionLimit" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidDynCollision" $dimIt;
+	editorTemplate -dimControl $nodeName "visualizeFluidDrains" $dimIt;
+	*/
+}
+
+// ------------ RIGID SOLVER CONTACT LAYERS COMMANDS [START] ------------ //
+global proc string getRigidSolverNameFromPlug( string $plug )
+{
+	//print ("plug: " + $plug);
+	string $buffer[];
+	tokenize($plug, ".|", $buffer);
+
+	return $buffer[0];
+}
+
+global proc GlobalContactLayersNew( string $plug )
+{
+    $rigidSolver = getRigidSolverNameFromPlug($plug);
+
+	setUITemplate -pst attributeEditorTemplate;
+		rowColumnLayout -numberOfColumns 2 -cw 1 144 -cw 2 150 -columnAlign 1 "right" -columnOffset 1 "right" 3;
+			text -label "";
+			button -label "Setup Global Contact Layers" -command ("ContactLayersDialog( \"rigidsolver\", \""+$rigidSolver+"\")") "GlobalContactLayersBtn";
+
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	// if global contact layers setup dialog is opened, refresh to reflect the current selection
+	if(`window -exists "rigidSolverContactLayersWindow"`)
+		ContactLayersDialog( "rigidsolver", $rigidSolver );
+}
+
+global proc GlobalContactLayersReplace( string $plug )
+{
+    $rigidSolver = getRigidSolverNameFromPlug($plug);
+    if(`button -q -exists GlobalContactLayersBtn`)
+		button -e -command ("ContactLayersDialog( \"rigidsolver\", \""+$rigidSolver+"\")") "GlobalContactLayersBtn";
+}
+
+// ------------ RIGID SOLVER CONTACT LAYERS COMMANDS [END] ------------ //
+
+// ------------ SWITCH PHYSX VERSION COMMANDS [START] ------------ //
+
+global proc AEnxRigidSolver_switchPhysX300Dialog(string $nodeName)
+{
+	// Set number of settings to upgrade
+	global int $upgradeSettingsNum = 1;
+
+	$window = "switchPhysX300Window";
+	//delete window if exists
+	physxDeletePopUpWindow( $window ); 
+
+	window -title "Upgrade to PhysX 3.x" -resizeToFitChildren true $window; //-titleBar off $window;
+	columnLayout -width 500 -height 100;
+
+		rowLayout -numberOfColumns 2 -columnWidth2 250 250 -columnAlign2 "center" "center";
+			button 
+				-width 250
+				-label "Compatibility Settings"
+				-command "AEnxRigidSolver_DefaultPhysX300Settings(on)";
+
+			button 
+				-width 250
+				-label "Recommended Settings"
+				-command "AEnxRigidSolver_DefaultPhysX300Settings(off)";
+		setParent..; // for rowLayout
+
+		float $color = 0.25;
+		scrollField -wordWrap true -height 120 -width 500 -enableBackground true -backgroundColor $color $color $color
+            -text ("This file was originally authored in 2.x engine mode. 2.x engine mode is no longer available in APEX 1.3." +  
+			"It will be converted to use 3.x engine mode\n\nPlease use \"save as\" if you wish to preserve the 2x engine mode of this original file.");
+
+		frameLayout 
+			-width 500
+			-label "Rigid Solver"
+			-collapse off
+			-collapsable on				
+			"switchPhysX300RigidSolverFrameLayout";
+
+			columnLayout -width 500 -columnOffset "left" 5;
+			
+			text -width 500 -align "left" -font "boldLabelFont" -label "Contact and Resting Mode";
+			text -width 500 -align "left" -label "This dictates how objects come in contact and how they rest upon each other.";
+			text -width 500 -align "left" -label "PhysX 2.x support only contact zones inside of a shape’s surface.";
+			text -width 500 -align "left" -label "PhysX 3.x support either contact zones outside or inside of the shapes surface.";
+			text -width 500 -height 10 -label "";
+			
+			// Label format = upgradePhysX:setting index[0-n]:compat or reco[1-2]
+			radioCollection "upgradePhysX:0";
+			radioButton -label "Compatibility:" "upgradePhysX:0:1";
+				columnLayout -width 500 -columnOffset "left" 20;
+				text -width 500 -align "left" -label "<Invert Enabled> results in objects stacking penetrated at the full contact depth";
+				text -width 500 -align "left" -label "while collision happen in between the surface and the maximum depth.";
+				text -width 500 -height 10 -label "";
+				setParent..; // for columnLayout
+
+			radioButton -label "Recommended:" "upgradePhysX:0:2";
+				columnLayout -width 500 -columnOffset "left" 20;
+				text -width 500 -align "left" -label "<Invert Disabled> results in objects stacking on the surface of the shape";
+				text -width 500 -align "left" -label "while collisions between the surface and the contact depth outward.";
+				text -width 500 -height 10 -label "";
+				setParent..; // for columnLayout
+
+			radioCollection -e -select "upgradePhysX:0:2" "upgradePhysX:0";
+
+			setParent..; // for columnLayout
+		setParent..; // for frameLayout
+
+		rowLayout -numberOfColumns 2 -columnWidth2 400 100 -columnAttach2 "right" "left" -columnAlign2 "center" "center";
+			button 
+				-width 100
+				-label "Cancel"
+				-command ("deleteUI -window " + $window + "; setAttr " + $nodeName + ".physXVersion 284;")
+				"switchPhysX300_CancelButton";
+
+			button 
+				-width 100
+				-label "Ok"
+				-command ("AEnxRigidSolver_switchPhysX300(\"" + $nodeName + "\")")
+				"switchPhysX300_OkButton";
+			
+		setParent..; // for rowLayout
+
+	setParent..; // for columnLayout
+	showWindow $window;
+
+	window -e -sizeable off $window;
+	window -e -sizeable on $window;
+}
+
+global proc AEnxRigidSolver_switchPhysX300(string $nodeName )
+{
+	// Update upgrade settings
+	global int $upgradeSettingsNum;
+
+	for($i=0; $i<$upgradeSettingsNum; $i++)
+	{
+		string $selected = `radioCollection -q -select ("upgradePhysX:"+$i)`;
+		string $buffer[];
+		tokenize($selected, ":", $buffer);
+		int $upgradeMode = $buffer[2];
+
+		// Contact and Resting Mode in compat mode, check contact shell invert.
+		if( $i == 0 ) 
+		{
+			if( $upgradeMode == 1 )
+				setAttr ($nodeName + ".contactShellInvert") on;
+			else if( $upgradeMode == 2 )
+				setAttr ($nodeName + ".contactShellInvert") off;
+		}
+	}
+
+	// switch to version of PhysX
+	//NvSolverSwitchPhysXSDK;
+
+	// Enable/Dim controls used by PhysX 3.0
+	EnableDisablePhysXVersionRelatedControls("contactShellInvert","nxRigidSolver1");
+	EnableDisablePhysXVersionRelatedControls("contactShellOffset","nxRigidSolver1");
+	EnableDisablePhysXVersionRelatedControls("globalVelocityIterationCount","nxRigidSolver1");
+
+	// Delete upgrade Dialog
+	physxDeletePopUpWindow( "switchPhysX300Window" ); 
+
+	// update multithreading and hardware acceleration checkboxes
+	if ( `NvSolverGetMultiThreadSupported` == 1 )
+	{
+		setAttr ($nodeName + ".aUseMultiThreading") 1;
+	}
+	else
+	{
+		setAttr ($nodeName + ".aUseMultiThreading") 0;
+	}
+
+	if ( `NvSolverGetHardwareAccelerationSupported` == 1 )
+	{
+		setAttr ($nodeName + ".aUseHardwareAcceleration") 1;
+	}
+	else
+	{
+		setAttr ($nodeName + ".aUseHardwareAcceleration") 0;
+	}
+}
+
+// ------------ SWITCH PHYSX VERSION COMMANDS [END] ------------ //

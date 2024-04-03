@@ -1,0 +1,342 @@
+#! /usr/local/Nuke6.3v8/Nuke6.3 -nx
+version 6.3 v8
+Gizmo {
+ tile_color 0x510006ff
+ gl_color 0xffffffff
+ note_font "Bitstream Vera Sans"
+ note_font_size 18
+ mapsize {0.15 0.15}
+ addUserKnob {20 User l HIT_V3}
+ addUserKnob {26 description_1 l SHOW T "프로젝트 이름과 사이즈를 선택하세요.\n"}
+ addUserKnob {4 format l "" +STARTLINE M {"MrGO 2200-1100" "MrGO 2048-1080" "DDEE 2200-1160" "" "" ""}}
+ addUserKnob {26 option l Option}
+ addUserKnob {6 alpha_check t alpha +STARTLINE}
+ addUserKnob {6 anagraph l Anaglyph -STARTLINE}
+ addUserKnob {0 HIT +INVISIBLE}
+ addUserKnob {26 ""}
+ addUserKnob {7 HitPercent l HIT_percent t HIT_percent R 0 100}
+ addUserKnob {26 ""}
+ addUserKnob {26 description l "" +STARTLINE T "HIT GIZMO V4\nfor DEXTER DIGITAL COMP TEAM\n@Jihyung.Jung\n@Daniel.Lee\nzinchung@gmail.com"}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x7171c600
+  label DDEE
+  note_font_size 42
+  xpos 852
+  ypos -223
+  bdwidth 246
+  bdheight 493
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x8e8e3800
+  label mrgo
+  note_font_size 42
+  xpos -185
+  ypos -232
+  bdwidth 246
+  bdheight 486
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x8e8e3800
+  label "mrgo  2048"
+  note_font_size 42
+  xpos 336
+  ypos -218
+  bdwidth 246
+  bdheight 486
+ }
+ Input {
+  inputs 0
+  name plate
+  xpos 416
+  ypos -378
+ }
+set N8469f20 [stack 0]
+ Reformat {
+  format "2200 1160 0 0 2200 1160 1 ddee2_2.2k1.89"
+  name Reformat6
+  xpos 932
+  ypos -157
+ }
+ Dot {
+  name Dot3
+  xpos 966
+  ypos -75
+ }
+set N8476ee0 [stack 0]
+ OneView {
+  view right
+  name OneView5
+  xpos 998
+  ypos -79
+ }
+ Transform {
+  translate {{parent.Transform6.translate.left*-1 i} {parent.Transform6.translate.left i}}
+  center {1100 550}
+  name Transform5
+  xpos 998
+  ypos 25
+ }
+ Crop {
+  box {0 0 2200 1160}
+  reformat true
+  crop false
+  name Crop5
+  xpos 998
+  ypos 96
+ }
+ Reformat {
+  format "2200 1160 0 0 2200 1160 1 ddee2_2.2k1.89"
+  resize none
+  black_outside true
+  name Reformat8
+  xpos 998
+  ypos 134
+ }
+push $N8476ee0
+ OneView {
+  name OneView6
+  xpos 862
+  ypos -79
+ }
+ Transform {
+  translate {{rint((HitPercent*-22)/2) i} {curve i}}
+  center {1100 550}
+  name Transform6
+  xpos 862
+  ypos 24
+ }
+ Crop {
+  box {0 0 2200 1160}
+  reformat true
+  crop false
+  name Crop6
+  xpos 862
+  ypos 97
+ }
+ Reformat {
+  format "2200 1160 0 0 2200 1160 1 ddee2_2.2k1.89"
+  resize none
+  black_outside true
+  name Reformat7
+  xpos 862
+  ypos 135
+ }
+ JoinViews {
+  inputs 2
+  name JoinViews3
+  xpos 923
+  ypos 185
+  viewassoc "left\nright"
+ }
+push $N8469f20
+ Reformat {
+  format "2048 1080 0 0 2048 1080 1 mrgo_2k1.89"
+  resize none
+  black_outside true
+  name Reformat1
+  xpos 416
+  ypos -131
+ }
+ Dot {
+  name Dot1
+  xpos 450
+  ypos -77
+ }
+set N84c14a0 [stack 0]
+ OneView {
+  view right
+  name OneView1
+  xpos 482
+  ypos -76
+ }
+ Transform {
+  translate {{parent.Transform2.translate.left*-1 i} {parent.Transform2.translate.left i}}
+  center {1100 550}
+  name Transform1
+  xpos 482
+  ypos 23
+ }
+ Crop {
+  box {0 0 2048 1080}
+  reformat true
+  crop false
+  name Crop1
+  xpos 482
+  ypos 93
+ }
+ Reformat {
+  format "2048 1080 0 0 2048 1080 1 mrgo_2k1.89"
+  resize none
+  black_outside true
+  name Reformat2
+  xpos 482
+  ypos 131
+ }
+push $N84c14a0
+ OneView {
+  name OneView2
+  xpos 346
+  ypos -81
+ }
+ Transform {
+  translate {{rint((HitPercent*-22)/2) i} {curve i}}
+  center {1100 550}
+  name Transform2
+  xpos 346
+  ypos 22
+ }
+ Crop {
+  box {0 0 2048 1080}
+  reformat true
+  crop false
+  name Crop2
+  xpos 346
+  ypos 93
+ }
+ Reformat {
+  format "2048 1080 0 0 2048 1080 1 mrgo_2k1.89"
+  resize none
+  black_outside true
+  name Reformat9
+  xpos 346
+  ypos 127
+ }
+ JoinViews {
+  inputs 2
+  name JoinViews1
+  xpos 407
+  ypos 183
+  viewassoc "left\nright"
+ }
+push $N8469f20
+ Reformat {
+  format "2200 1100 0 0 2200 1100 1 mrgo_2.2k2"
+  resize none
+  black_outside true
+  name Reformat5
+  xpos -100
+  ypos -145
+ }
+ Dot {
+  name Dot2
+  xpos -71
+  ypos -91
+ }
+set N850bae0 [stack 0]
+ OneView {
+  view right
+  name OneView3
+  xpos -39
+  ypos -90
+ }
+ Transform {
+  translate {{parent.Transform4.translate.left*-1 i} {parent.Transform4.translate.left i}}
+  center {1100 550}
+  name Transform3
+  xpos -39
+  ypos 9
+ }
+ Crop {
+  box {0 0 2200 1100}
+  reformat true
+  crop false
+  name Crop3
+  xpos -39
+  ypos 79
+ }
+ Reformat {
+  format "2200 1100 0 0 2200 1100 1 mrgo_2.2k2"
+  resize none
+  black_outside true
+  name Reformat3
+  xpos -39
+  ypos 117
+ }
+push $N850bae0
+ OneView {
+  name OneView4
+  xpos -175
+  ypos -95
+ }
+ Transform {
+  translate {{rint((HitPercent*-22)/2) i} {curve i}}
+  center {1100 550}
+  name Transform4
+  xpos -175
+  ypos 8
+ }
+ Crop {
+  box {0 0 2200 1100}
+  reformat true
+  crop false
+  name Crop4
+  xpos -175
+  ypos 79
+ }
+ Reformat {
+  format "2200 1100 0 0 2200 1100 1 mrgo_2.2k2"
+  resize none
+  black_outside true
+  name Reformat4
+  xpos -175
+  ypos 114
+ }
+ JoinViews {
+  inputs 2
+  name JoinViews2
+  xpos -114
+  ypos 169
+  viewassoc "left\nright"
+ }
+ Switch {
+  inputs 3
+  which {{parent.format}}
+  name Switch3
+  xpos 407
+  ypos 356
+ }
+set N7ff9470 [stack 0]
+push $N7ff9470
+add_layer {rgba rgba.beta redguard1.glow}
+add_layer {foo}
+ Shuffle {
+  alpha black
+  name Shuffle1
+  xpos 549
+  ypos 500
+ }
+ Switch {
+  inputs 2
+  which {{parent.alpha_check}}
+  name Switch1
+  xpos 407
+  ypos 500
+ }
+set N8009400 [stack 0]
+ Anaglyph {
+  views {left right}
+  name Anaglyph1
+  xpos 274
+  ypos 581
+ }
+push $N8009400
+ Switch {
+  inputs 2
+  which {{parent.anagraph}}
+  name Switch5
+  xpos 407
+  ypos 683
+ }
+ Output {
+  name Output1
+  xpos 407
+  ypos 779
+ }
+end_group

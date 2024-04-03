@@ -1,0 +1,523 @@
+#! /usr/local/Nuke7.0v5/Nuke7.0 -nx
+version 7.0 v5
+Gizmo {
+ tile_color 0x70f355ff
+ label "Lookdev Stamp LNR"
+ lock_connections {{curve x1 0}}
+ addUserKnob {20 INPUT l STAMPINPUT}
+ addUserKnob {26 asset_info l "Asset Info"}
+ addUserKnob {6 background l grayBG t "If you want to use gray back ground, check on this attribute." +STARTLINE}
+ background true
+ addUserKnob {1 Asset_name l "asset name:" t "Enter the official asset name."}
+ addUserKnob {1 Scene_name l "scene name:" t "Enter the maya scene name."}
+ addUserKnob {1 Render_time l "render time:" t "Enter average render time by frame. hh:mm:ss"}
+ Render_time 00:00:00
+ addUserKnob {1 Artist_name l "artist name:" t "Enter artist name"}
+ Artist_name sinae.yi
+ addUserKnob {7 bg_color l "bg color"}
+ bg_color 0.05
+ addUserKnob {18 Text_Color l color}
+ Text_Color {0.6 0.162 0}
+ addUserKnob {26 null l "" +STARTLINE T "  \n"}
+ addUserKnob {26 Description}
+ addUserKnob {6 Detail_check l "Detail info" t "If you want to enter the detail information on image, please check on." +STARTLINE}
+ Detail_check true
+ addUserKnob {41 message l content: T ldv_INPUT.message}
+ addUserKnob {12 Detail_trans l translate}
+ Detail_trans {-499 -124}
+ addUserKnob {41 format l "output format" T Reformat1.format}
+ addUserKnob {26 null_1 l "" +STARTLINE T "  \n"}
+ addUserKnob {26 ""}
+ addUserKnob {26 About l "" t "Lookdev Stamp for Turntable or still images of Look development. " +STARTLINE T "Lookdev Stamp v1.3 (2014.08.13)\nOriginal output 1920x1080\n\nFor DEXTER LNR\n\n"}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x7171c600
+  label Adjust
+  note_font_size 30
+  xpos -294
+  ypos -134
+  bdwidth 759
+  bdheight 54
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x7f7f7fff
+  label Fix
+  note_font_size 42
+  xpos -299
+  ypos -224
+  bdwidth 802
+  bdheight 71
+ }
+ Text {
+  inputs 0
+  message frame:
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 16
+  yjustify bottom
+  box {1864 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {0.5 0.5 0.5 1}
+  name ldvFRAMES
+  xpos 360
+  ypos -180
+ }
+ Text {
+  message "\[format %04d \[frame]]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {1925 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvF_INPUT
+  xpos 360
+  ypos -113
+ }
+ Transform {
+  translate {-150 0}
+  center {1100 619}
+  name Transform6
+  xpos 360
+  ypos -24
+ }
+ Text {
+  inputs 0
+  message date:
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 16
+  yjustify bottom
+  box {1626 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {0.5 0.5 0.5 1}
+  name ldvDATE
+  xpos 250
+  ypos -180
+ }
+ Text {
+  message "\[clock format \[clock seconds] -format \{%d/%m/%y\}]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {1680 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvD_INPUT
+  xpos 250
+  ypos -112
+ }
+ Transform {
+  translate {-150 0}
+  center {1100 619}
+  name Transform5
+  xpos 250
+  ypos -62
+ }
+ Text {
+  inputs 0
+  message artist:
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 16
+  yjustify bottom
+  Transform 1
+  box {1320 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {0.5 0.5 0.5 1}
+  name ldvARTIST
+  xpos 140
+  ypos -180
+ }
+ Text {
+  message "\[knob Artist_name]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {1373 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvA_INPUT
+  xpos 140
+  ypos -112
+ }
+ Transform {
+  translate {-150 0}
+  center {1100 619}
+  name Transform4
+  xpos 140
+  ypos -65
+ }
+ Text {
+  inputs 0
+  message "render tme:"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 16
+  yjustify bottom
+  Transform 1
+  box {990 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {0.5 0.5 0.5 1}
+  name ldvRENDER_TIME
+  xpos 30
+  ypos -180
+ }
+ Text {
+  message "\[knob Render_time]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {1090 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvR_INPUT
+  xpos 30
+  ypos -112
+ }
+ Transform {
+  translate {-150 0}
+  center {1100 619}
+  name Transform3
+  xpos 30
+  ypos -63
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype bbox
+  message asset:
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 16
+  yjustify bottom
+  Transform 1
+  box {0 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {0.5 0.5 0.5 1}
+  name ldvASSET
+  xpos -256
+  ypos -181
+ }
+set N6cc20d0 [stack 0]
+ Text {
+  cliptype none
+  message "\[knob Asset_name]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {55 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvAS_INPUT1
+  xpos -353
+  ypos -112
+ }
+set N6cce490 [stack 0]
+push $N6cc20d0
+ Text {
+  cliptype none
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 1 ]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {55 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvAS_INPUT
+  xpos -256
+  ypos -113
+ }
+ Switch {
+  inputs 2
+  which {{"\[string equal \[value Asset_name] \"\"]==0 ? 1 : 0 "}}
+  name Switch3
+  xpos -256
+  ypos -66
+ }
+set N6cf2630 [stack 0]
+ Transform {
+  center {1100 619}
+  name Transform1
+  xpos -256
+  ypos -24
+ }
+ Text {
+  inputs 0
+  message scene:
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 16
+  yjustify bottom
+  Transform 1
+  box {382 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {0.5 0.5 0.5 1}
+  name ldvSCENE
+  xpos -80
+  ypos -180
+ }
+set N6d03c60 [stack 0]
+ Text {
+  message "\[knob Scene_name]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {440 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvS_INPUT1
+  xpos -168
+  ypos -114
+ }
+push $N6d03c60
+ Text {
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 5 ]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 20
+  yjustify bottom
+  Transform 1
+  box {440 0 2048 1024}
+  translate {5 1}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name ldvS_INPUT
+  xpos -80
+  ypos -112
+ }
+ Switch {
+  inputs 2
+  which {{"\[string equal \[value Scene_name] \"\"]==0 ? 1 : 0 "}}
+  name Switch4
+  xpos -80
+  ypos -80
+ }
+ Transform {
+  translate {-60 0}
+  center {1100 619}
+  name Transform2
+  xpos -80
+  ypos -41
+ }
+ Merge2 {
+  inputs 6+1
+  name Merge3
+  xpos 63
+  ypos -24
+ }
+ Text {
+  inputs 0
+  message Detail
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 25
+  yjustify top
+  Transform 1
+  box {512 168 892 788}
+  translate {{Detail_trans.x x62 -452} {Detail_trans.y x62 -138}}
+  center {1024 512}
+  color {{Text_Color.r} {Text_Color.g} {Text_Color.b} 1}
+  name detail
+  xpos 211
+  ypos 246
+ }
+ Text {
+  message "-Light\nRMSGeoAreaLight\nShading Rate: 1.0\nGI unused\n\n-Shader\nRMSHair\nSamples: 8\nLight Samples Override: 64\n\n-Render Setting\nShading Rate: 1.0\nDirect Lighting Sample:100\nPixel Sample: 4\n\n\n\n\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  size 24
+  leading 0.13
+  yjustify top
+  Transform 1
+  box {512 168 892 752}
+  translate {{Detail_trans.x} {Detail_trans.y}}
+  center {1024 512}
+  name ldv_INPUT
+  xpos 209
+  ypos 278
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{Detail_check}}
+  name Switch1
+  xpos 211
+  ypos 376
+ }
+ Merge2 {
+  inputs 2
+  name Merge1
+  xpos 63
+  ypos 376
+ }
+ Roto {
+  inputs 0
+  format "2048 1024 0 0 2048 1024 1 MKK"
+  curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 512}
+    {t x44800000 x44000000}
+    {a}
+    {curvegroup Rectangle1 512 bezier
+     {{cc
+       {f 8192}
+       {px x43c18000
+        {0 xc1900000}
+        {xc1e80000 x42040000}
+        {x443d6aab 0}
+        {xc43d6aac 0}
+        {x450c4000 x42040000}
+        {0 xc1900000}
+        {0 x41900000}
+        {x450c4000 xc1a80000}
+        {xc43d6aac 0}
+        {x443d6aab 0}
+        {xc1e80000 xc1a80000}
+        {0 x41900000}}}     idem}
+     {tx x43c18000 x448a7000 x40c00000}
+     {a r 0 g 0 b 0 str 1 spx x44800000 spy x44000000 sb 1 ltn x43c18000 ltm x43c18000 tt x41000000}}}}}}
+  toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 tt 4 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 tt 8 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+  toolbar_brush_hardness 0.200000003
+  toolbar_source_transform_scale {1 1}
+  toolbar_source_transform_center {1024 512}
+  color {0 0 0 1}
+  colorOverlay {0 0 0 0}
+  lifetime_type "all frames"
+  lifetime_start 387
+  lifetime_end 387
+  view {}
+  motionblur_on true
+  motionblur_shutter_offset_type centred
+  source_black_outside true
+  createNewTrack {{-1} "-1\t(none)\t-1" "1000\tNew Track Layer\t1000"}
+  name Roto4
+  xpos 477
+  ypos 382
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos 465
+  ypos 66
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD"
+  black_outside true
+  name Reformat3
+  xpos 465
+  ypos 240
+ }
+ Constant {
+  inputs 0
+  color {{bg_color x1 0.05000000075} {bg_color x1 0.05000000075} {bg_color x1 0.05000000075} {1 x1 0.7549999952}}
+  format "1920 1080 0 0 1920 1080 1 HD"
+  name Constant3
+  xpos 632
+  ypos 138
+ }
+ Radial {
+  opacity 0.2
+  area {-336 -52 2184 1356}
+  name Radial3
+  xpos 632
+  ypos 227
+ }
+set N6e00d70 [stack 0]
+push 0
+ Switch {
+  inputs 2
+  which {{background}}
+  name Switch2
+  xpos 681
+  ypos 280
+ }
+ Merge2 {
+  inputs 2
+  name Merge8
+  xpos 632
+  ypos 405
+ }
+ Merge2 {
+  inputs 2
+  mix 0.5
+  name Merge7
+  xpos 632
+  ypos 495
+ }
+ Merge2 {
+  inputs 2
+  name Merge2
+  xpos 63
+  ypos 495
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD"
+  black_outside true
+  name Reformat1
+  xpos 63
+  ypos 521
+ }
+ Output {
+  name Output1
+  xpos 63
+  ypos 587
+ }
+push $N6e00d70
+push 0
+push $N6cf2630
+ Viewer {
+  inputs 3
+  input_number 2
+  input_process false
+  name Viewer1
+  xpos 262
+  ypos 71
+ }
+push $N6cce490
+ Text {
+  opacity {{curve}}
+  message "\[value Asset_name]"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+  yjustify center
+  box {550 309 1650 928}
+  center {1100 619}
+  name Text1
+  xpos -380
+  ypos -25
+ }
+end_group

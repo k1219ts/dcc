@@ -1,0 +1,20 @@
+set cut_paste_input [stack 0]
+version 10.0 v4
+push $cut_paste_input
+Expression {
+ temp_name0 rate
+ temp_expr0 5
+ expr0 r%(1/repeatx)*repeatx
+ expr1 g%(1/repeaty)*repeaty
+ name Expression2
+ label "multiply uvs"
+ selected true
+ xpos 55659
+ ypos -3907
+ addUserKnob {20 User}
+ addUserKnob {7 repeatx R 0 10}
+ repeatx 0.3
+ addUserKnob {7 repeaty R 0 10}
+ repeaty 0.3
+}
+

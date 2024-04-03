@@ -1,0 +1,70 @@
+#! /usr/local/Nuke6.3v8/Nuke6.3 -nx
+version 6.3 v8
+Gizmo {
+ inputs 2
+ note_font "Bitstream Vera Sans"
+ mapsize {0.15 0.15}
+ addUserKnob {20 User}
+ addUserKnob {7 depth_scale l "Depth Scale" R 0 100}
+ addUserKnob {3 Convergence l ReConverge}
+}
+ Input {
+  inputs 0
+  name depth
+  xpos -418
+  ypos 475
+ }
+ Input {
+  inputs 0
+  name image
+  xpos -276
+  ypos 474
+  number 1
+ }
+add_layer {IDistort IDistort.mask}
+add_layer {rgba redguard1.glow}
+ Copy {
+  inputs 2
+  from0 rgba.red
+  to0 IDistort.mask
+  name Copy1
+  xpos -276
+  ypos 525
+ }
+set N5638690 [stack 0]
+ IDistort {
+  uv IDistort
+  uv_scale {{parent.depth_scale i}}
+  name IDistort2
+  xpos -202
+  ypos 600
+ }
+push $N5638690
+ IDistort {
+  uv IDistort
+  uv_scale {{parent.IDistort2.uv_scale*-1 i}}
+  name IDistort1
+  xpos -355
+  ypos 599
+ }
+ JoinViews {
+  inputs 2
+  name JoinViews1
+  xpos -271
+  ypos 738
+  viewassoc "left\nmain"
+ }
+ ReConverge {
+  offset {{parent.Convergence i}}
+  convergemode "shift both"
+  name ReConverge1
+  selected true
+  xpos -271
+  ypos 793
+ }
+ Output {
+  name Output1
+  xpos -271
+  ypos 891
+ }
+end_group

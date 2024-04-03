@@ -1,0 +1,205 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ addUserKnob {20 User}
+ addUserKnob {41 dn T dat_night_text.message}
+ addUserKnob {41 t2d T text_2d.message}
+ addUserKnob {41 t3d T text_3d.message}
+ addUserKnob {41 tenv T text_env.message}
+ addUserKnob {41 tmatte T text_matte.message}
+ addUserKnob {41 tchar T text_char.message}
+ addUserKnob {41 tfx T text_fx.message}
+ addUserKnob {41 tdesc T text_desc.message}
+}
+ Rectangle {
+  inputs 0
+  area {440 635 {"area.x + 1"} 720}
+  name Rectangle7
+  xpos -171
+  ypos 92
+ }
+ Rectangle {
+  area {580 635 {"area.x + 1"} 720}
+  name Rectangle8
+  xpos -171
+  ypos 136
+ }
+ Rectangle {
+  area {720 635 {"area.x + 1"} 720}
+  name Rectangle9
+  xpos -171
+  ypos 179
+ }
+ Rectangle {
+  area {860 635 {"area.x + 1"} 720}
+  name Rectangle10
+  xpos -171
+  ypos 231
+ }
+ Rectangle {
+  area {1000 635 {"area.x + 1"} 720}
+  name Rectangle11
+  xpos -171
+  ypos 271
+ }
+ Rectangle {
+  area {1140 635 {"area.x + 1"} 720}
+  name Rectangle12
+  xpos -171
+  ypos 316
+ }
+ Dot {
+  name Dot1
+  xpos -137
+  ypos 411
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+ }
+ Text {
+  message VFX
+  font /usr/share/fonts/liberation/LiberationMono-Regular.ttf
+  size 36
+  yjustify center
+  Transform 1
+  box {0 0 200 100}
+  translate {330 640}
+  center {100 50}
+  color {0.69408 0.00293 0.00293 1}
+  color_panelDropped true
+  name Text10
+  xpos 0
+  ypos 71
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Regular.ttf
+  size 36
+  yjustify center
+  Transform 1
+  box {0 0 200 100}
+  translate {330 605}
+  center {100 50}
+  name dat_night_text
+  xpos 0
+  ypos 108
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 139 110}
+  translate {442 605}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_2d
+  xpos 0
+  ypos 176
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 139 110}
+  translate {582 605}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_3d
+  xpos 0
+  ypos 202
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 139 110}
+  translate {722 605}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_env
+  xpos 0
+  ypos 228
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 139 110}
+  translate {862 605}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_matte
+  xpos 0
+  ypos 254
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 139 110}
+  translate {1002 605}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_char
+  xpos 0
+  ypos 280
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 139 110}
+  translate {1142 605}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_fx
+  xpos 0
+  ypos 306
+ }
+ Text {
+  message ""
+  font /usr/share/fonts/liberation/LiberationMono-Bold.ttf
+  size 12
+  yjustify top
+  Transform 1
+  box {0 0 419 110}
+  translate {861 524}
+  center {70 55}
+  color {1 0.641346 0.148769 1}
+  color_panelDropped true
+  name text_desc
+  xpos 0
+  ypos 353
+ }
+ Merge2 {
+  inputs 2
+  name Merge2
+  xpos 0
+  ypos 407
+ }
+ Output {
+  name Output1
+  xpos 0
+  ypos 494
+ }
+end_group

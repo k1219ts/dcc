@@ -1,0 +1,102 @@
+
+Gizmo {
+ inputs 3
+ knobChanged "\n\n###CHOOSE CURVE TYPE\n\nAct = nuke.thisNode().knob('agcurveType').getValue()\nOct = nuke.toNode('analiseRGB').knob('operation')\n\nif Act == 0.0 or Act == 2.0 or Act == 3.0:\n\tnuke.thisNode().knob('agcurveType').setValue(1)\nelse:\n\tpass\n\nOct.setValue(int(Act))\n\nprint ('curve type option is ', Act)\n\n\n###ENABLE ADVANCED TWEAKS\n\nec = nuke.thisNode().knob('curveTweaks').value()\ncm = nuke.thisNode().knob('intensitymult')\nco = nuke.thisNode().knob('intensityoffset')\n\n#if nuke.thisKnob() == 'curveTweaks':\n\nif ec == True:\n\tcm.setEnabled(True)\n\tco.setEnabled(True)\n\tprint ('tweaks are on')\nelse:\n\tcm.setEnabled(False)\n\tco.setEnabled(False)\n\tcm.setValue(1.0)\n\tco.setValue(0.0)\n\tprint ('tweaks are off')\n\n\n###CURVE KEYFRAMES TO INTENSITYDATA LINK\n###(opposite way occurs in Analyze Seq and Clear Anim buttons)\n\nck = nuke.thisNode().knob('cKeys')\nOck = nuke.toNode('analiseRGB').knob('intensitydata')\n\nif nuke.thisKnob().name() == 'cKeys':\n\tOck.copyAnimations(ck.animations())\n\tprint ('you changed intensitydata keyframes')\n\tif not ck.isAnimated():\n\t\tOck.clearAnimated()\n\t\tif ck.value() == 0:\n\t\t\tck.setValue((1,1,1,1))\n\t\t\tOck.setValue((1,1,1,1))\n\t\telse:\n\t\t\tpass\n\telse:\n\t\tpass\nelse:\n\tpass\n\t\n\nprint ('ref frame is '),nuke.thisNode().knob('theRefFrame').getValue()\n\nprint ('you changed knobs')\n\n"
+ tile_color 0x317da8ff
+ addUserKnob {20 User l Ag_AutoGrading}
+ addUserKnob {26 intentext l "@b;Intensity Animation"}
+ addUserKnob {4 agcurveType l "Curve Type" +DISABLED M {"Auto Crop" "Avg Intensities" "Exposure Difference" "Max Luma Pixel" "" ""}}
+ agcurveType "Avg Intensities"
+ addUserKnob {22 aggo l "Analyse Sequence" t "Average rgba values inside analysis region" -STARTLINE T "oct = nuke.toNode('analiseRGB')\ng = oct.knob('go')\nck = nuke.thisNode().knob('cKeys')\n\n\ng.execute()\n\nck.copyAnimations(oct.knob('intensitydata').animations())"}
+ addUserKnob {22 clearAnim l "Clear Animation" T "\nk = nuke.toNode('analiseRGB').knob('intensitydata')\nck = nuke.thisNode().knob('cKeys')\na = nuke.ask('Clear animations?')\n\nif a == True:\n\tif k.isAnimated() or ck.isAnimated():\n\t\tck.clearAnimated()\n\t\tk.clearAnimated()\n\t\tck.setValue((1,1,1,1))\n\t\tk.setValue((1,1,1,1))\n\telse:\n\t\tprint ('intensitydata not animated')\n\t\tpass\n\nelse:\n\tpass\n\n\n\n\n" +STARTLINE}
+ addUserKnob {15 bboxRegion l "Analysis Region"}
+ bboxRegion {0 720 1280 0}
+ addUserKnob {22 agReset l Reset -STARTLINE T "bb = nuke.thisNode().knob('bboxRegion')\n\nif bb.isAnimated():\n\tbb.clearAnimated()\nelse:\n\tpass\n\nbb.setX(0)\nbb.setY(720)\nbb.setR(1280)\nbb.setT(0)\n"}
+ addUserKnob {41 theRefFrame l "Reference Frame" t "Select the frame that will be the starting point of the grading animation." T correcao_relativa.theRefFrame}
+ addUserKnob {22 setRefFrame l "Set to current Frame" T "ref = nuke.thisNode().knob('theRefFrame')\nset = nuke.frame()\n\nref.setValue(set)" +STARTLINE}
+ addUserKnob {26 gradetext l "@b;Grading"}
+ addUserKnob {41 channels T correcao_relativa.channels}
+ addUserKnob {20 advgroup l Advanced n 1}
+ advgroup 0
+ addUserKnob {6 curveTweaks l "Enable grade tweaks" +STARTLINE}
+ addUserKnob {41 intensitymult l "curve multiplier" T correcao_relativa.intensitymult}
+ addUserKnob {41 intensityoffset l "curve offset" T correcao_relativa.intensityoffset}
+ addUserKnob {20 endGroup n -1}
+ addUserKnob {41 maskChannelMask l mask -STARTLINE T correcao_relativa.maskChannelMask}
+ addUserKnob {41 inject -STARTLINE T correcao_relativa.inject}
+ addUserKnob {41 invert_mask l invert -STARTLINE T correcao_relativa.invert_mask}
+ addUserKnob {41 fringe -STARTLINE T correcao_relativa.fringe}
+ addUserKnob {26 ""}
+ addUserKnob {41 mix T correcao_relativa.mix}
+ addUserKnob {52 customP T "nuke.thisNode().knob('knobChanged').setValue('''\n\n###CHOOSE CURVE TYPE\n\nAct = nuke.thisNode().knob('agcurveType').getValue()\nOct = nuke.toNode('analiseRGB').knob('operation')\n\nif Act == 0.0 or Act == 2.0 or Act == 3.0:\n\tnuke.thisNode().knob('agcurveType').setValue(1)\nelse:\n\tpass\n\nOct.setValue(int(Act))\n\nprint ('curve type option is ', Act)\n\n\n###ENABLE ADVANCED TWEAKS\n\nec = nuke.thisNode().knob('curveTweaks').value()\ncm = nuke.thisNode().knob('intensitymult')\nco = nuke.thisNode().knob('intensityoffset')\n\n#if nuke.thisKnob() == 'curveTweaks':\n\nif ec == True:\n\tcm.setEnabled(True)\n\tco.setEnabled(True)\n\tprint ('tweaks are on')\nelse:\n\tcm.setEnabled(False)\n\tco.setEnabled(False)\n\tcm.setValue(1.0)\n\tco.setValue(0.0)\n\tprint ('tweaks are off')\n\n\n###CURVE KEYFRAMES TO INTENSITYDATA LINK\n###(opposite way occurs in Analyze Seq and Clear Anim buttons)\n\nck = nuke.thisNode().knob('cKeys')\nOck = nuke.toNode('analiseRGB').knob('intensitydata')\n\nif nuke.thisKnob().name() == 'cKeys':\n\tOck.copyAnimations(ck.animations())\n\tprint ('you changed intensitydata keyframes')\n\tif not ck.isAnimated():\n\t\tOck.clearAnimated()\n\t\tif ck.value() == 0:\n\t\t\tck.setValue((1,1,1,1))\n\t\t\tOck.setValue((1,1,1,1))\n\t\telse:\n\t\t\tpass\n\telse:\n\t\tpass\nelse:\n\tpass\n\t\n\nprint ('ref frame is '),nuke.thisNode().knob('theRefFrame').getValue()\n\nprint ('you changed knobs)'\n\n''')" +STARTLINE}
+ addUserKnob {20 intensitykeysTab l "Curve keyframes"}
+ addUserKnob {26 intensitydataText l "@b;Intensity Data"}
+ addUserKnob {19 cKeys l "Curve Keyframes" t "Here you can change and delete undesired intensitydata keyframes"}
+ cKeys {1 1 1 1}
+ addUserKnob {6 cKeys_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+}
+ Input {
+  inputs 0
+  name Inputmask
+  xpos 1431
+  ypos -274
+  number 2
+ }
+ Shuffle {
+  alpha white
+  name Shuffle1
+  xpos 1286
+  ypos -238
+  disable true
+ }
+ Input {
+  inputs 0
+  name Inputsrc
+  xpos 1121
+  ypos -358
+ }
+ Grade {
+  inputs 1+1
+  multiply {{((1/analiseRGB.intensitydata(theRefFrame))*analiseRGB.intensitydata-0.5)*intensitymult+intensityoffset+0.5} {((1/analiseRGB.intensitydata(theRefFrame))*analiseRGB.intensitydata-0.5)*intensitymult+intensityoffset+0.5} {((1/analiseRGB.intensitydata(theRefFrame))*analiseRGB.intensitydata-0.5)*intensitymult+intensityoffset+0.5} {((1/analiseRGB.intensitydata(theRefFrame))*analiseRGB.intensitydata-0.5)*intensitymult+intensityoffset+0.5}}
+  name correcao_relativa
+  selected true
+  xpos 1121
+  ypos -213
+  addUserKnob {20 User}
+  addUserKnob {3 theRefFrame l "ref frame"}
+  addUserKnob {19 intensitymult l "curve multiplier" +DISABLED R 0 4}
+  intensitymult 1
+  addUserKnob {6 intensitymult_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 intensityoffset l "curve offset" +DISABLED R -1 1}
+  addUserKnob {6 intensityoffset_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ }
+ Output {
+  name Output1
+  xpos 1121
+  ypos -132
+ }
+ Input {
+  inputs 0
+  name Inputanalyze
+  xpos 946
+  ypos -356
+  number 1
+ }
+ CurveTool {
+  ROI {{bboxRegion} {bboxRegion} {bboxRegion} {bboxRegion}}
+  autocropdata {720 405 2160 1215}
+  intensitydata {1 1 1 1}
+  name analiseRGB
+  xpos 946
+  ypos -245
+ }
+push 0
+ Viewer {
+  inputs 2
+  frame_range 1-100
+  input_number 1
+  name Viewer1
+  xpos 686
+  ypos -314
+ }
+end_group

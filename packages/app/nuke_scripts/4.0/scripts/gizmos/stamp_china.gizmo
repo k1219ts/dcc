@@ -1,0 +1,1239 @@
+#! /usr/local/Nuke9.0v5/libnuke-9.0.5.so -nx
+version 9.0 v5
+Gizmo {
+ tile_color 0x6ffff
+ label Project_Stamp
+ note_font "DejaVu Sans"
+ note_font_size 15
+ mapsize {0.15 0.15}
+ addUserKnob {20 Stamp l ProjectStamp}
+ addUserKnob {4 TaskStatus M {Approved OK Review InProgress Ready Retake Waiting Hold Omit ""}}
+ TaskStatus InProgress
+ addUserKnob {6 shotcb l Shot_Name +STARTLINE}
+ addUserKnob {1 Shotname}
+ Shotname Root
+ addUserKnob {41 translate l Position: T Text2.translate}
+ addUserKnob {41 scale l Scale T Text2.scale}
+ addUserKnob {41 color l "Color din" T Text2.color}
+ addUserKnob {26 "" l "Project Info"}
+ addUserKnob {6 project_info l "Project Info" t "On/Off Project Info\nProject name/Script name/Artist name" +STARTLINE}
+ project_info true
+ addUserKnob {1 Project_name l Project: t "Enter project name"}
+ Project_name test
+ addUserKnob {1 Artist_name l Artist: t "Enter artist name"}
+ Artist_name wonrak.son
+ addUserKnob {12 proj_poz l Position: t "Change position Project Info"}
+ proj_poz {80 60}
+ addUserKnob {16 proj_scale l Scale: t "Change scale Project Info"}
+ proj_scale 1
+ addUserKnob {19 col_stat_p l "Color stat:" t "Change color static text"}
+ col_stat_p 1
+ addUserKnob {6 col_stat_p_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {19 col_din_p l "Color din:" t "Change color dinamic text"}
+ col_din_p {0.5 0.5 0 1}
+ addUserKnob {6 col_din_p_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {26 "" l "Footage Info"}
+ addUserKnob {6 footage_info l "Footage Info" t "On/Off Footage Info\nFrame number/Range/Date" +STARTLINE}
+ footage_info true
+ addUserKnob {12 foot_poz l Position: t "Change position Footage Info"}
+ foot_poz {1480 60}
+ addUserKnob {16 foot_scale l Scale: t "Change position Footage Info"}
+ foot_scale 1
+ addUserKnob {19 col_stat_f l "Color stat:" t "Change color static text"}
+ col_stat_f 1
+ addUserKnob {6 col_stat_f_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {19 col_din_f l "Color din:" t "Change color dinamic text"}
+ col_din_f {1 1 1 1}
+ addUserKnob {6 col_din_f_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {26 a l "Reformat to 2K" t "On/Off 2k 1k reformat"}
+ addUserKnob {4 formatsize l Format M {"1 Stamp - 1920x1080" "" "" "" "" "" "" "" "" "" "" "" "" ""}}
+ addUserKnob {6 TC +STARTLINE}
+ TC true
+ addUserKnob {26 "" l About}
+ addUserKnob {26 About l "" -STARTLINE T "@jihyung.jung\nProjectStamp chnia v.2.0 (HD version)\nOutput fullsize (1920x1080)\n\n"}
+}
+ BackdropNode {
+  inputs 0
+  name OVERLAYS1
+  note_font "Bitstream Vera Sans"
+  xpos 459
+  ypos 285
+  bdwidth 770
+  bdheight 237
+ }
+ BackdropNode {
+  inputs 0
+  name OVERLAYS2
+  note_font "Bitstream Vera Sans"
+  xpos -664
+  ypos 299
+  bdwidth 702
+  bdheight 243
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote2
+  label "Stamp HD(1920x1080)"
+  note_font "Bitstream Vera Sans"
+  note_font_size 50
+  xpos 1396
+  ypos 1064
+ }
+ Shuffle {
+  inputs 0
+  alpha black
+  name Shuffle1
+  xpos -120
+  ypos 333
+ }
+ ColorCorrect {
+  gain 0
+  name ColorCorrect2
+  xpos -120
+  ypos 359
+ }
+ Text {
+  cliptype none
+  message "TIMECODE "
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {121 0 121 0}
+  translate {152 -15}
+  center {120.8000031 -1.600000024}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name TC2
+  note_font "Bitstream Vera Sans"
+  xpos -120
+  ypos 396
+  disable true
+ }
+ Text {
+  cliptype none
+  message "\[python \{nuke.thisNode().metadata()\['input/timecode']\}]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  xjustify center
+  Transform 1
+  box {121 0 121 0}
+  translate {400 -15}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name TC_INPUT2
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos -120
+  ypos 422
+  disable true
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "DATE "
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {6.29999733 0 6.29999733 0}
+  translate {73 -15}
+  color {{"\[knob col_stat_f.r]" i} {"\[knob col_stat_f.g]" i} {"\[knob col_stat_f.b]" i} {"\[knob col_stat_f.a]" i}}
+  name DATE2
+  note_font "Bitstream Vera Sans"
+  xpos -215
+  ypos 326
+  disable true
+ }
+ Text {
+  cliptype none
+  message "\[clock format \[clock seconds] -format \{%d/%m/%y\}]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  xjustify center
+  Transform 1
+  box {6.29999733 0 6.29999733 0}
+  translate {218 -15}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name D_INPUT2
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos -215
+  ypos 352
+  disable true
+ }
+ Transform {
+  translate {50 0}
+  center {1100 619}
+  name Transform38
+  xpos -215
+  ypos 383
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message RANGE
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {28 0 28 0}
+  translate {-80 -14.5}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name RANGE2
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -307
+  ypos 322
+  disable true
+ }
+ Text {
+  cliptype none
+  message "\[knob root.last_frame]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {28 0 28 0}
+  translate {40 -14.5}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name R_INPUT2
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -307
+  ypos 353
+  disable true
+ }
+ Transform {
+  translate {40 0}
+  center {1100 619}
+  name Transform37
+  xpos -307
+  ypos 383
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message FRAMES
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {34 1 34 1}
+  translate {-330 -15.5}
+  center {34.5 0}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name FRAMES2
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -395
+  ypos 325
+  disable true
+ }
+ Text {
+  cliptype none
+  message "\[format %04d \[frame]]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {34 1 34 1}
+  translate {-180 -14.5}
+  center {1.5 0}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name F_INPUT2
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -395
+  ypos 351
+  disable true
+ }
+ Transform {
+  translate {-50 0}
+  center {1100 619}
+  name Transform36
+  xpos -395
+  ypos 381
+ }
+ Merge2 {
+  inputs 3+1
+  name Merge5
+  note_font "Bitstream Vera Sans"
+  xpos -307
+  ypos 429
+ }
+ Merge2 {
+  inputs 2
+  operation max
+  name Merge19
+  xpos -121
+  ypos 456
+ }
+ Transform {
+  translate {{"\[knob foot_poz.x]"} {"\[knob foot_poz.y]"}}
+  scale {{"\[knob foot_scale]"}}
+  center {960 540}
+  name Transform2
+  xpos -121
+  ypos 482
+ }
+ Transform {
+  translate {100 -70}
+  center {960 540}
+  name Transform12
+  xpos -307
+  ypos 482
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{"\[knob footage_info]"}}
+  name Switch8
+  note_font "Bitstream Vera Sans"
+  xpos -307
+  ypos 507
+ }
+ Text {
+  inputs 0
+  cliptype none
+  inject true
+  message ARTIST
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {5.700012207 0 5.700012207 0}
+  translate {754 -15}
+  color {{"\[knob col_stat_p.r]" i} {"\[knob col_stat_p.g]" i} {"\[knob col_stat_p.b]" i} {"\[knob col_stat_p.a]" i}}
+  name ARTIST2
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -484
+  ypos 330
+  disable true
+ }
+ Text {
+  cliptype none
+  inject true
+  message "\[knob Artist_name]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {-17 0 5.700012207 68}
+  translate {757.5 69.5}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name A_INPUT2
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -484
+  ypos 356
+  disable true
+ }
+ Transform {
+  translate {100 0}
+  center {1100 550}
+  name Transform23
+  xpos -484
+  ypos 382
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message SCRIPT
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  translate {234.5 -12.80000019}
+  color {{"\[knob col_stat_p.r]" i} {"\[knob col_stat_p.g]" i} {"\[knob col_stat_p.b]" i} {"\[knob col_stat_p.a]" i}}
+  name SCRIPT2
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -566
+  ypos 331
+  disable true
+ }
+ Text {
+  cliptype none
+  inject true
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 4 ].nk"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {-54 0 -54 0}
+  translate {285 -12.5}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name S_INPPUT2
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -566
+  ypos 357
+  disable true
+ }
+ Transform {
+  translate {130 -2}
+  center {1100 550}
+  name Transform24
+  xpos -566
+  ypos 382
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message PROJECT
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  kerning -0.056
+  Transform 1
+  translate {31 -11.60000038}
+  color {{"\[knob col_stat_p.r]" i} {"\[knob col_stat_p.g]" i} {"\[knob col_stat_p.b]" i} {"\[knob col_stat_p.a]" i}}
+  name PROJECT2
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -653
+  ypos 328
+  disable true
+ }
+ Text {
+  cliptype none
+  message "\[knob Project_name]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 28
+  Transform 1
+  box {-56 0 -56 0}
+  translate {168 -10.5}
+  rotate 0.8956194234
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name P_INPUT2
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -653
+  ypos 354
+  disable true
+ }
+ Transform {
+  translate {94 -2}
+  center {1100 550}
+  name Transform25
+  xpos -653
+  ypos 380
+ }
+ Merge2 {
+  inputs 3+1
+  name Merge6
+  note_font "Bitstream Vera Sans"
+  xpos -566
+  ypos 408
+ }
+ Transform {
+  translate {{"\[knob proj_poz.x]"} {"\[knob proj_poz.y]"}}
+  scale {{"\[knob proj_scale]"}}
+  center {0.1 0.1}
+  name Transform26
+  note_font "Bitstream Vera Sans"
+  xpos -566
+  ypos 456
+ }
+ Transform {
+  translate {-36 -70}
+  center {960 540}
+  name Transform27
+  xpos -566
+  ypos 479
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{"\[knob project_info]" i}}
+  name Switch9
+  note_font "Bitstream Vera Sans"
+  xpos -566
+  ypos 507
+ }
+ Merge2 {
+  inputs 2
+  name Merge13
+  note_font "Bitstream Vera Sans"
+  xpos -436
+  ypos 507
+ }
+ Transform {
+  translate {200 9}
+  scale 1.15
+  center {1068 -28}
+  name Transform28
+  xpos -442
+  ypos 543
+ }
+ Dot {
+  name Dot12
+  note_font "Bitstream Vera Sans"
+  xpos -408
+  ypos 922
+ }
+ Transform {
+  translate {840 4}
+  rotate 90
+  scale 0.45
+  center {1100 550}
+  name Transform30
+  xpos -574
+  ypos 918
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "2048 1080 0 0 2048 1080 1 SSY"
+  name Constant2
+  xpos -892
+  ypos 461
+  disable true
+ }
+ Transform {
+  translate {2175 0}
+  center {1100 550}
+  name Transform29
+  xpos -892
+  ypos 533
+  disable true
+ }
+ Input {
+  inputs 0
+  name Input
+  label "Input (HD)"
+  note_font "Bitstream Vera Sans"
+  xpos -795
+  ypos -196
+ }
+ Dot {
+  name Dot7
+  xpos -761
+  ypos 229
+ }
+set Nb5240a0 [stack 0]
+ Reformat {
+  type "to box"
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  box_width 2048
+  box_height 872
+  box_fixed true
+  black_outside true
+  name Reformat1
+  xpos -790
+  ypos 495
+ }
+ Merge2 {
+  inputs 2
+  mix 0.47
+  name Merge14
+  xpos -790
+  ypos 533
+ }
+ Dot {
+  name Dot13
+  note_font "Bitstream Vera Sans"
+  xpos -758
+  ypos 922
+ }
+ Merge2 {
+  inputs 2
+  name Merge15
+  note_font "Bitstream Vera Sans"
+  xpos -673
+  ypos 918
+ }
+ Crop {
+  box {0 0 2048 872}
+  reformat true
+  intersect true
+  crop false
+  name Crop1
+  xpos -673
+  ypos 1045
+ }
+ Text {
+  inputs 0
+  message "\[knob Shotname]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  yjustify center
+  Transform 1
+  box {850 270 1440 810}
+  translate {-684.5 374}
+  scale 0.5
+  center {960 540}
+  color {1 1 0 1}
+  name Text2
+  xpos 1503
+  ypos 763
+ }
+ Text {
+  message "\[knob parent.TaskStatus]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  yjustify center
+  Transform 1
+  box {880 275 1440 810}
+  translate {-500 374}
+  scale 0.5
+  center {960 540}
+  color {{"\[value \[node Color_Scheme].\[knob parent.TaskStatus].r]"} {"\[value \[node Color_Scheme].\[knob parent.TaskStatus].g]"} {"\[value \[node Color_Scheme].\[knob parent.TaskStatus].b]"} {"\[value \[node Color_Scheme].\[knob parent.TaskStatus].a]"}}
+  name Status_Text
+  xpos 1503
+  ypos 816
+ }
+ Transform {
+  translate {-170 148}
+  center {1100 550}
+  name Transform4
+  xpos 1503
+  ypos 874
+ }
+push $Nb5240a0
+ Dot {
+  name Dot2
+  xpos -91
+  ypos 229
+ }
+set Nb596ed0 [stack 0]
+ Dot {
+  name Dot8
+  note_font "Bitstream Vera Sans"
+  xpos 1053
+  ypos 229
+ }
+set Nb59b8e0 [stack 0]
+ Shuffle {
+  alpha black
+  name Shuffle2
+  xpos 1019
+  ypos 313
+ }
+ ColorCorrect {
+  gain 0
+  name ColorCorrect1
+  xpos 1019
+  ypos 339
+ }
+ Text {
+  cliptype none
+  opacity 0.1
+  message "TIMECODE :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  box {121 0 121 0}
+  translate {460 -16.5}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name TC1
+  note_font "Bitstream Vera Sans"
+  xpos 1019
+  ypos 374
+  disable {{!parent.TC x1 0 x1001 1}}
+ }
+ Text {
+  cliptype none
+  message "\[python \{nuke.thisNode().metadata()\['input/timecode']\}]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  xjustify center
+  Transform 1
+  box {121 0 121 0}
+  translate {650 -16.5}
+  color {1 1 1 1}
+  name TC_INPUT1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 1019
+  ypos 414
+  disable {{!parent.TC x1 0 x1001 1}}
+ }
+ Transform {
+  translate {-125 0}
+  center {1024 540}
+  name Transform11
+  xpos 1019
+  ypos 438
+ }
+ Text {
+  inputs 0
+  cliptype none
+  opacity 0.1
+  message "DATE :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {330 -16.5}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name DATE1
+  note_font "Bitstream Vera Sans"
+  xpos 900
+  ypos 323
+ }
+ Text {
+  cliptype none
+  message "\[clock format \[clock seconds] -format \{%d/%m/%y\}]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  xjustify center
+  Transform 1
+  translate {450 -16.5}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name D_INPUT1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 900
+  ypos 347
+ }
+ Transform {
+  translate {-95 0}
+  center {1024 658.5}
+  name Transform5
+  xpos 900
+  ypos 371
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  opacity 0.1
+  message "RANGE :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {-20 -16.5}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name RANGE1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 816
+  ypos 321
+ }
+ Text {
+  cliptype none
+  message "\[knob root.first_frame] - \[knob root.last_frame] (\[expr \[knob root.last_frame] - \[knob root.first_frame] + 1])"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {80 -16.5}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name R_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 816
+  ypos 347
+ }
+ Transform {
+  translate {-73 0}
+  center {1024 658.5}
+  name Transform6
+  xpos 816
+  ypos 371
+ }
+ Text {
+  inputs 0
+  cliptype none
+  opacity 0.1
+  message "FRAMES :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {-260 -16.5}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name FRAMES1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 728
+  ypos 321
+ }
+ Text {
+  cliptype none
+  message "\[format %04d \[frame]]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {-150 -16.5}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name F_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 728
+  ypos 347
+ }
+ Transform {
+  translate {-58 0}
+  center {1024 658.5}
+  name Transform7
+  xpos 728
+  ypos 371
+ }
+ Merge2 {
+  inputs 3+1
+  name Merge8
+  note_font "Bitstream Vera Sans"
+  xpos 816
+  ypos 429
+ }
+ Merge2 {
+  inputs 2
+  operation max
+  name Merge16
+  xpos 1019
+  ypos 493
+ }
+ Transform {
+  translate {{"\[knob foot_poz.x]" i} {"\[knob foot_poz.y]" i}}
+  scale {{"\[knob foot_scale]" i}}
+  center {960 540}
+  name Transform13
+  xpos 818
+  ypos 493
+ }
+ Transform {
+  translate {180 -68}
+  center {960 540}
+  name Transform14
+  xpos 818
+  ypos 516
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{"\[knob footage_info]" i}}
+  name Switch4
+  note_font "Bitstream Vera Sans"
+  xpos 818
+  ypos 542
+ }
+ Text {
+  inputs 0
+  cliptype none
+  opacity 0.1
+  inject true
+  message "ARTIST :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {780 -16.5}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name ARTIST1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 637
+  ypos 316
+ }
+ Text {
+  cliptype none
+  inject true
+  message "\[knob Artist_name]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {880 -16.5}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name A_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 639
+  ypos 340
+ }
+ Transform {
+  translate {100 0}
+  center {1100 550}
+  name Transform15
+  xpos 639
+  ypos 366
+ }
+ Transform {
+  translate {-34 0}
+  center {1024 658.5}
+  name Transform8
+  xpos 639
+  ypos 392
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  opacity 0.1
+  message "SCRIPT :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {303 -16.5}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name SCRIPT1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 557
+  ypos 319
+ }
+ Text {
+  cliptype none
+  inject true
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 4 ].nk"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {398 -16.5}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name S_INPPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 557
+  ypos 343
+ }
+ Transform {
+  translate {80 -2}
+  center {1100 550}
+  name Transform16
+  xpos 557
+  ypos 367
+ }
+ Transform {
+  translate {60 0}
+  center {1024 658.5}
+  name Transform9
+  xpos 557
+  ypos 393
+ }
+ Text {
+  inputs 0
+  cliptype none
+  opacity 0.1
+  message "PROJECT :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {95 -16.5}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name PROJECT1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 470
+  ypos 314
+ }
+ Text {
+  cliptype none
+  message "\[knob Project_name]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 20
+  Transform 1
+  translate {212 -16.5}
+  rotate 0.8956194234
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name P_INPUT7
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 470
+  ypos 338
+ }
+ Transform {
+  translate {20 -2}
+  center {1100 550}
+  name Transform17
+  xpos 470
+  ypos 364
+ }
+ Transform {
+  translate {70 0}
+  center {1024 658.5}
+  name Transform10
+  xpos 474
+  ypos 389
+ }
+ Merge2 {
+  inputs 3+1
+  name Merge9
+  note_font "Bitstream Vera Sans"
+  xpos 557
+  ypos 437
+ }
+ Transform {
+  translate {{"\[knob proj_poz.x]" i} {"\[knob proj_poz.y]" i}}
+  scale {{"\[knob proj_scale]" i}}
+  center {0.1 0.1}
+  name Transform18
+  note_font "Bitstream Vera Sans"
+  xpos 557
+  ypos 491
+ }
+ Transform {
+  translate {122 -68}
+  center {960 540}
+  name Transform19
+  xpos 557
+  ypos 514
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{"\[knob project_info]" i}}
+  name Switch5
+  note_font "Bitstream Vera Sans"
+  xpos 557
+  ypos 542
+ }
+ Merge2 {
+  inputs 2
+  name Merge10
+  note_font "Bitstream Vera Sans"
+  xpos 687
+  ypos 542
+ }
+ Transform {
+  translate {-64 5}
+  center {1100 550}
+  name Transform20
+  xpos 687
+  ypos 582
+ }
+ Dot {
+  name Dot9
+  note_font "Bitstream Vera Sans"
+  xpos 721
+  ypos 831
+ }
+ Transform {
+  translate {-185 -85}
+  scale 0.8
+  center {1100 550}
+  name Transform21
+  xpos 974
+  ypos 826
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "IMAGE SIZE : "
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 16
+  Transform 1
+  box {-48.5 0 -48.5 0}
+  translate {97 2}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name imagesize1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 1628
+  ypos 439
+ }
+ Text {
+  cliptype none
+  message 2048x1080
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 16
+  Transform 1
+  box {-48.5 0 -48.5 0}
+  translate {204.5 2}
+  rotate 0.8956194234
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name P_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 1628
+  ypos 486
+ }
+ Transform {
+  translate {0 5}
+  center {1100 550}
+  name Transform3
+  xpos 1628
+  ypos 523
+ }
+ Constant {
+  inputs 0
+  color {0 0 0 1}
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  name Constant1
+  xpos 1365
+  ypos 379
+ }
+ Transform {
+  translate {0 1050}
+  center {960 540}
+  name Transform1
+  xpos 1365
+  ypos 451
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  name Constant3
+  xpos 1364
+  ypos 278
+ }
+ Transform {
+  translate {0 -1050}
+  scale {1.01 1}
+  center {960 540}
+  name Transform22
+  xpos 1364
+  ypos 350
+ }
+push $Nb59b8e0
+ Dot {
+  name Dot10
+  note_font "Bitstream Vera Sans"
+  xpos 1511
+  ypos 229
+ }
+ Reformat {
+  type "to box"
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  box_width 1920
+  box_height 1080
+  box_fixed true
+  black_outside true
+  name Reformat4
+  xpos 1477
+  ypos 274
+ }
+ Merge2 {
+  inputs 2
+  mix 0.8
+  name Merge11
+  xpos 1477
+  ypos 350
+ }
+ Merge2 {
+  inputs 2
+  mix 0.8
+  name Merge1
+  xpos 1477
+  ypos 451
+ }
+ Merge2 {
+  inputs 2
+  name Merge2
+  xpos 1477
+  ypos 523
+ }
+ Crop {
+  box {0 0 1920 1080}
+  reformat true
+  crop false
+  name Crop2
+  xpos 1477
+  ypos 557
+ }
+ Dot {
+  name Dot1
+  xpos 1511
+  ypos 634
+ }
+ Dot {
+  name Dot11
+  note_font "Bitstream Vera Sans"
+  xpos 1316
+  ypos 634
+ }
+ Merge2 {
+  inputs 2
+  name Merge12
+  note_font "Bitstream Vera Sans"
+  xpos 1282
+  ypos 827
+ }
+ Merge2 {
+  inputs 2
+  name Merge3
+  xpos 1282
+  ypos 881
+ }
+set Nb8d1200 [stack 0]
+ Crop {
+  box {0 0 1920 1080}
+  reformat true
+  intersect true
+  crop false
+  name Crop4
+  xpos 1282
+  ypos 1044
+ }
+set Nb8e0ea0 [stack 0]
+ Switch {
+  inputs 2
+  which {{parent.formatsize x43 1}}
+  name Switch1
+  note_font "Bitstream Vera Sans"
+  xpos 359
+  ypos 1045
+ }
+ Output {
+  name Output
+  label Output
+  note_font "Bitstream Vera Sans"
+  xpos 359
+  ypos 1386
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote4
+  label "Stamp 2K(2048x872)"
+  note_font "Bitstream Vera Sans"
+  note_font_size 50
+  xpos -976
+  ypos 969
+ }
+push $Nb596ed0
+ Reformat {
+  type "to box"
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  box_width 2048
+  box_height 872
+  box_fixed true
+  black_outside true
+  name Reformat5
+  xpos -125
+  ypos 259
+ }
+ NoOp {
+  inputs 0
+  name Color_Scheme
+  xpos 1819
+  ypos 923
+  addUserKnob {20 User}
+  addUserKnob {19 Omit}
+  Omit {1 1 1 0}
+  addUserKnob {6 Omit_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 Hold}
+  Hold {0.4705882353 0.4705882353 0.4705882353 0}
+  addUserKnob {6 Hold_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 Ready}
+  Ready {0.5882352941 0 0 0}
+  addUserKnob {6 Ready_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 InProgress}
+  InProgress {1 1 0 0}
+  addUserKnob {6 InProgress_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 Retake}
+  Retake {0.8392156959 0.2853265703 0.3166667223 0}
+  addUserKnob {6 Retake_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 Review}
+  Review {0.02598798275 0.6299999952 0.07431580126 0}
+  addUserKnob {6 Review_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 OK}
+  OK {0.1125364751 0.6987470388 0.8274509907 0}
+  addUserKnob {6 OK_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 Approved}
+  Approved {0.007700912654 0.2487196177 0.6901960969 0}
+  addUserKnob {6 Approved_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+  addUserKnob {19 Waiting}
+  Waiting {0.6274509804 0.6274509804 0.6274509804 0}
+  addUserKnob {6 Waiting_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ }
+push $Nb8d1200
+push $Nb8e0ea0
+ Viewer {
+  inputs 2
+  frame 1001
+  frame_range 1001-1092
+  input_number 1
+  input_process false
+  name Viewer1
+  xpos -685
+  ypos 1410
+ }
+end_group

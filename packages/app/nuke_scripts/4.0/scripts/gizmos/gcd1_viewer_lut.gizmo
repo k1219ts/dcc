@@ -1,0 +1,26 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -703
+  ypos -240
+ }
+ Vectorfield {
+  vfield_file /netapp/dexter/show/gcd1/asset/LUT/170414_LUT/RedColor3RedLogFilm_to_P7V2_D65_G22.cube
+  version 4
+  file_type cube
+  colorspaceIn Cineon
+  name GCD1_LUT
+  selected true
+  xpos -703
+  ypos -76
+ }
+ Output {
+  name Output1
+  xpos -703
+  ypos 160
+ }
+end_group

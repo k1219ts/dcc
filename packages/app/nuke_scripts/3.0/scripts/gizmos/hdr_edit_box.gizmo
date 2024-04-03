@@ -1,0 +1,842 @@
+#! /usr/local/Nuke6.3v8/Nuke6.3 -nx
+version 6.3 v8
+Gizmo {
+ inputs 7
+ tile_color 0xff
+ label "\nhdri\nedit\nBOX\n\nv3"
+ note_font_color 0xff0000ff
+ addUserKnob {20 EXP}
+ addUserKnob {26 ""}
+ addUserKnob {20 Guide_Textline n 1}
+ addUserKnob {41 disable_1 l disable T Sample_TEXT1.disable}
+ addUserKnob {20 endGroup_7 l endGroup n -1}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_ALL n 1}
+ addUserKnob {41 mode l "Adjust in" T EXP_all.mode}
+ addUserKnob {41 gang T EXP_all.gang}
+ addUserKnob {41 red T EXP_all.red}
+ addUserKnob {41 green T EXP_all.green}
+ addUserKnob {41 blue T EXP_all.blue}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_Sky n 1}
+ addUserKnob {41 select_hdr T skysw.which}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_land n 1}
+ addUserKnob {41 which l select_hdr T landSw.which}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_middle n 1}
+ addUserKnob {41 seclect_hdr T middleSw.which}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_LR n 1}
+ addUserKnob {41 which_1 l select_hdr T Lr_Sw.which}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_L n 1}
+ addUserKnob {41 which_2 l select_hdr T Lsw.which}
+ addUserKnob {26 ""}
+ addUserKnob {20 EXP_R n 1}
+ addUserKnob {41 which_3 l select_hdr T Rsw.which}
+ addUserKnob {26 ""}
+ addUserKnob {26 end l "" +STARTLINE T "hdri 6 seperate\n\nlookdevl  l lighting dep"}
+ addUserKnob {20 endGroup_6 l endGroup n -1}
+ addUserKnob {20 endGroup_5 l endGroup n -1}
+ addUserKnob {20 endGroup_4 l endGroup n -1}
+ addUserKnob {20 endGroup_3 l endGroup n -1}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 endGroup_1 l endGroup n -1}
+ addUserKnob {20 endGroup n -1}
+}
+ Input {
+  inputs 0
+  name hdri_IN
+  xpos -604
+  ypos -857
+  number 6
+ }
+ Output {
+  name Hdri_input
+  xpos -604
+  ypos -296
+ }
+set N57a57d0 [stack 0]
+ Dot {
+  name Dot6
+  xpos -1643
+  ypos -292
+ }
+ SphericalTransform {
+  input "Lat Long map"
+  rx -90
+  output Cube
+  format "4096 4096 0 0 4096 4096 1 hfri"
+  fix true
+  name Cube_hdri_Y
+  tile_color 0xff0000ff
+  xpos -1677
+  ypos 445
+ }
+ set C57ac680 [stack 0]
+set N57ac680 [stack 0]
+ Text {
+  output {rgba.red -rgba.green -rgba.blue rgba.alpha}
+  message "Y = -90\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/hline.ttf
+  size 300
+  yjustify center
+  box {550 275 4545 825}
+  translate {-510 -275}
+  center {1100 550}
+  name Text5
+  xpos -1677
+  ypos 483
+ }
+push $N57a57d0
+ Dot {
+  name Dot8
+  xpos -1123
+  ypos -292
+ }
+ SphericalTransform {
+  input "Lat Long map"
+  rx 90
+  output Cube
+  format "4096 4096 0 0 4096 4096 1 hfri"
+  fix true
+  name Cube_hdri_Y1
+  tile_color 0xff0000ff
+  xpos -1157
+  ypos 470
+ }
+ set C57cbe50 [stack 0]
+set N57cbe50 [stack 0]
+ Text {
+  output {rgba.red -rgba.green -rgba.blue rgba.alpha}
+  message "Y = 90\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/hline.ttf
+  size 300
+  yjustify center
+  box {550 275 4545 825}
+  translate {-510 -275}
+  center {1100 550}
+  name Text6
+  xpos -1157
+  ypos 508
+ }
+push $N57a57d0
+ Dot {
+  name Dot11
+  xpos -204
+  ypos -292
+ }
+ SphericalTransform {
+  input "Lat Long map"
+  ry -90
+  output Cube
+  format "4096 4096 0 0 4096 4096 1 hfri"
+  fix true
+  name Cube_hdri__Y
+  tile_color 0xff0000ff
+  xpos -238
+  ypos 457
+ }
+ set C57e5240 [stack 0]
+set N57e5240 [stack 0]
+ Text {
+  output {rgba.red -rgba.green -rgba.blue rgba.alpha}
+  message "X = -90\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/hline.ttf
+  size 300
+  yjustify center
+  box {550 275 4545 825}
+  translate {-510 -275}
+  center {1100 550}
+  name Text1
+  xpos -238
+  ypos 507
+ }
+push $N57a57d0
+ Dot {
+  name Dot4
+  xpos 1118
+  ypos -292
+ }
+ SphericalTransform {
+  input "Lat Long map"
+  ry 180
+  output Cube
+  format "4096 4096 0 0 4096 4096 1 hfri"
+  fix true
+  name Cube_hdri__Y1
+  tile_color 0xff0000ff
+  xpos 1084
+  ypos 539
+ }
+ set C57fe610 [stack 0]
+set N57fe610 [stack 0]
+ Text {
+  output {rgba.red -rgba.green -rgba.blue rgba.alpha}
+  message "X = 180\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/hline.ttf
+  size 300
+  yjustify center
+  box {550 275 4545 825}
+  translate {-510 -275}
+  center {1100 550}
+  name Text4
+  xpos 1084
+  ypos 593
+ }
+push $N57a57d0
+ Dot {
+  name Dot5
+  xpos 818
+  ypos -292
+ }
+ SphericalTransform {
+  input "Lat Long map"
+  output Cube
+  format "4096 4096 0 0 4096 4096 1 hfri"
+  fix true
+  name Cube_hdri__Y4
+  tile_color 0xff0000ff
+  xpos 784
+  ypos 553
+ }
+ set C58179e0 [stack 0]
+set N58179e0 [stack 0]
+ Text {
+  output {rgba.red -rgba.green -rgba.blue rgba.alpha}
+  message "X = 0\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/hline.ttf
+  size 300
+  yjustify center
+  box {550 275 4545 825}
+  translate {-510 -275}
+  center {1100 550}
+  name Text3
+  xpos 784
+  ypos 608
+ }
+ Input {
+  inputs 0
+  name LR_Mask
+  xpos 1214
+  ypos 321
+  number 5
+ }
+clone $C57fe610 {
+  xpos 1214
+  ypos 435
+  selected false
+ }
+set N5830dc0 [stack 0]
+push $N57fe610
+ ColorTransfer {
+  inputs 2
+  ROI {0 0 4096 4096}
+  name ColorTransfer6
+  xpos 1350
+  ypos 538
+ }
+push $N5830dc0
+push $N57fe610
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus5
+  xpos 1296
+  ypos 487
+ }
+push $N5830dc0
+push $N57fe610
+ Switch {
+  inputs 4
+  which 2
+  name Lr_Sw
+  xpos 1214
+  ypos 545
+ }
+ Expression {
+  name Expression6
+  xpos 1214
+  ypos 610
+ }
+ Constant {
+  inputs 0
+  format "4000 2000 0 0 4000 2000 1 "
+  name Constant1
+  xpos -590
+  ypos -125
+ }
+set N5859020 [stack 0]
+ Dot {
+  name Dot14
+  xpos 1248
+  ypos -98
+ }
+ SphericalTransform {
+  inputs 2
+  input Cube
+  format "4000 2000 0 0 4000 2000 1 "
+  fix true
+  name SphericalTransform2
+  tile_color 0x30304ff
+  xpos 1214
+  ypos 662
+ }
+ EXPTool {
+  name L______R_EXP
+  xpos 1214
+  ypos 709
+ }
+ Mirror {
+  name Mirror3
+  xpos 1214
+  ypos 747
+ }
+ Dot {
+  name Dot1
+  xpos 1248
+  ypos 971
+ }
+ Input {
+  inputs 0
+  name Middle_Mask
+  xpos 876
+  ypos 315
+  number 4
+ }
+clone $C58179e0 {
+  xpos 876
+  ypos 426
+  selected false
+ }
+set N58805e0 [stack 0]
+push $N58179e0
+ ColorTransfer {
+  inputs 2
+  ROI {0 0 4096 4096}
+  name ColorTransfer5
+  xpos 694
+  ypos 533
+ }
+push $N58805e0
+push $N58179e0
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus4
+  xpos 941
+  ypos 486
+ }
+push $N58805e0
+push $N58179e0
+ Switch {
+  inputs 4
+  which 2
+  name middleSw
+  xpos 876
+  ypos 559
+ }
+ Expression {
+  name Expression5
+  xpos 876
+  ypos 616
+ }
+ SphericalTransform {
+  input Cube
+  format "4000 2000 0 0 4000 2000 1 "
+  fix true
+  name SphericalTransform4
+  tile_color 0x30304ff
+  xpos 876
+  ypos 651
+ }
+ EXPTool {
+  name middle_EXP
+  xpos 876
+  ypos 778
+ }
+ Dot {
+  name Dot2
+  xpos 910
+  ypos 904
+ }
+ Input {
+  inputs 0
+  name R_Mask
+  xpos -114
+  ypos 283
+  number 2
+ }
+clone $C57e5240 {
+  xpos -114
+  ypos 387
+  selected false
+ }
+set N58c0440 [stack 0]
+push $N57e5240
+ ColorTransfer {
+  inputs 2
+  ROI {0 0 4096 4096}
+  name ColorTransfer3
+  xpos -338
+  ypos 426
+ }
+push $N58c0440
+push $N57e5240
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus2
+  xpos -24
+  ypos 393
+ }
+push $N58c0440
+push $N57e5240
+ Switch {
+  inputs 4
+  which 2
+  name Rsw
+  xpos -114
+  ypos 463
+ }
+ Expression {
+  name Expression3
+  xpos -114
+  ypos 512
+ }
+push 0
+push 0
+push $N5859020
+ Dot {
+  name Dot10
+  xpos -80
+  ypos -98
+ }
+ SphericalTransform {
+  inputs 4
+  input Cube
+  format "4000 2000 0 0 4000 2000 1 "
+  fix true
+  name SphericalTransform1
+  tile_color 0x30304ff
+  xpos -114
+  ypos 561
+ }
+ EXPTool {
+  name R_EXP
+  xpos -114
+  ypos 609
+ }
+ Mirror {
+  name Mirror2
+  xpos -114
+  ypos 646
+ }
+ Input {
+  inputs 0
+  name L_Mask
+  xpos 290
+  ypos 282
+  number 3
+ }
+ SphericalTransform {
+  input "Lat Long map"
+  ry 90
+  output Cube
+  format "4096 4096 0 0 4096 4096 1 hfri"
+  fix true
+  name Cube_hdri__Y3
+  tile_color 0xff0000ff
+  xpos 290
+  ypos 370
+ }
+ set C5904fd0 [stack 0]
+set N5904fd0 [stack 0]
+push $N57a57d0
+ Dot {
+  name Dot13
+  xpos 86
+  ypos -292
+ }
+clone $C5904fd0 {
+  xpos 52
+  ypos 428
+  selected false
+ }
+set N5911b00 [stack 0]
+ ColorTransfer {
+  inputs 2
+  ROI {0 0 4096 4096}
+  name ColorTransfer4
+  xpos 436
+  ypos 427
+ }
+push $N5904fd0
+push $N5911b00
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus3
+  xpos 400
+  ypos 376
+ }
+push $N5904fd0
+push $N5911b00
+ Switch {
+  inputs 4
+  which 2
+  name Lsw
+  xpos 290
+  ypos 432
+ }
+ Expression {
+  name Expression4
+  xpos 290
+  ypos 476
+ }
+push 0
+push $N5859020
+ Dot {
+  name Dot12
+  xpos 324
+  ypos -98
+ }
+ SphericalTransform {
+  inputs 3
+  input Cube
+  format "4000 2000 0 0 4000 2000 1 "
+  fix true
+  name SphericalTransform3
+  tile_color 0x30304ff
+  xpos 290
+  ypos 548
+ }
+ EXPTool {
+  name L_EXP
+  xpos 290
+  ypos 601
+ }
+ Mirror {
+  name Mirror4
+  xpos 290
+  ypos 637
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge2
+  xpos 85
+  ypos 858
+ }
+ Merge2 {
+  inputs 2
+  name Merge5
+  xpos 85
+  ypos 900
+ }
+ Merge2 {
+  inputs 2
+  name Merge4
+  xpos 85
+  ypos 967
+ }
+ Input {
+  inputs 0
+  name Sky_Mask
+  xpos -1059
+  ypos 218
+  number 1
+ }
+clone $C57cbe50 {
+  xpos -1059
+  ypos 388
+  selected false
+ }
+set N59452a0 [stack 0]
+push $N57cbe50
+ ColorTransfer {
+  inputs 2
+  ROI {0 0 4096 4096}
+  name ColorTransfer2
+  xpos -919
+  ypos 443
+ }
+push $N59452a0
+push $N57cbe50
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus1
+  xpos -951
+  ypos 403
+ }
+push $N59452a0
+push $N57cbe50
+ Switch {
+  inputs 4
+  which 2
+  name skysw
+  xpos -1059
+  ypos 476
+ }
+ Expression {
+  name Expression2
+  xpos -1059
+  ypos 508
+ }
+push 0
+push 0
+push 0
+push 0
+push $N5859020
+ Dot {
+  name Dot9
+  xpos -556
+  ypos 561
+ }
+ SphericalTransform {
+  inputs 6
+  input Cube
+  format "4000 2000 0 0 4000 2000 1 "
+  fix true
+  name c5
+  tile_color 0x30304ff
+  xpos -1059
+  ypos 551
+ }
+ EXPTool {
+  name sky_EXP
+  xpos -1059
+  ypos 629
+ }
+ Input {
+  inputs 0
+  name Land_Mask
+  xpos -1511
+  ypos 234
+ }
+clone $C57ac680 {
+  xpos -1511
+  ypos 376
+  selected false
+ }
+set N59b6360 [stack 0]
+push $N57ac680
+ ColorTransfer {
+  inputs 2
+  ROI {0 0 4096 4096}
+  name ColorTransfer1
+  xpos -1366
+  ypos 426
+ }
+push $N59b6360
+push $N57ac680
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus
+  xpos -1395
+  ypos 393
+ }
+push $N59b6360
+push $N57ac680
+ Switch {
+  inputs 4
+  which 2
+  name landSw
+  xpos -1511
+  ypos 459
+ }
+ Expression {
+  name Expression1
+  xpos -1511
+  ypos 489
+ }
+push 0
+push 0
+push 0
+push $N5859020
+ Dot {
+  name Dot7
+  xpos -1533
+  ypos -98
+ }
+ SphericalTransform {
+  inputs 5
+  input Cube
+  format "4000 2000 0 0 4000 2000 1 "
+  fix true
+  name SphericalTransform
+  tile_color 0x30304ff
+  xpos -1567
+  ypos 553
+ }
+ EXPTool {
+  name land_EXP
+  xpos -1567
+  ypos 638
+ }
+ Merge2 {
+  inputs 2
+  name Merge6
+  xpos -1323
+  ypos 776
+ }
+ Dot {
+  name Dot3
+  xpos -1289
+  ypos 971
+ }
+ Merge2 {
+  inputs 2
+  name Merge3
+  xpos -590
+  ypos 967
+ }
+push $N5859020
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge1
+  xpos -590
+  ypos 1199
+ }
+ EXPTool {
+  name EXP_all
+  xpos -590
+  ypos 1303
+ }
+ Group {
+  name Sample_TEXT1
+  selected true
+  xpos -592
+  ypos 1350
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 300
+   ypos 314
+  }
+  Text {
+   message Middle
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   xjustify center
+   yjustify center
+   box {550 275 1650 825}
+   translate {845 410}
+   center {1100 550}
+   name Text1
+   xpos 300
+   ypos 354
+  }
+  Text {
+   message Land
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   xjustify center
+   yjustify center
+   box {550 275 1650 825}
+   translate {860 -395}
+   center {1100 550}
+   name Text2
+   xpos 300
+   ypos 380
+  }
+  Text {
+   message Left
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   xjustify center
+   yjustify center
+   box {550 275 1650 825}
+   translate {-120 410}
+   center {1100 550}
+   name Text3
+   xpos 300
+   ypos 406
+  }
+  Text {
+   message right
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   xjustify center
+   yjustify center
+   box {550 275 1650 825}
+   translate {1890 420}
+   center {1100 550}
+   name Text4
+   xpos 300
+   ypos 432
+  }
+  Text {
+   message LR
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   yjustify center
+   box {4305 725 4685 1275}
+   translate {-568 -34}
+   center {1100 550}
+   name Text5
+   xpos 300
+   ypos 458
+  }
+  Text {
+   message LR
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   yjustify center
+   box {600 695 980 1245}
+   translate {-568 -34}
+   center {1100 550}
+   name Text6
+   xpos 300
+   ypos 484
+  }
+  Text {
+   message Sky
+   font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/dotum.ttf
+   size 150
+   xjustify center
+   yjustify center
+   box {550 275 1650 825}
+   translate {835 1190}
+   center {1100 550}
+   name Text7
+   selected true
+   xpos 300
+   ypos 510
+  }
+  Output {
+   name Output1
+   xpos 300
+   ypos 610
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -590
+  ypos 1465
+ }
+ Output {
+  name Output2
+  xpos -590
+  ypos 1565
+ }
+push $N5911b00
+ Text {
+  output {rgba.red -rgba.green -rgba.blue rgba.alpha}
+  message "X = 90\n\n"
+  font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/hline.ttf
+  size 300
+  yjustify center
+  box {550 275 4545 825}
+  translate {-510 -275}
+  center {1100 550}
+  name Text2
+  xpos 52
+  ypos 499
+ }
+end_group

@@ -1,0 +1,68 @@
+#! /usr/local/Nuke6.3v8/Nuke6.3 -nx
+version 6.3 v8
+Gizmo {
+ inputs 4
+ tile_color 0x4f504fff
+ label vec_connect
+ note_font_color 0x1e58a1ff
+ addUserKnob {20 multi_MV}
+ addUserKnob {26 vec l "" +STARTLINE T "multi_vecblur\n\nAOV 3 slot\n\n\nlookdev & lighitng dep"}
+}
+ Input {
+  inputs 0
+  name AOV_A2
+  xpos 567
+  ypos 505
+  number 3
+ }
+push 0
+ Input {
+  inputs 0
+  name AOV_A0
+  xpos 275
+  ypos 506
+  number 2
+ }
+ Input {
+  inputs 0
+  name AOV_A1
+  xpos 430
+  ypos 505
+  number 1
+ }
+add_layer {MV MV.red MV.green MV.blue}
+add_layer {rgba redguard1.glow rgba.beta}
+ Merge2 {
+  inputs 3+1
+  operation plus
+  Achannels MV
+  Bchannels MV
+  output MV
+  name MV_vex1
+  xpos 347
+  ypos 587
+ }
+ Input {
+  inputs 0
+  name deeptoimage_in
+  xpos 486
+  ypos 706
+ }
+ ShuffleCopy {
+  inputs 2
+  in MV
+  alpha alpha2
+  black red
+  white green
+  red2 blue
+  out2 MV
+  name MV_rgba1
+  xpos 347
+  ypos 806
+ }
+ Output {
+  name Output1
+  xpos 347
+  ypos 906
+ }
+end_group

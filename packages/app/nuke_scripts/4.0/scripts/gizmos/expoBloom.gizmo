@@ -1,0 +1,221 @@
+#! /opt/Nuke12.2v4/libnuke-12.2.4.so -nx
+version 12.2 v4
+Gizmo {
+ inputs 2
+ tile_color 0xff9200ff
+ note_font_color 0xff0000ff
+ addUserKnob {20 User l Hard_Glow}
+ addUserKnob {41 size l Amount T Main.size}
+ addUserKnob {41 mix T Screen.mix}
+ addUserKnob {26 ""}
+ addUserKnob {41 value l org_value T Multiply1.value}
+ addUserKnob {26 ""}
+ addUserKnob {41 operation T Merge11.operation}
+ addUserKnob {41 range T Keyer1.range}
+}
+ Input {
+  inputs 0
+  name Mask
+  xpos 680
+  ypos -82
+  number 1
+ }
+ Invert {
+  name Invert1
+  xpos 683
+  ypos 59
+ }
+ Dot {
+  name Dot4
+  xpos 714
+  ypos 532
+ }
+ Input {
+  inputs 0
+  name Source
+  xpos -388
+  ypos -206
+ }
+ Dot {
+  name Dot3
+  xpos -354
+  ypos -41
+ }
+set Nbda8690 [stack 0]
+ Dot {
+  name Dot2
+  xpos 316
+  ypos -41
+ }
+set Nb76c2a0 [stack 0]
+ Dot {
+  name Dot5
+  xpos 520
+  ypos -41
+ }
+push $Nbda8690
+ Dot {
+  name Dot1
+  xpos -584
+  ypos -41
+ }
+ Keyer {
+  operation "luminance key"
+  name Keyer1
+  xpos -618
+  ypos 17
+ }
+ Blur {
+  size 2.3
+  name Blur1
+  xpos -618
+  ypos 63
+ }
+push $Nbda8690
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy1
+  xpos -388
+  ypos 63
+ }
+ Premult {
+  name Premult1
+  xpos -388
+  ypos 99
+ }
+ Dot {
+  name Dot7
+  xpos -354
+  ypos 130
+ }
+set Nc2e9200 [stack 0]
+ Blur {
+  size 1.6
+  mix 0
+  name Main
+  xpos 190
+  ypos 321
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*512}}
+  mix 0.995
+  name Blur16
+  xpos 24
+  ypos 317
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*268}}
+  name Blur15
+  xpos -83
+  ypos 319
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*4}}
+  mix 0.825
+  name Blur9
+  xpos -862
+  ypos 331
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*8}}
+  name Blur10
+  xpos -743
+  ypos 319
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*16}}
+  name Blur11
+  xpos -633
+  ypos 319
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*32}}
+  name Blur12
+  xpos -523
+  ypos 319
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*64}}
+  name Blur13
+  xpos -413
+  ypos 319
+ }
+push 0
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*128}}
+  name Blur14
+  xpos -193
+  ypos 319
+ }
+push $Nc2e9200
+ Blur {
+  size {{parent.Main.size*2}}
+  name Blur7
+  xpos -303
+  ypos 319
+ }
+ Merge2 {
+  inputs 10+1
+  operation screen
+  name Merge11
+  xpos -397
+  ypos 551
+ }
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 black -1 -1 rgba.alpha 0 3"
+  name Shuffle1
+  xpos 92
+  ypos 551
+ }
+set Nd1a6750 [stack 0]
+push $Nb76c2a0
+ Multiply {
+  channels rgba
+  name Multiply1
+  xpos 300
+  ypos 404
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  bbox B
+  name Screen
+  xpos 300
+  ypos 552
+ }
+ Keymix {
+  inputs 3
+  name Keymix1
+  xpos 504
+  ypos 545
+ }
+set Nd1caeb0 [stack 0]
+ Output {
+  name Output1
+  xpos 486
+  ypos 691
+ }
+push $Nd1a6750
+push $Nd1caeb0
+ Viewer {
+  inputs 2
+  frame_range 1001-1110
+  fps 23.97602463
+  input_number 1
+  name Viewer1
+  xpos 979
+  ypos 411
+ }
+end_group

@@ -1,0 +1,1190 @@
+#! /opt/Nuke13.2v5/libnuke-13.2.5.so -nx
+version 13.2 v5
+Gizmo {
+ inputs 3
+ addUserKnob {20 Glitch_monitor}
+ addUserKnob {26 _1 l glitch_source}
+ addUserKnob {4 level l Level M {level1 level2 ""}}
+ addUserKnob {3 TimeOffset2_time_offset l glitch_offset(frame)}
+ TimeOffset2_time_offset 1
+ addUserKnob {26 distort_modify l distort}
+ addUserKnob {41 seed T Multiply2.value}
+ addUserKnob {22 getRand l random T "import random\n\ngz = nuke.thisNode()\nmlt = gz.node('Multiply2')\nrand = random.randrange(1,1000)\nmlt\['value'].setValue(rand)" +STARTLINE}
+ addUserKnob {26 _3 l Color}
+ addUserKnob {41 saturation T ColorCorrect1.saturation}
+ addUserKnob {41 contrast T ColorCorrect1.contrast}
+ addUserKnob {26 _2 l SRC_folder_open}
+ addUserKnob {22 open T "import nuke, os, subprocess\n\nnorm = '/stdrepo/CMP/MOT/01_project/TMN/glitch_pub/'\ncmd = \['nautilus', '--no-desktop', '--browser', norm]\nif '8' == os.environ\['REZ_CENTOS_MAJOR_VERSION']:\n    cmd = \['nautilus', '--browser', norm]\n# print(cmd)\nsubprocess.Popen(cmd)\n" +STARTLINE}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x8e8e3800
+  label "int(random(1,frame)*100)+0\nint(random(1,frame)*50)+0"
+  note_font_size 42
+  xpos 419
+  ypos -540
+  bdwidth 591
+  bdheight 267
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode10
+  tile_color 0x7171c600
+  label all_evolution
+  note_font_size 42
+  xpos 2449
+  ypos -225
+  bdwidth 297
+  bdheight 185
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode11
+  tile_color 0x7171c600
+  label int(random(5,frame)*10)+0
+  note_font_size 42
+  xpos 491
+  ypos 732
+  bdwidth 598
+  bdheight 176
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x7171c600
+  label "color0 int(random(5,frame)*2)\ncolor1 int(random(6,frame)*2)+0\ncolor3 int(random(4,frame)*2)+0"
+  note_font_size 42
+  xpos 425
+  ypos -836
+  bdwidth 803
+  bdheight 213
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x8e8e3800
+  label (random(5,frame*0.6)*200)+10
+  note_font_size 42
+  xpos 1365
+  ypos -545
+  bdwidth 744
+  bdheight 162
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode4
+  tile_color 0x8e8e3800
+  label "int(random(1,frame)*800)+0\nint(random(6,frame)*200)+0"
+  note_font_size 42
+  xpos 422
+  ypos 202
+  bdwidth 584
+  bdheight 182
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode5
+  tile_color 0x8e8e3800
+  label "int(random(1,frame)*50)+0\nint(random(6,frame)*200)+0"
+  note_font_size 42
+  xpos 408
+  ypos -91
+  bdwidth 716
+  bdheight 250
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode6
+  tile_color 0x71c67100
+  label int(random(0.1,frame)*2)+0
+  note_font_size 42
+  xpos -517
+  ypos -53
+  bdwidth 584
+  bdheight 123
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode7
+  tile_color 0x7171c600
+  label int(random(5,frame)*15)+0
+  note_font_size 42
+  xpos 409
+  ypos 930
+  bdwidth 598
+  bdheight 176
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode8
+  tile_color 0x8e8e3800
+  label "int(random(1,frame)*50)+0\nint(random(6,frame)*200)+0"
+  note_font_size 42
+  xpos -39
+  ypos 506
+  bdwidth 614
+  bdheight 186
+ }
+ Input {
+  inputs 0
+  name level2
+  xpos -1256
+  ypos -664
+  number 1
+ }
+ Input {
+  inputs 0
+  name level1
+  xpos -1479
+  ypos -661
+  number 2
+ }
+ Switch {
+  inputs 2
+  which {{parent.level}}
+  name Switch2
+  xpos -1351
+  ypos -425
+ }
+ set Cafbdee0 [stack 0]
+set Nafbdee0 [stack 0]
+ Reformat {
+  format "4570 2160 0 0 4570 2160 1 "
+  name Reformat1
+  xpos -1351
+  ypos -265
+  disable true
+ }
+ Dot {
+  name Dot1
+  xpos -1331
+  ypos -157
+ }
+set Nb0dd150 [stack 0]
+ Dot {
+  name Dot5
+  xpos -1671
+  ypos -157
+ }
+ Dot {
+  name Dot4
+  xpos -1671
+  ypos 1441
+ }
+push $Nb0dd150
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 black -1 -1 rgba.red 0 0 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+  name Shuffle4
+  xpos -1228
+  ypos -43
+ }
+push 0
+push $Nb0dd150
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 black -1 -1 rgba.green 0 1 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.blue 0 2"
+  name Shuffle2
+  xpos -1473
+  ypos -49
+ }
+push $Nb0dd150
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 black -1 -1 rgba.red 0 0 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.blue 0 2 rgba.green 0 1 rgba.green 0 1"
+  name Shuffle3
+  xpos -1351
+  ypos -49
+ }
+ Merge2 {
+  inputs 3+1
+  also_merge all
+  name Merge2
+  xpos -1351
+  ypos 79
+ }
+set N11163da0 [stack 0]
+ TimeOffset {
+  time_offset {{parent.TimeOffset2_time_offset}}
+  time ""
+  name TimeOffset2
+  xpos -1333
+  ypos 336
+ }
+ Dot {
+  name Dot3
+  xpos -1314
+  ypos 1317
+ }
+push $Nafbdee0
+ Dot {
+  name Dot13
+  xpos -306
+  ypos -415
+ }
+set N112394f0 [stack 0]
+ Multiply {
+  channels rgba
+  value {{int(random(0.1,frame)*2)+0}}
+  name Multiply1
+  xpos -337
+  ypos 28
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  name Constant1
+  xpos -497
+  ypos 233
+ }
+ Noise {
+  type turbulence
+  size {17000 1}
+  zoffset {{curve C x406 1.239999985 x3973 125.4251231}}
+  gain 0.79
+  gamma 0
+  translate {{(random(5,frame*0.6)*200)+10} 38.52051888}
+  center {960 540}
+  name Noise2
+  xpos -497
+  ypos 354
+ }
+ Grade {
+  channels all
+  multiply 0.08
+  name Grade3
+  xpos -497
+  ypos 415
+ }
+ Merge2 {
+  inputs 2
+  operation mask
+  name Merge7
+  xpos -337
+  ypos 422
+ }
+push $N112394f0
+ Dot {
+  name Dot11
+  xpos -57
+  ypos -415
+ }
+ TimeOffset {
+  time_offset 1
+  time ""
+  name TimeOffset3
+  xpos -91
+  ypos 222
+ }
+set N1116d440 [stack 0]
+push $N1116d440
+push $N11163da0
+ CheckerBoard2 {
+  inputs 0
+  boxsize {200 10}
+  color0 {{int(random(5,frame)*2)}}
+  color1 {{int(random(6,frame)*2)+0}}
+  color2 0
+  color3 {{int(random(4,frame)*2)+0}}
+  centerlinecolor 0
+  centerlinewidth 0
+  name CheckerBoard4
+  xpos 1038
+  ypos -754
+ }
+ Reformat {
+  format {{{Reformat3.format}}}
+  name Reformat4
+  xpos 686
+  ypos -586
+ }
+ Transform {
+  translate {{int(parent.waveMaker5.output)} {int(parent.waveMaker6.output)}}
+  scale 3.017999887
+  center {960 540}
+  name Transform1
+  xpos 686
+  ypos -415
+ }
+ Dot {
+  name Dot6
+  xpos 705
+  ypos -348
+ }
+ Grade {
+  channels all
+  white 0.27
+  gamma 0.9
+  name Grade69
+  xpos 1079
+  ypos -409
+ }
+ Reformat {
+  format {{{Reformat3.format}}}
+  name Reformat5
+  xpos 1083
+  ypos -294
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  name Constant2
+  xpos 1756
+  ypos -692
+ }
+ Noise {
+  type turbulence
+  size {700 20}
+  zoffset 0.76
+  lacunarity 2.18
+  gain 0.57
+  gamma 0.11
+  translate {{int(parent.waveMaker2.output)} 38.52051888}
+  center {960 540}
+  name Noise1
+  xpos 1723
+  ypos -475
+ }
+ Blur {
+  channels rgba
+  size 17
+  filter box
+  name Blur1
+  label "\[value size]"
+  xpos 1738
+  ypos -377
+ }
+ Grade {
+  channels all
+  whitepoint 1.58
+  white 16
+  gamma 0.43
+  white_clamp true
+  name Grade1
+  xpos 1738
+  ypos -309
+ }
+ Clamp {
+  maximum 0.5
+  name Clamp1
+  xpos 1738
+  ypos -240
+ }
+ Merge2 {
+  inputs 2
+  operation mask
+  name Merge5
+  xpos 1089
+  ypos -208
+ }
+ Grade {
+  channels all
+  whitepoint 0.54
+  white_clamp true
+  name Grade2
+  xpos 1092
+  ypos -165
+ }
+ Input {
+  inputs 0
+  name monitor
+  xpos 179
+  ypos -681
+ }
+ Retime {
+  input.first 1001
+  input.last 1107
+  output.first 1001
+  output.last 1107
+  speed {{int(random(10,frame)*2)+0}}
+  time ""
+  name Retime1
+  label "\[knob output.first] - \[knob output.last](\[expr \[knob output.last]-\[knob output.first]+1])"
+  xpos 182
+  ypos -522
+ }
+ Reformat {
+  type scale
+  name Reformat3
+  xpos 179
+  ypos -440
+ }
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 forward.u
+  from1 rgba.alpha
+  to1 forward.v
+  from2 rgba.blue
+  to2 forward.u
+  name Copy2
+  xpos 179
+  ypos -179
+ }
+ IDistort {
+  uv forward
+  uv_scale {{int(parent.waveMaker.output)} {int(parent.waveMaker1.output)}}
+  name IDistort2
+  xpos 647
+  ypos 39
+ }
+ Copy {
+  inputs 2
+  from0 rgba.red
+  to0 forward.u
+  from1 rgba.green
+  to1 forward.v
+  from2 rgba.blue
+  to2 forward.u
+  name Copy1
+  xpos 179
+  ypos 50
+ }
+ Blur {
+  inputs 1+1
+  channels rgba
+  size 2
+  filter box
+  quality 1
+  name Blur5
+  label "\[value size]"
+  xpos 179
+  ypos 193
+ }
+ Sharpen {
+  inputs 1+1
+  size 12
+  filter box
+  name Sharpen3
+  xpos 179
+  ypos 253
+ }
+ IDistort {
+  uv forward
+  uv_scale {{int(parent.waveMaker3.output)} {int(parent.waveMaker4.output)}}
+  name IDistort1
+  xpos 483
+  ypos 326
+ }
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 forward.u
+  from1 rgba.alpha
+  to1 forward.v
+  from2 rgba.blue
+  to2 forward.u
+  name Copy3
+  xpos 179
+  ypos 401
+ }
+ IDistort {
+  uv forward
+  uv_scale {{int(parent.waveMaker8.output)} {int(parent.waveMaker7.output)}}
+  name IDistort3
+  xpos 179
+  ypos 629
+ }
+ Dot {
+  name Dot10
+  xpos 190
+  ypos 795
+ }
+set N10d8d5d0 [stack 0]
+ Blur {
+  channels rgba
+  size {{int(parent.waveMaker10.output)}}
+  filter box
+  name Blur3
+  label "\[value size]"
+  xpos 621
+  ypos 802
+ }
+ Grain2 {
+  name Grain2_2
+  label "Kodak 5248"
+  xpos 611
+  ypos 868
+  red_size 10.5
+  green_size 10
+  blue_size 10
+  red_m 0.215
+  green_m 0.3
+  blue_m 0.4
+  black {0.01523809507 0.01920000091 0.01462857239}
+  minimum {0 0 0}
+  maskgrain false
+ }
+ Sharpen {
+  amount 0.24
+  size {{int(parent.waveMaker9.output)}}
+  filter box
+  name Sharpen2
+  xpos 578
+  ypos 1008
+ }
+push $N10d8d5d0
+ Blur {
+  channels rgba
+  size 5
+  filter box
+  name Blur2
+  label "\[value size]"
+  xpos -19
+  ypos 783
+ }
+ Grain2 {
+  name Grain2_1
+  label "Kodak 5248"
+  xpos -19
+  ypos 879
+  red_size 10
+  green_size 10
+  blue_size 10
+  red_m 0.335
+  green_m 0.325
+  blue_m 0.33
+  black {0.004999999888 0.006300000008 0.004800000228}
+  minimum {0 0 0}
+  maskgrain false
+ }
+ Sharpen {
+  amount 0.24
+  size 12
+  filter box
+  name Sharpen1
+  xpos -19
+  ypos 958
+ }
+clone $Cafbdee0 {
+  inputs 2
+  xpos 180
+  ypos 1091
+  selected false
+ }
+ Merge2 {
+  inputs 2
+  name Merge3
+  xpos 180
+  ypos 1317
+ }
+ ColorCorrect {
+  inputs 1+1
+  saturation 0.58
+  contrast 0.86
+  name ColorCorrect1
+  selected true
+  xpos 180
+  ypos 1454
+ }
+set Nc1feff0 [stack 0]
+ Dot {
+  name Dot8
+  xpos 405
+  ypos 1581
+ }
+set Nc1b4990 [stack 0]
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 black -1 -1 rgba.red 0 0 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+  name B1
+  xpos 475
+  ypos 1676
+ }
+ Transform {
+  translate {{-(parent.Transform5.translate)} {parent.Transform5.translate}}
+  center {960 540}
+  name Transform4
+  xpos 475
+  ypos 1720
+ }
+push 0
+push $Nc1b4990
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 black -1 -1 rgba.green 0 1 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.blue 0 2"
+  name R1
+  xpos 235
+  ypos 1675
+ }
+ Transform {
+  translate {{int(random(5,frame)*10)+0} 0}
+  center {960 540}
+  name Transform5
+  xpos 235
+  ypos 1717
+ }
+push $Nc1b4990
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 black -1 -1 rgba.red 0 0 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.blue 0 2 rgba.green 0 1 rgba.green 0 1"
+  name G1
+  xpos 352
+  ypos 1674
+ }
+ Merge2 {
+  inputs 3+1
+  also_merge all
+  name Merge6
+  xpos 357
+  ypos 1799
+ }
+push $Nc1feff0
+ Dot {
+  name Dot2
+  xpos 47
+  ypos 1577
+ }
+set Na451e70 [stack 0]
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 black -1 -1 rgba.red 0 0 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+  name B
+  xpos 117
+  ypos 1672
+ }
+ Transform {
+  translate {{-(parent.Transform2.translate)} {parent.Transform2.translate}}
+  center {960 540}
+  name Transform3
+  xpos 117
+  ypos 1716
+ }
+push 0
+push $Na451e70
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 black -1 -1 rgba.green 0 1 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.blue 0 2"
+  name R
+  xpos -123
+  ypos 1671
+ }
+ Transform {
+  translate {{int(random(3,frame)*6)+0} 0}
+  center {960 540}
+  name Transform2
+  xpos -123
+  ypos 1712
+ }
+push $Na451e70
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 black -1 -1 rgba.red 0 0 black -1 -1 rgba.alpha 0 3 black -1 -1 rgba.blue 0 2 rgba.green 0 1 rgba.green 0 1"
+  name G
+  xpos -6
+  ypos 1670
+ }
+ Merge2 {
+  inputs 3+1
+  also_merge all
+  name Merge4
+  xpos -1
+  ypos 1795
+ }
+clone $Cafbdee0 {
+  inputs 2
+  xpos 183
+  ypos 1957
+  selected false
+ }
+ Output {
+  name Output1
+  xpos 183
+  ypos 2312
+ }
+ Group {
+  inputs 0
+  name waveMaker1
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label H
+  note_font Verdana
+  xpos 878
+  ypos 86
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 200
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 4
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker2
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  note_font Verdana
+  xpos 1900
+  ypos -463
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 200
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 5
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker4
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label H
+  note_font Verdana
+  xpos 676
+  ypos 360
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 200
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 3
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value i}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker3
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label W
+  note_font Verdana
+  xpos 686
+  ypos 292
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 800
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 4
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value i}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power" i}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker6
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label H
+  note_font Verdana
+  xpos 848
+  ypos -387
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 50
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 4
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value i}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker8
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label W
+  note_font Verdana
+  xpos 333
+  ypos 599
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 50
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 3.7
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker7
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label H
+  note_font Verdana
+  xpos 327
+  ypos 667
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 200
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 3.2
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value i}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker9
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  note_font Verdana
+  xpos 760
+  ypos 1017
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 15
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 2.86
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"int(disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power)"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label W
+  note_font Verdana
+  xpos 894
+  ypos 18
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 50
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 3
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker10
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  note_font Verdana
+  xpos 819
+  ypos 819
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 15
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 2.86
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 20
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"int(disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power)"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Group {
+  inputs 0
+  name waveMaker5
+  onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+  knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+  tile_color 0x3aff71ff
+  label W
+  note_font Verdana
+  xpos 857
+  ypos -483
+  addUserKnob {20 User}
+  addUserKnob {3 firstFrame l "First Frame"}
+  firstFrame 1001
+  addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+  addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+  maxValue 100
+  addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+  waveLength 3.2
+  addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+  phase 0.5
+  addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+  addUserKnob {7 evolution t "evolution for the random curve"}
+  evolution {{parent.Multiply2.value}}
+  addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+  wave0 Random
+  addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+  wave1 Random
+  addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+  addUserKnob {26 ""}
+  addUserKnob {7 power}
+  power 1
+  addUserKnob {7 output}
+  output {{"disable ? 0 : (((((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+ }
+  Output {
+   inputs 0
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Multiply {
+  inputs 0
+  channels rgba
+  value 513
+  name Multiply2
+  xpos 2547
+  ypos -140
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote1
+  label "parent.waveMaker.output\n\n\nrandomSeed\n\n\nparent.Seed.randomSeedd.output"
+  xpos 2557
+  ypos -394
+ }
+end_group

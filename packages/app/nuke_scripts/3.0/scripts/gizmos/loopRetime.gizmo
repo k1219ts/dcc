@@ -1,0 +1,99 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ addUserKnob {20 loopRetime_tab l Loop}
+ addUserKnob {22 initialize_btn l Initialize -STARTLINE T "def loop_init():\n    node = nuke.thisNode()\n    startFrame = nuke.Root().firstFrame()\n    loopStart = node.firstFrame()\n    loopEnd = node.lastFrame()\n\n    node.knob('startFrame').setValue(startFrame)\n    node.knob('loopStart').setValue(loopStart)\n    node.knob('loopEnd').setValue(loopEnd)    \n\n    cacheKnob = node.knob('loopCached')\n    cacheKnob.setRange(loopStart, loopEnd)\n    cacheKnob.clearAnimated()\n    cacheKnob.setValue(loopStart)\n        \nloop_init()"}
+ addUserKnob {22 Bake -STARTLINE T "import nuke\nimport nukescripts\n\nclass loop_bake(nukescripts.PythonPanel):\n    def __init__(self):\n        nukescripts.PythonPanel.__init__( self, \"Bake loop retime\", \"uk.co.thefoundry.FramePanel\" )\n        self.frames_ui = nuke.IArray_Knob( \"frame\", \"Frame range :\", \[2, 1])\n        self.addKnob( self.frames_ui )\n        self.frames = None\n\n        self.node = nuke.thisNode()\n        self.opNode = self.node.node('loop_NoOp')\n        if not self.opNode:\n            nuke.error('No loop_NoOp node')\n            return None\n\n        root = nuke.Root()\n        self.frames_ui.setValue ( \[root.firstFrame(), root.lastFrame()])\n\n\n    def doit(self):\n        result = nukescripts.PythonPanel.showModalDialog( self )\n        if not result:\n            return None\n\n        cacheKnob = self.node.knob('loopCached')\n        calKnob = self.opNode.knob('calculating')\n\n        cacheKnob.clearAnimated()\n        cacheKnob.setAnimated()\n\n        frames = \[int(v) for v in self.frames_ui.getValue()]\n        for f in range(frames\[0], frames\[1]+1):\n            v = calKnob.getValueAt(f)\n            cacheKnob.setValueAt(v, f, 0)\n\n        self.node.knob('useCache').setValue(True)\n\nloop_bake().doit()\n"}
+ addUserKnob {6 useCache l "Use Cache" -STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {3 startFrame l "Start Frame : "}
+ startFrame 1
+ addUserKnob {3 loopStart l "Loop : "}
+ loopStart 1
+ addUserKnob {3 loopEnd l " - " -STARTLINE}
+ loopEnd 1000
+ addUserKnob {4 loopType l "     Type" -STARTLINE M {once continuout oscillate "" ""}}
+ loopType continuout
+ addUserKnob {4 filter l "     Filter" -STARTLINE M {none nearest box "" ""}}
+ filter nearest
+ addUserKnob {3 offset}
+ addUserKnob {26 ""}
+ addUserKnob {7 speed R 0 5}
+ speed 1
+ addUserKnob {7 loopCached l cached R 1 1000}
+ loopCached 1
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -453
+  ypos -18
+ }
+ NoOp {
+  name loop_NoOp
+  selected true
+  xpos -453
+  ypos 42
+  addUserKnob {20 loopingTab l Looping}
+  addUserKnob {7 calculating}
+  calculating {{"\[python -execlocal class\\ looping:\\n\\ \\ def\\ __init__(self):\\n\\ \\ \\ \\ root\\ =\\ nuke.Root()\\n\\ \\ \\ \\ self.node\\ =\\ nuke.thisNode()\\n\\ \\ \\ \\ self.startFrame\\ =\\ int(self.node.knob('startFrame').getValue())\\n\\ \\ \\ \\ \\n\\ \\ \\ \\ self.offset\\ =\\ int(self.node.knob('offset').getValue())\\n\\ \\ \\ \\ self.loopStart\\ =\\ self.node.knob('loopStart').getValue()\\n\\ \\ \\ \\ self.loopEnd\\ =\\ self.node.knob('loopEnd').getValue()\\n\\ \\ \\ \\ self.type\\ =\\ self.node.knob('loopType').getValue()\\n\\ \\ \\ \\ self.loopRange\\ =\\ self.loopEnd\\ -\\ self.loopStart\\ +\\ 1\\n\\n\\ \\ def\\ doit(self):\\n\\ \\ \\ \\ res\\ =\\ 0\\n\\ \\ \\ \\ t\\ =\\ 0\\n\\ \\ \\ \\ for\\ f\\ in\\ range(self.startFrame,\\ nuke.frame()):\\n\\ \\ \\ \\ \\ \\ t\\ +=\\ self.node.knob('speed').getValueAt(f)\\n\\n\\ \\ \\ \\ if\\ self.type\\ ==\\ 0:\\ #once\\n\\ \\ \\ \\ \\ \\ if\\ t\\ <\\ self.startFrame:\\n\\ \\ \\ \\ \\ \\ \\ \\ res\\ =\\ 0\\n\\ \\ \\ \\ \\ \\ elif\\ t\\ >\\ self.loopRange\\ +\\ self.offset:\\n\\ \\ \\ \\ \\ \\ \\ \\ res\\ =\\ self.loopRange\\ -\\ 1\\n\\ \\ \\ \\ \\ \\ else:\\n\\ \\ \\ \\ \\ \\ \\ \\ res\\ =\\ t\\n\\ \\ \\ \\ \\ \\ res\\ =\\ self.loopStart\\ +\\ ((res\\ +\\ self.offset)\\ %\\ self.loopRange)\\n\\ \\ \\ \\ \\n\\ \\ \\ \\ elif\\ self.type\\ ==\\ 1:\\ #continuout\\n\\ \\ \\ \\ \\ \\ res\\ =\\ self.loopStart\\ +\\ ((t\\ +\\ self.offset)\\ %\\ self.loopRange)\\n\\n\\ \\ \\ \\ elif\\ self.type\\ ==\\ 2:\\ #occillate\\n\\ \\ \\ \\ \\ \\ r\\ =\\ (self.loopRange\\ -\\ 1)\\ *\\ 2\\n\\ \\ \\ \\ \\ \\ res\\ =\\ (t\\ +\\ self.offset)\\ %\\ r\\n\\n\\ \\ \\ \\ \\ \\ if\\ res\\ >=\\ self.loopRange:\\n\\ \\ \\ \\ \\ \\ \\ \\ res\\ =\\ self.loopRange\\ -\\ (res\\ -\\ self.loopRange)\\ -\\ 2\\n\\n\\ \\ \\ \\ \\ \\ res\\ +=\\ self.loopStart\\n\\n\\ \\ \\ \\ \\n\\n\\ \\ \\ \\ return\\ res\\n\\n\\nloop\\ =\\ looping()\\nret\\ =\\ loop.doit()\\n]"}}
+  addUserKnob {7 looping}
+  looping {{(parent.useCache)?parent.loopCached:this.calculating}}
+  addUserKnob {20 fromParent l Parent}
+  addUserKnob {3 startFrame}
+  startFrame {{parent.startFrame}}
+  addUserKnob {3 loopStart}
+  loopStart {{parent.loopStart}}
+  addUserKnob {3 loopEnd}
+  loopEnd {{parent.loopEnd}}
+  addUserKnob {3 loopType}
+  loopType {{parent.loopType}}
+  addUserKnob {3 offset}
+  offset {{parent.offset}}
+  addUserKnob {7 speed}
+  speed {{parent.speed}}
+ }
+ Dot {
+  name Dot1
+  xpos -419
+  ypos 113
+ }
+set N7731ff0 [stack 0]
+ TimeWarp {
+  lookup {{parent.loop_NoOp.looping C x1 26 x1000 1000}}
+  time ""
+  name TimeWarp5
+  xpos -332
+  ypos 198
+ }
+push $N7731ff0
+ TimeWarp {
+  lookup {{parent.loop_NoOp.looping C x1 26 x1000 1000}}
+  time ""
+  filter nearest
+  name TimeWarp4
+  xpos -453
+  ypos 200
+ }
+push $N7731ff0
+ TimeWarp {
+  lookup {{parent.loop_NoOp.looping C x1 26 x1000 1000}}
+  time ""
+  filter none
+  name TimeWarp1
+  xpos -571
+  ypos 198
+ }
+ Switch {
+  inputs 3
+  which {{parent.filter}}
+  name Switch1
+  xpos -453
+  ypos 297
+ }
+ Output {
+  name Output1
+  xpos -453
+  ypos 417
+ }
+end_group

@@ -1,0 +1,1686 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+// ContactLayersHelper.mel
+// US6214: Helper scripts to manage contact layers features
+// US6913: Contact Layers Multi-Edit 
+//
+
+// Globals
+global string $contactLayersDialogWindow = "contactLayersWindow";
+global string $contactLayersMember;
+global int $globalContactLayersIndex = 1;
+global string $physXRigidSolverName = "nxRigidSolver1";
+global int $displaySetExtraConLayGUI = off;
+global string $enableDisableLayerIndexFor = "-1";
+global string $enableDisableGlobalCollisionLayerIndex = "1";
+global int $turnOnAlsoContactsWith = false;
+
+global int $CLGroupByViewOptions[];
+global int $CLButtonVisibilityViewOptions[];
+
+// GUI settings for different version of Maya
+global float $conLayBgdColor[]; 
+
+global int $ContactLayerHelper_StaticInit = false;
+if($ContactLayerHelper_StaticInit == false)
+{
+	$ContactLayerHelper_StaticInit = true;
+	
+	$CLGroupByViewOptions = {true, true, true};
+	$CLButtonVisibilityViewOptions = {0,0,0};
+	
+	if( getApplicationVersionAsFloat() < 2011 ) 
+	{
+		$conLayBgdColor = { 0.85, 0.85, 0.85 }; //light grey
+	}
+	else
+	{
+		$conLayBgdColor = {0.24, 0.24, 0.24}; //dark grey
+	}
+}
+
+// ------------ CONTACT LAYERS GUI COMMANDS [START] ------------ //
+
+// Returns a list of layers RB, Clothing or Physics Shapes belongs formatted with commas. Eg: 1,4,26,64
+// mode: 1 - only index. 0 - index:name
+// $queryInteractWith: query layers that object ( on - interacts with. off - belongs to. )
+global proc string GetContactLayersList( string $nodeName, int $queryInteractWith, int $mode )
+{
+	global string $physXRigidSolverName;
+	int $layerOS[];
+	if( !$queryInteractWith )
+		$layerOS = `GetContactLayersCmd -qn $nodeName -queryForArray on`;
+	else
+		$layerOS = `GetContactLayersCmd -qn $nodeName -queryForArray on -queryInteractWith`;
+
+	string $layerString;
+	$globalCLIdx = GlobalContactLayersIndexList();
+	for( $i=0; $i<size($layerOS); $i++ )
+	{
+		if( $layerOS[$i] ) //if layer is connected
+		{
+			if( $mode ) // index only
+				$layerString += ( $globalCLIdx[$i] + "," );
+			else // index:name
+			{
+				string $CLNode = getContactLayerName( $globalCLIdx[$i] );
+
+				$layerString += ( $globalCLIdx[$i] + ":" + $CLNode + "," );
+			}
+		}
+	}
+
+	
+	// remove the last comma
+	int $stringlength = size($layerString)-1;
+	$layerString = startString( $layerString, $stringlength );
+
+	//print ($nodeName + " is connected to " + $layerString + "\n");
+
+	return $layerString;
+}
+
+// Returns list of contact layers logical idx
+global proc int[] GlobalContactLayersIndexList()
+{
+	global string $physXRigidSolverName;
+	int $conLayList[] = `getAttr -multiIndices ($physXRigidSolverName + ".contactLayers")`; 
+
+	for($i=0; $i<size($conLayList); $i++)
+    	$conLayList[$i]+=1;
+
+	return $conLayList;
+}
+
+global proc ContactLayersDialog_OnClosed()
+{
+}
+
+global proc ContactLayersDialog_OnSelectionChanged()
+{
+	global string $contactLayersMember;
+	$contactLayersMember = 	physxFindFocusFromSelection();
+	updateConLayMembershipDialogIfExist();
+}
+
+// Manage Contact Layers Dialog 
+//global proc ContactLayersDialog( string $type, int $interactWithOption, string $nodeName )
+global proc ContactLayersDialog( string $type, string $nodeName )
+{
+	// initialise dialog GUI settings
+	global string $contactLayersDialogWindow, $contactLayersMember;
+	global int $globalContactLayersIndex;
+	string $window = $contactLayersDialogWindow;
+	string $windowTitle = "Contact Layers Settings";
+	
+	// Create dialog if it's not already open.
+	if( !`window -exists $window` )
+	{
+		window -title $windowTitle -resizeToFitChildren true -widthHeight 1 1 -visible false $window; //-menuBar true 
+		scriptJob -uiDeleted $window "ContactLayersDialog_OnClosed()";
+		scriptJob -parent $window -event "deleteAll" ("deleteUI "+$window);//for all scene changing events (new/open/etc)	
+		scriptJob -parent $window -event "SelectionChanged" "ContactLayersDialog_OnSelectionChanged()";
+
+	
+			string $form = `formLayout`;
+			tabLayout 
+				-innerMarginWidth 5 -innerMarginHeight 5 
+				//-width 350 -height 400 
+				-preSelectCommand "ContactLayersTabGUI;"
+				CL_TabLayout;
+			formLayout -edit
+				-attachForm CL_TabLayout "top"    0
+				-attachForm CL_TabLayout "left"   0
+				-attachForm CL_TabLayout "bottom" 0
+				-attachForm CL_TabLayout "right"  0
+				$form;
+
+			//columnLayout -width 350 -height 400 CL_GlobalColumnLayout;
+			//setParent ..;
+
+			////uncomment for By Layer
+			////columnLayout -width 350 -height 400 CL_ByLayerColumnLayout;
+			////setParent ..;
+
+			//columnLayout -width 350 -height 400 CL_ByObjectColumnLayout;
+			//setParent ..;
+
+			columnLayout CL_GlobalColumnLayout;
+			setParent ..;
+
+			//uncomment for By Layer
+			//columnLayout -width 350 -height 400 CL_ByLayerColumnLayout;
+			//setParent ..;
+
+			columnLayout CL_ByObjectColumnLayout;
+			setParent ..;
+
+			tabLayout -edit
+				-tabLabel CL_GlobalColumnLayout "Layer Manager" 
+				//-tabLabel CL_ByLayerColumnLayout "Layer Membership" //uncomment for By Layer
+				-tabLabel CL_ByObjectColumnLayout "Object Membership"
+				CL_TabLayout;
+
+
+		showWindow $window;
+		//window -e -sizeable off $window;
+	}
+
+	if( $type == "rigidsolver" )
+	{
+		$globalContactLayersIndex = 1;
+		tabLayout -edit -selectTabIndex 1 CL_TabLayout;
+	}
+	else if( $type == "physxobject" )
+	{
+		//tabLayout -edit -selectTabIndex 3 CL_TabLayout; //uncomment for By Layer
+		tabLayout -edit -selectTabIndex 2 CL_TabLayout;
+		$contactLayersMember = $nodeName;
+	}
+
+	// Prepare tab gui
+	ContactLayersTabGUI();
+}
+
+global proc ContactLayersTabGUI()
+{
+	if(!`layout -exists CL_TabLayout`)
+		return;
+
+	int $selectedTab = `tabLayout -q -selectTabIndex CL_TabLayout`; //1: global, 2: by layer, 3: by object
+
+	if( $selectedTab == 1 )
+		updateGlobalTab();
+	else if( $selectedTab == 2 ) //if( $selectedTab == 3 )
+		updateObjectTab();
+}
+
+global proc updateGlobalTab()
+{
+	setParent "CL_GlobalColumnLayout";
+
+	global string $physXRigidSolverName, $physxIconFormat;
+	global int $globalContactLayersIndex;
+
+	if(`layout -exists CL_GlobalChildColumnLayout`)
+		deleteUI -layout CL_GlobalChildColumnLayout;
+
+	// Get List of layers in use
+	$contactLayersInUse = GlobalContactLayersIndexList();
+	int $contactLayersInUseNum = size($contactLayersInUse);
+	//$globalContactLayersIndex = $contactLayersInUse[0];
+
+	//columnLayout -width 350 -height 400 CL_GlobalChildColumnLayout;
+	columnLayout CL_GlobalChildColumnLayout;
+
+	rowLayout -height 5;
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 1;
+		text -label "Current Layer Settings:";
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 4 -columnWidth4 270 25 20 20;
+		optionMenu -width 265 -changeCommand "retrieveGlobalContactLayersData();" "globalContactLayersPickerCombo";
+		updateContactLayerPicker();
+
+		// Disable combo picker if there's only 1 layer in the scene
+		if( $contactLayersInUseNum == 1)
+			optionMenu -e -enable off "globalContactLayersPickerCombo";
+		else
+			optionMenu -e -enable on "globalContactLayersPickerCombo";
+
+		// Menu bar to manage contact layers & categories
+		iconTextButton 
+			-style "iconOnly" -label "Add" 
+			-width 25 -height 20
+			-annotation "Add or Clone Layer"
+			-image ("smallAdd" + $physxIconFormat) 
+			-command "addGlobalContactLayer"
+			"ContactLayersAddBtn";
+			popupMenu "ContactLayersAddMenu";
+			menuItem -label "New" -command "addGlobalContactLayer" "NewContactLayersMenuItem";
+			menuItem -label "Clone" -command "cloneGlobalContactLayer" "CloneContactLayersMenuItem";
+
+		iconTextButton 
+			-style "iconOnly" -label "Edit" 
+			-width 20 -height 20
+			-annotation "Edit Layer or Category"
+			-image ("smallEdit" + $physxIconFormat) 
+			//-command "renameGlobalContactLayer"
+			-command "editLayerDialog"
+			"ContactLayersEditBtn";
+			//popupMenu "ContactLayersEditMenu";
+			//menuItem -label "Rename" -command "renameGlobalContactLayer" "RenameContactLayersMenuItem";
+			//menuItem -label "Edit Id" -command "editIndexForSelectedContactLayer" "EditIdContactLayersMenuItem";
+			//menuItem -label "Categorize" -subMenu true "ContactLayersCategoryMenu";
+			//	menuItem -label "New" -command "AddNewContactLayersCategory" "AddNewContactLayersCategoryMenuItem";
+			//	refreshContactLayersCategoryMenu();
+			//setParent -menu ..;
+
+		iconTextButton 
+			-style "iconOnly" -label "Delete" 
+			-width 20 -height 20
+			-annotation "Delete Layer"
+			-image ("pxSmallTrash" + $physxIconFormat) 
+			-command "deleteGlobalContactLayerToUseFromButtonPress" 
+			-dropCallback "deleteLayerDropCallBack"
+			"ContactLayersDeleteBtn";
+
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 1;
+		checkBox -label "Enable Collisions" -value (`getContactLayersState($globalContactLayersIndex)`) -changeCommand ("toggleContactLayersState " + $globalContactLayersIndex) "globalContactLayersCollisionChkBox";
+	setParent ..;
+
+	// Disable edit fields for default layer
+	toogleContactLayerControls();
+
+	rowLayout -height 5;
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 1;
+		text -align "left" -label "Set Contacts With:";
+	setParent ..;
+
+	// Contact Layers Settings for the layers in use:
+	updateGlobalContactLayersScrollBox;
+
+	setParent ..; //CL_GlobalChildColumnLayout
+}
+
+global proc toogleContactLayerControls()
+{
+	global int $globalContactLayersIndex;
+	if( $globalContactLayersIndex == 1 )
+	{
+		checkBox -e -enable off "globalContactLayersCollisionChkBox";
+		iconTextButton -e -enable off "ContactLayersEditBtn";
+		iconTextButton -e -enable off "ContactLayersDeleteBtn";
+		//menuItem -e -enable off "RenameContactLayersMenuItem";
+		//menuItem -e -enable off "EditIdContactLayersMenuItem";
+	}
+	else
+	{
+		checkBox -e -enable on "globalContactLayersCollisionChkBox";
+		iconTextButton -e -enable on "ContactLayersEditBtn";
+		iconTextButton -e -enable on "ContactLayersDeleteBtn";
+		//menuItem -e -enable on"RenameContactLayersMenuItem";
+		//menuItem -e -enable on "EditIdContactLayersMenuItem";
+	}
+}
+
+global proc updateGlobalContactLayersScrollBox()
+{
+	global string $physXRigidSolverName, $physxIconFormat;
+	global int $globalContactLayersIndex;
+	global float $conLayBgdColor[];
+
+	$rowColLayout = ("contactLayersRowColumnLayoutForLayers" + $physXRigidSolverName );
+	if(`layout -exists $rowColLayout`)
+		deleteUI -layout $rowColLayout;
+
+	// Get List of layers in use
+	$contactLayersInUse = GlobalContactLayersIndexList();
+	int $contactLayersInUseNum = size($contactLayersInUse);
+	int $contactLayers[] = `GetContactLayersCmd -qn $physXRigidSolverName -li $globalContactLayersIndex -queryForArray on`;
+
+	rowColumnLayout -numberOfRows 1 -rowHeight 1 315 -parent "CL_GlobalChildColumnLayout" $rowColLayout; // scrollbox size is wrong w/o this layout in 2010 & b4
+	scrollLayout -horizontalScrollBarThickness 0 -width 345 -height 315 ("contactLayersScrollLayout" + $physXRigidSolverName ); 
+	if( getApplicationVersionAsFloat() < 2011 ) // too many child error w/o this layout in 2010 & b4. & scroll box don't work in 2011 with this
+		columnLayout -width 345 -height 315 ("contactLayersColumnLayoutForLayers" + $physXRigidSolverName );
+
+	if( getApplicationVersionAsFloat() > 2010 )
+		scrollLayout -e -backgroundColor 0.16 0.16 0.16 ("contactLayersScrollLayout" + $physXRigidSolverName );
+
+	// Prompt user to add more rows if there's only default layer in the scene
+	if( $contactLayersInUseNum == 1 )
+	{
+		text "Please add at least 1 more layer.";
+		if( getApplicationVersionAsFloat() < 2011 )
+			setParent ..; //columnLayout
+		setParent ..; //scrollLayout
+		setParent ..; //rowColumnLayout
+		return;
+	}
+
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+	for( $catIdx=0; $catIdx<size($categoryLogIdx); $catIdx++ )
+	{
+		string $catName = `getAttr ($physXRigidSolverName+ ".contactLayersCategory[" +$categoryLogIdx[$catIdx]+ "]")`;
+		frameLayout 
+			-label $catName
+			-collapse off
+			-collapsable on				
+			("contactLayersFrameLayout" + $physXRigidSolverName + $categoryLogIdx[$catIdx]);
+
+		if( getApplicationVersionAsFloat() < 2011 )
+			frameLayout -e -width 345 -labelWidth 200 ("contactLayersFrameLayout" + $physXRigidSolverName + $categoryLogIdx[$catIdx]);
+
+			rowColumnLayout 
+				-numberOfColumns 1 
+				-columnWidth 1 330
+				("contactLayersRowColumnLayout" + $physXRigidSolverName +":"+ $categoryLogIdx[$catIdx] );
+				for( $k=0; $k<$contactLayersInUseNum; $k++ )
+				{
+					int $layerIndex = $contactLayersInUse[$k];
+
+					//skip creating current row
+					if( $layerIndex == $globalContactLayersIndex )
+						continue;
+
+					// display layers in their respective categories
+					//print ("Layer Idx: " + $layerIndex + "\n");
+					int $conLayCatId = getCategoryIndexForLayer( $layerIndex );
+					if( $conLayCatId == $categoryLogIdx[$catIdx] )
+					{
+						string $layerName = `getContactLayersNameFromGlobals( $layerIndex )`;
+						if(!`getContactLayersState( $layerIndex )`)
+							$layerName = $layerName + " [disabled]";
+
+						rowLayout
+							-height 26 
+							-numberOfColumns 3 
+							-columnWidth3 3 280 30
+							-backgroundColor $conLayBgdColor[0] $conLayBgdColor[1] $conLayBgdColor[2]
+						("contactLayersRowLayout" + $physXRigidSolverName +":"+ $layerIndex );
+
+						text -label "";
+						iconTextCheckBox 
+							-height 24 -width 280
+							-align "left" -style "iconAndTextHorizontal" 
+							-label ( "      " + $layerName )
+							-annotation ($layerIndex + ":" + $layerName)
+							-backgroundColor $conLayBgdColor[0] $conLayBgdColor[1] $conLayBgdColor[2]
+							-image ("contactLayerDisabled" + $physxIconFormat) 
+							-selectionImage ("contactLayerEnabled" + $physxIconFormat) 
+							-value $contactLayers[$k] 
+							-changeCommand ("FlipContactLayersState( \"rigidsolver\", off, \""+ $physXRigidSolverName +"\", "+ $layerIndex +", " + $globalContactLayersIndex + " );")
+							("contactLayersIconChkBox" + $physXRigidSolverName + ":" + $layerIndex); 
+
+						iconTextButton 
+							-height 24 -width 30
+							-style "iconOnly" 
+							-align "left"
+							-image ("goto" + $physxIconFormat) 
+							-annotation "Edit Layer"
+							-command ("goToGlobalContactLayer(" + ($k+1) + ");")
+							("contactLayersGoToBtn" + $physXRigidSolverName + ":" + $layerIndex); 
+
+						//Skip Popup for default layer
+						if( $layerIndex!=1 )
+						{
+							iconTextCheckBox -e -dragCallback "layersDragCallBack" ("contactLayersIconChkBox" + $physXRigidSolverName + ":" + $layerIndex);
+
+							//string $popupName = ("contactLayersPopup" + $physXRigidSolverName + ":" + $layerIndex);
+							//popupMenu -button 3 -parent ("contactLayersIconChkBox" + $physXRigidSolverName + ":" + $layerIndex) $popupName;
+							//	moveCategoryPopupMenu( $layerIndex, $popupName );
+							//	menuItem -label "Edit Layer" -command ("goToGlobalContactLayer(" + ($k+1) + ");");
+							//	menuItem -label "Delete Layer" -command ("deleteGlobalContactLayerToUse( "+$layerIndex+" )");
+						}
+
+						//setParent ..;
+						setParent ..;
+
+						rowLayout -height 3 ("separatorLayout" + $physXRigidSolverName + ":" + $layerIndex);
+						setParent ..;
+					}
+				}
+			setParent ..; // for rowColumnLayout
+		setParent ..; // for frameLayout	
+
+		// Enable change category drop call backs on frame & rowColumn layouts in Global tabs
+		frameLayout -e -dropCallback "changeCategoryDropCallBack" ("contactLayersFrameLayout" + $physXRigidSolverName + $categoryLogIdx[$catIdx]);
+		rowColumnLayout -e -dropCallback "changeCategoryDropCallBack" ("contactLayersRowColumnLayout" + $physXRigidSolverName +":"+ $categoryLogIdx[$catIdx] );
+	}
+
+	if( getApplicationVersionAsFloat() < 2011 )
+		setParent ..; //columnLayout
+	setParent ..; //scrollLayout
+	setParent ..; //rowColumnLayout
+}
+
+global proc updateObjectTab()
+{
+	setParent "CL_ByObjectColumnLayout";
+
+	global string $physXRigidSolverName, $contactLayersMember, $physxIconFormat;
+	global int $hideObjectMemberScrollBox;
+	$hideObjectMemberScrollBox = false;
+
+	if(`layout -exists CL_ByObjectChildColumnLayout`)
+		deleteUI -layout CL_ByObjectChildColumnLayout;
+
+	$objExists = `objExists $contactLayersMember`;
+	if(!$objExists)
+		$contactLayersMember = "";
+
+	//columnLayout -width 350 -height 400 -columnAlign "left" CL_ByObjectChildColumnLayout;
+	columnLayout -columnAlign "left" CL_ByObjectChildColumnLayout;
+
+	rowLayout -height 5;
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 3 -columnWidth3 120 200 20;
+		text -label "Membership by Object:";
+		textField 
+			-width 200 -alwaysInvokeEnterCommandOnReturn true 
+			-text $contactLayersMember -enterCommand "loadPhysXObjectCLSettings(false)" "objectContactLayersNameField";
+		iconTextButton 
+			-width 20 -height 20
+			-style "iconOnly" -image1 (`GetObjectMemberIcon`)
+			-command "loadPhysXObjectCLSettings(true)"
+			"objectContactLayersRefreshIconBtn";
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 2 -columnWidth2 120 220;
+		text -label "";
+		if( $objExists )
+		{
+			if( `nodeType $contactLayersMember` == "physicsShape" )
+			{
+				int $isOverride = `getAttr ($contactLayersMember+".contactLayersOverride")`;
+				if( !$isOverride )
+					$hideObjectMemberScrollBox = true;
+
+				checkBox 
+					-label "Override Inherited Settings" 
+					-value $isOverride
+					-changeCommand "updatePhysicsShapeOverride" 
+					"physicsShapeOverrideChkBox";
+			}
+			//else
+			//	text -label "";
+		}
+		//else
+		//	text -label "";
+	setParent ..;
+
+	rowLayout -height 5;
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 1;
+		text -label "In Layers..";
+	setParent ..;
+	
+	// Contact Layers Settings to set PhysX Object's membership, 3 states: Full, Partial & Disabled
+	updateObjectMembershipScrollBox;
+
+	setParent ..; //CL_ByObjectChildColumnLayout
+}
+
+global proc updateObjectMembershipScrollBox()
+{
+	global string $physXRigidSolverName, $contactLayersMember, $physxIconFormat;
+	global int $hideObjectMemberScrollBox, $globalContactLayersIndex;
+	global float $conLayBgdColor[];
+
+	if( $contactLayersMember == "" )
+		return;
+
+	$rowColLayout = ("contactLayersRowColumnLayoutForLayers" + $contactLayersMember );
+	if(`layout -exists $rowColLayout`)
+		deleteUI -layout $rowColLayout;
+
+	rowColumnLayout -numberOfRows 1 -rowHeight 1 340 -parent "CL_ByObjectChildColumnLayout" $rowColLayout; // scrollbox size is wrong w/o this layout in 2010 & b4
+	scrollLayout -horizontalScrollBarThickness 0 -width 345 -height 340 ("contactLayersScrollLayout" + $contactLayersMember ); 
+	if( getApplicationVersionAsFloat() < 2011 ) // too many child error w/o this layout in 2010 & b4. & scroll box don't work in 2011 with this
+		columnLayout -width 345 -height 340 ("contactLayersColumnLayoutForLayers" + $contactLayersMember );
+
+	if( getApplicationVersionAsFloat() > 2010 )
+		scrollLayout -e -backgroundColor 0.16 0.16 0.16 ("contactLayersScrollLayout" + $contactLayersMember );
+
+	// Prompt user to select/search for 1 physx object to display scroll box contents 
+	if( $contactLayersMember == "" )
+	{
+		text -align "left" -label "To View PhysX Object's membership: \nPlease type name & hit \"Enter\". \nOr select object in the scene & click refresh button.";
+		if( getApplicationVersionAsFloat() < 2011 )
+			setParent ..; //columnLayout
+		setParent ..; //scrollLayout
+		setParent ..; //rowColumnLayout
+		return;
+	}
+
+	if( $hideObjectMemberScrollBox )
+	{
+		text -align "left" -label "Check override to update settings for physics shape.";
+		if( getApplicationVersionAsFloat() < 2011 )
+			setParent ..; //columnLayout
+		setParent ..; //scrollLayout
+		setParent ..; //rowColumnLayout
+		return;
+	}
+
+	// Get List of layers in use
+	$contactLayersInUse = GlobalContactLayersIndexList();
+	int $contactLayersInUseNum = size($contactLayersInUse);
+	int $contactLayers[] = GetObjectMembership(); //0:disabled, 1:full, 2:partial
+
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+	for( $catIdx=0; $catIdx<size($categoryLogIdx); $catIdx++ )
+	{
+		string $catName = `getAttr ($physXRigidSolverName+ ".contactLayersCategory[" +$categoryLogIdx[$catIdx]+ "]")`;
+		frameLayout 
+			-label $catName
+			-collapse off
+			-collapsable on				
+			("contactLayersFrameLayout" + $contactLayersMember + $categoryLogIdx[$catIdx]);
+
+		if( getApplicationVersionAsFloat() < 2011 )
+			frameLayout -e -width 345 -labelWidth 200 ("contactLayersFrameLayout" + $contactLayersMember + $categoryLogIdx[$catIdx]);
+
+			rowColumnLayout 
+				-numberOfColumns 1 
+				-columnWidth 1 330
+				("contactLayersRowColumnLayout" + $contactLayersMember +":"+ $categoryLogIdx[$catIdx] );
+				for( $k=0; $k<$contactLayersInUseNum; $k++ )
+				{
+					int $layerIndex = $contactLayersInUse[$k];
+
+					// display layers in their respective categories
+					//print ("Layer Idx: " + $layerIndex + "\n");
+					int $conLayCatId = getCategoryIndexForLayer( $layerIndex );
+					if( $conLayCatId == $categoryLogIdx[$catIdx] )
+					{
+						string $layerName = `getContactLayersNameFromGlobals( $layerIndex )`;
+
+						rowLayout
+							-height 26 
+							-numberOfColumns 3 
+							-columnWidth3 3 280 30
+							-backgroundColor $conLayBgdColor[0] $conLayBgdColor[1] $conLayBgdColor[2]
+						("contactLayersRowLayout" + $contactLayersMember +":"+ $layerIndex );
+
+						text -label "";
+						iconTextButton 
+							-height 24 -width 280
+							-align "left" -style "iconAndTextHorizontal" 
+							-label ( "      " + $layerName )
+							-annotation ($layerIndex +":"+ $layerName +":"+ $contactLayers[$k])
+							-backgroundColor $conLayBgdColor[0] $conLayBgdColor[1] $conLayBgdColor[2]
+							-image (`GetObjectMemberStateIcon $contactLayers[$k]`)
+							-command ("FlipContactLayersState( \"physxobject\", "+ $contactLayers[$k] +", \""+ $contactLayersMember +"\", "+ $layerIndex +", -1 );")
+							("contactLayersIconChkBox" + $contactLayersMember + ":" + $layerIndex); 
+
+						iconTextButton 
+							-height 24 -width 30
+							-style "iconOnly" 
+							-align "left"
+							-image ("goto" + $physxIconFormat) 
+							-annotation "Edit Layer"
+							//-command ("goToLayerMembershipTab(" + ($k+1) + ");") //--todo: switch to this command when Layer Membership tab is up
+							-command ("goToGlobalContactLayer(" + ($k+1) + ");")
+							("contactLayersGoToBtn" + $contactLayersMember + ":" + $layerIndex); 
+
+						
+						//--todo: add dragcallback to change membership if view by membership is available
+						//	iconTextButton -e -dragCallback "layersDragCallBack" ("contactLayersIconChkBox" + $contactLayersMember + ":" + $layerIndex);
+						
+
+						//setParent ..;
+						setParent ..;
+
+						rowLayout -height 3 ("separatorLayout" + $contactLayersMember + ":" + $layerIndex);
+						setParent ..;
+					}
+				}
+			setParent ..; // for rowColumnLayout
+		setParent ..; // for frameLayout	
+
+		////--todo Enable change membership drop call backs on frame & rowColumn layouts if view by membership is available
+		//frameLayout -e -dropCallback "changeMembershipDropCallBack" ("contactLayersFrameLayout" + $contactLayersMember + $categoryLogIdx[$catIdx]);
+		//rowColumnLayout -e -dropCallback "changeMembershipDropCallBack" ("contactLayersRowColumnLayout" + $contactLayersMember +":"+ $categoryLogIdx[$catIdx] );
+	}
+
+	// Each object must have at least 1 Full Membership
+	disableIfbelongsToOnlyOneLayer( $contactLayersMember );
+
+	if( getApplicationVersionAsFloat() < 2011 )
+		setParent ..; //columnLayout
+	setParent ..; //scrollLayout
+	setParent ..; //rowColumnLayout
+}
+
+global proc loadPhysXObjectCLSettings( int $fromSelection )
+{
+	global string $contactLayersMember;
+	if( $fromSelection )
+	{	
+		$selected = `ls -sl -dag -objectsOnly -type "nxRigidBody" -type "physicsShape"`;
+		if( size($selected) == 0 )
+		{
+			$selected = `ls -sl -dag -objectsOnly -type "mesh"`;
+			if( size($selected) == 0 )
+			{
+				error "PhysX object not selected.\n";
+				return;
+			}
+
+			$cloth = getApexClothingFromMesh($selected[0]);
+			if( $cloth == "" )
+			{
+				error "PhysX object not selected.\n";
+				return;
+			}
+
+			$selected[0] = $cloth;
+		}
+		$contactLayersMember = $selected[0];
+	}
+	else
+	{
+		$searchString = `textField -q -text "objectContactLayersNameField"`;
+
+		$objExist = `objExists $searchString`;
+		if(!$objExist)
+		{
+			error "There's no such object in the scene.\n";
+			return;
+		}
+
+		$type = `nodeType $searchString`;
+		if( $type == "nxRigidBody" || $type == "physicsShape" || $type == "apexClothing" )
+			$contactLayersMember = $searchString;
+		else
+		{
+			error "Search query is not a PhysX Object.\n";
+			return;
+		}
+	}
+
+	// update dialog
+	evalDeferred -lowestPriority ("updateObjectTab");
+}
+
+// Get icon to load for Object Membership tab
+global proc string GetObjectMemberIcon()
+{
+	global string $contactLayersMember, $physxIconFormat;
+
+	if($contactLayersMember == "")
+		return ("pxSmallRefresh" + $physxIconFormat);
+
+	$objType = `nodeType $contactLayersMember`;
+
+	if( $objType == "nxRigidBody" )
+		return ("smallRigidBody" + $physxIconFormat);
+
+	if( $objType == "physicsShape" )
+		return ("smallPhysicsShape" + $physxIconFormat);
+
+	if( $objType == "apexClothing" )
+		return ("smallClothing" + $physxIconFormat);
+}
+
+global proc string GetObjectMemberStateIcon( int $currentState )
+{
+	global string $physxIconFormat;
+
+	if($currentState == 0)
+		return ("ObjectMembershipDisabled" + $physxIconFormat);
+
+	if($currentState == 1)
+		return ("ObjectMembershipFull" + $physxIconFormat);
+
+	if($currentState == 2)
+		return ("ObjectMembershipPartial" + $physxIconFormat);
+}
+
+// Update menu items in combo picker
+global proc updateContactLayerPicker()
+{
+	global int $globalContactLayersIndex;
+
+	// delete all menu items from combo picker
+	int $itemsNum = `optionMenu -q -numberOfItems "globalContactLayersPickerCombo"`;
+	for( $i=0; $i<$itemsNum; $i++ )
+		deleteUI -menuItem ("globalContactLayersPickerComboItem_"+($i+1));
+	
+	// Get the new list of layers in use
+	$contactLayersInUse = GlobalContactLayersIndexList();
+	int $contactLayersInUseNum = size($contactLayersInUse);
+
+	int $newSliderIdx = 1; 
+	// create new menu items
+	for( $i=0; $i<$contactLayersInUseNum; $i++)
+	{
+		string $CLNode = getContactLayerName( $contactLayersInUse[$i] );
+		string $layerString = $contactLayersInUse[$i] + ":" + $CLNode;
+		menuItem -label $layerString -parent "globalContactLayersPickerCombo" ("globalContactLayersPickerComboItem_"+($i+1));
+
+		// get new slider index
+		if($globalContactLayersIndex == $contactLayersInUse[$i])
+			$newSliderIdx = $i+1;
+	}
+
+	// move to the new layer on the picker
+	optionMenu -e -select $newSliderIdx "globalContactLayersPickerCombo";
+}
+
+// Used to check if PhysX Object belongs to only 1 layer as Full membership. 
+// If yes, disable the check box in the dialog box. If not, there's currently any being disabled, enable them.
+global proc disableIfbelongsToOnlyOneLayer( string $nodeName )
+{
+	global string $enableDisableLayerIndexFor;
+	int $contactLayersNum = `GetContactLayersCmd -qn $nodeName -queryForArray off`;
+
+	string $ctrlName = ("contactLayersIconChkBox" + $nodeName + ":" + $enableDisableLayerIndexFor);
+	if( $contactLayersNum == 1 )
+	{
+		$enableDisableLayerIndexFor = GetContactLayersList( $nodeName, off, 1 );
+		if(`control -exists $ctrlName`)
+			iconTextButton -e -enable off $ctrlName; 
+	}
+	else
+	{
+		if( $enableDisableLayerIndexFor != "-1" )
+		{
+			if(`control -exists $ctrlName`)
+				iconTextButton -e -enable on $ctrlName; 
+			$enableDisableLayerIndexFor = "-1";
+		}
+	}
+}
+
+// On Press, change combo picker's selection to indicated layer
+global proc goToGlobalContactLayer( int $sliderIndex )
+{
+	int $selectedTab = `tabLayout -q -selectTabIndex CL_TabLayout`; //1: global, 2: by layer, 3: by object
+	if($selectedTab != 1)
+		tabLayout -e -selectTabIndex 1 CL_TabLayout;
+	// #6051: Contact Layer not initialized when rigid body selected
+	if(`optionMenu -exists "globalContactLayersPickerCombo"` == 0)
+	{
+		updateGlobalTab();
+	}
+	optionMenu -e -select $sliderIndex "globalContactLayersPickerCombo";
+	retrieveGlobalContactLayersData();
+}
+
+// Retrieve the respective layer's contact data & reflect it on the dialog GUI
+global proc retrieveGlobalContactLayersData( )
+{
+	global string $physXRigidSolverName;
+	global int $globalContactLayersIndex;
+	
+	// 1. Get selected index from combo picker
+	//int $sliderIndex = `intSlider -q -value "globalContactLayersIntSlider"`-1
+	int $sliderIndex = `optionMenu -q -select "globalContactLayersPickerCombo"`-1;
+
+	// 2. Get layers in use infor
+	$conLayInUse = GlobalContactLayersIndexList();
+	int $layerIndex = $conLayInUse[$sliderIndex];
+	$globalContactLayersIndex = $layerIndex;
+	
+	// 3. Refresh Global tab GUI
+	//checkBox -e -value (`getContactLayersState($globalContactLayersIndex)`) -changeCommand ("toggleContactLayersState " + $globalContactLayersIndex) "globalContactLayersCollisionChkBox";
+	//toogleContactLayerControls();
+	//updateGlobalContactLayersScrollBox;
+	tabLayout -edit -selectTabIndex 1 CL_TabLayout;
+	evalDeferred -lowestPriority ("updateGlobalTab");
+}
+
+// Obtain the contact layer names stored in nxRigidSolver
+global proc string getContactLayersNameFromGlobals( int $layerIndex )
+{
+	// used the fixed name for rigid solver, since there should only be 1 in every scene
+	global string $physXRigidSolverName;
+	$layerIndex--;
+	string $CLName[] = `listConnections ( $physXRigidSolverName + ".contactLayers["+ $layerIndex +"]")`;
+	return $CLName[0];
+}
+
+// Update the annotation for iconTextCheckBox control 
+// mode: 
+// 0 - edit the layer name part of the annotation
+// 1 - edit the tool tip part of the annotation for active layer
+// 2 - edit the tool tip part of the annotation for interactive layer
+// 3 - edit the tool tip part of the annotation for non-interactive layer
+// new layer name: is used only when the mode is 0.
+global proc updateGlobalCLToolTip( string $checkBoxName, int $mode, string $newLayerName )
+{
+	string $oldAnnotation = `iconTextCheckBox -q -annotation $checkBoxName`; 
+	string $newAnnotation = "";
+	string $labelBuffer[];
+	tokenize($oldAnnotation, "-", $labelBuffer);
+	// mode 0:
+	if( $mode == 0 )
+		$newAnnotation = $newLayerName + $labelBuffer[1];
+	else
+	{
+		// mode 1:
+		if( $mode == 1 )
+			$newAnnotation = $labelBuffer[0] + "-Properties are set to this active layer.";
+
+		if( $mode == 2 )
+			$newAnnotation = $labelBuffer[0] + "-This layer shall be interacting with the active layer.";
+
+		if( $mode == 3 )
+			$newAnnotation = $labelBuffer[0] + "-This is a non-interactive layer.";
+	}
+
+	iconTextCheckBox -e -annotation $newAnnotation $checkBoxName;
+}
+
+global proc updateConLayMembershipDialogIfExist()
+{
+	// if contact layer membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersDialogWindow, $contactLayersMember;
+
+	if(`window -exists $contactLayersDialogWindow`)
+	{
+		int $selectedTab = `tabLayout -q -selectTabIndex CL_TabLayout`; //1: global, 2: by layer, 3: by object
+
+		if( $selectedTab == 2 ) //if( $selectedTab == 3 )
+		{
+			ContactLayersDialog( "physxobject", $contactLayersMember );
+		}
+	}
+}
+
+global proc closeConLayDialogIfExist()
+{
+	apexClothingStopPainting();
+	global string $AEapexClothing_ClothingNodeName;
+	$AEapexClothing_ClothingNodeName = "";
+	global string $contactLayersDialogWindow;
+	physxDeletePopUpWindow($contactLayersDialogWindow);
+}
+
+global proc refreshContactLayersCategoryMenu()
+{
+	createRenameCategoryMenu();
+	createDeleteCategoryMenu();
+}
+
+global proc createRenameCategoryMenu()
+{
+
+	global string $physXRigidSolverName;
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+
+	if(`menuItem -exists "renameCategoryMenuItem"`)
+		deleteUI -menuItem "renameCategoryMenuItem";
+
+	menuItem 
+		-parent "ContactLayersCategoryMenu" 
+		-label "Rename" 
+		-subMenu true 
+		"renameCategoryMenuItem";
+
+	// Skip default category
+	for( $catIdx=0; $catIdx<size($categoryLogIdx); $catIdx++ )
+	{
+		string $catName = `getAttr ($physXRigidSolverName+ ".contactLayersCategory[" +$categoryLogIdx[$catIdx]+ "]")`;
+		if( $catIdx == 0 )
+		{
+			menuItem -label $catName -enable off;
+			menuItem -divider true;
+		}
+		else
+			menuItem -label $catName -command ("renameContactLayersCategory(" +$categoryLogIdx[$catIdx]+ ")");
+	}
+	setParent -menu ..;
+}
+
+global proc createDeleteCategoryMenu()
+{
+
+	global string $physXRigidSolverName;
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+
+	if(`menuItem -exists "deleteCategoryMenuItem"`)
+		deleteUI -menuItem "deleteCategoryMenuItem";
+
+	menuItem 
+		-parent "ContactLayersCategoryMenu" 
+		-label "Delete" 
+		-subMenu true 
+		"deleteCategoryMenuItem";
+
+	// Skip default category
+	for( $catIdx=0; $catIdx<size($categoryLogIdx); $catIdx++ )
+	{
+		string $catName = `getAttr ($physXRigidSolverName+ ".contactLayersCategory[" +$categoryLogIdx[$catIdx]+ "]")`;
+		if( $catIdx == 0 )
+		{
+			menuItem -label $catName -enable off;
+			menuItem -divider true;
+		}
+		else
+			menuItem -label $catName -command ("deleteContactLayersCategory(" +$categoryLogIdx[$catIdx]+ ")");
+	}
+	setParent -menu ..;
+}
+
+global proc moveCategoryPopupMenu( int $layerIndex, string $parent )
+{
+	global string $physXRigidSolverName;
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+	//print ("popup: " + $parent + "\n");
+	
+	menuItem 
+		-parent $parent
+		-label "Move Category" 
+		-subMenu true;
+
+	for( $catIdx=0; $catIdx<size($categoryLogIdx); $catIdx++ )
+	{
+		string $catName = `getAttr ($physXRigidSolverName+ ".contactLayersCategory[" +$categoryLogIdx[$catIdx]+ "]")`;
+		menuItem -label $catName -command ("moveCategory( "+$layerIndex+", "+$catIdx+" )");
+	}
+
+	setParent -menu ..;
+}
+
+// Update menu items in category combo in Edit layer dialog
+global proc updateContactLayerCategoryCombo( int $conLayCatId )
+{
+	if( !`optionMenu -q -exists "editContactLayerCategoryCombo"` )
+		return;
+
+	global string $physXRigidSolverName;
+	global int $globalContactLayersIndex;
+
+	// delete all menu items from combo picker
+	int $itemsNum = `optionMenu -q -numberOfItems "editContactLayerCategoryCombo"`;
+	for( $i=0; $i<$itemsNum; $i++ )
+		deleteUI -menuItem ("editContactLayerCategoryComboItem_"+$i);
+	
+	// create new menu items
+	int $newSliderIdx = 1;
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+	for( $catIdx=0; $catIdx<size($categoryLogIdx); $catIdx++ )
+	{
+		string $catName = `getAttr ($physXRigidSolverName+ ".contactLayersCategory[" +$categoryLogIdx[$catIdx]+ "]")`;
+		menuItem -label $catName -parent "editContactLayerCategoryCombo" ("editContactLayerCategoryComboItem_"+$catIdx);
+
+		// get new slider index
+		if($conLayCatId == $categoryLogIdx[$catIdx])
+			$newSliderIdx = $catIdx+1;
+	}
+
+	// display current category
+	optionMenu -e -select $newSliderIdx "editContactLayerCategoryCombo";
+}
+
+global proc updateEditLayerBtnCmd()
+{
+	if( !`iconTextButton -q -exists "ContactLayersCategoryEditBtn"` )
+		return;
+
+	global string $physXRigidSolverName;
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+	int $sliderIdx = `optionMenu -q -select "editContactLayerCategoryCombo"`-1;
+
+	iconTextButton -e -command ("renameContactLayersCategory " +$categoryLogIdx[$sliderIdx] ) "ContactLayersCategoryEditBtn";
+}
+
+// ------------ CONTACT LAYERS GUI COMMANDS [END] ------------ //
+
+// ------------ GLOBAL CONTACT LAYERS IN USE COMMANDS [START] ------------ //
+
+global proc string getContactLayerName( int $layerIndex )
+{
+	global string $physXRigidSolverName;
+	string $CLNode[] = `listConnections ($physXRigidSolverName + ".contactLayers["+($layerIndex-1)+"]")`;
+	return $CLNode[0];
+}
+
+global proc addGlobalContactLayer()
+{
+	global string $physXRigidSolverName;
+	global int $globalContactLayersIndex;
+
+	// Get the category the current layer in focus. use it for the new layer
+	$currentContactLayersInUse = GlobalContactLayersIndexList();
+	//int $sliderIndex = `intSlider -q -value "globalContactLayersIntSlider"`-1;
+	int $sliderIndex = `optionMenu -q -select "globalContactLayersPickerCombo"`-1;
+	int $currentLayerIndex = $currentContactLayersInUse[$sliderIndex];
+	int $catIdx = getCategoryIndexForLayer($currentLayerIndex);
+
+	// Add new layer for use
+	int $layerIndex = `SetContactLayersToUse -operation "add" -category $catIdx`;
+	$globalContactLayersIndex = $layerIndex;
+
+	// Update Global GUI
+	updateGlobalTab();
+}
+
+global proc cloneGlobalContactLayer()
+{
+	global string $physXRigidSolverName;
+	global int $globalContactLayersIndex;
+	string $currentCLName = getContactLayerName( $globalContactLayersIndex );
+
+	// Duplicate current layer node
+	string $cloneCL[] = `duplicate -ic $currentCLName`;
+
+	// Get new CL's index
+	string $solverPlug[] = `listConnections -plugs true ($cloneCL[0]+".cl")`;
+
+	string $buffer[], $index[];
+	tokenize($solverPlug[0], "[", $buffer);
+	tokenize($buffer[1], "]", $index);
+	int $cloneCLIdx = $index[0];
+	$cloneCLIdx++; // increment to map log index to displayed index
+
+	// Update collision layers settings
+	// Turn off the source's index that was duplicated
+	FlipContactLayersStateCmd -queryNode $physXRigidSolverName -layerIndex $cloneCLIdx -interactingLayerIndex $globalContactLayersIndex -operation off;
+	// Turn on itself in other contact layers it's clone to contact with
+	int $interactCLList[] = `getAttr -mi ($cloneCL[0]+".contactLayersInteractWithLayers")`;
+	for( $logIdx in $interactCLList )
+	{
+		$logIdx++;
+		FlipContactLayersStateCmd -queryNode $physXRigidSolverName -layerIndex $logIdx -interactingLayerIndex $cloneCLIdx -operation on;
+		//print ("FlipContactLayersStateCmd -queryNode "+$physXRigidSolverName+" -layerIndex "+$logIdx+" -interactingLayerIndex "+$cloneCLIdx+" -operation on \n");
+	}
+	// Turn on itself
+	FlipContactLayersStateCmd -queryNode $physXRigidSolverName -layerIndex $cloneCLIdx -interactingLayerIndex $cloneCLIdx -operation on;
+	$globalContactLayersIndex = $cloneCLIdx;
+
+	// Update Global GUI
+	updateGlobalTab;
+}
+
+global proc FlipContactLayersState( string $type, int $objMemberState , string $nodeName, int $layerIndex, int $globalLayerIndex )
+{
+	if( $type == "rigidsolver" )
+	{
+		int $operation = `iconTextCheckBox -q -value ("contactLayersIconChkBox" + $nodeName + ":" + $layerIndex)`; 
+		FlipContactLayersStateCmd -queryNode $nodeName -layerIndex $globalLayerIndex -interactingLayerIndex $layerIndex -operation $operation;
+		// When users selects a layer to (not/)contact with another within the global settings,
+		// it's corresponding layer should have their interactWithLayers attribute updated as well.
+		// Eg. In Layer 1 setting: user checks layer 6. Layer 1 will be automatically checked in Layer 6 settings
+		FlipContactLayersStateCmd -queryNode $nodeName -layerIndex $layerIndex -interactingLayerIndex $globalLayerIndex -operation $operation;
+	}
+	else
+	{
+		global int $turnOnAlsoContactsWith;
+
+		// Turn off current membership state 
+		if( $objMemberState==0 ) // Disabled
+		{
+			//turn on Full
+			FlipContactLayersStateCmd -queryNode $nodeName -queryInteractWith off -layerIndex $layerIndex -operation on;
+			$objMemberState = 1;
+		}
+		else if( $objMemberState==1 ) // Full
+		{
+			if( $turnOnAlsoContactsWith )
+			{
+				//turn off full
+				FlipContactLayersStateCmd -queryNode $nodeName -queryInteractWith off -layerIndex $layerIndex -operation off;
+				
+				//turn on partial
+				FlipContactLayersStateCmd -queryNode $nodeName -queryInteractWith on -layerIndex $layerIndex -operation on;
+				$objMemberState = 2;
+			}
+			else
+			{
+				//turn off full
+				FlipContactLayersStateCmd -queryNode $nodeName -queryInteractWith on -layerIndex $layerIndex -operation off;
+				$objMemberState = 0;
+			}
+		}
+		else if( $objMemberState==2 ) // Partial
+		{
+			FlipContactLayersStateCmd -queryNode $nodeName -queryInteractWith on -layerIndex $layerIndex -operation off;
+			$objMemberState = 0;
+		}
+
+		// update layer's label, icon & command 
+		$layerName = getContactLayersNameFromGlobals( $layerIndex );
+		iconTextButton 
+			-e -label ( "      " + $layerName )
+			-annotation ($layerIndex +":"+ $layerName +":"+ $objMemberState)
+			-image (`GetObjectMemberStateIcon $objMemberState`)
+			-command ("FlipContactLayersState( \"physxobject\", "+ $objMemberState +", \""+ $nodeName +"\", "+ $layerIndex +", -1 );")
+			("contactLayersIconChkBox" + $nodeName + ":" + $layerIndex); 
+		disableIfbelongsToOnlyOneLayer( $nodeName );
+	}
+}
+
+global proc int getContactLayersState( int $layerIndex )
+{
+	global string $physXRigidSolverName;
+	string $CLNode = getContactLayerName( $layerIndex );
+	return `getAttr ($CLNode + ".contactLayersCollision")`;
+}
+
+global proc toggleContactLayersState( int $layerIndex )
+{
+	global string $physXRigidSolverName;
+
+	int $newValue = `checkBox -q -value "globalContactLayersCollisionChkBox"`;
+	string $CLNode = getContactLayerName( $layerIndex );
+	setAttr ($CLNode + ".contactLayersCollision") $newValue;
+}
+
+
+global proc deleteGlobalContactLayerToUseFromButtonPress()
+{
+	// Get current selected group.
+	//int $sliderIndex = `intSlider -q -value "globalContactLayersIntSlider"`-1;
+	//$conLayInUse = `getAttr ($physXRigidSolverName + ".globalContactLayersInUse")`;
+	int $sliderIndex = `optionMenu -q -select "globalContactLayersPickerCombo"`-1;
+	$conLayInUse = GlobalContactLayersIndexList();
+	int $layerIndex = $conLayInUse[$sliderIndex];
+
+	deleteGlobalContactLayerToUse( $layerIndex );
+}
+
+global proc deleteGlobalContactLayerToUse( int $layerIndex )
+{
+	global string $physXRigidSolverName;
+	global int $globalContactLayersIndex;
+
+	if( $layerIndex == 1 )
+	{
+		confirmDialog 
+			-title "Error Deleting Layer.." 
+			-message "Default Layer: 1 cannot be deleted."
+			-button "Ok";
+		return;
+	}
+
+	// If there are existing physx object using this layer, prompt user for action.
+	int $attachedObjects = `SetContactLayersToUse -operation "query" -layerIndex $layerIndex`;
+	string $todelete = "No";
+	if( $attachedObjects )
+	{
+		$todelete = `confirmDialog -title "There are PhysX Objects attached to this layer." 
+			-message "Any PhysX Objects not belonging to other layers will be move to the default layer. Continue?"
+			-button "Yes" -button "No" 
+			-defaultButton "Yes"
+			-cancelButton "No" -dismissString "No"`;
+	}
+	else
+		$todelete = "Yes";
+
+	if( $todelete == "Yes" )
+	{
+		// Proceed with the deletion of contact layer in use
+		SetContactLayersToUse -operation "delete" -layerIndex $layerIndex;
+		
+		// If layer deleted is in focus in global, refresh to show the default layer else current layer
+		if( $globalContactLayersIndex == $layerIndex )
+			$globalContactLayersIndex = 1;
+
+		evalDeferred -lowestPriority ("updateGlobalTab");
+	}
+}
+
+global proc editLayerDialog()
+{
+	global string $physXRigidSolverName, $physxIconFormat;
+	global int $globalContactLayersIndex;
+
+	if( $globalContactLayersIndex < 1 )
+	{
+		error ( "Invalid contact layer index: " + $globalContactLayersIndex );
+		return;
+	}
+
+	if( $globalContactLayersIndex == 1 )
+	{
+		print "Default Layer cannot be edited.\n";
+		return;
+	}
+
+	$currentLayerName = getContactLayerName( $globalContactLayersIndex );
+
+	$window = "editLayerDialogWindow";
+	//window -title ("Editing "+$globalContactLayersIndex+":"+$currentLayerName + "...") -widthHeight 300 100 -resizeToFitChildren true $window;
+	//columnLayout -width 350 -height 100 CL_ByObjectColumnLayout;
+	window -title ("Editing "+$globalContactLayersIndex+":"+$currentLayerName + "...") -resizeToFitChildren true $window;
+	columnLayout;
+
+	rowLayout -height 10;
+	setParent ..;
+			
+	//rowLayout -height 23 -numberOfColumns 2 -columnWidth2 50 250;
+	//	text -width 50 -align "left" -label " Editing: ";	
+	//	text -width 250 -align "left" -label ("  "+$globalContactLayersIndex+":"+$currentLayerName) -font boldLabelFont;
+	//setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 4 -columnWidth4 20 30 40 180;
+		text -label " Id:" -width 20 -align "left";	
+		textField 
+			-width 30 -alwaysInvokeEnterCommandOnReturn true 
+			-text $globalContactLayersIndex -enterCommand ("saveNewContactLayerData " + $window ) "editContactLayerIdField";
+		text -label "  Name:" -width 40 -align "left";	
+		textField 
+			-width 174 -alwaysInvokeEnterCommandOnReturn true 
+			-text $currentLayerName -enterCommand ("saveNewContactLayerData " + $window ) "editContactLayerNameField";
+	setParent ..;
+
+	rowLayout -height 23 -numberOfColumns 3 -columnWidth3 55 215 30;
+		text -width 55 -align "left" -label " Category:";	
+		optionMenu -width 215 -changeCommand "updateEditLayerBtnCmd" "editContactLayerCategoryCombo";
+			// create new menu items
+			int $conLayCatId = getCategoryIndexForLayer( $globalContactLayersIndex );
+			updateContactLayerCategoryCombo($conLayCatId);
+		iconTextButton 
+			-style "iconOnly" -label "Category Manager" 
+			-width 25 -height 20
+			-annotation "New, Edit or Delete Category"
+			-image ("smallEditWithOptions" + $physxIconFormat) 
+			-command ("renameContactLayersCategory " +$conLayCatId )
+			"ContactLayersCategoryEditBtn";
+			popupMenu "ContactLayersCategoryMenu";
+				menuItem -label "New" -command "AddNewContactLayersCategory" "AddNewContactLayersCategoryMenuItem";
+				refreshContactLayersCategoryMenu();
+			setParent -menu ..;
+
+	setParent ..;
+
+	rowLayout -height 5;
+	setParent ..;
+
+	rowLayout -numberOfColumns 3 -columnWidth3 200 50 50;
+		text -label"";
+		button -label "Ok" -width 50 -command ("saveNewContactLayerData " + $window );
+		button -label "Cancel" -width 50 -command ("deleteUI -window " + $window);
+	setParent ..;
+
+	rowLayout -height 5;
+	setParent ..;
+
+	setParent ..;
+
+	showWindow $window;
+	window -e -sizeable off $window;
+}
+
+global proc saveNewContactLayerData( string $window )
+{
+	global int $globalContactLayersIndex;
+	
+	// prevent edit for default layer
+	if( $globalContactLayersIndex == 1 )
+		return;
+
+	global string $physXRigidSolverName;
+
+	// Rename Contact Layer & Edit Id
+	renameGlobalContactLayer;
+	editIndexForSelectedContactLayer;
+
+	// Reflect the new layer name in Combo Box
+	evalDeferred -lowestPriority ( "updateContactLayerPicker" );
+
+	// Change Category
+	changeCategoryFromEditDialog;
+
+	// Close Edit Layer Dialog
+	evalDeferred -lowestPriority ( "deleteUI -window " + $window );
+}
+
+global proc renameGlobalContactLayer()
+{
+	global int $globalContactLayersIndex;
+	string $newName = `textField -q -text "editContactLayerNameField"`;
+
+	if( size($newName) == 0 )
+	{
+		print "Warning: No layer name entered. Contact Layer will not be rename.\n";
+		return;
+	}
+
+	string $oldName = getContactLayerName( $globalContactLayersIndex );
+	// Rename contact layer node
+	if( $newName!= $oldName )
+		$newName = `rename $oldName $newName`;
+}
+
+global proc editIndexForSelectedContactLayer()
+{
+	$newId = `textField -q -text "editContactLayerIdField"`;
+	if( $newId == "" )
+	{
+		print "Warning: No Id entered. Contact Layer will not be updated.\n";
+		return;
+	}
+
+	global int $globalContactLayersIndex;
+	global string $physXRigidSolverName;
+	int $newIndex = $newId;
+	
+	// Edit layer index
+	int $editStatus = `SetContactLayersToUse -operation "edit" -layerIndex $globalContactLayersIndex -newLayerIndex $newIndex`;
+	if( $editStatus == 1 )
+		$globalContactLayersIndex = $newIndex;
+	else
+	{
+		// Display Error Prompt
+		//string $errorMsg;
+		//if( $editStatus == -1 )
+		//	$errorMsg = "New Index is the same as the current. Index will not be updated.";
+		//else if( $editStatus == -2 )
+		//	$errorMsg = ("Index [" + $newIndex + "] is already in used. Index will not be updated.");
+
+		//confirmDialog -title "Error: " -message ($errorMsg + "\nCode["+ $editStatus +"] " )
+		//-button "Ok" -cancelButton "No" -dismissString "No";
+
+		if( $editStatus == -2 )
+			print ("Warning: Id [" + $newIndex + "] is already in used. Id will not be updated.\n");
+	}
+}
+
+global proc changeCategoryFromEditDialog()
+{
+	global int $globalContactLayersIndex;
+	global string $physXRigidSolverName;
+
+	int $categoryLogIdx[] = `getAttr -multiIndices($physXRigidSolverName+ ".contactLayersCategory")`;
+	int $sliderIdx = `optionMenu -q -select "editContactLayerCategoryCombo"`-1;
+
+	moveCategory( $globalContactLayersIndex, $categoryLogIdx[$sliderIdx] );
+}
+
+global proc deleteLayerDropCallBack( string $dragControl, string $dropControl, string $msgs[], int $x, int $y, int $type )
+{
+    //print ( "Drop on " + $dropControl + " from " + $msgs[0] + "\n" );
+    // if delete icon button exists
+    if( `iconTextButton -exists $dropControl` )
+    {
+		int $layerIdx = $msgs[1];
+		deleteGlobalContactLayerToUse( $layerIdx );
+    }
+}
+
+// ------------ GLOBAL CONTACT LAYERS IN USE COMMANDS [END] ------------ //
+
+// ------------ GLOBAL CONTACT LAYERS CATEGORY COMMANDS [START] ------------ //
+
+global proc AddNewContactLayersCategory()
+{
+	global string $physXRigidSolverName;
+	// Prompt for Category name
+	string $catName;
+	string $result = `promptDialog
+		-title "Add NEW Contact Layers Category"
+		-message "Enter Name:"
+		-button "OK" -button "Cancel"
+		-defaultButton "OK" -cancelButton "Cancel"
+		-dismissString "Cancel"`;
+
+	if ($result == "OK") 
+	{
+		$catName = `promptDialog -query -text`;
+		if( $catName == "" )
+		{
+			print "No category name entered. Category will not be created.\n";
+			return;
+		}
+	}
+	else
+		return;
+
+	// Add it as a new category
+	int $catLogIdx[] = `getAttr -multiIndices ($physXRigidSolverName+".contactLayersCategory")`;
+	int $catNum = size($catLogIdx)-1;
+	int $newIdx = $catLogIdx[$catNum] + 1; // get the largest logical index used currently, use the next increment
+	setAttr -type "string" ($physXRigidSolverName+".contactLayersCategory["+$newIdx+"]") $catName;
+
+	// Reflect the new category on GUI
+	updateGlobalContactLayersScrollBox;
+
+	// Refresh category menu on GUI
+	refreshContactLayersCategoryMenu();
+
+	// Refresh combo box & default edit category button cmd in edit layer dialog if exists
+	updateContactLayerCategoryCombo( $newIdx );
+	updateEditLayerBtnCmd;
+}
+
+global proc int getCategoryIndexForLayer( int $layerIndex )
+{
+	global string $physXRigidSolverName;
+	string $CLNode = getContactLayerName( $layerIndex );
+	string $catPlug[] = `listConnections -plugs true ($CLNode + ".contactLayersCategory")`;
+	
+	// Store the rigid body node name.
+	string $buffer[], $index[];
+	tokenize($catPlug[0], "[", $buffer);
+	tokenize($buffer[1], "]", $index);
+	int $catIdx = $index[0];
+	return $catIdx;
+}
+
+global proc renameContactLayersCategory( int $categoryLogicalIndex )
+{
+	if($categoryLogicalIndex == 0)
+	{
+		print "Warning: Default category cannot be renamed.\n";
+		return;
+	}
+
+	global string $physXRigidSolverName;
+	string $oldName = `getAttr ($physXRigidSolverName+".contactLayersCategory["+$categoryLogicalIndex+"]")`;
+	// Prompt for Category name
+	string $catName;
+	string $result = `promptDialog
+		-title "Rename Contact Layer Category"
+		-message ("Enter NEW name for <" +$oldName+ "> :")
+		-button "OK" -button "Cancel"
+		-defaultButton "OK" -cancelButton "Cancel"
+		-dismissString "Cancel"`;
+
+	if ($result == "OK") 
+	{
+		$catName = `promptDialog -query -text`;
+		if( size($catName) == 0 )
+		{
+			print "No category name entered. Category will not be rename.\n";
+			return;
+		}
+	}
+	else
+		return;
+
+	// Rename the category
+	setAttr -type "string" ($physXRigidSolverName+".contactLayersCategory["+$categoryLogicalIndex+"]") $catName;
+
+	// Reflect the new category name on GUI
+	frameLayout -e -label $catName ("contactLayersFrameLayout" + $physXRigidSolverName + $categoryLogicalIndex);
+
+	// Refresh combox in edit layer dialog if exists
+	updateContactLayerCategoryCombo( $categoryLogicalIndex );
+
+	// Refresh category menu on GUI
+	refreshContactLayersCategoryMenu();
+}
+
+global proc deleteContactLayersCategory( int $categoryLogicalIndex )
+{
+	global string $physXRigidSolverName;
+	string $oldName = `getAttr ($physXRigidSolverName+".contactLayersCategory["+$categoryLogicalIndex+"]")`;
+
+	// check if there are existing layers under this category
+	int $attachedLayers = false;
+	string $CLUnderCat[] = `listConnections ($physXRigidSolverName+".contactLayersCategory["+$categoryLogicalIndex+"]")`;
+	int $CLUnderCatNum = size($CLUnderCat);
+	if( $CLUnderCatNum > 0)
+		$attachedLayers = true;
+
+	// If there are existing layers in this category, prompt user for action.
+	string $todelete = "No";
+	if( $attachedLayers )
+	{
+		$todelete = `confirmDialog -title "There are layers under this category" 
+			-message "Affected layers will be move to the default category. Continue?"
+			-button "Yes" -button "No" 
+			-defaultButton "Yes"
+			-cancelButton "No" -dismissString "No"`;
+	}
+	else
+		$todelete = "Yes";
+
+	if( $todelete == "Yes" )
+	{
+		// Move all affected layers to default category 0
+		for($i=0; $i<$CLUnderCatNum; $i++)
+		{
+			disconnectAttr ($physXRigidSolverName + ".contactLayersCategory["+$categoryLogicalIndex+"]") ($CLUnderCat[$i] + ".contactLayersCategory");
+			connectAttr ($physXRigidSolverName + ".contactLayersCategory[0]") ($CLUnderCat[$i] + ".contactLayersCategory");
+		}
+
+		// Delete category
+		removeMultiInstance ($physXRigidSolverName+".contactLayersCategory["+$categoryLogicalIndex+"]");
+
+		// Reflect layers on GUI
+		updateGlobalContactLayersScrollBox;
+
+		// Refresh category menu on GUI
+		refreshContactLayersCategoryMenu();
+
+		// Refresh combo box & default edit category button cmd in edit layer dialog if exists
+		global int $globalContactLayersIndex;
+		int $conLayCatId = getCategoryIndexForLayer( $globalContactLayersIndex );
+		updateContactLayerCategoryCombo( $conLayCatId );
+		updateEditLayerBtnCmd;
+	}
+
+}
+
+global proc string[] layersDragCallBack( string $dragControl, int $x, int $y, int $mods )
+{
+    //print ( "Drag from " + $dragControl + "\n" );
+
+    // Get Layer Index from label
+	string $label;
+	if ( `iconTextCheckBox -exists $dragControl` )
+		$label = `iconTextCheckBox -q -annotation $dragControl`;
+
+	if ( `iconTextButton -exists $dragControl` )
+		$label = `iconTextButton -q -annotation $dragControl`;
+
+	//print ("label: " + $label + "\n" );
+
+	string $labelBuffer[];
+	tokenize($label, ":", $labelBuffer);
+
+	// The msg array returned from the drag callback must _not_ be empty,
+    // else the drop callback will not trigger.
+	// Return name of Control & Layer Index
+    return { $dragControl, $labelBuffer[0] };
+}
+
+global proc changeCategoryDropCallBack( string $dragControl, string $dropControl, string $msgs[], int $x, int $y, int $type )
+{
+    //print ( "Drop on " + $dropControl + " from " + $msgs[0] + "\n" );
+
+    // if category frame layout exists
+    if ( `rowColumnLayout -exists $dropControl` || `frameLayout -exists $dropControl` )
+    {
+		// Get name of `rowColumnLayout if check box drops on framelayout
+		if( `frameLayout -exists $dropControl` )
+		{
+			string $frameChild[] = `frameLayout -q -childArray $dropControl`;
+			$dropControl = $frameChild[0];
+		}
+
+		// Update layer's category
+		string $catLabelBuffer[];
+		tokenize($dropControl, ":", $catLabelBuffer);
+		int $newCatIdx = $catLabelBuffer[1];
+		int $layerIndex = $msgs[1];
+		moveCategory( $layerIndex, $newCatIdx );
+    }
+}
+
+global proc moveCategory( int $layerIndex, int $newCatIdx )
+{
+	global string $physXRigidSolverName;
+	int $oldIdx = getCategoryIndexForLayer( $layerIndex ); 
+	$CLName = getContactLayerName( $layerIndex );
+
+	//print ( "layer idx:" + $layerIndex + ", name: "+ $CLName + ",old: " + $oldIdx + ", new: "+ $newCatIdx+ "\n");
+
+	if( $oldIdx == $newCatIdx )
+		return;
+	
+	disconnectAttr ($physXRigidSolverName + ".contactLayersCategory["+$oldIdx+"]") ($CLName + ".contactLayersCategory");
+	connectAttr ($physXRigidSolverName + ".contactLayersCategory["+$newCatIdx+"]") ($CLName + ".contactLayersCategory");
+
+	// Move layer to new category in GUI
+	evalDeferred -lowestPriority ("updateGlobalContactLayersScrollBox");
+	evalDeferred -lowestPriority ("updateObjectMembershipScrollBox");
+}
+
+// ------------ GLOBAL CONTACT LAYERS CATEGORY COMMANDS [END] ------------ //
+
+// ------------ CONTACT LAYERS OBJECT MEMBERSHIP COMMANDS [START] ------------ //
+
+global proc updatePhysicsShapeOverride()
+{
+	global string $contactLayersMember;
+	global int $hideObjectMemberScrollBox;
+
+	if( !`checkBox -exists "physicsShapeOverrideChkBox"` )
+		return;
+
+	$override = `checkBox -q -value "physicsShapeOverrideChkBox"`;
+	setAttr ($contactLayersMember+".contactLayersOverride") $override;
+
+	if( $override ) // override checked
+	{
+		// Connect physics shape to default layer if it had no existing connection
+		if(`GetContactLayersCmd -qn $contactLayersMember -queryForArray off` == 0 )
+			FlipContactLayersStateCmd -queryNode $contactLayersMember -layerIndex 1 -operation true -queryInteractWith false;
+	}
+	else // override unchecked
+	{
+		// If there's only 1 full membership, disconnect if the connection is to default layer
+		if(`GetContactLayersCmd -qn $contactLayersMember -queryForArray off` == 1 )
+		{
+			$connectedLayers = GetContactLayersList( $contactLayersMember, off, 1 );
+			if($connectedLayers == "1")
+				FlipContactLayersStateCmd -queryNode $contactLayersMember -layerIndex 1 -operation false -queryInteractWith false;
+		}
+	}
+
+	//Hide/show object membership scroll box depending on the value
+	if( $override )
+		$hideObjectMemberScrollBox = false;
+	else
+		$hideObjectMemberScrollBox = true;
+
+	updateObjectMembershipScrollBox;
+}
+
+global proc int[] GetObjectMembership() //0:disabled, 1:full, 2:partial
+{
+	global string $contactLayersMember;
+	int $membershipList[];
+	int $fullMember[] = `GetContactLayersCmd -qn $contactLayersMember -queryForArray on`;
+	int $partialMember[];
+	
+	global int $turnOnAlsoContactsWith;
+	if( $turnOnAlsoContactsWith )
+		$partialMember = `GetContactLayersCmd -qn $contactLayersMember -queryForArray on -queryInteractWith`;
+	
+	for($i=0; $i<size($fullMember); $i++)
+	{
+		$membershipList[$i] = 0;
+		if( $turnOnAlsoContactsWith )
+		{
+			if( $partialMember[$i] )
+				$membershipList[$i] = 2;
+		}
+		if( $fullMember[$i] )
+			$membershipList[$i] = 1;
+	}
+
+	return $membershipList;
+}
+
+// ------------ CONTACT LAYERS OBJECT MEMBERSHIP COMMANDS [END] ------------ //

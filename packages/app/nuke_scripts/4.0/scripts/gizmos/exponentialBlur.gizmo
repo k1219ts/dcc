@@ -1,0 +1,220 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ inputs 2
+ help "daniel.norlund@fido.se\n\nInput1=Source input\nInput2=Mask input\n\nBased on a series of blurnodes with gradually bigger filter size. \n\nUsefull for making diffusion through fog or similar effects."
+ addUserKnob {20 User}
+ addUserKnob {41 blurSize T Blur36.blurSize}
+ addUserKnob {41 steps T Blur36.steps}
+ addUserKnob {41 exponential T Blur36.exponential}
+ addUserKnob {41 falloff T Blur36.falloff}
+ addUserKnob {26 ""}
+ addUserKnob {41 aspectRatio T Blur36.aspectRatio}
+ addUserKnob {41 blurMix l mix T Blur36.blurMix}
+ addUserKnob {41 channels T Blur36.channels}
+ addUserKnob {41 quality l "" -STARTLINE T Blur36.quality}
+ addUserKnob {41 crop l "crop to format" T Blur36.crop}
+}
+ Input {
+  inputs 0
+  name Mask
+  xpos 899
+  ypos -388
+  number 1
+ }
+set N69c1190 [stack 0]
+push $N69c1190
+push $N69c1190
+push $N69c1190
+push $N69c1190
+push $N69c1190
+push $N69c1190
+push $N69c1190
+push $N69c1190
+push $N69c1190
+ Input {
+  inputs 0
+  name Input1
+  xpos 492
+  ypos -402
+ }
+ Dot {
+  name Dot129
+  xpos 522
+  ypos -346
+ }
+set N6c8edf0 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{blurSize} {blurSize*aspectRatio}}
+  mix {{blurMix*(1-falloff/10)}}
+  name Blur36
+  xpos 630
+  ypos -357
+  addUserKnob {20 User}
+  addUserKnob {7 blurSize t "Sets the size of the initial blur node. A value of 1 is a good start." R 0 5}
+  blurSize 3.48
+  addUserKnob {3 steps t "Higher values makes a smoother effect. If it gets too slow, try lowering this setting.\nmin = 1 max = 10 default = 7"}
+  steps 7
+  addUserKnob {7 exponential t "Adjust the exponentialness of each blur step." R 0 3}
+  exponential 3
+  addUserKnob {7 falloff t "Increase this setting to get a tighter blur around the source. \n\nThe values are connected to the mix value.\nA setting of 0 Means all blur steps are set to the value of 'mix'. Increasing the setting lowers the mix value of each blur step. At 1 the 10th step mix reaches 0. Going past 1 will effectively disable more steps.  " R 0 10}
+  addUserKnob {26 ""}
+  addUserKnob {7 aspectRatio R 0 5}
+  aspectRatio 1.42
+  addUserKnob {7 blurMix l mix}
+  blurMix 0.065
+ }
+set N6c938a0 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur36.size.w*parent.Blur36.exponential} {parent.Blur36.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/9)}}
+  name Blur37
+  xpos 636
+  ypos -304
+ }
+set N6ca32a0 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur37.size.w*parent.Blur36.exponential} {parent.Blur37.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/8)}}
+  name Blur44
+  xpos 636
+  ypos -248
+ }
+set N6cb11c0 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur44.size.w*parent.Blur36.exponential} {parent.Blur44.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/7)}}
+  name Blur45
+  xpos 636
+  ypos -210
+ }
+set N6cbf220 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur45.size.w*parent.Blur36.exponential} {parent.Blur45.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/6)}}
+  name Blur46
+  xpos 636
+  ypos -172
+ }
+set N6ccd230 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur46.size.w*parent.Blur36.exponential} {parent.Blur46.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/5)}}
+  name Blur47
+  xpos 636
+  ypos -99
+ }
+set N6cdb240 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur47.size.w*parent.Blur36.exponential} {parent.Blur47.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/4)}}
+  name Blur48
+  xpos 636
+  ypos -42
+ }
+set N6ce9370 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur48.size.w*parent.Blur36.exponential} {parent.Blur48.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/3)}}
+  name Blur49
+  xpos 636
+  ypos 10
+ }
+set N6cf7330 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur49.size.w*parent.Blur36.exponential} {parent.Blur49.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff/2)}}
+  name Blur50
+  xpos 632
+  ypos 63
+ }
+set N6d05340 [stack 0]
+ Blur {
+  inputs 1+1
+  channels {{{parent.Blur36.channels}}}
+  size {{parent.Blur50.size.w*parent.Blur36.exponential} {parent.Blur50.size.h*parent.Blur36.exponential}}
+  quality {{parent.Blur36.quality}}
+  crop {{parent.Blur36.crop}}
+  mix {{parent.Blur36.mix*(1-parent.Blur36.falloff)}}
+  name Blur51
+  xpos 632
+  ypos 125
+ }
+push $N6d05340
+push $N6cf7330
+push $N6ce9370
+push $N6cdb240
+push $N6ccd230
+push $N6cbf220
+push $N6cb11c0
+push $N6ca32a0
+push $N6c938a0
+push $N6c8edf0
+ Switch {
+  inputs 11
+  which {{parent.Blur36.steps}}
+  name Switch1
+  xpos 488
+  ypos 131
+ }
+set N6d212a0 [stack 0]
+ Crop {
+  box {0 0 {width} {height}}
+  name Crop1
+  xpos 553
+  ypos 163
+ }
+push $N6d212a0
+ Switch {
+  inputs 2
+  which {{parent.crop}}
+  name Switch2
+  xpos 492
+  ypos 193
+ }
+ Output {
+  name Output1
+  xpos 492
+  ypos 238
+ }
+ Viewer {
+  frame_range 1001-1122
+  input_process false
+  name Viewer1
+  xpos 497
+  ypos -372
+ }
+end_group

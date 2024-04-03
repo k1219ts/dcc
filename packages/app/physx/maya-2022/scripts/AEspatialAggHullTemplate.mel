@@ -1,0 +1,43 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+//
+// Copyright  (C) 2005  Alias  Systems Corp. ("Alias")   All rights  reserved.
+// These  coded instructions, statements and computer programs (collectively
+// the "Data') contain unpublished information  proprietary to Alias  Systems
+// which is protected by Canadian and US federal  copyright law and by
+// international treaties.  The Data and may not be disclosed to third parties
+// or copied or duplicated, in whole or in part, without prior written consent
+// of Alias.  AGEIA Technologies, Inc. may only use the Data in accordance with
+// the terms of license granted by Alias.
+//
+// Author: Dean Edmonds, Gooroos Software (http://www.gooroos.com)
+//
+global proc AEspatialAggHullTemplate(string $node)
+{
+    editorTemplate -beginScrollLayout;
+        editorTemplate -addControl "allowAxial";
+        editorTemplate -addControl "allowHull";
+        editorTemplate -addControl "solidBias";
+        editorTemplate -label "Use Volume Calc" -addControl "useVolumeCalculation";
+        editorTemplate -addControl "faceTestLimit";
+        editorTemplate -addControl "numHulls";
+
+		//
+		// Handle the standard node attributes.
+		//
+		AEdependNodeTemplate $node;
+
+		//
+		// Display any dynamically added attributes.
+		//
+		editorTemplate -addExtraControls;
+    editorTemplate -endScrollLayout;
+
+    editorTemplate -suppress meshIn;
+}
+

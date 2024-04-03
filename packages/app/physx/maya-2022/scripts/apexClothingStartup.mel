@@ -1,0 +1,105 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global proc apexClothingStartup_LoadSources()
+{
+	//Maya resource
+	source "artisanValues.mel";
+	source "artAttrValues.mel";
+	source "findRelatedSkinCluster.mel";
+	
+	//APEX Clothing resources
+	source "apexClothingPaint2.res.mel";
+	source "apexClothingPaint2.mel";
+	source "apexClothingCreate.mel";
+	source "apexClothingMiscellaneous.mel";
+	
+}
+
+global proc apexClothingStartup_FillMainMenu()
+{
+	menuItem -subMenu true -tearOff true -allowOptionBoxes true -label "PhysX Clothing";
+	{
+		menuItem 
+			-label "Create Clothing" 
+			-command "apexClothingCreate" 
+			-annotation "Create a clothing from the selected mesh" createClothMenuItem;
+
+		menuItem 
+			-label "Edit" 
+			-command "apexClothingEdit";	
+
+		menuItem 
+			-label "Paint" 
+			-command "apexClothingPaint2_OnOff($AEapexClothing_ClothingNodeName)";
+
+		
+		menuItem -subMenu true -tearOff true -aob true -label "Physics Mesh";
+		{
+			menuItem 
+				-label "Bind" 
+				-command "apexClothingBindManualPhysicalMesh";
+				
+			menuItem 
+				-label "Unbind" 
+				-command "apexClothingUnbindManualPhysicalMesh()";
+
+			setParent -menu ..;
+		}
+		
+		menuItem -divider true;
+		//menuItem -subMenu true -tearOff true -aob true -label "Transfer";
+		{
+			menuItem 
+				-label "Save Template" 
+				-command "apexClothingTransferSave";	
+					
+			menuItem 
+				-label "Load Template" 
+				-command "apexClothingTransferLoad";	
+				
+			//setParent -menu ..;
+		}		
+
+		//menuItem 	
+		//	-label "Export All" 
+		//	-command "apexClothingExportMenu(0)";	
+
+		//menuItem 
+		//	-optionBox true
+		//	-label "Export All Options" 
+		//	-command "apexClothingExportMenuOptions(0)";	
+
+
+		//menuItem 	
+		//	-label "Export Seleted" 
+		//	-command "apexClothingExportMenu(1)";	
+
+		//menuItem 
+		//	-optionBox true
+		//	-label "Export Seleted Options" 
+		//	-command "apexClothingExportMenuOptions(1)";	
+
+
+		menuItem -divider true;
+
+		menuItem 
+		   	-l "Preview"
+		   	-c "apexClothingPreview" 
+			ClothingPreview;
+
+		menuItem -divider true;
+
+		menuItem 
+		   	-l "Remove"
+		   	-c "apexClothingRemove" 
+			NxClothingRemoveItem;
+			
+
+		setParent -menu ..;
+	}				
+}

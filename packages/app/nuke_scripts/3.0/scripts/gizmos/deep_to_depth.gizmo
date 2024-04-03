@@ -1,0 +1,128 @@
+#! /usr/local/Nuke6.3v8/Nuke6.3 -nx
+version 6.3 v8
+Gizmo {
+ inputs 5
+ tile_color 0xa00ff
+ label "deep kernel to  RGB Z"
+ note_font_color 0xff4100ff
+ lock_connections true
+ addUserKnob {20 deep_to_Zrgb}
+ addUserKnob {20 deep_range n 1}
+ addUserKnob {41 ship_premulti l "ship_premulti l ON/OFF" T Premult2.disable}
+ addUserKnob {41 focusRegionSize l "Focus Region Size" T pgBokeh1.focusRegionSize}
+ addUserKnob {41 focusRegionFalloff l "Focus Region Falloff" T pgBokeh1.focusRegionFalloff}
+ addUserKnob {41 focalPlane l "Focal Plane" T pgBokeh1.focalPlane}
+ addUserKnob {41 multiplier l Multiplier T pgBokeh1.multiplier}
+ addUserKnob {41 depthStyle l "Depth Style" T pgBokeh1.depthStyle}
+ addUserKnob {26 "" +STARTLINE}
+ addUserKnob {20 endGroup n -1}
+ addUserKnob {20 depth_value n 1}
+ addUserKnob {41 white l gain T Z_depthvalue.white}
+ addUserKnob {41 gamma T Z_depthvalue.gamma}
+ addUserKnob {41 multiply T Z_depthvalue.multiply}
+ addUserKnob {20 endGroup_1 l endGroup n -1}
+ addUserKnob {26 "" +STARTLINE}
+ addUserKnob {26 info T "far depth = r\nnear depth = b\n"}
+ addUserKnob {41 expr0 l = T Expression1.expr0}
+ addUserKnob {41 expr1 l = T Expression1.expr1}
+ addUserKnob {41 expr2 l = T Expression1.expr2}
+ addUserKnob {26 "" +STARTLINE}
+ addUserKnob {26 deepa l "" +STARTLINE T "deep to Z  v1\n\nlookdep & lighting dep"}
+}
+ Input {
+  inputs 0
+  name Input5
+  xpos 146
+  ypos 505
+  number 4
+ }
+ Input {
+  inputs 0
+  name deep_in
+  xpos 388
+  ypos 409
+  number 3
+ }
+ Input {
+  inputs 0
+  name Cam
+  xpos 289
+  ypos 389
+  number 2
+ }
+ Input {
+  inputs 0
+  name kernel
+  xpos 179
+  ypos 405
+  number 1
+ }
+ Input {
+  inputs 0
+  name image_color
+  xpos 510
+  ypos 441
+ }
+add_layer {rgba redguard1.glow rgba.beta}
+ pgBokeh {
+  inputs 5
+  outputType "Focal Distance Visualization"
+  focusOutput Back
+  focalPlane 1
+  focusRegionSize 1800
+  name pgBokeh1
+  xpos 289
+  ypos 505
+ }
+set N2ee8890 [stack 0]
+push $N2ee8890
+ Expression {
+  expr0 b
+  expr1 b
+  expr2 b
+  expr3 r
+  name Expression1
+  xpos 399
+  ypos 505
+ }
+set Nee8ccc0 [stack 0]
+ Grade {
+  white 4
+  gamma 1.17
+  name Z_depthvalue
+  xpos 399
+  ypos 531
+ }
+ ddee_AcopyBox {
+  inputs 2
+  name ddee_AcopyBox3
+  label "ACopy\nBox"
+  note_font "DejaVu Sans"
+  xpos 399
+  ypos 595
+ }
+ Premult {
+  channels rgba
+  name Premult2
+  xpos 399
+  ypos 693
+  disable true
+ }
+ Output {
+  name Output1
+  xpos 399
+  ypos 793
+ }
+push $Nee8ccc0
+add_layer {foo}
+ Shuffle {
+  red blue
+  green blue
+  alpha blue
+  name bbb
+  selected true
+  xpos 399
+  ypos 482
+  disable true
+ }
+end_group

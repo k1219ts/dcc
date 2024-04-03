@@ -1,0 +1,731 @@
+#! /opt/Nuke12.2v4/libnuke-12.2.4.so -nx
+version 12.2 v4
+Gizmo {
+ tile_color 0xffff0000
+ label "Project Stamp LNR"
+ note_font "Liberation Sans"
+ note_font_size 15
+ mapsize {0.15 0.15}
+ addUserKnob {20 Stamp l ProjectStamp}
+ addUserKnob {26 "" l "Project Info"}
+ addUserKnob {6 project_info l "Project Info" t "On/Off Project Info\nProject name/Script name/Artist name" +STARTLINE}
+ project_info true
+ addUserKnob {1 Project_name l Project: t "Project Name"}
+ Project_name ProjectName
+ addUserKnob {1 Artist_name l Artist: t "Enter artist name"}
+ Artist_name ArtistName
+ addUserKnob {12 proj_poz l Position: t "Change position Project Info"}
+ addUserKnob {16 proj_scale l Scale: t "Change scale Project Info"}
+ proj_scale 1
+ addUserKnob {19 col_stat_p l "Color stat:" t "Change color static text"}
+ col_stat_p 0.35
+ addUserKnob {6 col_stat_p_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {19 col_din_p l "Color din:" t "Change color dinamic text"}
+ col_din_p {0.55 0.55 0.1 1}
+ addUserKnob {6 col_din_p_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {26 null l "" +STARTLINE T "  "}
+ addUserKnob {26 "" l "Footage Info"}
+ addUserKnob {6 footage_info l "Footage Info" t "On/Off Footage Info\nFrame number/Range/Date" +STARTLINE}
+ footage_info true
+ addUserKnob {12 foot_poz l Position: t "Change position Footage Info"}
+ addUserKnob {16 foot_scale l Scale: t "Change position Footage Info"}
+ foot_scale 1
+ addUserKnob {19 col_stat_f l "Color stat:" t "Change color static text"}
+ col_stat_f 0.35
+ addUserKnob {6 col_stat_f_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {19 col_din_f l "Color din:" t "Change color dinamic text"}
+ col_din_f {0.6 0.6 0.25 1}
+ addUserKnob {6 col_din_f_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {26 null2 l "" +STARTLINE T "    "}
+ addUserKnob {26 MM l Description}
+ addUserKnob {1 memo l Memo:}
+ memo memo
+ addUserKnob {41 format l INVISIBLE +INVISIBLE T Reformat1.format}
+ addUserKnob {6 cropimage l INVISIBLE +INVISIBLE +STARTLINE}
+ cropimage true
+ addUserKnob {26 description l "" +STARTLINE T "  \n"}
+ addUserKnob {26 "" l About}
+ addUserKnob {26 About l "" -STARTLINE T "GeneralStamp v.2.0\n\n- jpg output (HD 1920x1080)\n\nFor DEXTER  LNR"}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x388e8e00
+  label "Project info"
+  note_font_size 20
+  xpos -601
+  ypos 214
+  bdwidth 603
+  bdheight 402
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x388e8e00
+  label "TOP info"
+  note_font_size 30
+  xpos 581
+  ypos 135
+  bdwidth 382
+  bdheight 445
+ }
+ BackdropNode {
+  inputs 0
+  name OVERLAYS
+  label "Footage info"
+  note_font "Bitstream Vera Sans"
+  note_font_size 20
+  xpos 95
+  ypos 81
+  bdwidth 375
+  bdheight 303
+ }
+ Switch {
+  inputs 0
+  which {{"(frame == root.first_frame -1) ? 1 : 0 "}}
+  name Switch1
+  xpos -1548
+  ypos 1342
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[knob memo]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 20
+  leading 0.2
+  yjustify top
+  Transform 1
+  box {0 150 1600 0}
+  color 0.5
+  name memo_INPUT
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 741
+  ypos 365
+ }
+ Transform {
+  translate {24 915}
+  center {250 0}
+  name Transform10
+  xpos 741
+  ypos 419
+ }
+ Dot {
+  name Dot3
+  xpos 775
+  ypos 557
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message "Duration :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  translate {137 1}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name Duration
+  note_font "Bitstream Vera Sans"
+  xpos 243
+  ypos 139
+ }
+ Text {
+  cliptype none
+  message "\[knob root.first_frame] - \[knob root.last_frame] (\[expr \[knob root.last_frame] - \[knob root.first_frame] + 1])\n"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 16
+  Transform 1
+  box {-3 0 -3 0}
+  translate {207 1}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name Dr_INPUT
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 243
+  ypos 165
+ }
+ Transform {
+  translate {-215 0}
+  center {1100 619}
+  name Transform12
+  xpos 243
+  ypos 191
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message "Date :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  translate {137 1}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name DATE
+  note_font "Bitstream Vera Sans"
+  xpos 387
+  ypos 185
+ }
+ Text {
+  cliptype none
+  message "\[clock format \[clock seconds] -format \{%d/%m/%y\}]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 16
+  Transform 1
+  translate {183 1}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name D_INPUT
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 387
+  ypos 211
+ }
+ Transform {
+  translate {30 0}
+  center {1100 619}
+  name Transform9
+  xpos 387
+  ypos 237
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "Frame :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  translate {-47 1}
+  color {{"\[knob col_stat_f.r]"} {"\[knob col_stat_f.g]"} {"\[knob col_stat_f.b]"} {"\[knob col_stat_f.a]"}}
+  name FRAMES
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 115
+  ypos 185
+ }
+ Text {
+  cliptype none
+  message "\[format %04d \[frame]]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 16
+  Transform 1
+  translate {10 1}
+  color {{"\[knob col_din_f.r]"} {"\[knob col_din_f.g]"} {"\[knob col_din_f.b]"} {"\[knob col_din_f.a]"}}
+  name F_INPUT
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 115
+  ypos 211
+ }
+ Transform {
+  translate {-190 0}
+  center {1100 619}
+  name Transform11
+  xpos 115
+  ypos 237
+ }
+ Merge2 {
+  inputs 3+1
+  name Merge2
+  note_font "Bitstream Vera Sans"
+  xpos 243
+  ypos 237
+ }
+ Transform {
+  translate {1600 7}
+  name Transform5
+  xpos 243
+  ypos 261
+ }
+ Transform {
+  translate {{"\[knob foot_poz.x]" x101 1480} {"\[knob foot_poz.y]" x101 60}}
+  scale {{"\[knob foot_scale]" x101 0}}
+  center {-137.8000031 15.60000038}
+  name Transform3
+  xpos 243
+  ypos 307
+  disable true
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{"\[knob footage_info]"}}
+  name Switch3
+  note_font "Bitstream Vera Sans"
+  xpos 243
+  ypos 357
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "Project :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  box {247 0 247 0}
+  translate {110.5 -18}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name PROJECT1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -459
+  ypos 381
+ }
+ Text {
+  cliptype none
+  message "\[knob Project_name]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 18
+  Transform 1
+  box {247 0 247 0}
+  translate {168 -18}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name P_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -459
+  ypos 407
+ }
+ Transform {
+  translate {38 0}
+  center {1100 619}
+  name Transform15
+  xpos -459
+  ypos 431
+ }
+ Text {
+  inputs 0
+  cliptype none
+  inject true
+  message "Artist :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  translate {1315 -18}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name ARTIST
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -147
+  ypos 287
+ }
+ Text {
+  cliptype none
+  inject true
+  message "\[knob Artist_name]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 17
+  Transform 1
+  translate {1365 -18}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name A_INPUT
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -147
+  ypos 334
+ }
+ Transform {
+  translate {15 0}
+  center {1100 619}
+  name Transform4
+  xpos -147
+  ypos 395
+ }
+ Dot {
+  name Dot11
+  xpos -113
+  ypos 434
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message "Scene name :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  box {-6 0 -6 0}
+  translate {664 -18}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name PROJECT2
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -262
+  ypos 341
+ }
+ Text {
+  cliptype none
+  message "\[if \{\[string last \".\" \[file rootname \[file tail \[value root.name] ] ] ]==-1\} \{return \[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 end ].nk\} else \{return \[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 end-1 ].nk\}]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 18
+  Transform 1
+  box {-6 0 -6 0}
+  translate {758 -18}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name P_INPUT2
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -262
+  ypos 367
+ }
+ Transform {
+  translate {150 0}
+  center {1100 619}
+  name Transform7
+  xpos -262
+  ypos 399
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "Shot :"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 14
+  Transform 1
+  box {247 0 247 0}
+  translate {110.5 -18}
+  color {{"\[knob col_stat_p.r]"} {"\[knob col_stat_p.g]"} {"\[knob col_stat_p.b]"} {"\[knob col_stat_p.a]"}}
+  name PROJECT
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -372
+  ypos 302
+ }
+ Text {
+  cliptype none
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 1 ]"
+  font /backstage/dcc/packages/app/nuke/12.2.4/scripts/fonts/LiberationSans-Regular.ttf
+  size 18
+  Transform 1
+  box {247 0 247 0}
+  translate {158 -18}
+  color {{"\[knob col_din_p.r]"} {"\[knob col_din_p.g]"} {"\[knob col_din_p.b]"} {"\[knob col_din_p.a]"}}
+  name P_INPUT
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -372
+  ypos 328
+ }
+ Transform {
+  translate {250 0}
+  center {1100 619}
+  name Transform13
+  xpos -372
+  ypos 354
+ }
+ Merge2 {
+  inputs 4+1
+  name Merge1
+  note_font "Bitstream Vera Sans"
+  xpos -262
+  ypos 431
+ }
+ Transform {
+  translate {-200 26}
+  name Transform2
+  xpos -262
+  ypos 465
+ }
+ Transform {
+  translate {{"\[knob proj_poz.x]" x1 -156 x101 138} {"\[knob proj_poz.y]" x1 68 x101 82}}
+  scale {{"\[knob proj_scale]" x1 0 x101 0}}
+  center {500 0}
+  name Transform1
+  note_font "Bitstream Vera Sans"
+  xpos -262
+  ypos 495
+  disable true
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{"\[knob project_info]"}}
+  name Switch2
+  note_font "Bitstream Vera Sans"
+  xpos -262
+  ypos 554
+ }
+ Merge2 {
+  inputs 3+1
+  name Merge3
+  note_font "Bitstream Vera Sans"
+  xpos 243
+  ypos 554
+ }
+ Roto {
+  inputs 0
+  curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 512}
+    {t x44898000 x44098000}
+    {a}
+    {curvegroup Rectangle2 512 bezier
+     {{cc
+       {f 8192}
+       {p
+        {{{x4498e000 0}}
+      {{x4498e000 xc1e55540}}}
+        {{{x4498e000 xc2080000}}
+      {{x4498e000 x448c0000}}}
+        {{{x4498e000 x44380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc4380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x4507e000 0 1 x4199999a 1}
+       {x44998000 x450de000 x4199999a 1 0 1}}
+      {{x4498e000 x448c0000 -}
+       {x44998000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 xc1e55540}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x41e55540}}}
+        {{{x4498e000 x4507e000 0 1 x4199999a 1}
+       {x44998000 x450de000 x4199999a 1 0 1}}
+      {{x4498e000 x44814000 -}
+       {x44998000}}}
+        {{{x4498e000 xc4380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x44380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc2080000}}
+      {{x4498e000 x44814000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x41e55540}}}}}
+      {cc
+       {f 8192}
+       {p
+        {{{x4498e000 0}}
+      {{x4498e000 xc1e55540}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x44380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc4380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 xc1e55540}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x41e55540}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc4380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x44380000}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x41e55540}}}}}}
+     {tx x4498e000 x4485c000 x4486a000}
+     {a r 0 g 0 b 0 a x3e99999a str 1 spx x44898000 spy x44098000 sb 1 ltn x4498e000 ltm x4498e000 tt x41000000}}
+    {curvegroup Rectangle1 512 bezier
+     {{cc
+       {f 8192}
+       {p
+        {{{x4498e000 0}}
+      {{x4498e000 xc2280000}}}
+        {{{x4498e000 xc1600000}}
+      {{x4498e000 x42000000}}}
+        {{{x4498e000 x4424d555}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc424d554}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x44f58000 0 1 x4279999a 1}
+       {x44998000 x450e4000 x4279999a 1 0 1}}
+      {{x4498e000 x42000000 -}
+       {x44998000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 xc2280000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x42280000}}}
+        {{{x4498e000 x44f58000 0 1 x4279999a 1}
+       {x44998000 x450e4000 x4279999a 1 0 1}}
+      {{x4498e000 xc2bc0000 -}
+       {x44998000}}}
+        {{{x4498e000 xc424d554}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x4424d555}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc1600000}}
+      {{x4498e000 xc2bc0000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x42280000}}}}}
+      {cc
+       {f 8192}
+       {p
+        {{{x4498e000 0}}
+      {{x4498e000 xc2280000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x4424d555}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc424d554}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 xc2280000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x42280000}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 xc424d554}}
+      {{x4498e000 0}}}
+        {{{x4498e000 x4424d555}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 0}}}
+        {{{x4498e000 0}}
+      {{x4498e000 x42280000}}}}}}
+     {tx x4498e000 x4473c000 xc1f80000}
+     {a r 0 g 0 b 0 a x3e99999a str 1 spx x44898000 spy x44098000 sb 1 ltn x4498e000 ltm x4498e000 tt x41000000}}}}}}
+  toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier ro 0 go 0 bo 0 ao 0 str 1 ssx 1 ssy 1 sf 1 sb 1 tt 4 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle ro 0 go 0 bo 0 ao 0 str 1 ssx 1 ssy 1 sf 1 sb 1 tt 8 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+  toolbar_brush_hardness 0.200000003
+  toolbar_source_transform_scale {1 1}
+  toolbar_source_transform_center {1100 550}
+  color {0 0 0 0.3000000119}
+  colorOverlay {0 0 0 0}
+  lifetime_type "all frames"
+  lifetime_start 1223
+  lifetime_end 1223
+  view {}
+  motionblur_on true
+  motionblur_shutter_offset_type centred
+  source_black_outside true
+  name Roto1
+  xpos 560
+  ypos 639
+ }
+ Merge2 {
+  inputs 2
+  name Merge9
+  xpos 243
+  ypos 639
+ }
+ Transform {
+  scale {{"Reformat1.format.width / 1920"} {"Reformat1.format.height / 1140"}}
+  name Transform6
+  xpos 243
+  ypos 737
+  disable true
+ }
+ Input {
+  inputs 0
+  name final
+  label final_image
+  note_font "Bitstream Vera Sans"
+  xpos -839
+  ypos 628
+ }
+ Reformat {
+  type "to box"
+  box_width 1920
+  box_height 1080
+  box_fixed true
+  black_outside true
+  name Reformat2
+  xpos -839
+  ypos 734
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  black_outside true
+  name Reformat1
+  xpos -839
+  ypos 849
+  disable true
+ }
+ Reformat {
+  type "to box"
+  format {{{root.format}}}
+  box_width {{Reformat1.format.width}}
+  box_height {{Reformat1.format.height*1.05556}}
+  box_fixed true
+  black_outside true
+  name Reformat_stamp
+  xpos -839
+  ypos 903
+  disable true
+ }
+ Shuffle {
+  alpha white
+  name Shuffle1
+  xpos -839
+  ypos 966
+ }
+ Merge2 {
+  inputs 2
+  name Merge5
+  xpos 243
+  ypos 966
+ }
+ Reformat {
+  type "to box"
+  format {{{root.format}}}
+  box_width {{Reformat1.format.width}}
+  box_height {{Reformat1.format.height*1.05556}}
+  box_fixed true
+  black_outside true
+  name Reformat_stamp1
+  xpos 243
+  ypos 1058
+  disable true
+ }
+ Reformat {
+  type "to box"
+  box_width 1920
+  box_height 1080
+  box_fixed true
+  black_outside true
+  name Reformat3
+  xpos 243
+  ypos 1198
+ }
+set N21a4d600 [stack 0]
+ Output {
+  name Output
+  label "Output Stamp"
+  note_font "Bitstream Vera Sans"
+  xpos 243
+  ypos 1311
+ }
+push 0
+push $N21a4d600
+ Viewer {
+  inputs 3
+  frame 1228
+  input_number 2
+  input_process_node prat_ip1
+  input_process false
+  name Viewer1
+  xpos -1591
+  ypos 1707
+ }
+end_group

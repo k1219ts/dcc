@@ -1,0 +1,3462 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+
+// physxUI.mel
+//
+// Author: Christian Laforte, Feeling Software Inc. (http://www.feelingsoftware.com)
+//
+// Some parts are adapted from Maya's own files, to preserve
+// the user interface users are familiar with and ensure interoperability with
+// Maya's native rigid bodies:
+//
+//		DynSoftRigidBodyMenu.mel 
+//		defaultRuntimeCommands.mel
+//
+
+global int $physxUI_IsMayaLT = false;
+global string $physxSolverNodeNameShort = "nxRigidSolver1";
+global string $physxSolverNodeNameLong = "PhysX|nxRigidSolver1";
+global string $physXPopUpShelfMenu = "physxShelf_PopUpMenu";
+global string $physxIconFormat = ".bmp";
+global string $physXShelfNames[];
+//global int $physxFlagNeedRefreshClothing = 0;
+
+global string $ctrlAxisX, $ctrlAxisY, $ctrlAxisZ, $ctrlCustomMatrix;
+global string $ctrlPhysXExport_leftHandTransformDegrees, $ctrlPhysXExport_leftHandCustomMatrix;
+global string $ctrlPhysXExport_outputScale, $ctrlPhysXExport_outputUnit, $ctrlPhysXExport_outputUnitLabel;
+
+global int $physxUI_StaticInit = false;
+if($physxUI_StaticInit == false)
+{
+	$physxUI_StaticInit = true;
+	
+	$physXShelfNames = {};
+}
+
+global proc nxInitCommand(string $commandName, string $annotation, string $longCommand)
+{
+	if (!`runTimeCommand -exists ($commandName)`)
+	{
+		runTimeCommand -default true
+			-annotation ($annotation)
+			-category   ("PhysX")
+			-command    ($longCommand)
+			$commandName;
+	}
+}
+
+global proc nxCreateToolContext(string $manipContext)
+{
+    $manipContextNodeName = $manipContext + "1";
+    
+    if (`contextInfo -exists ($manipContextNodeName)` == 1)
+        deleteUI -toolContext $manipContextNodeName;
+    
+    $nodeName = eval ($manipContext);
+    
+    // Verify that the node name is as expected.
+    if ($nodeName != $manipContextNodeName)
+    {
+        error("While creating " + $manipContext + ", node was called " + 
+            $nodeName + " instead of " + $manipContextNodeName);
+    }
+}
+
+global proc nxInitCommands()
+{
+	// Initialize commands.
+	nxInitCommand("NxCreateActiveRigidBody",
+		"Active Rigid Body: Select geometry objects to create rigid bodies",
+		"nxPerformDynamics 2 ActiveRigid 0");
+
+	nxInitCommand("NxCreateActiveRigidBodyOptions",
+		"Create Active Rigid Body Options",
+		"nxPerformDynamics 2 ActiveRigid 1");
+
+	nxInitCommand("NxCreatePassiveRigidBody",
+		"Passive Rigid Body: Select geometry objects to create rigid bodies",
+		"nxPerformDynamics 2 PassiveRigid 0");
+
+	nxInitCommand("NxCreatePassiveRigidBodyOptions",
+		"Create Passive Rigid Body Options",
+		"nxPerformDynamics 2 PassiveRigid 1");
+
+	nxInitCommand("NxCreateStaticRigidBody",
+		"Static Rigid Body: Select geometry objects to create rigid bodies",
+		"nxPerformDynamics 2 StaticRigid 0");
+	
+	nxInitCommand("nxDeleteRigidBody",
+		"Delete a rigid body (Individual or Group)",
+		"nxDeleteRigidBody");	
+		
+	nxInitCommand("nxFlushCacheDataFromSelection",
+		"Revert a rigid body into a regular transform",
+		"nxFlushCacheDataFromSelection");	
+
+	nxInitCommand("NxConnectToFields",
+		"Connect one or more PhysX rigid bodies to one or more fields",
+		"nxConnectToFields");
+		
+	nxInitCommand("NxRigidConstraint",
+		"Connect one or more PhysX rigid bodies through a rigid constraint",
+		"nxPerformDynamics 2 RigidConstraint 0");
+	
+	nxInitCommand("NxRigidConstraintOptions",
+		"Create rigid constraint options",
+		"nxPerformDynamics 2 RigidConstraint 1");	
+	
+	nxInitCommand("NxSetInitialConditions",
+		"Save the current position and orientation of selected rigid bodies as initial conditions",
+		"nxSetInitialConditions");
+	
+	nxInitCommand("NxShowAllShapes",
+		"Show all shapes in selected or all rigid bodies",
+		"physicsShowAllShapes");	
+	
+	nxInitCommand("NxShowNonPhysicsShapes",
+		"Show only regular (i.e. non-physics) shapes in selected or all rigid bodies",
+		"physicsShowNonPhysicsShapes");
+		
+	nxInitCommand("NxShowPhysicsShapes",
+		"Show only physics shapes and hide non-physics shapes in selected or all rigid bodies",
+		"physicsShowPhysicsShapes");
+
+	//** No longer supports creating physics shape without input mesh
+	//nxInitCommand("NxCreatePhysicsShapeBox",
+	//	"Create a box physics shape",
+	//	"nxCreatePhysicsShape 1");
+
+	//nxInitCommand("NxCreatePhysicsShapeSphere",
+	//	"Create a sphere physics shape",
+	//	"nxCreatePhysicsShape 2");
+
+	//nxInitCommand("NxCreatePhysicsShapeCapsule",
+	//	"Create a capsule physics shape",
+	//	"nxCreatePhysicsShape 3"); // default to capsule
+		
+	nxInitCommand("NxEnableShapeCollisions",
+		"Enable collisions on the selected shape(s) or rigid body(ies)",
+		"nxAttachShapesToParentRigidBody");
+		
+	nxInitCommand("NxDisableShapeCollisions",
+		"Disable collisions on the selected shape(s) or rigid body(ies)",
+		"nxDetachSelectedShapesFromRigidBodies");
+
+	//nxInitCommand("NxRagdollExtractFromSkinCollisionVolumes",
+	//	"Extract ragdoll body parts from skin collision volumes",
+	//	"nxExtractSkinCollisionVolumeFromSelection");
+
+	//nxInitCommand("NxRagdollCreateRigidBodies",
+	//	"Create rigid bodies from the ragdoll parts",
+	//	"nxRagDollCreateRigidBodyPartsFromSelection");
+	
+	//nxInitCommand("NxRagdollCreateRigidConstraints",
+	//	"Connect ragdoll rigid bodies using rigid constraints",
+	//	"nxRagDollCreateRigidConstraintsFromSelection");
+
+	//nxInitCommand("NxRagdollConnectAnimations",
+	//	"Connect ragdoll rigid bodies to bone animation",
+	//	"nxRagDollConnectRigidBodyAnimationsFromSelection");
+
+	nxInitCommand("NxSelectAllRigidBodies",
+		"Select all PhysX rigid bodies in the scene",
+		"select `ls -type \"nxRigidBody\"`");
+
+	nxInitCommand("NxSelectAllRigidConstraints",
+		"Select all PhysX rigid constraints in the scene",
+		"select `ls -type \"nxRigidConstraint\"`");
+
+	nxInitCommand("NxSelectAllCloths",
+		"Select all PhysX Clothing in the scene",
+		"selectClothingAndTransform");
+
+	nxInitCommand("NxBakeAll",
+		"Bake the position and orientation of every rigid body",
+		"nxBakeAll");
+
+	nxInitCommand("NxBakeSelected",
+		"Bake the position and orientation of any selected rigid body",
+		"nxBakeSelected");
+	
+	$isApexLoadedBool = `isApexLoaded`;
+    if ( 0 != $isApexLoadedBool )
+    {
+		nxInitCommand("ApexClothingPreview",
+			"Select all PhysX cloths in the scene",
+			"apexClothingPreview");
+	}
+}
+
+proc addTestFrameworkMenu()
+{
+	menuItem
+		-label "Test Framework" 
+		-c "source GUI.mel;"
+		globalTestFrameworkMenu;
+}
+
+global proc nxInitMenu()
+{	
+    global string $gMainWindow;
+
+	// Delete old menus or windows that might have changed
+	// since the plug-in was last loaded.
+	nxDeletePhysXMenu;
+    pmlUI;
+    
+    $isApexLoadedBool = `isApexLoaded`;
+    if ( 0 != $isApexLoadedBool )
+    {
+		/*
+		//$dir = `internalVar -userScriptDir`;
+		$dir = "E:/P4/P4SW_2006/sw/devtools/metools/public/PhysxPluginsForMaya/main/compiler/bin/debug/Physx2.8.3forMaya2009-win32/scripts";
+		print($dir + "\n");
+		//print(`pwd` + "\n");
+		$filename = $dir + "/apexClothingStartup.mel";
+		$file = `fopen $filename "r"`;
+		$fileContent = "";
+		if ( 0 != $file )
+		{
+			while( !feof($file) )
+			{
+				// read a line from the file
+				$fileContent += `fgetline $file`;
+			}
+			//print($fileContent);
+			eval($fileContent);
+			
+			apexClothingStartup_LoadSources();
+		}
+		*/
+		
+		source "apexClothingStartup.mel";
+		apexClothingStartup_LoadSources();
+	}
+
+	source "physxRagDollStartup.mel";
+	physxRagDollStartup_LoadSources();
+	
+	// Create the PhysX menu.
+    menu -parent $gMainWindow -tearOff true -aob true -label "PhysX" physxMenu;
+    {
+		//int $enableGround = `nxGroundPlane -q -v`;
+		//menuItem -cb $enableGround
+		//   	-label "Ground Plane"
+		//   	-command "nxGroundPlane -v `menuItem -q -cb nxGroundPlaneMenu`"
+		//	nxGroundPlaneMenu;
+
+		// old script for interactive playback
+		//menuItem -l "Interactive Playback" 
+		//	-c "InteractivePlayback" 
+		//	nxInteractivePlaybackItem;
+
+		//menuItem -cb 0 // defaults to checked
+		//	-label "Loop Simulation" 
+		//	-c "NvSolverLoopSimulation `menuItem -q -cb loopPhysxMenu`"
+		//	loopPhysxMenu;
+	
+		//int $enableSimulateByTimer = 0; //`NvSolverSimulateByTimer -q -v`;
+		//menuItem -cb $enableSimulateByTimer
+		//   	-label "Timer Simulation"
+		//   	-command "NvSolverSimulateByTimer `menuItem -q -cb nxSimulateByTimerMenu`"
+		//	nxSimulateByTimerMenu;
+	
+		menuItem
+			-label "Global Settings" 
+			-c "physxShelf_FocusSolverCommand()"
+			globalPhysxMenu;
+
+		menuItem
+			-label "Rewind Simulation" 
+			-c "physxShelf_ResetSimulationCommand()"
+			resetPhysxMenu;
+
+		menuItem
+			-label "Play/Stop Simulation" 
+			-c "physxShelf_PlayStopSimulationCommand( 0 )"
+			playStopPhysxMenu;
+
+		menuItem
+			-label "Step Simulation" 
+			-c "physxShelf_StepSimulationFrameForwardCommand()"
+			stepPhysxMenu;
+
+		////if ( 1 == `nxBuildIsDebug` )
+		////{
+		//	menuItem
+		//		-label "Switch SDK To 300"
+		//		-c "NvSolverSwitchPhysXSDK"
+		//		switchSDKMenu;
+		////}
+	
+		//physxShelf_EnableDisableMomentumCommand()
+		//physxShelf_EnableDisableAnimationCommand()	
+		//physxShelf_CaptureInitialTransformCommand()
+
+		menuItem -divider true;
+		
+		menuItem -subMenu true -tearOff true -aob true -label "Rigid Bodies";
+		{
+    		menuItem -label "Create Dynamic Rigid Body" 
+				-annotation "Create Active Rigid Body: Select geometry objects to create rigid bodies"
+				-command "NxCreateActiveRigidBody" 
+				-dragMenuCommand "nxPerformDynamics 2 ActiveRigid 2"
+				-image "rigid.xpm"
+				nxCreateActiveRigidBodyItem;
+			
+			menuItem -optionBox true -i "rigid.xpm"
+				-annotation "Create Active Rigid Body Option Box"
+				-label "Create Active Rigid Body Option Box"
+				-command "NxCreateActiveRigidBodyOptions"
+				nxCreateActiveRigidBodyDialogItem;
+
+			menuItem -label "Create Kinematic Rigid Body" 
+				-annotation "Create Passive Rigid Body: Select geometry objects to create rigid bodies"
+				-command "NxCreatePassiveRigidBody" 
+				-dragMenuCommand "nxPerformDynamics 2 PassiveRigid 2"
+				-image "rigidPassive.xpm"
+				nxCreatePassiveRigidBodyItem;
+		
+			menuItem -optionBox true -i "rigidPassive.xpm"
+				-annotation "Create Passive Rigid Body Option Box"
+				-label "Create Passive Rigid Body Option Box"
+				-command "NxCreatePassiveRigidBodyOptions"
+				nxCreatePassiveRigidBodyDialogItem;
+
+			menuItem -label "Create Static Rigid Body" 
+				-annotation "Create Static Rigid Body: Select geometry objects to create rigid bodies"
+				-command "NxCreateStaticRigidBody" 
+				-dragMenuCommand "nxPerformDynamics 2 StaticRigid 2"
+				-image "rigidPassive.xpm"
+				nxCreateStaticRigidBodyItem;
+
+			menuItem -label "Delete Rigid Body"
+				-command "nxDeleteRigidBody" 
+				nxDeleteRigidBodiesFromSelectionItem;
+
+			menuItem -divider true;
+
+			//menuItem -subMenu true -tearOff true -aob true -label "Basic Shapes";
+			//{
+			//	//** No longer supports creating physics shape without input mesh
+			//	menuItem -l "Create Box"
+			//		-annotation "Create a box collision shape that is automatically connected to a rigid body if one is selected."
+			//		-c "NxCreatePhysicsShapeBox" 
+			//		-dmc "NxCreatePhysicsShapeBox"
+			//		nxCreatePhysicsShapeBoxItem;
+			
+			//	menuItem -l "Create Sphere" 
+			//		-annotation "Create a sphere collision shape that is automatically connected to a rigid body if one is selected."
+			//		-c "NxCreatePhysicsShapeSphere" 
+			//		-dmc "NxCreatePhysicsShapeSphere"
+			//		nxCreatePhysicsShapeSphereItem;
+			
+			//	menuItem -l "Create Capsule" 
+			//		-annotation "Create a capsule that is automatically connected to a rigid body if one is selected."
+			//		-c "NxCreatePhysicsShapeCapsule" 
+			//		-dmc "NxCreatePhysicsShapeCapsule"
+			//		nxCreatePhysicsShapeCapsuleItem;
+			//		
+			//	menuItem -divider true;
+
+			//	//"Enable collisions"
+			//	menuItem -l "Group with Parent"
+			//		-annotation "Enable collisions on selected shape(s) or rigid body(ies)."
+			//		-c "NxEnableShapeCollisions" 
+			//		-dmc "NxEnableShapeCollisions"
+			//		nxEnableShapeCollisionsItem;
+
+			//	//"Disable collisions"
+			//	menuItem -l "Ungroup from Parent"
+			//		-annotation "Disable collisions on selected shape(s) or rigid body(ies)."
+			//		-c "NxDisableShapeCollisions" 
+			//		-dmc "NxDisableShapeCollisions"
+			//		nxDisableShapeCollisionsItem;
+		
+			//	setParent -menu ..;
+			//}
+			
+			//menuItem -subMenu true -tearOff true -aob true -label "Convex Hulls";
+			//{
+			//	menuItem -label "Create Convex Hull" -c "pml_convexHull";
+			//	menuItem -optionBox true -c "pml_convexHull_options";
+
+			//	menuItem -label "Create Spatial Aggregate" -c "pml_spatialAggHull";
+			//	menuItem -optionBox true -c "pml_spatialAggHull_options";
+
+			//	menuItem -divider true;
+
+			//	menuItem -label "Preferences..." -c "pml_preferences";
+
+			//	setParent -menu ..;
+			//}
+			//menuItem -divider true;
+			
+			menuItem -l "Connect to Fields" 
+				-c "NxConnectToFields" 
+				nxConnectToFieldsItem;
+				
+			menuItem -divider true;
+
+			menuItem -l "Set Initial Conditions"
+				-c "NxSetInitialConditions" 
+				NxSetInitialConditionsItem;
+	
+			menuItem -l "Bake All" 
+				-c "nxBakeAll" 
+				nxBakeAllItem;
+
+			menuItem -l "Bake Selected" 
+				-c "nxBakeSelected" 
+				nxBakeSelectedItem;
+
+			setParent -menu ..;
+		}
+
+		menuItem -subMenu true -tearOff true -aob true -label "Constraints";
+		{
+			menuItem -l "Create Constraint" 
+				-c "NxRigidConstraint" 
+				nxRigidConstraintItem;
+				
+			menuItem -optionBox true -i "rigidConstraint.xpm"
+				-annotation "Create Rigid Constraint Option Box"
+				-l "Create Rigid Constraint Option Box"
+				-c "NxRigidConstraintOptions"
+				nxCreateRigidConstraintDialogItem;
+
+			setParent -menu ..;
+		}
+
+		physxRagDollStartup_FillMainMenu();
+		
+
+		//menuItem -subMenu true -tearOff true -aob true -label "Simple Cloth";
+		//{
+		//	menuItem -l "Create Cloth" 
+		//		-c "nxClothCmd -c \"cloth\""
+		//		nxClothCreateItem;
+				
+		//	menuItem -l "Create Constraint" 
+		//		-c "nxClothCmd -c \"constrain\""
+		//		nxClothConstraintItem;
+				
+		//	menuItem -l "Set Initial Pose" 
+		//		-c "nxClothCmd -c \"initial\""
+		//		nxClothInitialItem;
+			
+		//	setParent -menu ..;
+		//}
+		
+		if ( 0 != $isApexLoadedBool )
+		{
+			apexClothingStartup_FillMainMenu();
+		}
+
+		// load test framework
+		if ( 1 == `nxBuildIsDebug` )
+		{
+			addTestFrameworkMenu();
+		}
+	
+		//menuItem -subMenu true -tearOff true -aob true -label "Soft Bodies";
+		//{
+		//	//softbody
+		//	menuItem -l "Create Soft Body" 
+		//		//-annotation "Create Active Rigid Body: Select geometry objects to create soft bodies"
+		//		-c "nxSoftBodyCmd -c \"softbody\"" 
+		//		nxSoftCreateItem;
+		//				
+		//	menuItem -l "Set Initial Pose"
+		//		-c "nxSoftBodyCmd -c \"init\"" 
+		//		nxSoftInitialItem;
+		//	
+		//	setParent -menu ..;
+		//}
+
+		// removed from build
+		//menuItem -subMenu true -tearOff true -aob true -label "Fluid";
+		//{
+		//	menuItem -l "Create Fluid Emitter" 
+		//		-c "nxParticleSys -c \"emitter\""
+		//		nxFluidEmitterItem;
+		//		
+		//	menuItem -l "Create Fluid" 
+		//		-c "nxParticleSys -c \"fluid\""
+		//		nxFluidItem;
+
+		//	setParent -menu ..;
+		//}
+
+		menuItem -divider true;
+
+		menuItem -subMenu true -tearOff true -aob true -label "Select All by Type";
+		{
+			menuItem -label "PhysX Rigid Bodies" 
+				-c "NxSelectAllRigidBodies";
+			
+			menuItem -label "PhysX Rigid Constraints" -c "NxSelectAllRigidConstraints";
+			
+			menuItem -label "PhysX Clothing" -c "NxSelectAllCloths";
+			//todo, add softbody type menuItem -label "PhysX SoftBodies" -c "NxSelectAllSoftBodies";
+			
+			setParent -menu ..;
+		}
+
+		menuItem -subMenu true -tearOff true -aob true -label "Show/Hide";
+		{	
+			menuItem -l "Show All Shapes"
+				-annotation "Show all shapes, applied on selected or all rigid bodies"
+				-c "NxShowAllShapes" 
+				-dmc "NxShowAllShapes"
+				nxShowAllShapesItem;			
+
+			menuItem -l "Show Physics shapes" 
+				-annotation "Show only physics collision shapes, applied on selected or all rigid bodies"
+				-c "NxShowPhysicsShapes" 
+				-dmc "NxShowPhysicsShapes"
+				nxShowRegularShapesOnlyItem;			
+		
+			menuItem -l "Hide Physics shapes"
+				-annotation "Hide physics shapes and show non-physics shapes, applied on selected or all rigid bodies"
+				-c "NxShowNonPhysicsShapes" 
+				-dmc "NxShowNonPhysicsShapes"
+				nxShowPhysicsShapesOnlyItem;
+			
+			setParent -menu ..;
+		}
+
+		menuItem -l "Launch PhysX Viewer"
+				 -c "LaunchViewerCmd;"
+				 launchViewerItem;
+
+		menuItem -l "Validate PhysX Scene"
+				 -c "ValidatePhysXSceneCmd();"
+				 validatePhysXSceneItem;
+
+		//menuItem -l "Export PhysX Scene"
+		//		 -c "pxExporterWindow();"
+		//		 exportPhysXSceneItem;
+
+		menuItem -l "About PhysX For Maya"
+				 -c ("evalEcho aboutDialogCmd")
+				 aboutMenuItem;
+
+		menuItem -l "PhysX Help"
+			-c "physXHelpCmd;"
+			physXHelpMenuItem;
+    }
+}
+
+global proc physxUI_startup()
+{
+	source "physxValidateScene.mel";
+	source AEnxRagdollLocatorTemplate.mel;
+
+	//if( `optionVar -exists "nxNativeTimeControl"` == false)
+	optionVar -iv "nxNativeTimeControl" false;         // user do not like to turn it on by default because it slows native animation.
+
+	global string $physxIconFormat;
+	if( getApplicationVersionAsFloat() > 2010 )
+		$physxIconFormat = ".png";
+	
+	global string $physXShelfNames[];
+	$physXShelfNames = { "PhysX", "PhysXTearOff" };
+	
+	string $currentShelf = `shelfTabLayout -q -selectTab "ShelfLayout"`;
+	
+	if ( `shelfLayout -exists "PhysX"` ) 
+		nxDeleteShelfTab "PhysX"; 
+	addNewShelfTab "PhysX"; 
+
+	shelfTabLayout -e -selectTab $currentShelf "ShelfLayout";
+
+	// Serves the dual purpose to force loading this file, 
+	// and do some initialization after the plug-in is loaded.
+    nxInitMenu;
+	physxShelf_init;
+
+	physxHookMayaUIControl(1);
+	
+	source "physxSettings.mel";
+	nxRestoreFactoryCheck;
+}
+
+// ------------------ start of mel script for PhysX Shelf --------------------
+
+global proc physxShelf_init()
+{
+	//addNewShelfTab "PhysX";
+	//print( "physxShelf_init\n" );
+	global string $physXShelfNames[];
+	global string $physxIconFormat;
+
+	physxShelf_generateButtons( $physXShelfNames[0] );
+
+	// unload plugin button
+	//shelfButton -annotation "Unload Plugin" -image1 "commandButton.xpm" -command ( "file -f -new; unloadPlugin physx.mll;" ) "Unload";
+
+	// Tear Off button
+	shelfButton -parent "PhysX" -annotation "Detach PhysX Shelf" -image1 ("DetachPhysXTools"+$physxIconFormat) -command ( "physxShelf_tearOffWindow;" ) ("TearOff" + $physXShelfNames[0]);
+	// refreshes the view to show the newly created buttons
+	if(! `exists shelfLabel_melToUI` )
+	{
+		source "shelfLabel.mel";
+	}
+}
+
+global proc int physxShelf_tearOffExist()
+{
+	global string $physXShelfNames[];
+	return `shelfLayout -q -exists $physXShelfNames[1]`;
+}
+
+/*~
+~name physxShelf_tearOffWindow
+~desc This command tears off physx shelf bar
+~returnValue string The name of clothing node
+~example 
+	physxShelf_tearOffWindow;
+
+*/
+global proc physxShelf_tearOffWindow()
+{
+	global string $physXShelfNames[];
+	
+	if( !physxShelf_tearOffExist() )
+	{
+		string $window = `window -title "PhysX" -toolbox true`;
+			shelfLayout -width 450 -height 40 -cellWidthHeight 34 34 $physXShelfNames[1];
+			physxShelf_generateButtons( $physXShelfNames[1] );
+		showWindow $window;
+		if( getApplicationVersionAsFloat() > 2010 )
+			window -e -widthHeight 450 40 $window;
+		else
+			window -e -widthHeight 490 74 -resizeToFitChildren true $window;
+	}
+}
+
+global proc physxShelf_generateButtons( string $parent )
+{
+	global string $physxIconFormat;
+	// creates the button
+	shelfButton -parent $parent -annotation "Edit PhysX Settings" -image1 ("editPhysX"+$physxIconFormat) -command ( "physxShelf_FocusSolverCommand;" ) ("EditPhysX" +$parent);
+
+	shelfButton -parent $parent -annotation "Edit PhysX Object" -image1 ("EditPhysXObject"+$physxIconFormat) -command ( "physxShelf_FocusSelectedCommand;" ) ("EditPhysXObject" +$parent);
+
+	shelfButton -parent $parent -annotation "Create Dynamic Rigid Body" -image1 ("CreateDynamicRigidBodyWithOptions"+$physxIconFormat) -command ("physxShelf_RigidBodyPopUpMenu;") -doubleClickCommand ( "NxCreateActiveRigidBody;" ) ("CreateDynamicRigidBody" +$parent);
+	//Due to the introduction of shelfButtonPMO cmd in 2012, it always override our popupMenu with a default list of menuitems on the Right Mouse Button(rmb)
+	//& it seems to store every single name of the shelf buttons created, so even if the tear off menu is gone.. it will still attempt to create 
+	//those menu items, hence the error "Object's window cannot be found"
+	//haven't figure out a way to turn off shelfButtonPMO, but at least users will still have access to our popup menu
+	//if( getApplicationVersionAsFloat() > 2011 )
+	//	popupMenu -button 1 -postMenuCommand ( "physxShelf_RigidBodyPopUpMenu;" ) -ctrlModifier true;
+	//else
+	//	popupMenu -button 3 -postMenuCommand ( "physxShelf_RigidBodyPopUpMenu;" );
+
+
+	shelfButton -parent $parent -annotation "Create Constraint" -image1 ("CreateConstraint"+$physxIconFormat) -command ( "NxRigidConstraint;" ) ("CreateConstraint" +$parent);
+
+	shelfButton -parent $parent -annotation "Ragdoll Options" -image1 ("CreateDynamicRagdollWithOptions"+$physxIconFormat) -command ( "physxShelf_RagdollPopUpMenu;" ) -doubleClickCommand ( "AEnxRagdollLocator_GenerateRagdollFirstTime( 0, \"Capsule\" );" ) ("CreateDynamicRagdoll" +$parent);
+	//if( getApplicationVersionAsFloat() > 2011 )
+	//	popupMenu -button 1 -postMenuCommand ( "physxShelf_RagdollPopUpMenu;" ) -ctrlModifier true;
+	//else
+	//	popupMenu -button 3 -postMenuCommand ( "physxShelf_RagdollPopUpMenu;" );
+
+	shelfButton -parent $parent -annotation "Create PhysX Clothing" -image1 ("CreateClothing"+$physxIconFormat) -command ( "apexClothingCreate;" ) ("CreateAPEXClothing" +$parent);
+
+	shelfButton -parent $parent -annotation "Disable Animation" -image1 ("animationOn"+$physxIconFormat) -command ( "physxShelf_EnableDisableAnimationCommand;" ) ("EnableDisableAnimation" +$parent);
+	shelfButton -parent $parent -annotation "Disable Momentum" -image1 ("momentumOn"+$physxIconFormat) -command ( "physxShelf_EnableDisableMomentumCommand;" ) ("EnableDisableMomentum" +$parent);
+	shelfButton -parent $parent -annotation "Capture Initial Transform" -enable true -image1 ("CaptureInitialTransformEnabled"+$physxIconFormat) -disabledImage ("CaptureInitialTransformDisabled"+$physxIconFormat) -command ( "physxShelf_CaptureInitialTransformCommand;" ) ("CaptureInitialTransform" +$parent);
+
+	shelfButton -parent $parent -annotation "Reset Simulation" -enable true -image1 ("resetEnabled"+$physxIconFormat) -disabledImage ("resetDisabled"+$physxIconFormat) -command ( "physxShelf_ResetSimulationCommand;" ) ("ResetSimulation" +$parent);
+	//shelfButton -annotation "Step Simulation Frame Backward" -image1 "sphere.xpm" -command ( "shelf_StepSimulationFrameBackwardCommand;" ) ("StepSimulationFrameBackward" +$parent);
+	shelfButton -parent $parent -annotation "Play Simulation" -image1 ("play"+$physxIconFormat) -command ( "physxShelf_PlayStopSimulationCommand( 0 );" ) ("PlayStopSimulation" +$parent);
+	shelfButton -parent $parent -annotation "Step Simulation Frame Forward" -image1 ("stepForward"+$physxIconFormat) -command ( "physxShelf_StepSimulationFrameForwardCommand;" ) ("StepSimulationFrameForward" +$parent);
+
+	shelfButton -parent $parent -annotation "Launch PhysX Viewer" -image1 ("MayaPhysXViewer"+$physxIconFormat) -command ( "LaunchViewerCmd;" ) ("MayaPhysXViewer" +$parent);
+
+	shelfButton -parent $parent -annotation "New Simulation Set" -image1 ("newSim"+$physxIconFormat) -command "PhysxNewSimulationSet";
+	shelfButton -parent $parent -annotation "Manage Simulation Set" -image1 ("manageSim"+$physxIconFormat) -command "PhysXOpenSimulationMgrWindow";
+}
+
+global proc physxCreateRB(int $type, string $winctrl)
+{
+	NvExecuteOnTimerCmd -cmd ("physxDeletePopUpWindow " + $winctrl ) -t 0.5;
+	switch($type)
+	{
+	case 1:// dynamic
+		NxCreateActiveRigidBody;
+		break;
+	case 2:// kinematic
+		NxCreatePassiveRigidBody;
+		break;
+	default: // static
+		NxCreateStaticRigidBody;
+	}
+}
+
+global proc physxShelf_RigidBodyPopUpMenu()
+{
+	global string $physxIconFormat;
+	global string $physXPopUpShelfMenu;
+	string $window = $physXPopUpShelfMenu;
+	//string $window = "physxShelf_RigidBodyPopUpMenu";
+	physxDeletePopUpWindow( $window );
+
+	window -title "PhysX Rigid Body Menu" -titleBar off -toolbox on -resizeToFitChildren true $window;
+		columnLayout -width 200 -height 98;
+			iconTextButton -width 200 -height 32 -style "iconAndTextHorizontal" -label "Create Dynamic Rigid Body" -image1 ("CreateDynamicRigidBody"+$physxIconFormat) -command ( "physxCreateRB(1,\"" + $window + "\");" );
+			iconTextButton -width 200 -height 32 -style "iconAndTextHorizontal" -label "Create Kinematic Rigid Body" -image1 ("CreateKinematicRigidBody"+$physxIconFormat) -command ( "physxCreateRB(2,\"" + $window + "\");" );
+			iconTextButton -width 200 -height 32 -style "iconAndTextHorizontal" -label "Create Static Rigid Body" -image1 ("CreateStaticRigidBody"+$physxIconFormat) -command ( "physxCreateRB(3,\"" + $window + "\");" );
+		setParent..;
+	showWindow $window;
+
+	int $mousePos[] = `NvSolverMousePosition`;
+	window -e -topEdge ($mousePos[1]-10) -leftEdge ($mousePos[0]-10) -sizeable off $window;
+
+	NvExecuteOnTimerCmd -cmd ("physxDeletePopUpWindowOnMouseLeave " + $window ) -t 0.5;
+	//NvExecuteOnTimerCmd -cmd ("physxDeletePopUpWindow " + $window ) -t 3;
+}
+
+global proc physxShelf_RagdollPopUpMenu()
+{
+	global string $physxIconFormat;
+	global string $physXPopUpShelfMenu;
+	string $window = $physXPopUpShelfMenu;
+	//string $window = "physxShelf_RagdollPopUpMenu";
+	physxDeletePopUpWindow( $window );
+
+	window -title "PhysX Ragdoll Menu" -titleBar off -toolbox on -resizeToFitChildren true $window;
+		columnLayout -width 200 -height 98;
+			iconTextButton -width 200 -height 32 -style "iconAndTextHorizontal" -label "Create Dynamic Ragdoll" -image1 ("CreateDynamicRagdoll"+$physxIconFormat) -command ( "AEnxRagdollLocator_GenerateRagdollFirstTime( 0, \"Capsule\" ); evalDeferred \"physxDeletePopUpWindow " + $window + "\";" );
+			iconTextButton -width 200 -height 32 -style "iconAndTextHorizontal" -label "Create Kinematic Ragdoll" -image1 ("CreateKinematicRagdoll"+$physxIconFormat) -command ( "AEnxRagdollLocator_GenerateRagdollFirstTime( 1, \"Capsule\" ); evalDeferred \"physxDeletePopUpWindow " + $window + "\";" );
+			iconTextButton -width 200 -height 32 -style "iconAndTextHorizontal" -label "Delete Ragdoll" -image1 ("RemoveRagdoll"+$physxIconFormat) -command ( "AEnxRagdollLocator_DeleteRagdoll on; evalDeferred \"physxDeletePopUpWindow " + $window + "\";" );
+		setParent..;
+	showWindow $window;
+
+	int $mousePos[] = `NvSolverMousePosition`;
+	window -e -topEdge ($mousePos[1]-10) -leftEdge ($mousePos[0]-10) -sizeable off $window;
+
+	NvExecuteOnTimerCmd -cmd ("physxDeletePopUpWindowOnMouseLeave " + $window ) -t 0.5;
+	//NvExecuteOnTimerCmd -cmd ("physxDeletePopUpWindow " + $window ) -t 3;
+}
+
+global proc physxRefreshOneClothing(string $clothingName)
+{
+	string $meshNames[] = `deformer -q -geometry $clothingName`;
+	int $num = size($meshNames);
+	int $j;
+	for ($j = 0; $j < $num; $j++)
+	{
+		print ("// bakePartialHistory \"" + $meshNames[$j] + "\";\n");
+		bakePartialHistory $meshNames[ $j ];
+	}
+}
+
+// user may change the geometry before simulation. we need refresh things to build correct clothing mesh.
+global proc physxRefreshClothingBeforeSimulateExport()
+{
+	string $clothings[] = `ls -l -type apexClothing`;
+	int $count = size($clothings);
+	int $i;
+	//print ("// physxRefreshClothingBeforeSimulateExport();\n");
+	for ($i = 0; $i < $count; $i++)
+	{
+		//print ("refreshing PhysX Object: " + $clothings[$i] + "\n");
+		physxRefreshOneClothing $clothings[$i];
+	}
+}
+
+//global proc physxRefreshClothingBeforeSimulateExport2()
+//{
+//	global int $physxFlagNeedRefreshClothing;
+//	if($physxFlagNeedRefreshClothing)
+//	{
+//		$physxFlagNeedRefreshClothing = 0;
+//		physxRefreshClothingBeforeSimulateExport();
+//	}
+//}
+//
+//global proc physxRaiseFlagNeedRefreshClothing()
+//{
+//	global int $physxFlagNeedRefreshClothing;
+//	$physxFlagNeedRefreshClothing = 1;
+//}
+
+global proc physxSimulationRewind()
+{
+	// fix GWDCC-137 and GWDCC-269
+	evalDeferred( "physxRefreshClothingBeforeSimulateExport" );
+}
+
+global proc physxSimulationRebuild()
+{
+}
+
+// physxSimulationRun is called at every simulation step. User can rewrite this callback to do their own job
+global proc physxSimulationRun()
+{
+}
+
+global proc physxDeletePopUpWindow( string $windowName )
+{
+	if( `window -exists $windowName` )
+		deleteUI -window $windowName;
+}
+
+global proc int physxShelf_mouseLeave( string $windowControl )
+{
+	int $mouseLeave = true;
+	if(`window -exists $windowControl`)
+	{
+		int $position[2];
+		$position[0] = `window -q -leftEdge $windowControl`;		
+		$position[1] = `window -q -topEdge $windowControl`; 
+		$dimension = `window -q -widthHeight $windowControl`; //0: width, 1: height
+
+		int $mousePos[] = `NvSolverMousePosition`;
+		
+		if( $mousePos[0] >= $position[0] && $mousePos[0] <= ($position[0] +$dimension[0]) 
+		&&  $mousePos[1] >= $position[1] && $mousePos[1] <= ($position[1] +$dimension[1]) )	
+			$mouseLeave = false;
+	}
+	return $mouseLeave;
+}
+
+global proc physxDeletePopUpWindowOnMouseLeave( string $windowControl )
+{
+	if(`physxShelf_mouseLeave( $windowControl )`)
+		physxDeletePopUpWindow $windowControl;
+	else
+		NvExecuteOnTimerCmd -cmd ("physxDeletePopUpWindowOnMouseLeave " + $windowControl ) -t 0.5;
+}
+
+// Feature Commands
+global proc string physxFindFocusFromSelection()
+{
+	string $selectionList[];
+	int $count;
+	int $i;
+	
+	//Search for Clothing
+	$selectionList = `ls -selection -dagObjects -objectsOnly -type mesh`;
+	$count = `size($selectionList)`;
+	for ( $i = 0; $i < $count; $i++ )
+	{
+		string $selected = $selectionList[$i];
+
+		string $found = getApexClothingFromMesh($selected);
+		if ( $found != "" )
+			return $found;
+	}
+
+	//Search for RigidBody
+	string $selectedArray[] = `ls -sl`;
+	int $length = size($selectedArray);
+	if($length == 0)
+		return "";
+
+	string $rigidBodies[] = `listRelatives -fullPath -children -type "nxRigidBody" $selectedArray`;
+	$length = size($rigidBodies);
+	if($length > 0)
+		return $rigidBodies[0];
+
+	return "";
+
+}
+
+/*~
+~name physxShelf_FocusSelectedCommand
+~desc This command selects a rigid body node or clothing node for a given mesh.
+~returnValue string The name of selected node
+~example 
+	physxShelf_FocusSelectedCommand;
+
+*/
+global proc string physxShelf_FocusSelectedCommand()
+{
+	string $focus = physxFindFocusFromSelection();
+	
+	if ( $focus != "" )
+	{
+		nxShowEditorExact $focus;
+		return $focus;
+	}
+	return "";
+}
+
+/*~
+~name physxShelf_FocusSolverCommand
+~desc This command shows PhysX setting in attribute editor.
+~returnValue None
+~example 
+	physxShelf_FocusSolverCommand;
+
+*/
+global proc physxShelf_FocusSolverCommand()
+{
+	nxLazilyCreateSolverAndDebug();
+	
+	global string  $physxSolverNodeNameShort;
+	nxShowEditorExact  $physxSolverNodeNameShort;
+}
+
+
+global proc physxShelf_EnableDisableAnimationCommand()
+{
+	global string $physxIconFormat;
+	global string $physXShelfNames[];
+	int $tearOff = physxShelf_tearOffExist();
+
+	// command shelfButton needs a parent whatever it is or there will be  error: object window not found. This should be a Maya bug
+	string $oldParent = `setParent -q`;
+	setParent "MayaWindow";
+	string $currAnno = `shelfButton -q -annotation ("EnableDisableAnimation" + $physXShelfNames[0])`;
+	if ( $currAnno == "Disable Animation" ) // animation is enabled
+	{
+		for( $i=0; $i<=$tearOff; $i++ )
+			shelfButton -edit -annotation "Enable Animation" -image1 ("animationOff"+$physxIconFormat) ("EnableDisableAnimation"+ $physXShelfNames[$i]);
+		
+		// do something to disable animation
+		NvSolverAnimationEnableDisable 0;
+	}
+	else // animation is enabled
+	{
+		for( $i=0; $i<=$tearOff; $i++ )
+			shelfButton -edit -annotation "Disable Animation" -image1 ("animationOn"+$physxIconFormat) ("EnableDisableAnimation"+ $physXShelfNames[$i]);
+		
+		// do something to enable animation
+		NvSolverAnimationEnableDisable 1;
+	}
+	setParent $oldParent;
+}
+
+global proc physxShelf_EnableDisableMomentumCommand()
+{
+	global string $physxIconFormat;
+	global string $physXShelfNames[];
+	int $tearOff = physxShelf_tearOffExist();
+
+	// command shelfButton needs a parent whatever it is or there will be  error: object window not found. This should be a Maya bug
+	string $oldParent = `setParent -q`;
+	setParent "MayaWindow";
+	string $currAnno = `shelfButton -q -annotation ("EnableDisableMomentum" + $physXShelfNames[0])`;
+	if ( $currAnno == "Disable Momentum" ) // Momentum is enabled
+	{
+		for( $i=0; $i<=$tearOff; $i++ )
+			shelfButton -edit -annotation "Enable Momentum" -image1 ("momentumOff"+$physxIconFormat) ("EnableDisableMomentum" + $physXShelfNames[$i]);
+
+		// do something to disable Momentum
+		NvSolverMomentumEnableDisable 0;
+	}
+	else // Momentum is enabled
+	{
+		for( $i=0; $i<=$tearOff; $i++ )
+			shelfButton -edit -annotation "Disable Momentum" -image1 ("momentumOn"+$physxIconFormat) ("EnableDisableMomentum" + $physXShelfNames[$i] );
+		
+		// do something to enable Momentum
+		NvSolverMomentumEnableDisable 1;
+	}
+	setParent $oldParent;
+}
+
+global proc physxShelf_CaptureInitialTransformCommand()
+{
+	// If we are in minium time, we do nothing
+	if(`currentTime -q` == `playbackOptions -q -minTime`)
+	{
+		warning "Not applicable at minTime";
+	}
+
+	// when pressed, the current transformation of all rigid bodies are used as the inital transforms
+	NvSolverCaptureInitialTransform;
+	
+	// and the simulation is reset. 
+	physxShelf_ResetSimulationCommand;
+}
+
+global proc physxShelf_ResetSimulationCommand()
+{
+	// resets simulation back to the first frame and 
+	// and stop playing if it's playing
+
+	// stop if simulation is playing
+	physxShelf_PlayStopSimulationCommand( 1 );
+
+	// reset
+	NvSolverRewindSimulation;
+}
+
+
+// $skipPlay is for skipping the playing part if current state is stop
+// default always pass in 0
+// only physxShelf_ResetSimulationCommand() will it pass in 1
+global proc physxShelf_PlayStopSimulationCommand( int $skipPlay )
+{
+	global string $physxIconFormat;
+	global string $physXShelfNames[];
+	
+	int $tearOff = physxShelf_tearOffExist();
+
+	// command shelfButton needs a parent whatever it is or there will be  error: object window not found. This should be a Maya bug
+	string $oldParent = `setParent -q`;
+	setParent "MayaWindow";
+	string $currAnno = "";
+	if(`control -exists ("PlayStopSimulation" + $physXShelfNames[0])`)
+		$currAnno = `shelfButton -q -annotation ("PlayStopSimulation" + $physXShelfNames[0])`;
+	if ( $currAnno == "Play Simulation" ) // Simulation is stopped
+	{
+		apexClothingStopPainting();
+
+		if ( $skipPlay == 0 )
+		{
+			for( $i=0; $i<=$tearOff; $i++ )
+			{
+				if(`control -exists ("PlayStopSimulation" + $physXShelfNames[$i])`)
+				{
+					shelfButton -edit -annotation "Stop Simulation" -image1 ("stop"+$physxIconFormat) ("PlayStopSimulation"+ $physXShelfNames[$i]);
+				
+					// do something to play simulation
+					shelfButton -edit -enable true ("ResetSimulation"+ $physXShelfNames[$i]);
+					shelfButton -edit -enable true ("CaptureInitialTransform"+ $physXShelfNames[$i]);
+					shelfButton -edit -enable false ("StepSimulationFrameForward"+ $physXShelfNames[$i]); // disable the step forward button when playing
+				}
+			}
+
+			NvSolverSimulateByTimer 1; // plays
+		}
+	}
+	else // Simulation is playing
+	{
+		for( $i=0; $i<=$tearOff; $i++ )
+		{
+			if(`control -exists ("PlayStopSimulation" + $physXShelfNames[$i])`)
+			{		
+				shelfButton -edit -annotation "Play Simulation" -image1 ("play"+$physxIconFormat) ("PlayStopSimulation"+ $physXShelfNames[$i]);
+				
+				// do something to stop simulation
+				shelfButton -edit -enable true ("StepSimulationFrameForward"+ $physXShelfNames[$i]); // enable back the step forward button when stopping
+			}
+		}
+
+		NvSolverSimulateByTimer 0; // stops
+	}
+	setParent $oldParent;
+}
+
+global proc physxShelf_StepSimulationFrameForwardCommand()
+{
+	apexClothingStopPainting();
+	NvSolverStepSimulation;
+}
+
+//global proc shelf_cleanup()
+//{
+//	//nxDeleteShelfTab "PhysX";
+//	print( "shelf_cleanup\n" );
+//}
+
+// ------------------ end of mel script for PhysX Shelf ----------------------
+
+global proc physxUI_cleanup()
+{
+    if (`menu -exists physxMenu`) 
+		deleteUI physxMenu;
+		
+	physxHookMayaUIControl(0);
+	//shelf_cleanup();
+	pmlUI_cleanup();
+}
+
+global proc nxDeletePhysXMenu()
+{
+    if (`menu -exists physxMenu`)
+		deleteUI physxMenu;
+}
+
+global proc string nxLazilyCreateSolverAndDebug()
+{
+	global string $physxSolverNodeNameLong;
+	global string $physxSolverNodeNameShort;
+	string $instanceNames[] = `ls $physxSolverNodeNameShort`;
+
+	string $found = "";
+	for($instance in $instanceNames)
+	{
+		if ( `nodeType $instance` != "nxRigidSolver" )
+		{
+			delete $instance;
+		}
+		else if($found != "")
+		{
+			//deleted if there is more than one! 
+			delete $instance;
+		}
+		else
+			$found = $instance;
+	}
+	
+	if($found != "")
+	{
+		return $found;
+	} 
+
+		
+	string $transformName = "PhysX";
+	if((objExists($transformName) == true) && (`nodeType $transformName` != "tranform"))
+		delete $transformName;
+	if(objExists($transformName) == false)
+		createNode -shared -name $transformName transform; // create the transform for the solver node and name it properly
+	
+	createNode -shared -parent $transformName -name $physxSolverNodeNameShort nxRigidSolver; // create the solver node
+	
+	reorder -front $transformName; // shift it to the front
+	
+	return $physxSolverNodeNameLong;
+
+}
+
+global proc nxCreateHelperRB()
+{
+	if(!objExists("nimaHelperRB"))
+	{
+		polyCube -ch on -o on -w 0.01 -h 0.01 -d 0.01 -cuv 4 -name nimaHelperPolycube;
+		move 100000.0 100000.0 100000.0;
+		nxRigidBody -name nimaHelperRB -passive -m 1 -den 1 -omd 1 -adp 0 -dp 0 -sf 0.2 -df 0.2 -b 0.6 -l 0 -tf 200 -iv 0 0 0 -iav 0 0 0 -c 0 -pc 0 -i 0 0 0 -imp 0 0 0 -si 0 0 0 -sio none;
+	}
+}
+
+global proc nxVisitRigidBodiesAfterLoad()
+{
+	$rigidBodies = `ls -type "nxRigidBody"`;
+	for ($rigidBody in $rigidBodies)
+	{
+    print $rigidBody;
+		$isActive = `getAttr ($rigidBody + ".simulationType")`;
+		setAttr ($rigidBody + ".simulationType") (!($isActive));
+		setAttr ($rigidBody + ".simulationType") ($isActive);
+	}
+}
+
+global proc int isSomeRigidBody(string $nodeType)
+{
+	return ($nodeType == "rigidBody" || $nodeType == "nxRigidBody");
+}
+
+// Work-around a Maya bug that occurs when a command that is
+// implemented in a plug-in gets called after the plug-in is
+// unloaded/loaded. The internal pointer to the command is not
+// always refreshed properly, which can cause crashes and
+// other nastiness. The work-around is to always use the eval()
+// statement to call that command.
+//
+global proc int nxGetNextIndex(string $node, string $attr)
+{
+    string $command = "nxGetLargestIndex(\"" + $node + "\", \"" + 
+        $attr + "\");";
+    return eval($command) + 1;
+}
+
+global proc nxReparent(string $childNode, string $parentNode)
+{
+    string $command = "nxParent(\"" + $childNode + "\", \"" + 
+        $parentNode + "\");";
+    eval($command);
+}
+
+// Returns name of the node from a given plug name
+global proc string extractNodeName(string $plug)
+{
+	string $buffer[];
+	tokenize($plug, ".", $buffer);
+    return $buffer[0];
+}
+
+// Add all the necessary physics extensions to the current scene, 
+// as dynamic attributes.
+//
+global proc colladaPhysicsSceneAddAttr()
+{
+	colladaPhysicsIterateScene("colladaPhysicsAddAttr");
+}
+
+// Iterate through the scene. First, visit all rigid bodies,
+// then visit each shape attached to a rigid body.
+//
+global proc colladaPhysicsIterateScene(string $evaluator)
+{
+	$rigidBodies = `ls -typ rigidBody`;
+	int $numRigidBodies = size($rigidBodies);
+
+	// Iterate over each rigid body in the scene.
+	for ($i = 0; $i < $numRigidBodies; $i++)
+		colladaPhysicsIterateRigidBody($rigidBodies[$i], $evaluator);
+}
+
+global proc colladaPhysicsIterateRigidBody(string $rigidBody, string $evaluator)
+{
+	// Select the rigid body, then call the
+	// evaluator function.
+	eval $evaluator $rigidBody;
+
+	// For each shape that is part of
+	// the rigid body...
+	$shapes = `listConnections -sh on ($rigidBody + ".inputGeometryMsg")`;
+	int $numShapes = size($shapes);
+	for ($j = 0; $j < $numShapes; $j++)
+	{
+		// Select the shape, then call the
+		// evaluator.
+		string $shape = $shapes[$j];
+		eval $evaluator $shape;
+	}
+}
+
+global proc physicsIterateChildrenPhysicsShapes(
+    string $evaluatorPhysicsShape,
+    string $evaluatorOther)
+{
+    // Return dag objects only
+	string $dagNodes[];
+	clear $dagNodes;
+	$dagNodes = `ls -long -selection -type dagNode`;
+	int $selection = size($dagNodes);
+	if($selection<1)
+	{
+	    $dagNodes = `ls -type nxRigidBody`;
+	}
+
+    for ($dagNode in $dagNodes)
+    {
+ 		$children = `ls -dagObjects -objectsOnly -type "physicsShape" $dagNode`;
+        for ($child in $children)
+        {
+            $childType = `nodeType $child`;
+            if ($childType == "physicsShape" && $evaluatorPhysicsShape != "")
+                evalEcho $evaluatorPhysicsShape $child;
+            else if ($childType == "mesh" && $evaluatorOther != "")
+                evalEcho $evaluatorOther $child;    
+        }
+    }
+}
+
+// Returns:
+//   "" if no rigid body parent was found, or if the selected 
+//      object was an instance and no single rigid body parent 
+//      was found.
+//   otherwise the actual parent name is returned.
+//
+global proc string nxFindRigidBodyFromChildren(string $currentNode)
+{
+    // Check if the current transform contains a rigid body as
+    // a direct child. If it doesn't, continue the search with 
+    // the parent's transform.
+    while (1)
+    {
+		$nodeType = `nodeType $currentNode`;
+		if ($nodeType == "nxRigidBody")
+			return $currentNode;
+    
+        // Go up in the hierarchy.
+        $parents = `listRelatives -fullPath -parent -path $currentNode`;
+        if (size($parents) > 1)
+        {
+            error "Instances not yet supported in nxFindRigidBodyFromChildren";
+            return "";
+        }
+        else if (size($parents) == 0)
+        {
+            // Went up all the way to the world. Since rigid
+            // bodies need to have a parent, the search failed.
+            // Note: this may occur naturally if we're just checking
+            // if there is a rigid body.
+            //
+            //error "couldn't find a parent containing a rigid body.";
+            return "";
+        }
+        
+        $currentNode = $parents[0];
+    }
+}
+
+
+
+// Create a physics shape. Expects one rigid body transform
+// (or one of its children/grandchildren/etc.) to be selected.
+// Will parent the physics shape to the rigid body transform.
+// Returns: the name of the created shape.
+//
+global proc string nxCreatePhysicsShapeEx(int $shapeType, string $rigidBody)
+{
+    string $shape = `createNode -skipSelect physicsShape`;
+    
+    // Find the physics shape parent transform.
+    // We will parent it to the parentNode determined above
+    // (e.g. parent of rigid body).
+    //
+    $shapeParents = `listRelatives -fullPath -parent -path $shape`;
+    $shapeParent = $shapeParents[0];
+
+	//rename physicsShape's parent transform
+    $shapeParent = `rename -ignoreShape $shapeParent ($shape+"Transform")`;
+    
+    // Set the shape type.
+    setAttr ($shape + ".shapeType") $shapeType;
+    
+    if( $rigidBody != "" )
+    {
+		parent -relative $shapeParent $rigidBody;
+
+		// Connect physicsShape to the nxRigidBody.
+		//
+		$nextIndex = nxGetNextIndex($rigidBody, "physicsShapes");
+		connectAttr ($shape + ".outPhysicsShape") ($rigidBody + ".physicsShapes[" + $nextIndex + "]");
+    }
+    
+    return $shape;
+}
+
+//global proc string nxCreatePhysicsShape(int $shapeType)
+//{
+//	string $rigidBody = ""; // empty if there is no associated rigid body yet.
+//
+//	$selection = `ls -selection`;
+//	if (size($selection) >= 1)
+//	{
+//		$rigidBody = nxFindRigidBodyFromChildren($selection[0]);
+//	}
+//
+//	string $shape = nxCreatePhysicsShapeEx($shapeType, $rigidBody);
+//	
+//	select -r $shape;
+//	
+//	return $shape;
+//}	
+
+
+//
+// Delete rigidbody in group or as child in selected transform
+//
+global proc nxDeleteRigidBody( )
+{
+	// 1. List selection
+	$selected = `ls -selection -type "transform"`;
+	for( $select in $selected )
+	{
+		//$selectType = `nodeType $select`;
+		//print $selectType;
+		//if(`gmatch $selectType "transform"` == 0 )
+
+		// 2. Check if there's existing rigidbodies under current transform
+		$rigidbodies = `listRelatives -fullPath -children -type "nxRigidBody" $select`;
+
+		// if there are none, check if transform is in a group.
+		if( `size $rigidbodies` == 0 )
+		{
+			// 3. if transform part of a group, search for rigid bodies in that group
+			$parent = `listRelatives -fullPath -parent -type "transform" $select`;
+
+			// if a parent transform is found, search for existing rigidbodies
+			if( `size $parent` > 0 )
+			{
+				$rigidbodies = `listRelatives -fullPath -children -type "nxRigidBody" $parent`;
+				
+			}
+		}
+
+		// 4. if there are existing rigigbodies, delete their connecting physicsShapes & themselves.
+		if( `size $rigidbodies` > 0 )
+		{
+			for( $rigidbody in $rigidbodies )
+			{
+				// delete the physicsShapes that are connected to the rigidbody
+				$connectedPS = `listConnections ( $rigidbody + ".physicsShapes")`;
+				for( $psTransform in $connectedPS )
+					delete $psTransform;
+
+				// then delete the rigidbody
+				delete $rigidbody;
+				print ( "Rigidbody: " + $rigidbody + " deleted.\n" );
+			}
+		}
+	}
+}
+
+global proc physicsShowNonPhysicsShapes()
+{
+    physicsIterateChildrenPhysicsShapes("hide", "physicsShowUntemplated");
+}
+
+global proc physicsShowPhysicsShapes()
+{
+    physicsIterateChildrenPhysicsShapes("physicsShowUntemplated", "physicsShowTemplated");
+}
+
+global proc physicsShowAllShapes()
+{
+    physicsIterateChildrenPhysicsShapes("physicsShowUntemplated", "physicsShowUntemplated");
+}
+
+global proc physicsShowUntemplated(string $node)
+{
+    if ($node == "")
+    {
+        // No objects provided. Run on selection.
+        $nodes = `ls -selection`;
+        for ($n in $nodes)
+            physicsShowUntemplated($n);
+        return;
+    }
+    
+    showHidden $node;
+    setAttr ($node + ".template") 0;
+}
+
+global proc physicsShowTemplated(string $node)
+{
+    if ($node == "")
+    {
+        // No objects provided. Run on selection.
+        $nodes = `ls -selection`;
+        for ($n in $nodes)
+            physicsShowTemplated($n);
+        return;
+    }
+
+    showHidden $node;
+    setAttr ($node + ".template") 1;
+}
+
+global proc physicsHideUntemplated(string $node)
+{
+    if ($node == "")
+    {
+        // No objects provided. Run on selection.
+        $nodes = `ls -selection`;
+        for ($n in $nodes)
+            physicsHideUntemplated($n);
+        return;
+    }
+
+    showHidden $node;
+    setAttr ($node + ".template") 0;
+}
+
+//-------------------------------------------------------------
+// NxRigidBody creation
+//-------------------------------------------------------------
+
+
+global proc string nxGetTransformOrParent(string $dagNode)
+{
+    // If the selected dag node is not a transform,
+    // return the parent transform instead.
+    //
+    $nodeType = `nodeType $dagNode`;
+    if ($nodeType != "transform")
+    {
+        $parents = `listRelatives -fullPath -parent -path $dagNode`;
+        if (size($parents) > 1)
+        {
+            warning "Instance found in nxGetTransformOrParent";
+            return "";
+        }
+        
+        $dagNode = $parents[0];
+    }
+
+    return $dagNode;
+}
+
+global proc int nxAttachShapesToNewRigidBody(string $shapesParent, string $rigidBody)
+{
+    $children = `listRelatives -fullPath -allDescendents -path $shapesParent`;
+
+	int $numProcessedChildren = 0;
+    
+    for ($child in $children)
+    {
+        //print ("child: " + $child + "\n");
+    
+        $childType = `nodeType $child`;
+        if ($childType == "mesh")
+		{
+			// Connect to the next available shape index.
+			$nextShapeIndex = nxGetNextIndex($rigidBody, "shapes");
+			connectAttr ($child + ".outMesh") ($rigidBody + ".shapes[" + $nextShapeIndex + "]");
+			
+			// Find the direct parent of this mesh. If it's the same as the rigidbody's parent,
+			// set the shapeMatrix to identity. Otherwise connect the shape's parent transform
+			// to the shapeMatrix.
+			$shapeParents = `listRelatives -fullPath -p ($child)`;
+			if (size($shapeParents) != 1)
+				error("Expected a single shape parent");
+
+			$shapeParent = $shapeParents[0];
+						
+			//if ($shapeParent == $shapesParent)
+			//{
+			//	// Simplest case of a single shape directly under the rigid body.
+			//	connectAttr ($rigidBody + ".identityMatrix") ($rigidBody + ".shapeMatrices[" + $nextShapeIndex + "]");				
+			//}
+			//else
+			//{
+			//	// Shapes grouped under a common transform, not directly under the rigid body.
+			//	makeIdentity -apply true -t 0 -r 0 -s 1 -n 0 $shapeParent;
+			//	connectAttr ($shapeParent + ".xformMatrix") ($rigidBody + ".shapeMatrices[" + $nextShapeIndex + "]");
+			//}
+			
+			$numProcessedChildren++;
+		}
+        else if ($childType == "physicsShape")
+        {
+			// Connect to the next available shape index.
+			$nextShapeIndex = nxGetNextIndex($rigidBody, "physicsShapes");
+			connectAttr ($child + ".outPhysicsShape") ($rigidBody + ".physicsShapes[" + $nextShapeIndex + "]");
+
+            $numProcessedChildren++;
+        }
+    }
+    
+    // Now, move the direct children inside the rigid body.
+    $children = `listRelatives -fullPath -path $shapesParent`;
+    for ($child in $children)
+    	nxReparent $child $rigidBody;
+	
+    if ($numProcessedChildren == 0)
+		error "in nxAttachShapesToRigidBody, no children shapes or physics shapes found.";
+
+	// Finally, delete the parent since it shouldn't contain any children.
+    delete $shapesParent;
+    
+	return $numProcessedChildren;
+}
+
+global proc nxCopyVectorAttr(string $srcNode, string $srcAttrName, string $dstNode, string $dstAttrName)
+{
+	string $srcPrefix = ($srcNode + "." + $srcAttrName);
+	string $dstPrefix = ($dstNode + "." + $dstAttrName);
+
+	$sx = `getAttr ($srcPrefix + "X")`;
+    setAttr ($dstPrefix + "X") $sx;
+    $sy = `getAttr ($srcPrefix + "Y")`;
+    setAttr ($dstPrefix + "Y") $sy;
+    $sz = `getAttr ($srcPrefix + "Z")`;
+    setAttr ($dstPrefix + "Z") $sz;
+}
+
+global proc nxInitRigidBody(string $dagTransform, string $rigidSolver, string $rigidBody)
+{
+    // TODO: Lock the dag path of the rigid body.
+
+	// It's important for physics shapes to keep their direct parent intact.
+	// Since the shapes parent is normally replaced by the rigid body, if a physics
+	// shape is present directly underneath, we group the parent, essentially creating
+	// a temporary identity transform that will later be destroyed.
+	$physicsShapeChildren = `listRelatives -fullPath -type physicsShape -children -path $dagTransform`;
+    if (size($physicsShapeChildren) > 0)
+        $dagTransform = `group -parent $rigidBody -name "nxMartyrTransform" $dagTransform`;
+
+
+	//$m = `getAttr ($dagTransform+".matrix")`;
+	//setAttr ($rigidBody+".initialPose") $m[0] $m[1] $m[2] $m[3] $m[4] $m[5] $m[6] $m[7] $m[8] $m[9] $m[10] $m[11] $m[12] $m[13] $m[14] $m[15]; 
+
+    // Preserve the initial position.
+    //
+    nxCopyVectorAttr($dagTransform, "translate", $rigidBody, "initialPosition");
+    nxCopyVectorAttr($dagTransform, "translate", $rigidBody, "translate");
+   
+    // Preserve the initial orientation.
+    //
+    nxCopyVectorAttr($dagTransform, "rotate", $rigidBody, "initialOrientation");
+    nxCopyVectorAttr($dagTransform, "rotate", $rigidBody, "rotate");
+
+	// Preserve the scale, rotate pivot, rotate pivot translate.
+    //
+    nxCopyVectorAttr($dagTransform, "scale", $rigidBody, "scale");
+    nxCopyVectorAttr($dagTransform, "rotatePivot", $rigidBody, "rotatePivot");
+    nxCopyVectorAttr($dagTransform, "rotatePivotTranslate", $rigidBody, "rotatePivotTranslate");
+    nxCopyVectorAttr($dagTransform, "scalePivot", $rigidBody, "scalePivot");
+    nxCopyVectorAttr($dagTransform, "scalePivotTranslate", $rigidBody, "scalePivotTranslate");
+    
+    /*
+    $rpx = `getAttr ($dagTransform + ".rotatePivotX")`;
+    $rpy = `getAttr ($dagTransform + ".rotatePivotY")`;
+    $rpz = `getAttr ($dagTransform + ".rotatePivotZ")`;
+    print ("rotatePivot for dagTransform: " + $rpx + ", " + $rpy + ", " + $rpz + "\n");
+
+    $rpx = `getAttr ($rigidBody + ".rotatePivotX")`;
+    $rpy = `getAttr ($rigidBody + ".rotatePivotY")`;
+    $rpz = `getAttr ($rigidBody + ".rotatePivotZ")`;
+    print ("rotatePivot in rigidBody " + $rpx + ", " + $rpy + ", " + $rpz + "\n");
+	*/
+    
+
+	// If the solver name was not provided, check if a default solver exists.
+	// If it doesn't, create it.
+	if ($rigidSolver == "")
+		$rigidSolver = "nxRigidSolver1";
+
+	int $rigidBodyId = nxGetNextIndex($rigidSolver, "rigidBodies");
+
+    // Assign rigid body id.
+    setAttr ($rigidBody + ".rigidBodyId") $rigidBodyId;
+
+    // Connect the solver's "simulate" attribute to the rigid body.
+    //
+	//connectAttr -f ($rigidSolver + ".simulate") ($rigidBody + ".inSimulate");
+
+	// Connect general force from rigid body to solver. This is required
+	// so that the field forces on a rigid body are computed every simulation frame.
+	connectAttr -f ($rigidBody + ".generalForce") ($rigidSolver + ".generalForce[" + $rigidBodyId + "]");
+
+	// [claforte] Maya 6.5 has a bug whereby parentInverseMatrix doesn't
+	// properly propagate dirty messages when changed. The work-around is to
+	// connect an internal copy attribute.
+	//connectAttr -f ($rigidBody + ".parentInverseMatrix[0]") 
+	//	($rigidBody + ".parentInverseMatrixCopy[0]");
+
+	// Same for scale.
+	//connectAttr -f ($rigidBody + ".scale") 
+	//	($rigidBody + ".scaleCopy");	
+
+	// Connect the shapes to the rigid body.
+	int $dummy = `nxAttachShapesToNewRigidBody $dagTransform $rigidBody`;
+	
+	//// [claforte] HACK: Maya6.5 doesn't automatically call the compute method
+	//// of NxRigidBodyNode during playback, unless the translate or rotate attributes
+	//// are connected somewhere. Connect them to a dummy transform node simply to
+	//// force the evaluation.
+	//$evaluationTransform = `group -n "nxRigidBodyDummyTransform" -p "nimaInternalPhysics" -em`;
+	//connectAttr ($rigidBody + ".translate") ($evaluationTransform + ".translate");	
+
+    // TODO: Lock the rigid body id.
+    
+    /*
+    // [claforte] Although this code conceptually belongs here, I now
+    // do these operations in MPxRigidBodyCmd in a separate MDGModifier.
+    // This is because Maya throws "internal error" exceptions when undoing
+    // these two operations. 
+   
+    // Connect the rigid body to the solver, to make sure that the 
+	// rigid body's attributes are evaluated when the solver executes its compute()
+	// method. [claforte] TODO: May get rid of this attribute since it's
+	// probably redundant with generalForce.
+	//connectAttr -f ($rigidBody + ".outRigidBody") ($rigidSolver + ".rigidBodies[" + $rigidBodyId + "]");
+
+	// Connect time to rigid body, so that the rigid body's compute() method
+	// gets called every simulation frame, and for the rigid body's deltaTime attribute
+	// to be computed properly.
+	//connectAttr -f "time1.outTime" ($rigidBody + ".currentTime");
+	*/
+}
+
+global proc int nxIsInArray(string $list[], string $object)
+{
+    for ($element in $list)
+    {
+        if ($element == $object)
+            return 1;    
+    }
+    
+    return 0;
+}
+
+// Find a rigid body given the name of one of its parents or the name
+// of the rigid body itself.
+//
+// If $rigidBodyOrParent is a nxRigidBody, returns its name.
+// If $rigidBodyOrParent is the direct parent of a nxRigidBody,
+//    returns the name of the rigid body.
+// Otherwise returns an empty string "".
+//
+global proc string nxGetRigidBody(string $rigidBodyOrParent)
+{
+	if($rigidBodyOrParent == "")
+		return "";
+		
+    if (nodeType($rigidBodyOrParent) == "nxRigidBody")
+        return $rigidBodyOrParent;
+        
+    string $children[] = `listRelatives -fullPath -children -type nxRigidBody -path $rigidBodyOrParent`;
+    if (size($children) > 0)
+        return $children[0];
+
+    // Found no nxRigidBody.
+    return "";
+}
+
+
+// Modify the connections on all existing rigid bodies, so that instead of
+// being connected through an intermediate parent transform, they are connected
+// directly to the solver.
+//
+global proc nxConnectAttrIfNecessary(string $sourcePlug, string $destPlug)
+{
+    if (!isConnected($sourcePlug, $destPlug))
+        connectAttr($sourcePlug, $destPlug);
+}
+
+global proc nxDisconnectAttrIfNecessary(string $sourcePlug, string $destPlug)
+{
+    if (isConnected($sourcePlug, $destPlug))
+        disconnectAttr($sourcePlug, $destPlug);
+}
+
+global proc nxTransplantDestConnection(string $sourcePlug, string $oldDestNode, string $newDestNode, string $destAttr)
+{
+    string $oldDestPlug = ($oldDestNode + "." + $destAttr);
+    string $newDestPlug = ($newDestNode + "." + $destAttr);
+
+    nxDisconnectAttrIfNecessary($sourcePlug, $oldDestPlug);
+    nxConnectAttrIfNecessary($sourcePlug, $newDestPlug);
+}
+
+global proc nxTransplantSourceConnection(string $oldSourceNode, string $newSourceNode, string $sourceAttr, string $destPlug)
+{
+    string $oldSourcePlug = ($oldSourceNode + "." + $sourceAttr);
+    string $newSourcePlug = ($newSourceNode + "." + $sourceAttr);
+
+    nxDisconnectAttrIfNecessary($oldSourcePlug, $destPlug);
+    nxConnectAttrIfNecessary($newSourcePlug, $destPlug);
+}
+
+global proc string nxAutoIndexifyAttr(string $node, string $attr)
+{
+    string $str = ($node + "." + $attr);
+    $isMulti = `attributeQuery -multi -n ($node) ($attr)`;
+    if ($isMulti)
+    {
+        int $nextIndex = nxGetNextIndex($node, $attr);
+        $str = $str + "[" + $nextIndex + "]";
+    }
+
+    return $str;
+}
+
+global proc nxConnectAttr(string $node1, string $attr1, string $node2, string $attr2)
+{
+    connectAttr (nxAutoIndexifyAttr($node1, $attr1)) (nxAutoIndexifyAttr($node2, $attr2));
+}
+
+global proc nxConnectToFields()
+{
+    $fields = `ls -selection -type field`;
+
+    $selection = `ls -selection`;
+
+    for ($object in $selection)
+    {
+        // Skip fields.
+        if (nxIsInArray($fields, $object))
+            continue;
+    
+        // If the object is a rigid body or it directly
+        // contains a rigid body, connect it appropriately.
+        // TODO: Otherwise add it to a list and pass it to
+        // the "connectDynamic" command.
+        //
+        string $rigidBody = nxGetRigidBody($object);
+        if (size($rigidBody) > 0)
+        {
+            // TODO: Check if it's already connected.
+        
+            // Connect to each field.
+            for ($field in $fields)
+            {
+                nxConnectAttr($rigidBody, "fieldData", $field, "inputData");
+                nxConnectAttr($field, "outputForce", $rigidBody, "inputForce");
+            }
+        }
+    }
+}
+
+// Copy the content of an attribute from the source node to the destination node.
+global proc nxCopyAttr(string $srcNode, string $destNode, string $attrName)
+{
+	string $queryString = ($srcNode + "." + $attrName);
+	$attrContent = `getAttr ($queryString)`;
+
+	string $setString = ($destNode + "." + $attrName);
+	setAttr ($setString) $attrContent;
+}
+
+global proc nxFlushCacheData(string $rigidBody)
+{
+     // Find the parent of the rigid body.
+    string $parentsOfRigidBody[] = `listRelatives -fullPath -p $rigidBody`;
+    
+    // By default, assume that the rigid body has no parent, i.e. it
+    // is parented directly under the root node.
+    string $transformCreateString = "group -em";
+    
+    if (size($parentsOfRigidBody) > 1)
+    {
+        warning ("Instanced rigid body '" + $rigidBody + 
+            "' doesn't have only one parent. Ignoring all parents except the first one.\n");
+	    $transformCreateString = ($transformCreateString + " -p " + $parentsOfRigidBody[0]);
+    }    
+    
+    // Create a transform parented under the rigid body's parent.
+    string $xform = eval($transformCreateString);
+    
+    // Copy various attributes from rigid body or rigid constraint: translate, rotate, scale
+    nxCopyAttr($rigidBody, $xform, "rx");
+    nxCopyAttr($rigidBody, $xform, "ry");
+    nxCopyAttr($rigidBody, $xform, "rz");
+    
+    nxCopyAttr($rigidBody, $xform, "sx");
+    nxCopyAttr($rigidBody, $xform, "sy");
+    nxCopyAttr($rigidBody, $xform, "sz");
+    
+    nxCopyAttr($rigidBody, $xform, "tx");
+    nxCopyAttr($rigidBody, $xform, "ty");
+    nxCopyAttr($rigidBody, $xform, "tz");
+
+    // Move the content of the rigid body in the transform.
+    $children = `listRelatives -fullPath -children -path $rigidBody`;    
+    for ($child in $children)
+    {
+        print ("child: " + $child + "\n");
+        
+        // [claforte] Note: Maya stupidly adds an intermediate transform no matter
+        // what I do. 
+    	parent -s ($child) ($xform);
+    }
+        
+    // Delete the rigid body.
+    delete $rigidBody;
+    
+    // Rename the transform into the old rigid body name.
+    rename $xform $rigidBody;
+}
+
+global proc nxFlushCacheDataFromSelection()
+{
+    $rigidBodies = `ls -selection -type "nxRigidBody"`;
+    for ($rigidBody in $rigidBodies)
+        nxFlushCacheData($rigidBody);
+    select -clear;
+}
+
+//----------------------------------------------------------------------------
+// Enable / disable shape collisions
+//
+
+global proc nxAttachShapesToParentRigidBody()
+{
+    $selection = `ls -selection`;
+    for ($object in $selection)
+		nxAttachShapeToParentRigidBody($object);
+}
+
+// Set connections on given shape (or group of shapes)
+// to enable collisions in their parent rigid body.
+//
+global proc nxAttachShapeToParentRigidBody(string $dagNode)
+{
+    // Get parent rigid body.
+    $rigidBody = nxFindRigidBodyFromChildren($dagNode);
+    if ($rigidBody == "")
+    {
+        warning ("No rigid body found above '" + $dagNode + "'");
+        return;
+    }
+
+    $children = `listRelatives -fullPath -allDescendents -path $dagNode`;
+	int $numProcessedChildren = 0;    
+    for ($child in $children)
+    {
+        //print ("child: " + $child + "\n");
+    
+        // TODO: Check if the child is already connected to the rigid body,
+        // in which case we can safely skip it.
+        // if (nxShapeProperlyAttachedToRigidBody($child, $rigidBody))
+        //    continue;
+    
+        $childType = `nodeType $child`;
+        if ($childType == "mesh")
+		{
+			// Detach the shape from any other rigid body.
+			nxDetachShapeFromRigidBodies($child);
+			
+			// Connect to the next available shape index.
+			$nextShapeIndex = nxGetNextIndex($rigidBody, "shapes");
+			connectAttr ($child + ".outMesh") ($rigidBody + ".shapes[" + $nextShapeIndex + "]");
+			
+			// Find the direct parent of this mesh. If it's the rigidbody,
+			// set the shapeMatrix to identity. Otherwise connect the shape's parent transform
+			// to the shapeMatrix.
+			$shapeParents = `listRelatives -fullPath -p ($child)`;
+			if (size($shapeParents) != 1)
+				error("Expected a single shape parent");
+
+			$shapeParent = $shapeParents[0];
+						
+			if ($shapeParent == $rigidBody)
+				connectAttr ($rigidBody + ".identityMatrix") ($rigidBody + ".shapeMatrices[" + $nextShapeIndex + "]");				
+			else
+				connectAttr ($shapeParent + ".xformMatrix") ($rigidBody + ".shapeMatrices[" + $nextShapeIndex + "]");
+			
+			$numProcessedChildren++;
+		}
+        else if ($childType == "physicsShape")
+        {
+			// Detach the shape from any other rigid body.
+			nxDetachShapeFromRigidBodies($child);
+
+			// Connect to the next available shape index.
+			$nextShapeIndex = nxGetNextIndex($rigidBody, "physicsShapes");
+			connectAttr ($child + ".outPhysicsShape") ($rigidBody + ".physicsShapes[" + $nextShapeIndex + "]");
+
+			// Find the direct parent of this shape.
+			$shapeParents = `listRelatives -fullPath -p ($child)`;
+			if (size($shapeParents) != 1)
+				error("Expected a single shape parent");
+			$shapeParent = $shapeParents[0];
+
+			// Connect the parent matrix in case it wasn't connected (e.g.
+			// the physics shape was duplicated.)
+			nxDisconnectSourcePlugFromTargetNodeType(($shapeParent + ".xformMatrix"), "nxPhysicsShape");
+			    
+			// Connect the parent's xformMatrix attribute to the
+			// physicsShape's shapeMatrix attribute.
+			nxConnectAttrIfNecessary(
+				($shapeParent + ".xformMatrix"),
+				($child + ".shapeMatrix"));
+			
+			// Just in case, lock the scale and shear on the parent.
+			setAttr -l true ($shapeParent + ".scale");
+			setAttr -l true ($shapeParent + ".shear");
+
+            $numProcessedChildren++;
+        }
+    }
+    
+    if ($numProcessedChildren == 0)
+		warning "no children shapes or physics shapes found.";
+}
+
+global proc nxDisconnectSourcePlugFromTargetNodeType(string $sourcePlug, string $targetType)
+{
+    $targetPlugs = `listConnections -p on -s off $sourcePlug`;
+    for ($targetPlug in $targetPlugs)
+    {
+		string $t = $targetPlug;
+		
+		// Disconnect those who target the selected node type.		
+		string $buffer[];
+		tokenize($t, "[].", $buffer);
+        $targetNode = $buffer[0];
+        if (`nodeType $targetNode` == $targetType)
+            disconnectAttr($sourcePlug, $targetPlug);
+	}
+}
+
+global proc nxDetachSelectedShapesFromRigidBodies()
+{
+    $selection = `ls -selection`;
+    for ($object in $selection)
+		nxDetachShapeFromRigidBodies($object);
+}
+
+global proc int nxDetachShapeFromRigidBodies(string $dagNode)
+{
+    // Get parent rigid body.
+    $rigidBody = nxFindRigidBodyFromChildren($dagNode);
+    if ($rigidBody == "")
+    {
+        warning ("No rigid body found above '" + $dagNode + "'");
+        return 0;
+    }
+
+    $children = `listRelatives -fullPath -allDescendents -path $dagNode`;
+	int $numProcessedChildren = 0;    
+    for ($child in $children)
+    {
+        //print ("child: " + $child + "\n");
+    
+        $childType = `nodeType $child`;
+        if ($childType == "mesh")
+		{
+			// Disconnect any rigid body connected to the outMesh attribute of the shape.
+        	nxDisconnectSourcePlugFromTargetNodeType(($child + ".outMesh"), "nxRigidBody");
+        	
+			// Find the direct parent of this mesh, then disconnect any
+			// rigid body connected to its xformMatrix attribute.
+			$shapeParents = `listRelatives -fullPath -p ($child)`;
+			if (size($shapeParents) != 1)
+				error("Expected a single shape parent");
+			nxDisconnectSourcePlugFromTargetNodeType(($shapeParents[0] + ".xformMatrix"), "nxRigidBody");
+			
+			$numProcessedChildren++;
+		}
+        else if ($childType == "physicsShape")
+        {
+			// Disconnect any rigid body connected to the outPhysicsShape attribute of the physics shape.
+        	nxDisconnectSourcePlugFromTargetNodeType(($child + ".outPhysicsShape"), "nxRigidBody");
+
+            $numProcessedChildren++;
+        }
+    }
+    
+    return $numProcessedChildren;
+}
+
+global proc nxSetInitialConditions()
+{
+	string $rbList[];
+	// check if selection is RB or if it's transform, transform has a RB child 
+	$selection = `ls -selection -type nxRigidBody`;
+	if(size($selection) > 0)
+		$rbList = $selection;
+	else
+	{
+		$selection = `ls -selection -type transform`;
+		int $i =0;
+		for ( $transform in $selection )
+		{
+			$rb = `listRelatives -fullPath -children -type nxRigidBody $transform`;
+			if( size($rb) == 1 )
+			{
+				$rbList[$i] = $rb[0];
+				$i++;
+			}	 
+		}
+		
+		if( size($rbList) == 0 )
+		{
+			error "Please select at least 1 rigid body or it's transform before setting initial conditions.\n";
+			return;
+		}			
+	}
+	for ( $rigidBody in $rbList )
+	{
+		// Get RB's transform to obtain the translate & rotate
+		$rbTransform = `listRelatives -fullPath -parent -type transform $rigidBody`;
+
+		// Set translate and rotate according to initial conditions.
+		$tx = `getAttr ($rbTransform[0] + ".translateX")`;
+		setAttr ($rigidBody + ".initialPositionX") $tx;
+		$ty = `getAttr ($rbTransform[0] + ".translateY")`;
+		setAttr ($rigidBody + ".initialPositionY") $ty;
+		$tz = `getAttr ($rbTransform[0] + ".translateZ")`;
+		setAttr ($rigidBody + ".initialPositionZ") $tz;
+
+		// Preserve the initial orientation.
+		//
+		$rx = `getAttr ($rbTransform[0] + ".rotateX")`;
+		setAttr ($rigidBody + ".initialOrientationX") $rx;
+		$ry = `getAttr ($rbTransform[0] + ".rotateY")`;
+		setAttr ($rigidBody + ".initialOrientationY") $ry;
+		$rz = `getAttr ($rbTransform[0] + ".rotateZ")`;
+		setAttr ($rigidBody + ".initialOrientationZ") $rz;    
+	}
+}
+
+//----------------------------------------------------------------------------
+// Export PhysX Scene Commands
+global proc int pxExporterTranslator( string $parent, 
+									string $action,
+									string $initialSettings, 
+									string $resultCallback )
+//	Parameters:
+//		$parent	- the elf parent layout for this options layout. It is
+//					always a scrollLayout.
+//		$action	- the action that is to be performed with this invokation
+//					of this proc. Valid options are:
+//						"query" - construct the options string and pass it
+//									to the resultCallback.
+//						"post"	- post all the elf controls.
+//		$resultCallback	-
+//				This is the proc to be called with the result string. 
+//				resultCallback ( string $optionsString )
+//
+//	Returns:
+//		1 if successfull.
+//		0 otherwise.
+//
+{
+	// fix GWDCC-271
+	physxRefreshClothingBeforeSimulateExport();
+
+	print("pxExporterTranslator - parent: " + $parent + "\n");
+	print("pxExporterTranslator - action: " + $action + "\n");
+	print("pxExporterTranslator - initSet: " + $initialSettings + "\n");
+	print("pxExporterTranslator - resultCB: " + $resultCallback + "\n");
+
+// 	if( getApplicationVersionAsFloat() > 2010 )
+// 	{
+// 		global string $gCurrentOptionSelection; // default maya global variable
+// 		print("pxExporterTranslator - filetype:" + $gCurrentOptionSelection + "\n");
+// 		// skip creation of the following layout if file type is physx
+// 		if($gCurrentOptionSelection != "PhysX")
+// 		{
+// 			warning "gCurrentOptionSelection != PhysX";
+// 			return 0;
+// 		}	
+// 	}
+	
+	if ($action == "post")
+	{
+		// Initialise default export settings if exporting for the 1st time.
+		//NOT GUI
+		physXExport_InitOptions();
+		apexClothingExport_InitOptions();
+		pxCalculate_Export_outputScale();
+		
+		setUITemplate -pushTemplate DefaultTemplate;
+		setParent $parent;
+
+		string $rootLayout = "PhysXExporter_CL";
+		if(`layout -exists $rootLayout`)
+			deleteUI -layout $rootLayout;
+		columnLayout $rootLayout;
+		columnLayout -e -vis false $rootLayout;
+
+		// PhysX Clothing Export Options
+		setParent $rootLayout;
+		frameLayout -label "PhysX Clothing" -collapse false -collapsable true "APEXClothingOptions_FL";;// -parent actionOptionsForm
+				
+		columnLayout "APEXClothingOptions_CL"; // -parent "APEXClothingOptions_FL"
+			pxAPEXClothingExportOptions_Controls();
+
+		separator -h 10 -style "none";
+
+		setParent $rootLayout;
+		frameLayout -label "Output Scaling Factor" -collapse false -collapsable true "OutputScalingFactorExportOptions_FL";;// -parent actionOptionsForm
+
+		columnLayout "OutputScalingFactorExportOptions_CL"; // -parent "OutputScalingFactorExportOptions_FL"
+			pxOutputScalingFactorUI();
+
+		int $showAdv = `optionVar -q "PhysXExport_exportShowAdvanced"`;
+		if($showAdv)
+		{
+			separator -h 10 -style "none";
+
+			setParent $rootLayout;
+			frameLayout -label "Advanced" -collapse false -collapsable true "AdvancedExportOptions_FL";;// -parent actionOptionsForm
+
+			columnLayout "AdvancedExportOptions_CL"; // -parent "AdvancedExportOptions_CL"
+				pxAdvancedExportOptions_Controls();
+		}
+
+		separator -h 10 -style "none";
+
+		// General Export Options
+		setParent $rootLayout;
+		frameLayout -label "General" -collapse false "PhysXExporter_GeneralFL";;//-collapsable true   -parent actionOptionsForm
+		
+		columnLayout "PhysXExporter_GeneralCL";// -parent "PhysXExporter_GeneralFL"
+		setParent "PhysXExporter_GeneralCL";
+			pxGeneralExportOptions_Controls();
+
+		separator -h 10 -style "none";
+		
+		// PhysX Export Options
+// 		setParent $rootLayout;
+// 		frameLayout -label "PhysX Scene" -collapse false "PhysXSceneOptions_FL";;// -collapsable true   -parent actionOptionsForm
+// 		
+// 		columnLayout "PhysXSceneOptions_CL";// -parent "PhysXSceneOptions_FL"
+// 			pxPhysXSceneExportOptions_Controls();
+// 
+// 		separator -h 10 -style "none";
+
+		setParent $parent;
+		
+		columnLayout -e -vis true $rootLayout;
+		setUITemplate -popTemplate;
+		return 1;
+	} 
+	else if ($action == "query") 
+	{
+		eval($resultCallback + " \"none=0;\"" ); //+" \""+$currentOptions+"\"");
+		return 1;
+	} 
+	else 
+	{
+		return 0;
+	}
+}
+
+global proc pxExporterWindow()
+{
+	// Set Selection to PhysX
+	optionVar -sv "defaultFileExportAllType" "PhysX"; // default maya option variable
+
+	//call cmd from fileOptions.mel in maya's scripts\others\ directory
+	fileOptions("ExportAll", "projectViewer ExportAll");
+}
+
+global proc physXExport_InitOptions()
+{
+	if( `optionVar -exists "PhysX_showPrompt"` == false)
+		optionVar -iv "PhysX_showPrompt" true;
+
+	// General Export Options
+	if( `optionVar -exists "PhysXExport_useFolderName"` == false)
+		optionVar -iv "PhysXExport_useFolderName" false;
+
+	if( `optionVar -exists "PhysXExport_folderName"` == false)
+		optionVar -sv "PhysXExport_folderName" "";
+
+	if( `optionVar -exists "apexClothingExport_FBX"` == false)
+		optionVar -iv "apexClothingExport_FBX" true;
+
+	//if( `optionVar -exists "apexClothingExport_Scale"` == false)
+	//	optionVar -fv "apexClothingExport_Scale" 1.0;
+	//WHILE THE ABOVE CONTROL IS DISABLED LET'S MAKE SURE SCALE IS 1.0
+	optionVar -fv "apexClothingExport_Scale" 1.0;
+
+	if( `optionVar -exists "validatePhysXSceneBeforeExport"` == false)
+		optionVar -iv "validatePhysXSceneBeforeExport" false;
+
+	// PhysX Export Options
+	if( `optionVar -exists "PhysXExport_exportPxProjFile"` == false)
+		optionVar -iv "PhysXExport_exportPxProjFile" true;
+
+	if( `optionVar -exists "PhysXExport_exportPhysX"` == false)
+		optionVar -iv "PhysXExport_exportPhysX" true;
+
+	if( `optionVar -exists "PhysXExport_fileFormat"` == false)
+		optionVar -iv "PhysXExport_fileFormat" 0;
+	
+	if( `optionVar -exists "PhysXExport_exportAPEXClothToolProject"` == false)
+		optionVar -iv "PhysXExport_exportAPEXClothToolProject" false;
+
+	if( `optionVar -exists "PhysXExport_exportAPEXCloth"` == false)
+		optionVar -iv "PhysXExport_exportAPEXCloth" false;
+
+	if( `optionVar -exists "apexClothingExport_CTP"` == false)
+		optionVar -iv "apexClothingExport_CTP" false;
+
+	if( `optionVar -exists "PhysXExport_LaunchClothingTool"` == false)
+		optionVar -iv "PhysXExport_LaunchClothingTool" false;
+
+	//if( `optionVar -exists "apexClothingExport_CTWs"` == false)
+	//	optionVar -iv "apexClothingExport_CTWs" false;
+
+	if( `optionVar -exists "apexClothingExport_APBs"` == false)
+		optionVar -iv "apexClothingExport_APBs" 2;      // default to 2 - APX by Autodesk
+	
+	if( `optionVar -exists "apexClothingExport_ModelSpace"` == false)
+		optionVar -iv "apexClothingExport_ModelSpace" true;
+
+	if( `optionVar -exists "apexClothingExport_Ragdoll"` == false)
+		optionVar -iv "apexClothingExport_Ragdoll" false;
+
+// 	if( `optionVar -exists "apexClothingExport_OmitMeshName"` == false)
+// 		optionVar -iv "apexClothingExport_OmitMeshName" false;	
+
+	if( `optionVar -exists "PhysXExport_enableLeftHand"` == false)
+		optionVar -iv "PhysXExport_enableLeftHand" false;
+	if( `optionVar -exists "PhysXExport_leftHandTransformAxis"` == false)
+		optionVar -iv "PhysXExport_leftHandTransformAxis" 1;
+	if( `optionVar -exists "PhysXExport_leftHandTransformDegrees"` == false)
+		optionVar -fv "PhysXExport_leftHandTransformDegrees" 0.0;
+	if( `optionVar -exists "PhysXExport_leftHandCustomMatrix"` == false)
+		optionVar -sv "PhysXExport_leftHandCustomMatrix" "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
+	if( `optionVar -exists "PhysXExport_useSpecifiedNormals"` == false)
+		optionVar -iv "PhysXExport_useSpecifiedNormals" false;
+	if( `optionVar -exists "PhysXExport_specifiedNormalVectorT"` == false)
+		optionVar -iv "PhysXExport_specifiedNormalVectorT" 0;
+	if( `optionVar -exists "PhysXExport_specifiedNormalVectorB"` == false)
+		optionVar -iv "PhysXExport_specifiedNormalVectorB" 0;
+	if( `optionVar -exists "PhysXExport_specifiedNormalVectorN"` == false)
+		optionVar -iv "PhysXExport_specifiedNormalVectorN" 0;
+	if( `optionVar -exists "PhysXExport_onlyUseLod0sMaterialsOfClothing"` == false)
+		optionVar -iv "PhysXExport_onlyUseLod0sMaterialsOfClothing" false;
+	if( `optionVar -exists "PhysXExport_exportShowAdvanced"` == false)
+		optionVar -iv "PhysXExport_exportShowAdvanced" false;
+
+	if( `optionVar -exists "PhysXExport_outputUnit"` == false)
+		optionVar -sv "PhysXExport_outputUnit" "meter";
+	if( `optionVar -exists "PhysXExport_customScaling"` == false)
+		optionVar -iv "PhysXExport_customScaling" false;  // default false required by Autodesk
+	if( `optionVar -exists "PhysXExport_outputScale"` == false)
+		optionVar -fv "PhysXExport_outputScale" 0.01;     // default to export in meter required by Autodesk
+
+	if( `optionVar -exists "PhysX_viewerRenderSettings"` == false)
+		optionVar -iv "PhysX_viewerRenderSettings" 8;   // ViewerConfig::RF_Smooth
+	//if( `optionVar -exists "PhysXExport_massInKg"` == false)
+	//	optionVar -iv "PhysXExport_massInKg" false;       // default false
+}
+
+global proc pxGeneralExportOptions_Controls()
+{
+	optionVar -iv "apexClothingExport_APBs" 2;      // default to 2 - APX
+	// asset file format
+	 rowLayout -numberOfColumns 3 -columnWidth3 145 60 60 -columnAttach 1 "right" 2;
+ 		text -l "Asset File Format" ;
+ 		radioCollection;
+ 		//string $ctrlAP0 = `radioButton -label "Off" -align "left"`; 
+ 		//radioButton -e -onc ( "optionVar -iv \"apexClothingExport_APBs\" 0" ) $ctrlAP0;
+ 	
+ 		string $ctrlAPB = `radioButton -label "APB" -align "left"`; 
+ 		radioButton -e -enable false -onc ( "optionVar -iv \"apexClothingExport_APBs\" 1" ) $ctrlAPB;
+ 
+		global string $gApexClothingExport_FileFormatRadioButton;
+ 		$gApexClothingExport_FileFormatRadioButton = `radioButton -label "APX" -align "left"`; 
+ 		radioButton -e -enable false -onc ( "optionVar -iv \"apexClothingExport_APBs\" 2" ) $gApexClothingExport_FileFormatRadioButton;
+ 
+ 		int $oldVaue = `optionVar -q "apexClothingExport_APBs"`;
+ 		//if($oldVaue == 0)
+ 		//	radioButton -e -select $ctrlAP0;
+ 		if($oldVaue == 1)
+ 			radioButton -e -select $ctrlAPB;
+ 		else if($oldVaue == 2)
+ 			radioButton -e -select $gApexClothingExport_FileFormatRadioButton;
+		
+		if(`optionVar -q "apexClothingExport_CTP"` == 1)
+		{
+			optionVar -iv "apexClothingExport_APBs" 2;
+			radioButton -e -select $gApexClothingExport_FileFormatRadioButton;
+		}
+ 
+ 	setParent ..;
+
+// 	rowLayout -numberOfColumns 2 -columnWidth2 140 90;
+// 		text -label "";
+// 		string $ctrlFBX = `checkBox -label "Include FBX" -align "left"`; 
+// 			checkBox -e -value `optionVar -q "apexClothingExport_FBX"` $ctrlFBX;
+// 			checkBox -e -cc ( "optionVar -iv \"apexClothingExport_FBX\" `checkBox -q -value " + $ctrlFBX + "`" ) $ctrlFBX;
+// 	setParent ..;
+
+	physXValidateSceneControls();
+
+	rowLayout -numberOfColumns 2 -columnWidth2 140 160 ;// -columnAttach 2 "right" 0;
+		text -label "";
+		checkBox -label "Export Files to New Folder" -value `optionVar -q "PhysXExport_useFolderName"` -cc "toggleFolderNameTextBoxState;" "physXExport_FolderNameChkBox"; 		
+	setParent ..;
+
+	toggleFolderNameTextBoxState();
+
+	rowLayout -numberOfColumns 2 -columnWidth2 140 160;
+ 		text -label "";
+ 		string $ctrlNamespace = `checkBox -label "Remove Joint Namespace" -align "left"`; 
+ 			checkBox -e -value `optionVar -q "apexExport_RemoveNamespaceForJoint"` $ctrlNamespace;
+ 			checkBox -e -cc ( "optionVar -iv \"apexExport_RemoveNamespaceForJoint\" `checkBox -q -value " + $ctrlNamespace + "`" ) $ctrlNamespace;
+ 	setParent ..;
+
+	rowLayout -numberOfColumns 2 -columnWidth2 140 160;
+ 		text -label "";
+ 		string $ctrlUseLongName = `checkBox -label "Use Long Name" -align "left"`; 
+ 			checkBox -e -value `optionVar -q "PhysXExport_UseJointLongName"` $ctrlUseLongName;
+ 			checkBox -e -cc ( "optionVar -iv \"PhysXExport_UseJointLongName\" `checkBox -q -value " + $ctrlUseLongName + "`" ) $ctrlUseLongName;
+ 	setParent ..;
+
+	rowLayout -numberOfColumns 2 -columnWidth2 140 160;
+ 		text -label "";
+ 		string $ctrlVisible = `checkBox -label "Export Visible Only" -align "left"`; 
+ 			checkBox -e -value `optionVar -q "apexClothingExport_VisibleOnly"` $ctrlVisible;
+ 			checkBox -e -cc ( "optionVar -iv \"apexClothingExport_VisibleOnly\" `checkBox -q -value " + $ctrlVisible + "`" ) $ctrlVisible;
+ 	setParent ..;
+
+	rowLayout -numberOfColumns 2 -columnWidth2 140 100;
+ 		text -label "";
+ 		string $ctrlPxproj = `checkBox -label "Export .PxProj" -align "left"`; 
+			if(`about -linux`)
+			{
+		 		// GLM: disable this checkbox 
+				checkBox -e -value 0 -en 0 $ctrlPxproj;
+			}
+			else
+			{
+ 				checkBox -e -value `optionVar -q "PhysXExport_exportPxProjFile"` $ctrlPxproj;
+			}
+ 			
+ 			checkBox -e -cc ( "optionVar -iv \"PhysXExport_exportPxProjFile\" `checkBox -q -value " + $ctrlPxproj + "`" ) $ctrlPxproj;
+ 	setParent ..;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 140 200;
+		text -label "";
+		string $ctrlExportPhysX = `checkBox -label "Export PhysX Scene" -align "left"`; 
+			checkBox -e -value `optionVar -q "PhysXExport_exportPhysX"` $ctrlExportPhysX;
+			checkBox -e -cc ( "optionVar -iv \"PhysXExport_exportPhysX\" `checkBox -q -value " + $ctrlExportPhysX + "`" ) $ctrlExportPhysX;
+	setParent ..;
+
+}
+
+global proc toggleFolderNameTextBoxState()
+{
+	optionVar -iv "PhysXExport_useFolderName" `checkBox -q -value "physXExport_FolderNameChkBox"`;
+}
+
+// Checks if directory already exists.
+// if No: make directory & continue export
+// if Yes: display override dialog. 
+//		if user selects Yes: continue export 
+//		if user selects No: terminate export
+// returns status to exporter: 0 - terminate export, 1 - continue export on new dir, 2 - continue export on existing dir
+global proc int physXExport_folderExistsCheck( string $folderpath )
+{
+	if(!`filetest -d $folderpath`)
+	{
+		sysFile -makeDir $folderpath; 	
+		return 1;
+	}
+	else
+	{
+		string $override = `confirmDialog -title "Export folder exists.." -message "Do you want to override?"
+			-button "Yes" -button "No" -defaultButton "Yes"
+			-cancelButton "No" -dismissString "No"`;
+
+		if( $override == "Yes" )
+			return 2;
+		else
+			return 0;
+	}
+}
+
+//global proc pxPhysXSceneExportOptions_Controls()
+//{
+// 	rowLayout  -numberOfColumns 4 -columnWidth4 145 60 60 60 -columnAttach 1 "right" 2;
+// 		text -label "File Format" ;
+// 
+// 		radioCollection;
+// 		string $ffXML = `radioButton -label "XML" -align "left"`; 
+// 		radioButton -e -onc ( "optionVar -iv \"PhysXExport_fileFormat\" 0" ) $ffXML;
+// 	
+// 		string $ffNXB = `radioButton -label "Binary" -align "left"`; 
+// 		radioButton -e -onc ( "optionVar -iv \"PhysXExport_fileFormat\" 1" ) $ffNXB;
+// 
+// 		//string $ffDAE = `radioButton -label "Collada" -align "left"`; 
+// 		//radioButton -e -onc ( "optionVar -iv \"PhysXExport_fileFormat\" 2" ) $ffDAE;
+// 
+// 		int $oldVaue = `optionVar -q "PhysXExport_fileFormat"`;
+// 		if($oldVaue == 0)
+// 			radioButton -e -select $ffXML;
+// 		else if($oldVaue == 1)
+// 			radioButton -e -select $ffNXB;
+// 		//else if($oldVaue == 2)
+// 		//	radioButton -e -select $ffDAE;
+// 
+// 	setParent ..;
+//}
+
+global proc PhysXExport_exportAPEXClothChangeCommand(int $value, string $ctpCheckBox, string $optionVarName)
+{
+	optionVar -iv $optionVarName $value;
+	checkBox -e -enable (1 - $value) $ctpCheckBox;
+}
+
+global proc PhysXExport_exportAPEXClothCTPChangeCommand(int $value, string $ctpCheckBox, string $optionVarName)
+{
+	PhysXExport_exportAPEXClothChangeCommand($value, $ctpCheckBox, $optionVarName);
+	global string $gApexClothingExport_FileFormatRadioButton;
+	if($value == 1 && `radioButton -q -exists $gApexClothingExport_FileFormatRadioButton`)
+	{
+		radioButton -e -select $gApexClothingExport_FileFormatRadioButton;
+		optionVar -iv "apexClothingExport_APBs" 2;
+	}
+}
+
+global proc pxAPEXClothingExportOptions_Controls()
+{
+	//apexClothingExport_InitOptions();
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+		text -label "";
+		global string $PhysXExport_exportAPEXClothCheckBox = "PhysXExport_exportAPEXClothCheckBox";
+		if (`optionVar -q "PhysXExport_exportAPEXCloth"` && `optionVar -q "apexClothingExport_CTP"`)
+		{
+			optionVar -iv "PhysXExport_exportAPEXCloth" 0;
+		}
+		string $ctrlExportAPEX = `checkBox -label "Export PhysX Assets" -align "left" "PhysXExport_exportAPEXClothCheckBox"`; 
+			checkBox -e -value `optionVar -q "PhysXExport_exportAPEXCloth"` $ctrlExportAPEX;
+	setParent ..;
+
+	global string $gApexClothingExport_CTPCheckBox;
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+		text -label "";
+		$gApexClothingExport_CTPCheckBox = `checkBox -label "Export Clothing Tool Project" -align "left"`; 
+			checkBox -e -value `optionVar -q "apexClothingExport_CTP"` $gApexClothingExport_CTPCheckBox;
+			checkBox -e -cc ( "optionVar -iv \"apexClothingExport_CTP\" `checkBox -q -value " + $gApexClothingExport_CTPCheckBox + "`" ) $gApexClothingExport_CTPCheckBox;
+	setParent ..;
+
+	checkBox -e -cc ("PhysXExport_exportAPEXClothChangeCommand(#1, \"" + $gApexClothingExport_CTPCheckBox + "\", \"PhysXExport_exportAPEXCloth\")") $ctrlExportAPEX;
+	checkBox -e -cc ("PhysXExport_exportAPEXClothCTPChangeCommand(#1, \"" + $ctrlExportAPEX + "\", \"apexClothingExport_CTP\")") $gApexClothingExport_CTPCheckBox;
+	int $value = `optionVar -q "PhysXExport_exportAPEXCloth"`;
+	PhysXExport_exportAPEXClothChangeCommand($value, $gApexClothingExport_CTPCheckBox, "PhysXExport_exportAPEXCloth");
+	$value = `optionVar -q "apexClothingExport_CTP"`;
+	PhysXExport_exportAPEXClothChangeCommand($value, $ctrlExportAPEX, "apexClothingExport_CTP");
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200 -columnAttach 1 "right" 2;
+		text -l "" ;
+		string $ctrlRagdoll = `checkBox -label "Include Collision Rig" -align "left"`; 
+		checkBox -e -value `optionVar -q "apexClothingExport_Ragdoll"` $ctrlRagdoll;
+		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_Ragdoll\" `checkBox -q -value " + $ctrlRagdoll + "`" ) $ctrlRagdoll;
+	setParent ..;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 100 -columnAttach 1 "right" 2;
+		text -l "Triangle Winding" ;
+		string $ctrlTriangleWinding = `optionMenu`; 
+			menuItem -parent $ctrlTriangleWinding -label "Standard";
+			menuItem -parent $ctrlTriangleWinding -label "Reverse";
+		optionMenu -e -select (`optionVar -q "apexClothingExport_ReverseWind"` + 1) $ctrlTriangleWinding;
+		optionMenu -e -cc ( "optionVar -iv \"apexClothingExport_ReverseWind\" (`optionMenu -q -select " + $ctrlTriangleWinding + "` - 1)" ) $ctrlTriangleWinding;
+		
+	setParent ..;
+
+// 	rowLayout  -numberOfColumns 2 -columnWidth2 145 150 -columnAttach 1 "right" 2;
+// 		text -l "Add ClothingTool CTP" ;
+// 		string $ctrlCTP = `checkBox -label "Enable" -align "left"`; 
+// 		checkBox -e -value `optionVar -q "apexClothingExport_CTP"` $ctrlCTP;
+// 		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_CTP\" `checkBox -q -value " + $ctrlCTP + "`" ) $ctrlCTP;
+// 	setParent ..;
+
+	//rowLayout  -numberOfColumns 2 -columnWidth2 145 60 -columnAttach 1 "right" 2;
+	//	text -l "Launch ClothingTool" ;
+	//	string $ctrlClothingTool = `checkBox -label "Enable" -align "left"`; 
+	//	checkBox -e -value `optionVar -q "PhysXExport_LaunchClothingTool"` $ctrlClothingTool;
+	//	checkBox -e -cc ( "optionVar -iv \"PhysXExport_LaunchClothingTool\" `checkBox -q -value " + $ctrlClothingTool + "`" ) $ctrlClothingTool;
+	//setParent ..;
+
+
+	//rowLayout  -numberOfColumns 2 -columnWidth2 145 60 -columnAttach 1 "right" 2;
+	//	text -l "Model Space" ;
+	//	string $ctrlModelSpace = `checkBox -label "Enable" -align "left"`; 
+	//	checkBox -e -value `optionVar -q "apexClothingExport_ModelSpace"` $ctrlModelSpace;
+	//	checkBox -e -cc ( "optionVar -iv \"apexClothingExport_ModelSpace\" `checkBox -q -value " + $ctrlModelSpace + "`" ) $ctrlModelSpace;
+	//setParent ..;
+
+// 	rowLayout  -numberOfColumns 2 -columnWidth2 145 145 -columnAttach 1 "right" 2;
+// 		text -l "Omit Mesh Names" ;
+// 		string $ctrlOmitMeshName = `checkBox -label "Enable (only if one piece)" -align "left"`; 
+// 		checkBox -e -value `optionVar -q "apexClothingExport_OmitMeshName"` $ctrlOmitMeshName;
+// 		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_OmitMeshName\" `checkBox -q -value " + $ctrlOmitMeshName + "`" ) $ctrlOmitMeshName;
+// 	setParent ..;
+
+	//rowLayout -numberOfColumns 2 -columnWidth2 140 90 -columnAttach 1 "right" 2;
+	//	text -l "Scale";
+	//	string $ctrlScale = `floatField`;
+	//	floatField -e -value `optionVar -q "apexClothingExport_Scale"` $ctrlScale;
+	//	floatField -e -cc ( "optionVar -fv \"apexClothingExport_Scale\" `floatField -q -value "+$ctrlScale+"`" ) $ctrlScale;
+	//setParent ..;
+	
+
+	// If there are no clothing in the scene or is using PhysX 3.0, disable controls & uncheck export clothing
+ 	if( physXExport_skipClothingExportCheck() )
+ 	{
+ 		checkBox -e -enable false -value 0 $ctrlExportAPEX;
+ 		optionVar -iv "PhysXExport_exportAPEXCloth" false;
+ 		checkBox -e -enable false -value 0 $gApexClothingExport_CTPCheckBox;
+ 		optionVar -iv "apexClothingExport_CTP" false;
+		checkBox -e -enable false $ctrlRagdoll;
+		optionMenu -e -enable false $ctrlTriangleWinding;
+	}
+}
+
+global proc pxAdvancedExportOptions_radioButton_onCommand(int $index)
+{
+	global string $ctrlAxisX, $ctrlAxisY, $ctrlAxisZ, $ctrlCustomMatrix;
+	global string $ctrlPhysXExport_leftHandTransformDegrees, $ctrlPhysXExport_leftHandCustomMatrix;
+
+	optionVar -iv "PhysXExport_leftHandTransformAxis" $index;
+
+	if($index == 1)
+	{
+		radioButton -e -select $ctrlAxisX;
+	}
+	else if($index == 2)
+	{
+		radioButton -e -select $ctrlAxisY;
+	}
+	else if($index == 3)
+	{
+		radioButton -e -select $ctrlAxisZ;
+	}
+	else
+	{
+		radioButton -e -select $ctrlCustomMatrix;
+	}
+
+	if($index == 0)
+	{
+		floatField -e -enable false $ctrlPhysXExport_leftHandTransformDegrees;
+		textField -e -enable true $ctrlPhysXExport_leftHandCustomMatrix;
+	}
+	else
+	{
+		floatField -e -enable true $ctrlPhysXExport_leftHandTransformDegrees;
+		textField -e -enable false $ctrlPhysXExport_leftHandCustomMatrix;
+	}
+}
+
+global proc pxAdvancedExportOptions_textField_textChangedCommand()
+{
+	global string $ctrlPhysXExport_leftHandCustomMatrix;
+
+	string $text = `textField -q -text $ctrlPhysXExport_leftHandCustomMatrix`;
+
+    string $array[];
+    tokenizeList($text, $array);
+	int $size = `size $array`;
+	if($size != 16)
+	{
+	    warning ("item count in matrix is not right, should be 16, now is " + $size + "\n");
+	    return;
+	}
+	
+	int $i;
+	float $value[];
+	for($i = 0; $i < 16; $i++)
+	{
+	    $value[$i] = $array[$i];
+	}
+	
+	$text = floatArrayToString( $value, " ");
+	textField -e -text $text $ctrlPhysXExport_leftHandCustomMatrix;
+	optionVar -sv "PhysXExport_leftHandCustomMatrix" $text;
+}
+
+global proc pxCalculate_Export_outputScale()
+{
+	int $useCustom = `optionVar -q "PhysXExport_customScaling"`;
+	if(!$useCustom)
+	{
+		string $currentUnit = `currentUnit -query -fullName -linear`;
+		string $outunit = `optionVar -q "PhysXExport_outputUnit"`;
+		float $rate = pxStringToFloat(`convertUnit -fromUnit $currentUnit -toUnit $outunit "1"`);
+		optionVar -fv "PhysXExport_outputScale" $rate;
+	}
+}
+
+global proc pxExport_outputScaleChanged()
+{
+	global string $ctrlPhysXExport_outputScale;
+	float $rate = `floatField -q -value $ctrlPhysXExport_outputScale`;
+	optionVar -fv "PhysXExport_outputScale" $rate;
+
+	string $pxsolvers[] = `ls -l -type nxRigidSolver`;
+	for ($px in $pxsolvers)
+	{
+		string $r = ("setAttr "  + $px + ".scaleManual " + $rate);
+		eval $r;
+	}
+}
+
+global proc float pxStringToFloat(string $fromConvertUnit) 
+{ 
+    return `substitute "[^0-9\.]+" $fromConvertUnit ""`; 
+} 
+
+global proc pxExportUI_outputUnitChanged()
+{
+	global string $ctrlPhysXExport_outputScale, $ctrlPhysXExport_outputUnit, $ctrlPhysXExport_outputUnitLabel;
+	string $currentUnit = `currentUnit -query -fullName -linear`;
+	string $outunit = `optionMenu -q -v $ctrlPhysXExport_outputUnit`;
+	optionVar -sv "PhysXExport_outputUnit" $outunit;
+	float $rate = pxStringToFloat(`convertUnit -fromUnit $currentUnit -toUnit $outunit "1"`);
+	floatField -e -value $rate $ctrlPhysXExport_outputScale;
+	pxExport_outputScaleChanged();
+}
+
+global proc pxExport_customScalingChanged()
+{
+	global string $ctrlPhysXExport_outputScale, $ctrlPhysXExport_outputUnit, $ctrlPhysXExport_outputUnitLabel;
+	int $customScaling = `checkBox -q -value PhysXExport_customScalingCheckBox`;
+	optionVar -iv "PhysXExport_customScaling" $customScaling;
+	if($customScaling)
+	{
+		optionMenu -e -enable false $ctrlPhysXExport_outputUnit;
+		text -e -enable false $ctrlPhysXExport_outputUnitLabel;
+		floatField  -e -enable true $ctrlPhysXExport_outputScale;
+	}
+	else
+	{
+		optionMenu -e -enable true $ctrlPhysXExport_outputUnit;
+		text -e -enable true $ctrlPhysXExport_outputUnitLabel;
+		floatField  -e -enable false $ctrlPhysXExport_outputScale;
+		pxExportUI_outputUnitChanged();
+	}
+}
+
+global proc pxOutputScalingFactorUI()
+{
+	global string $ctrlPhysXExport_outputScale, $ctrlPhysXExport_outputUnit, $ctrlPhysXExport_outputUnitLabel;
+
+	string $currentUnit = `currentUnit -query -fullName -linear`;
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 150;
+		text -label "Maya Scene Unit";
+		text -label $currentUnit;
+	setParent ..;
+
+	$ctrlPhysXExport_outputUnitLabel = "ctrlPhysXExport_outputUnitLabel";
+	$ctrlPhysXExport_outputUnit = "ctrlPhysXExport_outputUnit";
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 120 -columnAttach 1 "right" 2;
+		text -label "Output Unit" $ctrlPhysXExport_outputUnitLabel;
+		optionMenu $ctrlPhysXExport_outputUnit;
+			menuItem -parent $ctrlPhysXExport_outputUnit -label "millimeter";
+			menuItem -parent $ctrlPhysXExport_outputUnit -label "centimeter";
+			menuItem -parent $ctrlPhysXExport_outputUnit -label "meter";
+			menuItem -parent $ctrlPhysXExport_outputUnit -label "inch";
+			menuItem -parent $ctrlPhysXExport_outputUnit -label "foot";
+			menuItem -parent $ctrlPhysXExport_outputUnit -label "yard";
+		optionMenu -e -cc "pxExportUI_outputUnitChanged" $ctrlPhysXExport_outputUnit;
+		//optionMenu -e -select -label "meter" -cc ("pxExportUI_outputUnitChanged") 
+	setParent ..;
+
+	string $currentOutputUnit = `optionVar -q "PhysXExport_outputUnit"`;
+	optionMenu -e -v  $currentOutputUnit $ctrlPhysXExport_outputUnit;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+		text -label "";
+		//global string $PhysXExport_customScalingCheckBox = "PhysXExport_customScalingCheckBox";
+		checkBox -label "Custom Scaling" -align "left" PhysXExport_customScalingCheckBox; 
+		checkBox -e -value `optionVar -q "PhysXExport_customScaling"` PhysXExport_customScalingCheckBox;
+		checkBox -e -cc "pxExport_customScalingChanged" PhysXExport_customScalingCheckBox;
+	setParent ..;
+
+	$ctrlPhysXExport_outputScale = "ctrlPhysXExport_outputScale";
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 150;
+		text -label "Scaling Factor";
+		floatField $ctrlPhysXExport_outputScale;
+		floatField -e -value `optionVar -q "PhysXExport_outputScale"` $ctrlPhysXExport_outputScale;
+		floatField -e -cc ( "optionVar -fv \"PhysXExport_outputScale\" `floatField -q -value "+$ctrlPhysXExport_outputScale+"`" ) $ctrlPhysXExport_outputScale;
+	setParent ..;
+
+	//rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+	//	text -label "";
+	//	string $ctrlPhysXExport_massInKg = `checkBox -label "Mass Unit in Kg (g when off)" -align "left" "PhysXExport_massInKgCheckBox"`;
+	//	checkBox -e -value `optionVar -q "PhysXExport_massInKg"` $ctrlPhysXExport_massInKg;
+	//	checkBox -e -cc ( "optionVar -iv \"PhysXExport_massInKg\" `checkBox -q -value " + $ctrlPhysXExport_massInKg + "`" ) $ctrlPhysXExport_massInKg;
+	//setParent ..;
+
+	pxExport_customScalingChanged();
+	pxExport_outputScaleChanged();   // sync new scale parameter to old
+}
+
+global proc pxAdvancedExportOptions_Controls()
+{
+	global string $ctrlAxisX, $ctrlAxisY, $ctrlAxisZ, $ctrlCustomMatrix;
+	global string $ctrlPhysXExport_leftHandTransformDegrees, $ctrlPhysXExport_leftHandCustomMatrix;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+		text -label "";
+		global string $PhysXExport_enableLeftHandCheckBox = "PhysXExport_enableLeftHandCheckBox";
+		string $ctrlPhysXExport_enableLeftHand = `checkBox -label "Enable Lefthand Rotation" -align "left" "PhysXExport_enableLeftHandCheckBox"`; 
+		checkBox -e -value `optionVar -q "PhysXExport_enableLeftHand"` $ctrlPhysXExport_enableLeftHand;
+		checkBox -e -cc ( "optionVar -iv \"PhysXExport_enableLeftHand\" `checkBox -q -value " + $ctrlPhysXExport_enableLeftHand + "`" ) $ctrlPhysXExport_enableLeftHand;
+	setParent ..;
+
+	rowLayout  -numberOfColumns 4 -columnWidth4 145 65 65 65;
+		text -label "Method";
+		radioCollection;
+ 		$ctrlAxisX = `radioButton -label "Rotate X" -align "left"`; 
+ 		radioButton -e -onc ( "pxAdvancedExportOptions_radioButton_onCommand 1" ) $ctrlAxisX;
+
+ 		$ctrlAxisY = `radioButton -label "Rotate Y" -align "left"`; 
+ 		radioButton -e -onc ( "pxAdvancedExportOptions_radioButton_onCommand 2" ) $ctrlAxisY;
+
+ 		$ctrlAxisZ = `radioButton -label "Rotate Z" -align "left"`; 
+ 		radioButton -e -onc ( "pxAdvancedExportOptions_radioButton_onCommand 3" ) $ctrlAxisZ;
+	setParent ..;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 150;
+		text -label "";
+		 		
+		$ctrlCustomMatrix = `radioButton -label "Custom Matrix" -align "left"`; 
+ 		radioButton -e -onc ( "pxAdvancedExportOptions_radioButton_onCommand 0" ) $ctrlCustomMatrix;
+	setParent ..;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 150;
+		text -label "Rotation in Degrees";
+		//string $ctrlPhysXExport_leftHandTransformDegrees = `floatPhysXExport_leftHandTransformDegrees`;
+		$ctrlPhysXExport_leftHandTransformDegrees = `floatField`;
+		floatField -e -value `optionVar -q "PhysXExport_leftHandTransformDegrees"` $ctrlPhysXExport_leftHandTransformDegrees;
+		floatField -e -cc ( "optionVar -fv \"PhysXExport_leftHandTransformDegrees\" `floatField -q -value "+$ctrlPhysXExport_leftHandTransformDegrees+"`" ) $ctrlPhysXExport_leftHandTransformDegrees;
+	setParent ..;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 150;
+		text -label "Matrix";
+		$ctrlPhysXExport_leftHandCustomMatrix = `textField`;
+		textField -e -text `optionVar -q "PhysXExport_leftHandCustomMatrix"` $ctrlPhysXExport_leftHandCustomMatrix;
+		textField -e -cc ( "pxAdvancedExportOptions_textField_textChangedCommand" ) $ctrlPhysXExport_leftHandCustomMatrix;
+	setParent ..;
+
+	int $index = `optionVar -q "PhysXExport_leftHandTransformAxis"`;
+	pxAdvancedExportOptions_radioButton_onCommand $index;
+
+	separator -h 10 -style "none";
+	
+	//checkBox -e -cc ("PhysXExport_enableLeftHandChangeCommand(#1, \"" + $gApexClothingExport_CTPCheckBox + "\", \"PhysXExport_enableLeftHand\")") $ctrlPhysXExport_enableLeftHand;
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+		text -label "";
+		global string $PhysXExport_useSpecifiedNormalsCheckBox = "PhysXExport_useSpecifiedNormalsCheckBox";
+		string $ctrlPhysXExport_useSpecifiedNormals = `checkBox -label "Use Specified Normals" -align "left" "PhysXExport_useSpecifiedNormalsCheckBox"`; 
+		checkBox -e -value `optionVar -q "PhysXExport_useSpecifiedNormals"` $ctrlPhysXExport_useSpecifiedNormals;
+		checkBox -e -cc ( "optionVar -iv \"PhysXExport_useSpecifiedNormals\" `checkBox -q -value " + $ctrlPhysXExport_useSpecifiedNormals + "`" ) $ctrlPhysXExport_useSpecifiedNormals;
+	setParent ..;
+
+	rowLayout  -numberOfColumns 4 -columnWidth4 145 65 65 65;
+		text -label "Flip TBN";
+		global string $PhysXExport_specifiedNormalVectorTCheckBox = "PhysXExport_specifiedNormalVectorTCheckBox";
+		string $ctrlPhysXExport_specifiedNormalVectorT = `checkBox -label "T" -align "left" "PhysXExport_specifiedNormalVectorTCheckBox"`; 
+		checkBox -e -value `optionVar -q "PhysXExport_specifiedNormalVectorT"` $ctrlPhysXExport_specifiedNormalVectorT;
+		checkBox -e -cc ( "optionVar -iv \"PhysXExport_specifiedNormalVectorT\" `checkBox -q -value " + $ctrlPhysXExport_specifiedNormalVectorT + "`" ) $ctrlPhysXExport_specifiedNormalVectorT;
+
+		global string $PhysXExport_specifiedNormalVectorBCheckBox = "PhysXExport_specifiedNormalVectorBCheckBox";
+		string $ctrlPhysXExport_specifiedNormalVectorB = `checkBox -label "B" -align "left" "PhysXExport_specifiedNormalVectorBCheckBox"`; 
+		checkBox -e -value `optionVar -q "PhysXExport_specifiedNormalVectorB"` $ctrlPhysXExport_specifiedNormalVectorB;
+		checkBox -e -cc ( "optionVar -iv \"PhysXExport_specifiedNormalVectorB\" `checkBox -q -value " + $ctrlPhysXExport_specifiedNormalVectorB + "`" ) $ctrlPhysXExport_specifiedNormalVectorB;
+
+		global string $PhysXExport_specifiedNormalVectorNCheckBox = "PhysXExport_specifiedNormalVectorNCheckBox";
+		string $ctrlPhysXExport_specifiedNormalVectorN = `checkBox -label "N" -align "left" "PhysXExport_specifiedNormalVectorNCheckBox"`; 
+		checkBox -e -value `optionVar -q "PhysXExport_specifiedNormalVectorN"` $ctrlPhysXExport_specifiedNormalVectorN;
+		checkBox -e -cc ( "optionVar -iv \"PhysXExport_specifiedNormalVectorN\" `checkBox -q -value " + $ctrlPhysXExport_specifiedNormalVectorN + "`" ) $ctrlPhysXExport_specifiedNormalVectorN;
+	setParent ..;
+
+	separator -h 10 -style "none";
+
+	rowLayout  -numberOfColumns 2 -columnWidth2 145 200;
+		text -label "";
+		global string $PhysXExport_onlyUseLod0sMaterialsOfClothingCheckBox = "PhysXExport_onlyUseLod0sMaterialsOfClothingCheckBox";
+		string $ctrlPhysXExport_onlyUseLod0sMaterialsOfClothing = `checkBox -label "Only Use Lod0's Physical Materials" -align "left" "PhysXExport_onlyUseLod0sMaterialsOfClothingCheckBox"`; 
+		checkBox -e -value `optionVar -q "PhysXExport_onlyUseLod0sMaterialsOfClothing"` $ctrlPhysXExport_onlyUseLod0sMaterialsOfClothing;
+		checkBox -e -cc ( "optionVar -iv \"PhysXExport_onlyUseLod0sMaterialsOfClothing\" `checkBox -q -value " + $ctrlPhysXExport_onlyUseLod0sMaterialsOfClothing + "`" ) $ctrlPhysXExport_onlyUseLod0sMaterialsOfClothing;
+	setParent ..;
+}
+
+global proc int physXExport_skipClothingExportCheck()
+{
+	string $cloth[] = `ls -type "apexClothing"`; 
+	if( size($cloth) == 0 )
+		return true;
+
+	return false;
+}
+
+//----------------------------------------------------------------------------
+// Other commands.
+//
+
+global proc nxBakeAll()
+{
+	$rigidBodies = `ls -type "nxRigidBody"`;
+    nxBakeRigidBodies($rigidBodies);
+	clear $rigidBodies;
+}
+
+global proc nxBakeSelected()
+{
+	//$rigidBodies = `ls -selection -type "nxRigidBody"`;
+	//nxBakeRigidBodies($rigidBodies);
+
+	string $rigidBodies[];
+	$selection = `ls -selection`;
+
+	chooseObjectFromSelectionToBake($selection);
+	clear $selection;
+}
+
+global proc chooseObjectFromSelectionToBake(string $objects[])
+{
+	string $rigidBodies[];
+	for ($selected in $objects)
+	{
+		if ( "nxRigidBody" == `nodeType $selected`)
+		{
+			$rigidBodies[ size($rigidBodies) ] = $selected;
+		}
+		else
+		{
+			if ( "transform" == `nodeType $selected` )
+			{
+				string $child[] = `listRelatives -fullPath -children -type "nxRigidBody" $selected`;
+				//print("size of child: " + size($child) + "\n");
+				if ( 1 == size($child) )
+				{
+					$rigidBodies[ size($rigidBodies) ] = $child[0];
+				}
+				else
+				{
+					print( "More than 1 or 0 nxRigidBody child on rigidBody\n" );
+				}
+			}
+		}
+	}
+
+	//print($rigidBodies);
+	nxBakeRigidBodies($rigidBodies);
+	clear $rigidBodies;
+}
+
+// Bake all rigid bodies' position and orientation for the
+// whole duration covered by the timeline, then make all
+// rigid bodies kinematic. That way you can get repeatable
+// results and you can play backward, modify the resulting
+// animation curve, etc.
+//
+// Make sure to keep a backup of your scene and that you 
+// set up the timeline to cover the simulation range, 
+// before running this script!
+//
+global proc nxBakeRigidBodies(string $rigidBodies[])
+{
+    // [claforte] TODO: Check if this works reliably with
+    // constraints.
+
+	print "Start baking...\n";
+	string $solverList[] = `ls -type nxRigidSolver`;
+
+	// get the rigidsolver
+	string $solverName1 = "";
+	if ( size( $solverList ) == 0 )
+	{
+		$solverName1 = nxLazilyCreateSolverAndDebug();
+	}
+	else
+	{
+		$solverName1 = $solverList[0];
+	}
+
+	//int $steps = `getAttr ($solverName1 + ".steps")`;
+	//float $stepSize = (1.0 / $steps);
+    float $minTime = `playbackOptions -q -minTime`;
+    float $maxTime = `playbackOptions -q -maxTime`;
+
+	// iterate through the time
+	//for ( $time = $minTime; $time <= $maxTime; $time++ )
+ //   {
+	//	// iterate through steps
+	//	for ( $i = 0; $i < $steps; $i++ )
+	//	{
+	//		currentTime -edit ($time + ($i * $stepSize));
+	//		for ($rigidBody in $rigidBodies)
+	//		{
+	//			if (`getAttr ($rigidBody + ".simulationType")` == 1)
+	//			{
+	//				string $node;
+	//				string $connections[] = `listConnections ($rigidBody + ".target")`;
+	//				if ( size($connections) == 1 )
+	//				{
+	//					// get the parent
+	//					$node = $connections[0];
+	//				}
+	//				else
+	//				{
+	//					$node = $rigidBody;
+	//				}
+
+	//				setKeyframe ($node + ".tx");
+	//				setKeyframe ($node + ".ty");
+	//				setKeyframe ($node + ".tz");
+	//				setKeyframe ($node + ".rx");
+	//				setKeyframe ($node + ".ry");
+	//				setKeyframe ($node + ".rz");
+	//			}
+	//		}
+	//	}
+ //   }
+
+	int $oldValue = `optionVar -q  nxNativeTimeControl `;
+	optionVar -iv nxNativeTimeControl 1;
+    for ($time = $minTime; $time <= $maxTime; $time++)
+    {
+		print ("Current time is: " + $time + "\n");
+        currentTime -edit $time;
+        for ($rigidBody in $rigidBodies)
+        {
+            if (`getAttr ($rigidBody + ".simulationType")` == 1)
+            {
+				string $node;
+				string $connections[] = `listConnections ($rigidBody + ".target")`;
+				if ( size($connections) == 1 )
+				{
+					// get the parent
+					$node = $connections[0];
+				}
+				else
+				{
+					$node = $rigidBody;
+				}
+
+                setKeyframe ($node + ".tx");
+                setKeyframe ($node + ".ty");
+                setKeyframe ($node + ".tz");
+                setKeyframe ($node + ".rx");
+                setKeyframe ($node + ".ry");
+                setKeyframe ($node + ".rz");
+            }
+        }
+    }
+    
+    for ($rigidBody in $rigidBodies)
+    {
+        // Make kinematic.
+		if (`getAttr ($rigidBody + ".simulationType")` == 1)
+			setAttr ($rigidBody + ".simulationType") 0;
+    }
+	optionVar -iv nxNativeTimeControl $oldValue;
+	physxShelf_ResetSimulationCommand();
+	print "Baking Ends!\n";
+}
+
+//----------------------------------------------------------------------------
+// Import scripts, for backward compatibility.
+//
+
+
+// PRE-BETA1 SCRIPTS
+// In the past, rigid bodies were siblings of their collision shapes.
+// Now, rigid bodies are direct parent of the collision shapes. The following two
+// scripts are used to import old scenes that haven't made that change.
+//
+global proc nx1_ReparentShapesUnderRigidBodies()
+{
+    $rigidBodies = `ls -type nxRigidBody`;
+    for ($rigidBody in $rigidBodies)
+        nx1_ReparentShapesUnderRigidBody(nxGetTransformOrParent($rigidBody), $rigidBody);
+}
+
+global proc nx1_ReparentShapesUnderRigidBody(string $rigidBodyParent, string $rigidBody)
+{
+    // Move the direct children inside the rigid body.
+    $children = `listRelatives -fullPath -path $rigidBodyParent`;
+    
+    for ($child in $children)
+    {
+        if ($child != $rigidBody)
+        {
+            nxReparent $child $rigidBody;
+        }
+    }
+}
+
+// This command is used to get rid of old rigid body parents. 
+// It's kind of like a mafia movie, where the young mafioso kills 
+// his father to get a promotion. Don't run it more than once or
+// the whole famiglia will disappear!   
+//
+global proc nx1_NukeRigidBodyParents()
+{
+    $rigidBodies = `ls -type nxRigidBody`;
+    for ($rigidBody in $rigidBodies)
+		nx1_NukeRigidBodyParent($rigidBody);
+}
+
+global proc nx1_NukeRigidBodyParent(string $rigidBody)
+{
+    $parent = "";   // world by default.
+    $grandParent = ""; // world by default.
+
+    // Identify parent, if any.
+    $parents = `listRelatives -fullPath -parent -path $rigidBody`;
+    if (size($parents) == 1)
+        $parent = $parents[0];
+    else if (size($parents) > 1)
+    {
+        warning "Skipping instance (parent) found in nxRemoveRigidBodyParent";
+        return;
+    }
+
+    // If the rigid body already has no parent, we can safely skip it.
+    //
+    if ($parent == "")
+        return;
+
+    // Identify grand parent, if any.
+    //
+    $grandParents = `listRelatives -fullPath -parent -path $parent`;
+    if (size($grandParents) == 1)
+        $grandParent = $grandParents[0];
+    else if (size($grandParents) > 1)
+    {
+        warning "Skipping instance (grandParent) found in nxRemoveRigidBodyParent";
+        return;
+    }
+    
+    // Move rigid body right under grandParent. 
+    if ($grandParent == "")
+        parent -world $rigidBody;
+    else
+        parent $rigidBody $grandParent;
+        
+    // Now delete the parent.
+    delete $parent;
+}
+
+global proc nx1_TransplantConnectionsOnRigidBodies()
+{
+    $rigidBodies = `ls -type nxRigidBody`;
+    for ($rigidBody in $rigidBodies)
+        nx1_TransplantConnectionsOnRigidBody(nxGetTransformOrParent($rigidBody), $rigidBody);
+}
+
+global proc nx1_TransplantConnectionsOnRigidBody(string $parent, string $rigidBody)
+{
+	global string $physxSolverNodeNameLong;
+    $rigidBodyId = `getAttr ($rigidBody + ".rigidBodyId")`;
+    
+    // Transplant translate and rotate destination connections from parent transform to rigid body.
+    //
+    nxTransplantDestConnection(( $physxSolverNodeNameLong+".translate[" + $rigidBodyId + "].translateX"), $parent, $rigidBody, "translateX");
+    nxTransplantDestConnection(( $physxSolverNodeNameLong+".translate[" + $rigidBodyId + "].translateY"), $parent, $rigidBody, "translateY");
+    nxTransplantDestConnection(( $physxSolverNodeNameLong+".translate[" + $rigidBodyId + "].translateZ"), $parent, $rigidBody, "translateZ");
+
+    nxTransplantDestConnection(( $physxSolverNodeNameLong+".rotate[" + $rigidBodyId + "].rotateX"), $parent, $rigidBody, "rotateX");
+    nxTransplantDestConnection(( $physxSolverNodeNameLong+".rotate[" + $rigidBodyId + "].rotateY"), $parent, $rigidBody, "rotateY");
+    nxTransplantDestConnection(( $physxSolverNodeNameLong+".rotate[" + $rigidBodyId + "].rotateZ"), $parent, $rigidBody, "rotateZ");
+    
+    // Transplant scale source connection from parent transform to rigid body.
+    //
+    nxTransplantSourceConnection($parent, $rigidBody, "scale", ($rigidBody + ".parentScale"));    
+}
+
+// Import old scenes.
+global proc nx1_UpdateRigidBodyAsTransform()
+{
+	nx1_ReparentShapesUnderRigidBodies();
+	nx1_TransplantConnectionsOnRigidBodies();
+	nx1_NukeRigidBodyParents();
+}
+
+// BETA 1 --> BETA 2 UPGRADE SCRIPTS
+//
+global proc nx1_Upgrade_Scene_From_Beta1_to_Beta2()
+{
+    $solver = "nxRigidSolver1";
+	
+	// Create the physics debug locator if it doesn't
+	// already exist.
+	if (objExists("physicsDebugLocator1"))
+        delete "physicsDebugLocator1";
+
+    nxLazilyCreateSolverAndDebug();
+
+    $rigidBodies = `ls -type nxRigidBody`;
+    for ($rigidBody in $rigidBodies)
+    {
+        connectAttr -f ($solver + ".simulate") ($rigidBody + ".inSimulate");
+    
+        //connectAttr -f ($rigidBody + ".parentInverseMatrix[0]") 
+		//    ($rigidBody + ".parentInverseMatrixCopy[0]");
+		
+    	//connectAttr -f ($rigidBody + ".scale") 
+	    //	($rigidBody + ".scaleCopy");
+
+        // Set translate and rotate according to initial conditions.
+        $tx = `getAttr ($rigidBody + ".initialPositionX")`;
+        setAttr ($rigidBody + ".translateX") $tx;
+        $ty = `getAttr ($rigidBody + ".initialPositionY")`;
+        setAttr ($rigidBody + ".translateY") $ty;
+        $tz = `getAttr ($rigidBody + ".initialPositionZ")`;
+        setAttr ($rigidBody + ".translateZ") $tz;
+    
+        // Preserve the initial orientation.
+        //
+        $rx = `getAttr ($rigidBody + ".initialOrientationX")`;
+        setAttr ($rigidBody + ".rotateX") $rx;
+        $ry = `getAttr ($rigidBody + ".initialOrientationY")`;
+        setAttr ($rigidBody + ".rotateY") $ry;
+        $rz = `getAttr ($rigidBody + ".initialOrientationZ")`;
+        setAttr ($rigidBody + ".rotateZ") $rz;
+
+        // Create dummy transform to pull translate from rigid body.
+     //   $evaluationTransform = `group -n "nxRigidBodyDummyTransform" -p "nimaInternalPhysics" -em`;
+    	//connectAttr ($rigidBody + ".translate") ($evaluationTransform + ".translate");
+    }
+    
+    $constraints = `ls -type nxRigidConstraint`;
+    for ($constraint in $constraints)
+    {
+        connectAttr ($solver + ".simulate") ($constraint + ".inSimulate");
+    	
+		//connectAttr -f ($constraint + ".parentInverseMatrix[0]")  $constraint + ".parentInverseMatrixCopy[0]");
+	    //connectAttr -f ($constraint + ".translate")  ($constraint + ".translateCopy");
+		//connectAttr -f ($constraint + ".rotate")  ($constraint + ".rotateCopy");
+
+        // Get the name of the first rigid body.
+        $rigidBody1 = `listConnections -s true ($constraint + ".rigidBody1")`;
+
+        // TODO: Move constraints under the first rigid body.
+        parent -r $constraint $rigidBody1;
+    
+        // NOTE: The localPosition1, localOrientation1 attributes
+        // have been deleted. For now, simply leave the
+        // position/orientation to the origin of the first rigid body.
+    }
+}
+
+global proc nx_selectAllCloth()
+{
+	string $cloth[] =`ls -type "nxCloth"`;
+	int $i;
+	for($i=0; $i<size($cloth); $i++) {
+		if($i==0)
+			select -r `listConnections ($cloth[$i]+".outMesh")`;
+		else 
+			select -tgl `listConnections ($cloth[$i]+".outMesh")`;
+	}
+}
+
+global proc NxPlayButtonStepForward() {
+	float $by = `playbackOptions -query -by`;
+	float $curr = `currentTime -query`;
+	float $min = `playbackOptions -query -min`;
+	float $max = `playbackOptions -query -max`;
+
+	if(( $curr != $max ) 
+	&&(( $curr + $by ) <= $max )
+	&&(( $curr + $by ) > $min ))
+	{
+		currentTime -edit ( $curr + $by );
+	}
+	else {
+		currentTime -edit $min;
+	}
+}
+
+global proc NxPlayButtonStepBackward() {
+	float $by = `playbackOptions -query -by`;
+	float $curr = `currentTime -query`;
+	float $min = `playbackOptions -query -min`;
+	float $max = `playbackOptions -query -max`;
+
+	if(( $curr != $min )
+	&&(( $curr - $by ) >= $min )
+	&&(( $curr - $by ) < $max ))
+	{
+		currentTime -edit ( $curr - $by );
+	}
+	else {
+		currentTime -edit $max;
+	}
+}
+
+global proc nxShowEditorExact( string $object ) 
+{
+	if(!`about -batch`)
+	{
+		setAttributeEditorVisible 1; //AttributeEditor;	
+		if($object != "")
+			evalDeferred("showEditorExact "+$object);
+	}
+}
+
+global proc physxAboutDialogForMaya( string $pluginversion, string $buildtimestamp, string $physxversion, string $apexversion, string $changelist )
+{
+	global string $physxIconFormat;
+
+	$window = "physxAboutDialogForMayaWindow";
+	physxDeletePopUpWindow( $window );
+
+	window -title "About PhysX Plug-in for Maya" -toolbox on -resizeToFitChildren true $window;
+		//columnLayout -width 250 -height 200 -columnOffset "both" 10;
+		columnLayout -columnOffset "both" 30 -rowSpacing 5 -width 250;
+			//text -align "left" -label "\nThe PhysX plug-in is powered by NVIDIA(c) PhysX(c) technology.";
+
+			text -align "left" -label "\n";
+
+			rowLayout  -numberOfColumns 5;
+				text -label "The PhysX plug-in is powered by NVIDIA";
+				image -image "registered10.png";
+				text -label " PhysX";
+				image -image "registered10.png";
+				text -label " Technology.";	
+			setParent..;
+
+			text -align "left" -label "Developers interested in PhysX and related products may visit: ";
+            button -label "https://developer.nvidia.com/gameworks" -width 300 -command "launch -webPage \"https://developer.nvidia.com/gameworks\";";
+			//iconTextButton 
+				//-width 200
+				//-style "textOnly" 
+				//-label "http://www.nvidia.com/physx"
+				//-command "launch -webPage \"http://www.nvidia.com/physx\";";
+        	text -align "left" -label ("Plug-in Version " + $pluginversion + " compiled  on " + $buildtimestamp );
+			text -align "left" -label ("PhysX SDK Version " + $physxversion );
+			text -align "left" -label ("APEX SDK Version " + $apexversion );
+			text -align "left" -label ("Change List Version " + $changelist );
+		setParent..;
+
+		rowLayout -numberOfColumns 2;
+			iconTextButton -style "iconOnly" -width 80 -height 50 -image ("NVIDIALogo"+$physxIconFormat) -command "launch -webPage \"http://www.nvidia.com\";";
+			iconTextButton -style "iconOnly" -width 200 -height 50 -image ("PhysXLogo"+$physxIconFormat) -command "launch -webPage \"http://www.nvidia.com/physx\";";
+		setParent..;
+
+		columnLayout;
+			button -label "OK" -width 60 -command ("physxDeletePopUpWindow " + $window );
+			text -align "left" -label "";
+		setParent..;
+
+	showWindow $window;
+
+	window -e -sizeable off $window;
+}
+
+global proc EnableDisablePhysXVersionRelatedControls(string $attribute, string $nodeName)
+{
+	int $currentVersion = NvSolverGetPhysXVersion();
+	//print ("dimming.."+$nodeName+ "." +$attribute+" "+$currentVersion+"\n");
+
+	int $dimIt = false;
+	if($currentVersion == 284)
+	{
+		$dimIt = true;
+	}
+
+	editorTemplate -dimControl $nodeName $attribute $dimIt;
+}
+
+global proc physXHelpCmd()
+{
+	string $pluginPath = `pluginInfo -q -path physx.mll`;
+	string $array[];
+	tokenize($pluginPath, "//", $array);
+
+	int $i;
+	for($i = 0; $i < 4; $i++)
+		stringArrayRemoveAtIndex(`size $array` - 1, $array);
+    
+	string $path =  stringArrayToString($array, "/");
+	string $docPath = $path + "/Documentation/Maya PhysX Plug-in Documentation.chm";
+	launch -dir $docPath;
+}
+
+global proc PhysxNewSimulationSet()
+{
+	source "SimulationSetWindowUI.mel";
+	SimSetsWinUI_onBtnNewSet();
+    
+}
+
+global proc PhysXOpenSimulationMgrWindow()
+{
+	source "SimulationSetWindowUI.mel";
+	createSimulationSetManagerWindow("");
+}
+
+global proc PhysXTurnOffNativeTimeControl()
+{
+	optionVar -iv "nxNativeTimeControl" false; // force to turn off Enable Native Time Control
+	//string $v = `optionVar -q  nxNativeTimeControl`;
+	//print ("$v="+$v+"\n");
+}
+
+global proc PhysXClearPhysXThings()
+{
+	// delete clothings
+	string $clothings[] = `ls -l -type apexClothing`;
+	int $count = size($clothings);
+	int $i;
+	for ($i = 0; $i < $count; $i++)
+	{
+		print ("Deleting PhysX Object: " + $clothings[$i] + "\n");
+		select -r $clothings[$i];
+		apexRemoveOneClothing $clothings[$i];
+	}
+
+	// delete rigs
+	string $rigs[] = `ls -l -type "nxRagdollLocator"`;
+	$count = size($rigs);
+	for ($i = 0; $i < $count; $i++)
+	{
+		string $rig = $rigs[$i];
+		print ("Deleting PhysX Object: " + $rig + "\n");
+		string $dolls[] = `listRelatives -fullPath -parent $rig`; 
+		delete $dolls;
+	}
+
+	// delete joints
+	string $joints[] = `ls -l -type "nxRigidConstraint"`;
+	$count = size($joints);
+	for ($i = 0; $i < $count; $i++)
+	{
+		string $jt = $joints[$i];
+		print ("Deleting PhysX Object: " + $jt + "\n");
+		string $base[] = `listRelatives -fullPath -parent $jt`; 
+		delete $base;
+	}
+
+	// delete rigid bodies
+	string $rbs[] = `ls -l -type "nxRigidBody"`;
+	$count = size($rbs);
+	for ($i = 0; $i < $count; $i++)
+	{
+		string $rb = $rbs[$i];
+		print ("Deleting PhysX Object: " + $rb + "\n");
+		// delete the physicsShapes that are connected to the rigidbody
+		string $connectedPS[] = `listConnections ( $rb + ".physicsShapes")`;
+		for( $psTransform in $connectedPS )
+			delete $psTransform;
+		delete $rb;
+	}
+
+	// delete physx
+	string $transformName = "PhysX";
+	if((objExists($transformName) == true) && (`nodeType $transformName` != "tranform"))
+		delete $transformName;
+}
+
+global proc physx_GoToClothing_command(string $node)
+{
+	string $connects[] = `listConnections -t "apexClothing" ($node + ".relativeApexClothing")`;
+	int $connectcount = `size $connects`;
+	if($connectcount == 0)
+	{
+		warning ("no apexClothing node found on " + $node + "\n");
+		return;
+	}
+	string $apexClothing = $connects[0];
+	select -r $apexClothing;
+	nxShowEditorExact $apexClothing;
+}
+
+global proc physxSelectionChanged()
+{
+	/* pick clothing node when select one apexClothingDisplayable object
+	string $selectedAll[] = `ls -selection`;
+	string $selected[] = `ls -selection -type apexClothingDisplayable`;
+	if(size($selected) == 1 && size($selectedAll) == 1)
+	{
+		physx_GoToClothing_command $selected[0];
+	}
+	*/
+}
+
+global proc int GetNxSolverPropertyDisplayRigidBody()
+{
+    int $isEnabled = 0;
+    string $nxSolvers[] = `ls -type nxRigidSolver`;
+    string $stype;
+    if( size($nxSolvers) > 0)
+    {
+        string $attr = $nxSolvers[0] + ".displayRigidBody";
+        $isEnabled = `getAttr $attr`;
+    }
+    return $isEnabled;
+}
+
+global proc physxPreviewerMessage()
+{
+	confirmDialog -title "Warning" -message "Clothing Previewer (ClothingTool) is deprecated.\nNote:\nAPEX SDK has been deprecated. We recommend the following library as replacement:\nFor APEX Clothing: NvCloth - https://github.com/NVIDIAGameWorks/NvCloth"
+			-button "Yes" -defaultButton "Yes" -dismissString "No";
+}
+
+global proc physxPostSceneRead()
+{
+	// fix GWDCC-22
+	physxRefreshClothingBeforeSimulateExport();
+}
+
+// the following line to register an event to force turn off Use Native Time Control option.
+scriptJob -e PostSceneRead "physxPostSceneRead()";
+//scriptJob -e SelectionChanged "physxSelectionChanged()";

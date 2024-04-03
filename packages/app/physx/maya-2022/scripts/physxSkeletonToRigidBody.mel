@@ -1,0 +1,949 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+//----------------------------------------------------------------------------
+// Ragdoll scripts
+//
+
+//global proc nxDebugJointsInfo()
+//{
+//	string $joints[] = `ls -type joint`;
+//	int $j;
+//	for($j = 0; $j < size($joints); $j++)
+//	{
+// 		nxDebugJointInfo( $joints[$j] );
+//	}
+//}
+
+//global proc nxDebugJointInfo(string $joint)
+//{
+//	$v = `getAttr ($joint+".xformMatrix")`;
+//	print ("//setAttr "+$joint+".xformMatrix "+$v[0]+" "+$v[1]+" "+$v[2]+" "+$v[3]+" "+$v[4]+" "+$v[5]+" "+$v[6]+" "+$v[7]+" "+$v[8]+" "+$v[9]+" "+$v[10]+" "+$v[11]+" "+$v[12]+" "+$v[13]+" "+$v[14]+" "+$v[15]+";\n");
+//
+//	$v = `getAttr ($joint+".jointOrient")`;
+//	print ("setAttr "+$joint+".jointOrient "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$s = `getAttr ($joint+".jointOrientType")`;
+//	print ("//setAttr "+$joint+".jointOrientType "+$s+";\n");
+//	$s = `getAttr ($joint+".jointType")`;
+//	print ("//setAttr "+$joint+".jointType "+$s+";\n");
+//	$v = `getAttr ($joint+".inverseScale")`;
+//	print ("//setAttr "+$joint+".inverseScale "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//
+//	$v = `getAttr ($joint+".translate")`;
+//	print ("setAttr "+$joint+".translate "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".rotate")`;
+//	print ("setAttr "+$joint+".rotate "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$s = `getAttr ($joint+".rotateOrder")`;
+//	print ("setAttr "+$joint+".rotateOrder "+$s+";\n");
+//	$v = `getAttr ($joint+".rotateAxis")`;
+//	print ("setAttr "+$joint+".rotateAxis "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".scale")`;
+//	print ("setAttr "+$joint+".scale "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".shear")`;
+//	print ("setAttr "+$joint+".shear "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".rotatePivot")`;
+//	print ("setAttr "+$joint+".rotatePivot "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".rotatePivotTranslate")`;
+//	print ("setAttr "+$joint+".rotatePivotTranslate "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".scalePivot")`;
+//	print ("setAttr "+$joint+".scalePivot "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//	$v = `getAttr ($joint+".scalePivotTranslate")`;
+//	print ("setAttr "+$joint+".scalePivotTranslate "+$v[0]+" "+$v[1]+" "+$v[2]+";\n");
+//}
+//
+//
+//global proc string nxArrayToString(string $arrayOfString[])
+//{
+// 	print ("\n nxArrayToString");
+//
+//    $str = "{";
+//
+//    $first = 1;
+//
+//    for ($s in $arrayOfString)
+//    {
+//        // Prepend a ", " except for the first string.
+//        if ($first)
+//            $first = 0;
+//        else
+//            $str += ", ";
+//
+//        $str += $s;
+//    }
+//    
+//    $str += "}";
+//    return $str;
+//}
+
+//// Find a skin collision volume in from some selected related
+//// object (e.g. skin).
+//global proc string nxFindSkinCollisionVolume()
+//{
+// 	print ("\n nxFindSkinCollisionVolume");
+//
+//    // Check if a skin collision volume is directly selected.
+//    $selection = `ls -selection -type "skinCollisionVolume"`;
+//    if (size($selection) > 0)
+//        return $selection[0];
+//    
+//    // Check for mesh that could be a skin or produced by a
+//    // skin collision volume node.
+//    $meshes = `ls -selection -type "mesh"`;
+//    for ($mesh in $meshes)
+//    {
+//        // Check if it's a skin connected to a skin collision
+//        // volume node.
+//        $scvs = `listConnections -t "skinCollisionVolume" -s off -d on ($mesh + ".outMesh")`;
+//        if (size($scvs) >= 1)
+//            return $scvs[0]; 
+//
+//        // Otherwise, it could be a mesh that results from
+//        // the skin collision volume operation.
+//        $scvs = `listConnections -s on -d off -type "skinCollisionVolume" ($mesh + ".inMesh")`;
+//        if (size($scvs) >= 1)
+//            return $scvs[0];
+//    }
+//    
+//    // Check if this is a transform that contains such a mesh.
+//    $transforms = `ls -selection -type "transform"`;
+//    for ($transform in $transforms)
+//    {
+//        $meshes = `listRelatives -noIntermediate -children -type "mesh"`;
+//        for ($mesh in $meshes)
+//        {
+//            select $mesh;
+//            $scv = `nxFindSkinCollisionVolume`;
+//            if (size($scv) > 0)
+//                return $scv;
+//        }
+//    }
+//    
+//    return "";
+//}
+
+
+//global proc nxRigidBodyFromSkinCollisionVolume(string $scv, int $makeKinematic)
+//{
+// 	print ("\n nxRigidBodyFromSkinCollisionVolume");
+//
+//    // Verify that the input is a skin collision volume
+//    // node.
+//    if (`nodeType $scv` != "skinCollisionVolume")
+//    {
+//        error ("nxSeparateSkinCollisionVolumes expects one skin " + "collision volume node as argument.");
+//    }
+//
+//    // List the connections that flow from the skin
+//    // Although this connects to the meshes, it will return their parents.... 
+//    $meshes = `listConnections -exactType true -shapes true ($scv + ".hulls")`;
+//    
+//    if (size($meshes) == 0)
+//        error ("No parts found for " + $scv);
+//        
+//    print ("Found " + size($meshes) + " joints in the collision volume\n");
+//
+//    string $finalMeshes[];
+//    for ($mesh in $meshes)
+//    {
+//        // Find the parent joint.
+//        $parents = `listRelatives -parent -path $mesh`;
+//        $numParents = size($parents);
+//        if ($numParents <= 0)
+//        {
+//            warning ("Ragdoll part '" + $mesh + "' has no parent. Skipping.\n");
+//            continue;
+//        }
+//        else if ($numParents > 1)
+//        {
+//            warning ("Ragdoll part '" + $mesh + "' has " + $numParents + " parents. Using the first of: " + nxArrayToString($parents) + "\n");
+//        }
+//        $parent = $parents[0];
+//
+//        // Verify that the parent is indeed a joint.
+//        if (`nodeType $parent` != "joint")
+//        {
+//            warning ("Ragdoll part '" + $mesh + "' has parent '" + $parent + "' which is not a joint.\n");
+//            continue;
+//        }
+//
+//		// If the mesh is invalid, delete it.
+//		if (`getAttr -size ($mesh + ".face")` < 4)
+//		{
+//            warning("Empty or invalid skin collision volume for joint '" + $parent + "'. Deleting and skipping.");
+//			delete $mesh;
+//			continue;
+//		}
+//        
+//        // Store into the final joints array.
+//        $finalMeshes[size($finalMeshes)] = $mesh;        
+//    }
+//    
+//    // Get selected shape mesh. to be connected later to nxRagdollLocator
+//    string $sourceShape[] = `ls -sl`;
+//    string $rigidBodies[];
+//    string $rDLocator = "";
+//    int $ragdollLocatorCreated=false;
+//    for ($finalMesh in $finalMeshes)
+//    {
+//        select $finalMesh;
+//        
+//		// Delete the history of the body parts and the
+//		// skin collision volume node... otherwise they'll get
+//		// in the way of modeling operations.    
+//        // Delete upstream history.
+//        delete -ch;
+//    
+//		$rigidBody = nxRagDollCreateRigidBodyPart( $finalMesh, $makeKinematic );
+//		$rigidBodies[size($rigidBodies)] = $rigidBody;
+//		
+//		// Create nxRagdollLocator once & for the first time then attached it to the root joint
+//		if($ragdollLocatorCreated==false)
+//		{
+//			// Find the root joint
+//			string $jointParents[] =`listRelatives -parent -type "joint" -fullPath $rigidBody`;
+//			if($jointParents[0]==""){
+//				warning("No joint parent in "+ $rigidBody);
+//				continue;
+//			}else{
+//				string $parentbuffer[];
+//				tokenize $jointParents[0] "|" $parentbuffer;
+//				print ( "\n Add nxRagdollLocator \n" );
+//				// Set root joint as nxRagdoll's parent
+//				$rDTransform = `createNode "transform" -n "nxRagdoll#" -ss -p $parentbuffer[0]`;
+//				// Set nxRagdoll as nxRagdollLocator's parent
+//				$rDLocator = `createNode -ss -p $rDTransform nxRagdollLocator`;
+//				// Reorder nxRagdoll to be on top of list under the root joint
+//				reorder -front $rDTransform;
+//				
+//				// Connect source shape mesh's message to nxRagdollLocator's meshes[]
+//				$sourceShapeMesh="";
+//				if(`nodeType $sourceShape[0]` == "transform")
+//				{
+//					$shapes = `listRelatives -ni -s $sourceShape[0]`;
+//					$sourceShapeMesh=$shapes[0];
+//				}
+//				else
+//					$sourceShapeMesh=$sourceShape[0];
+//				
+//				connectAttr -nextAvailable ($sourceShapeMesh + ".message") ($rDLocator + ".meshes");
+//				
+//				// Translate nxRagdoll to the point of mesh in y axis
+//				AEnxRagdollLocator_setNxRagdollHeight($rDLocator);
+//				
+//				$ragdollLocatorCreated=true;
+//			}
+//		}
+//		
+//		// Find rigid body's parent: joint
+//		string $jointParent[] =`listRelatives -parent -type "joint" $rigidBody`;
+//		// Connect joint's message to nxRagdollLocator's joints[]
+//		if($jointParent[0]!=""){
+//			connectAttr -nextAvailable ($jointParent[0] + ".message") ($rDLocator + ".joints");
+//		}
+//    }
+//
+//	print ( "\n Add Constraints " + size($rigidBodies) + "\n" );
+//    
+//    if($makeKinematic == 0)
+//    {	
+//		for($rigidBody in $rigidBodies)
+//		{
+//			nxRagDollCreateRigidConstraintPart($rigidBody);
+//		}
+//    }
+//}
+
+//// Prepare a ragdoll (moving the body parts in a separate group 
+//// and disconnecting the skin collision volume if creating dynamic), before creating 
+//// associated rigid bodies and constraints. Note that this deletes
+//// the associated construction history. The advantage of doing this
+//// is that the user can safely edit the meshes prior to creating
+//// the rigid bodies.
+//// Takes a "skin collision volume" node as input.
+////
+//// e.g. use like this: 
+////  nxExtractSkinCollisionVolume("orcSkinShape_skinCollisionVolume");
+////
+//global proc nxExtractSkinCollisionVolume(string $scv, int $makeKinematic)
+//{
+// 	print ("\n nxExtractSkinCollisionVolume");
+//
+//    // Verify that the input is a skin collision volume
+//    // node.
+//    if (`nodeType $scv` != "skinCollisionVolume")
+//    {
+//        error ("nxSeparateSkinCollisionVolumes expects one skin " + 
+//            "collision volume node as argument.");
+//    }
+//
+//    // List the connections that flow from the skin 
+//    // collision volume node's hulls attribute, to other nodes.
+//    $parts = `listConnections -s false ($scv + ".hulls")`;
+//    
+//    if (size($parts) == 0)
+//        error ("No parts found for " + $scv);
+//        
+//    print ("Found " + size($parts) + " parts in the collision volume\n");
+//
+//	string $ragdoll;
+//	//if($makeKinematic==0)
+//	//{
+//		// Create an empty group that will contain the flat list of body parts.
+//		//$ragdoll = `group -em -n "ragdoll#"`;
+//	//}
+//
+//    // Move each part in a flat list, with a connection to the original
+//    // joint parent.
+//	// NOTE: Invalid meshes (e.g. meshes with less than 4 faces) may be
+//	// generated by the SCV operation. If we find such a mesh, delete it
+//	// since it would cause trouble later on.
+//    //
+//    string $finalParts[];
+//    for ($part in $parts)
+//    {
+//        // Find the parent joint.
+//        $partParents = `listRelatives -parent -path $part`;
+//        $numPartParents = size($partParents);
+//        if ($numPartParents <= 0)
+//        {
+//            warning ("Ragdoll part '" + $part + "' has no parent. Skipping.\n");
+//            continue;
+//        }
+//        else if ($numPartParents > 1)
+//        {
+//            warning ("Ragdoll part '" + $part + "' has " + $numPartParents + 
+//                " parents. Using the first of: " + 
+//                nxArrayToString($partParents) + "\n");
+//        }
+//        $joint = $partParents[0];
+//
+//        // Verify that the parent is indeed a joint.
+//        if (`nodeType $joint` != "joint")
+//        {
+//            warning ("Ragdoll part '" + $part + "' has parent '" +
+//                $joint + "' which is not a joint.\n");
+//            continue;
+//        }
+//
+//		// If the mesh is invalid, delete it.
+//		if (`getAttr -size ($part + ".face")` < 4)
+//		{
+//            warning("Empty or invalid skin collision volume for joint '" + $joint + "'. Deleting and skipping.");
+//			delete $part;
+//			continue;
+//		}
+//
+//        // Keep a connection to the old parent.
+//        //connectAttr ($part + ".message") ($joint + ".bindPose");
+//        //connectAttr ($joint + ".message") ($part + ".scvJoint");
+//        
+//        // Reparent in the ragdoll and store into the 
+//        // final parts array.
+//
+//		string $finalPartName;        
+//        //if ($makeKinematic == 0)
+//        //{
+//		//	string $finalPartNames[] = `parent ($part) ($ragdoll)`;
+//		//	$finalPartName = $finalPartNames[0];
+//		//}
+//		//else
+//		{
+//			$finalPartName = $part; 
+//		}
+//
+//		// Rename it, so that the final name is similar to the corresponding
+//		// joint.
+//		//$finalPartName = `rename ($finalPartName) ($joint + "Part")`;
+//
+//        //print $finalPartName[0];
+//        $finalParts[size($finalParts)] = $finalPartName;
+//        
+//    }
+//    
+//    // Delete the history of the body parts and the
+//    // skin collision volume node... otherwise they'll get
+//    // in the way of modeling operations.
+//    for ($finalPart in $finalParts)
+//    {
+//        //print ($finalPart + "\n");
+//        select $finalPart;
+//        
+//        // Delete upstream history.
+//        delete -ch;
+//        
+//        if ($makeKinematic == 1)
+//        {
+//			nxRagDollCreateRigidBodyPart($finalPart, 1);
+//		}   
+//    }
+//
+//    // Freeze the rotation for each ragdoll part.
+//	// NOTE: This code cannot be included in the previous loop.
+//	// Attempts at doing so caused DG evaluation problems that resulted in
+//	// infinite loops/hangs on the orc scene when creating
+//	// ragdoll constraints.
+//	//
+//    //for ($finalPart in $finalParts)
+//    //{
+//		//eval("makeIdentity -apply true -t off -r on -s off -n off \"" + $finalPart + "\"");
+//	//}
+//
+//	if ($makeKinematic == 0)
+//		select $ragdoll;
+//}
+//
+//global proc nxExtractSkinCollisionVolumeFromSelection()
+//{
+// 	print ("\n nxExtractSkinCollisionVolumeFromSelection");
+//
+//    $scv = nxFindSkinCollisionVolume();
+//    if (size($scv) > 0)
+//        nxExtractSkinCollisionVolume($scv, 0);
+//    else
+//        error "First select a skin collision volume or one of its inputs (e.g. skin) or outputs (meshes).";
+//}
+
+//// Create rigid bodies for the given ragdoll. Preserves
+//// connection between rigid body and associated skin joint.
+//global proc string nxRagDollCreateRigidBodyPart(string $mesh, int $isKinematic)
+//{
+// 	print ("\n nxRagDollCreateRigidBodyPart: " + $mesh);
+// 	
+// 	int $polyCount = `getAttr -size ($mesh+".face")`;
+// 	if($polyCount < 4)//tetrahedron
+// 		return "";
+// 	
+//    // Before we create a rigid body, we need to get the corresponding
+//    // parent joint from the part. Creating the rigid body may
+//    // replace the part transform and only keep the shape(s).
+//    //
+//    $joints = `listRelatives -parent -path $mesh`;
+//    if (size($joints) != 1)
+//    {
+//        warning ("Ragdoll part '" + $mesh + "' has no associated joint connected. Skipping\n");
+//        return "";
+//    }
+//    $joint = $joints[0];
+//
+//	string $passiveFlag = "";
+//	if($isKinematic)
+//		$passiveFlag = "-passive ";
+//
+//    // Create rigid bodies with constant density.
+//    // TODO: Give meaningful name.
+//    // TODO: Force set density.
+//    select -r $joint;
+//	string $name = `substitute "_convexHull.*" $mesh ""`;
+//	$name = ($name + "_rigidBody");
+//	
+//	// the command below will go to NxRigidBodyCmd's base class NxUndoableCmd's doIt which will call the
+//	// processCommand() in NxRigidBody
+//	$rigidBodies = eval("nxRigidBody" + $passiveFlag + "-n " + $name);
+//    if (size($rigidBodies) != 1)
+//    {
+//        warning ("Failed to create one rigid body for ragdoll part '" + $mesh + "'. Skipping.\n");
+//        return "";
+//    }
+//    $rigidBody = $rigidBodies[0];
+//
+//	if(`attributeExists "intermediateObject" $mesh` )
+//	{
+//		setAttr ($mesh+".intermediateObject") true; 
+//	}
+//	
+//	return $rigidBody;
+//}
+
+//// Create rigid bodies for the given ragdoll. Preserves
+//// connection between rigid body and associated skin joint.
+//global proc nxRagDollCreateRigidBodyParts(string $ragdoll)
+//{
+// 	print ("\n nxRagDollCreateRigidBodyParts");
+//
+//    // Enumerate parts.
+//    $partTransforms = `listRelatives -typ "transform" -allDescendents $ragdoll`;
+//	
+//    // First, create all rigid bodies, taking care to preserve
+//    // the association with joints.
+//    for ($part in $partTransforms)
+//    {
+//		nxRagDollCreateRigidBodyPart($part, 0);
+//	}
+//
+//	select $ragdoll;
+//}
+
+//global proc nxRagDollCreateRigidBodyPartsFromSelection()
+//{
+// 	print ("\n nxRagDollCreateRigidBodyPartsFromSelection");
+//
+//    $ragdoll = `ls -selection -type "transform"`;
+//    if (size($ragdoll) > 0)
+//        nxRagDollCreateRigidBodyParts($ragdoll[0]);
+//    else
+//        error "Select a transform containing ragdoll body parts.";
+//}
+
+//global proc nxRagDollConnectRigidBodyAnimation(string $ragDoll, string $rigidBody)
+//{
+// 	print ("\n nxRagDollConnectRigidBodyAnimation");
+//
+//	// Find the associated joint.
+//    $joints = `listConnections -t "joint" ($rigidBody + ".message")`;
+//    if (size($joints) != 1)
+//    {
+//        warning ("Ragdoll rigid body '" + $rigidBody + 
+//            "' has no or more than one associated joint. Skipping.\n");
+//        return;
+//    }
+//    $joint = $joints[0];
+//    //print ("joint: " + $joint + "\n");
+//
+//	nxAlignRBToJointLRA($rigidBody, $joint);
+//        
+//    connectAttr ($joint + ".jointOrient") ($rigidBody + ".jointOrient");
+//    connectAttr ($joint + ".translate") ($rigidBody + ".translate");
+//    connectAttr ($joint + ".rotate") ($rigidBody + ".rotate");
+//
+//	// Make the rigid body kinematic
+//    setAttr ($rigidBody + ".simulationType") 1;
+//}
+
+//global proc string nxRagDollCreateRigidConstraintPart(string $rigidBody)
+//{
+// 	print ("\n nxRagDollCreateRigidConstraintPart: " + $rigidBody);
+//
+//	string $path[];
+//	$path[0] = $rigidBody;
+//	while(true)
+//	{
+//		string $parents[] = `listRelatives -parent -path $path[ size($path)-1 ]`;
+//		if(size($parents) == 0)
+//			break;
+//		
+//		$parent = $parents[0];
+//		
+//		$type = `nodeType $parent`;
+//		if($type != "joint")
+//			break;
+//		
+//		$path[ size($path) ] = $parent;
+//	}
+//
+//    // Find the associated joint.
+//    if (size($path) == 1)
+//    {
+//        warning ("\n\t No associated joint. Skipping.");
+//        return "";
+//    }
+//    else if (size($path) == 2)
+//    {
+//		print("\n\t Top-most joint. Skipping.");
+//        return "";
+//    }
+//    
+//    $joint = $path[1];
+//    print ("\n\t Joint: " + $joint);
+//
+//	string $jointParent = "";
+//	string $rigidBodyParent = "";
+//	int $p;
+//	for($p=2;$p<size($path);$p++)
+//	{
+//
+//		// Find the rigid body that corresponds to the jointParent.
+//		$parentRigidBodies = `listRelatives -type "nxRigidBody" -children $path[$p]`;
+//		if (size($parentRigidBodies) == 0)
+//			continue;
+//	
+//		$jointParent = $path[$p];
+//		$rigidBodyParent = $parentRigidBodies[0];
+//		break;
+//	}
+//
+//	if($rigidBodyParent == "")
+//	{
+//        warning ("\n\t No parent joint with a rigid body. Skipping.");
+//        return "";
+//	}
+//	
+//	print ("\n\t Parent Joint: " + $jointParent);
+//	print ("\n\t Parent RigidBody: " + $rigidBodyParent);
+//
+//    // Create constraint.
+//  	string $name = `substitute "_rigidBody.*" $rigidBody ""`;
+//  	$name = ($name+"_rigidConstraint#");
+//    print ("\n\t Constraint: " + $name);
+//    
+//    //Go child to parent...not the other way....easier to set up since position=0,0,0
+//    select -r $rigidBody $rigidBodyParent;
+//    $rigidConstraint = `nxRigidConstraint -n $name -motiontwist 2 -motionswing1 2 -motionswing2 2 -reverse -position 0 0 0`;
+//  
+//    // TODO: Set constraints limits and hinge.
+//    // [claforte] HACK: Unlock all skeleton rotational DOFs.
+//    setAttr ($joint + ".jointTypeX") 1;
+//    setAttr ($joint + ".jointTypeY") 1;
+//    setAttr ($joint + ".jointTypeZ") 1;
+//    source "AEjointTemplate.mel";
+//    setJointDOFState ($joint + ".jointTypeX") ($joint + ".jointTypeY") ($joint + ".jointTypeZ");
+//	transformLimits -erx 0 0 -ery 0 0 -erz 0 0 -etx 0 0 -ety 0 0 -etz 0 0 $joint;
+//	
+//	return $rigidConstraint;
+//}
+
+//global proc nxAlignRBToJointLRA(string $obj, string $joint)
+//{
+// 	print ("\n nxAlignRBToJointLRA");
+//
+//    // Setup the prerotate for constraint
+//	//float $rotate[] = `getAttr ($joint+".rotate")`; 
+//    // Create a temporary transform to hold the info we need.
+//	//string $dummy = `createNode transform`;
+//	//select $dummy;
+//	
+//	//string $parent[] = `listRelatives -parent $joint`;
+//	//if ($parent[0] != "")
+//	//{
+//	//	print($parent[0]);
+//	//	parent $dummy $parent[0];
+//	//}
+//	
+//    // Orient the transform to the same orientation as the joint
+//	//float $orient[] = `getAttr ($joint+".jointOrient")`; 
+//	//rotate -a -os $orient[0] $orient[1] $orient[2];
+//    //rotate -a -os $rotate[0] $rotate[1] $rotate[2];
+//	
+//    //if ($parent[0] != "") 
+//    //{
+//    //    parent -w $dummy;
+//    //}
+//	
+//    // Orient the RB to the same rotation as the dummy transform.
+//    //$orient = `getAttr ($dummy+".rotate")`; 
+//	//rotate -a -os $orient[0] $orient[1] $orient[2] $obj;
+//    
+//	//delete $dummy;
+//	
+//	float $pivotPoint[] = `getAttr ($joint+".translate")`; 
+//    
+//    xform -ws -pivots ($pivotPoint[0]) ($pivotPoint[1]) ($pivotPoint[2]) $obj;
+//    move -a $pivotPoint[0] $pivotPoint[1] $pivotPoint[2] $obj;
+//}
+
+//global proc nxAlignToJointLRA(string $obj, string $joint)
+//{
+// 	print ("\n nxAlignToJointLRA");
+//
+//    // Setup the prerotate for constraint
+//	float $rotate[] = `getAttr ($joint+".rotate")`; 
+//	setAttr ($obj+".preRotationX") ($rotate[0]);
+//	setAttr ($obj+".preRotationY") ($rotate[1]);
+//	setAttr ($obj+".preRotationZ") ($rotate[2]);
+//
+//    // Create a temporary transform to hold the info we need.
+//	string $dummy = `createNode transform`;
+//	select $dummy;
+//	
+//	string $parent[] = `listRelatives -parent $joint`;
+//	if ($parent[0] != "")
+//	{
+//		print($parent[0]);
+//		parent $dummy $parent[0];
+//	}
+//	
+//     // Orient the transform to the same orientation as the joint
+//	float $orient[] = `getAttr ($joint+".jointOrient")`; 
+//	rotate -a -os $orient[0] $orient[1] $orient[2];
+//    rotate -a -os $rotate[0] $rotate[1] $rotate[2];
+//	
+//    if ($parent[0] != "") 
+//    {
+//        parent -w $dummy;
+//    }
+//	
+//    // Get position 2, and move position1 to the same place.
+//    setAttr ($obj + ".positionMode") 0;
+//    vector $p2 = `getAttr ($obj + ".localPosition2")`;
+//    setAttr ($obj + ".positionMode") 1;
+//    select -r $obj;
+//    move -r -ls -wd (-$p2.x) (-$p2.y) (-$p2.z);
+//        
+//    // Orient the constriaint to the same rotation as the dummy transform.
+//    $orient = `getAttr ($dummy+".rotate")`; 
+//	rotate -a -os $orient[0] $orient[1] $orient[2] $obj;
+//    
+//	delete $dummy;
+//}
+
+//// Create rigid constraints for the given ragdoll. Parent constrain
+//// each rigid body to the associated joint. TODO: Set limits.
+//global proc nxRagDollCreateRigidConstraints(string $ragdoll)
+//{
+// 	print ("\n nxRagDollCreateRigidConstraints");
+//
+//    // Create constraints between rigid bodies.
+//    //
+//    $rigidBodies = `listRelatives -type "nxRigidBody" -allDescendents -path $ragdoll`;
+//	for ($rigidBody in $rigidBodies)
+//    {
+//		nxRagDollCreateRigidConstraint($ragdoll, $rigidBody);
+//    }
+//
+//	select $ragdoll;
+//}
+
+//// Create rigid constraints for the given ragdoll. Parent constrain
+//// each rigid body to the associated joint. TODO: Set limits.
+//global proc nxRagDollConnectRigidBodyAnimations(string $ragdoll)
+//{
+// 	print ("\n nxRagDollConnectRigidBodyAnimations");
+//
+//   // Create constraints between rigid bodies.
+//    //
+//    $rigidBodies = `listRelatives -type "nxRigidBody" -allDescendents -path $ragdoll`;
+//	for ($rigidBody in $rigidBodies)
+//    {
+//		nxRagDollConnectRigidBodyAnimation($ragdoll, $rigidBody);
+//    }
+//
+//	select $ragdoll;
+//}
+
+//global proc nxRagDollCreateRigidConstraintsFromSelection()
+//{
+//	print ("\n nxRagDollCreateRigidConstraintsFromSelection");
+//
+//    $ragdoll = `ls -selection -type "transform"`;
+//    if (size($ragdoll) > 0)
+//        nxRagDollCreateRigidConstraints($ragdoll[0]);
+//    else
+//        error "Select a transform containing ragdoll body parts.";
+//}
+
+//global proc nxRagDollConnectRigidBodyAnimationsFromSelection()
+//{
+//	print ("\n nxRagDollConnectRigidBodyAnimationsFromSelection");
+//
+//    $ragdoll = `ls -selection -type "transform"`;
+//    if (size($ragdoll) > 0)
+//        nxRagDollConnectRigidBodyAnimations($ragdoll[0]);
+//    else
+//        error "Select a transform containing ragdoll body parts.";
+//}
+
+global proc nxRagDollDeleteSelectedJoints(int $invertJointSelection)
+{
+	print ("nxRagDollDeleteSelectedJoints(" + $invertJointSelection + ")\n");
+    global string $gnxRagdollLocatorJointList;
+    string $selected[] = `ls -long -selection -type dagNode`;
+	if( size( $selected ) > 0 )
+	{
+		string $ragdollList[];
+
+		int $s;
+		for($s = 0; $s < size($selected); $s++)
+		{
+			$ragdollList = `listConnections -t "nxRagdollLocator" $selected[$s]`;
+			if(size($ragdollList))
+			{
+				break;
+			}
+		}
+		if($invertJointSelection && size($ragdollList))
+		{
+			string $inverseJoints[];
+			int $idx = 0;
+			$connectedJoints = listConnections ($ragdollList[0] + ".joints");
+			//print ("$connectedJoints[0]=" + $connectedJoints[0] + "\n");
+			//print ("$selected[0]=" + $selected[0] + "\n");
+			for($ajoint in $connectedJoints)
+			{
+				string $fullnameJoint = AEnxRagdollLocator_getFullPathName($ajoint);
+				int $bfind = 0;
+				for( $select in $selected )
+				{
+					if($fullnameJoint == $select)
+					{
+						$bfind = 1;
+						break;
+					}
+				}
+				if($bfind == 0)
+				{
+					$inverseJoints[$idx] = $ajoint;
+					//print ("$ajoint=" + $ajoint + "\n");
+					$idx = $idx + 1;
+				}
+			}
+			$selected = $inverseJoints;
+			//print ("Inverse select:" + $selected[0] + "\nInverse End\n");
+		}
+		for( $select in $selected )
+		{
+            string $selectedJoint = $select;
+            //print ("$selectedJoint=" + $selectedJoint + "\n");
+            $childRigidBody = `listRelatives -fullPath -children -type "nxRigidBody" $selectedJoint`;
+            if( size($childRigidBody) > 0 )
+            {
+            	// If there's connected nxRigidConstraint from the rigidbody, delete the nxRigidConstraint node
+            	$connectedRConstraints = `listConnections ($childRigidBody[0]+".adapter")`;	
+            	for( $rConstraint in $connectedRConstraints )
+            	{
+            		//print ($rConstraint + ", ");
+            		delete $rConstraint;
+            	}
+            	
+            	// Delete joint's rigid body
+            	//print ($childRigidBody[0] + ", ");
+            	delete $childRigidBody[0];
+            	
+            	// Delete joint's convex hull mesh - now that mesh is a child of rigidbody, there's no need to delete
+            	//print ($childConvexhullMesh[0] + "\n");
+            	//delete $childConvexhullMesh[0];
+            }
+            //print "\n";
+            
+            // For both joints with/without rigid body children, disconnect joints from nxRagdollLocator
+            $JointMsgPlugList =`connectionInfo -destinationFromSource ($selectedJoint+".message")`;
+            
+            for( $rdLocatorJointsPlug in $JointMsgPlugList )
+            {
+            	if( `nodeType $rdLocatorJointsPlug` == "nxRagdollLocator" )
+            	{
+            		disconnectAttr ($selectedJoint + ".message") $rdLocatorJointsPlug;
+            		removeMultiInstance -b true $rdLocatorJointsPlug; // empties the plug array also
+            		if(`textScrollList -exists $gnxRagdollLocatorJointList`)
+            			textScrollList -edit -removeItem $select $gnxRagdollLocatorJointList;
+            		//print ($selectedJoint + ".message disconnected from "+ $rdLocatorJointsPlug +".\n");
+            	}
+            }
+        }
+    }
+}
+
+global proc nxRagDollDeleteJointsFromSelection( int $fromMesh, int $invertJointSelection )
+{
+	print ("\n nxRagDollDeleteJointsFromSelection(" + $fromMesh + "," + $invertJointSelection + ")\n");
+
+	string $buffer[];
+	int $numTokens;
+
+	//deprecated mel script: string $selection[] = `selectedNodes -dagObjects`; 
+	string $selection[] = `ls -long -selection -type dagNode`;
+
+	string $meshNode = "";
+	string $meshShape = "";
+	if($fromMesh != 0)
+	{
+		string $meshShapes[] = `ls -sl -dag -noIntermediate -type mesh`;
+		if(size($meshShapes) == 0)
+		{
+			warning( "No mesh selected.  Only joints.  but $fromMesh!=0." );
+			// try another way
+			nxRagDollDeleteSelectedJoints($invertJointSelection);
+			return;
+		}
+		$meshShape = $meshShapes[0];
+
+		for ($s in $selection)
+		{
+			if( isParentOf( $s, $meshShapes[0] ) == false )
+				continue;
+			
+			$numTokens = `tokenize $s "|" $buffer`;
+			$meshNode = $buffer[$numTokens - 1];
+			break;
+		}
+	}
+
+	int $s;
+	for($s = 0; $s < size($selection); $s++)
+	{
+		$numTokens = `tokenize $selection[$s] "|" $buffer`;
+		$selection[$s] = $buffer[$numTokens - 1];
+	}
+
+	nxRagDollDeleteJoints( $meshNode, $meshShape, $selection, $invertJointSelection);
+}
+
+global proc nxRagDollDeleteJoints( string $meshNode, string $meshShape, string $joints[], int $invert)
+{
+	print ("\n nxRagDollDeleteJoints");
+
+
+	print ("\nInvert joints: " +$invert);
+
+	print ("\nMesh node: " +$meshNode);
+	print ("\nMesh shape: " +$meshShape);
+
+	for ($joint in $joints)
+    {
+		print ("\nInput joint: " +$joint);
+	}
+
+	if($meshShape != "")
+	{
+		string $skinCluster = `findRelatedSkinCluster $meshShape`;
+
+		print ("\nSelected skinCluster: " +$skinCluster);
+
+		string $allJoints[] = `skinCluster -q -inf $skinCluster`;
+		
+		string $invertedJoints[] = stringArrayRemove($joints, $allJoints);
+
+		if( $invert == 0 ) //ensures that is is actually part of the skinCluster's influence set
+			$joints = stringArrayRemove($invertedJoints, $allJoints);
+		else
+			$joints =  $invertedJoints;
+	}
+
+	for ($joint in $joints)
+    {
+		print ("\nFiltered joint: " +$joint);
+
+		string $type = `nodeType $joint`;
+		if($type != "joint")
+			continue;
+
+		print ("\nDelete RBs connect to joint: " +$joint);
+
+		nxRagDollDeleteJoint( $meshNode, $joint );
+	}
+}
+
+global proc nxRagDollDeleteJoint( string $mesh, string $joint )
+{
+	print ("\n nxRagDollDeleteJoint");
+
+
+	string $connections[] = `listConnections -s false -d true ($joint + ".message")`;
+	for($connected in $connections)
+	{
+		$type = `nodeType $connected`;
+
+		print ("\nConnected to: " +$connected);		
+		print ("\nType: " +$type);
+
+		if($type != "nxRigidBody")
+			continue;
+
+		int $meshMatch = `gmatch $connected ("*"+$mesh+"*")`;
+		print ("\nMesh match: " +$meshMatch);
+
+		if( ($mesh != "") && ($meshMatch == 0) )
+			continue;
+
+		print ("\nDelete RigidBody: " + $connected);
+
+		delete -hierarchy below $connected;
+	}
+}
+
+
+
+
+

@@ -1,0 +1,187 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+inputs 2
+tile_color 0x598ecaff
+label "Blur \[value size]\nv01"
+addUserKnob {20 user l main}
+addUserKnob {41 size l Blur_size T Blur1.size}
+addUserKnob {26 ""}
+addUserKnob {4 type l "" +STARTLINE M {color BG "" "" ""}}
+addUserKnob {41 color T Grade1.white}
+addUserKnob {26 ""}
+addUserKnob {6 bg l INVISIBLE -STARTLINE +INVISIBLE}
+addUserKnob {6 ch l checkBoard -STARTLINE}
+addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
+addUserKnob {41 Constant_color T Constant1.color}
+addUserKnob {26 ""}
+addUserKnob {26 maker l "made by jiwon.J" -STARTLINE}
+}
+Input {
+inputs 0
+name Plate
+xpos -273
+ypos -445
+}
+Shuffle {
+alpha white
+name Shuffle2
+xpos -273
+ypos -396
+}
+Dot {
+name Dot1
+xpos -257
+ypos -343
+}
+set Na2843f0 [stack 0]
+Dot {
+name Dot3
+xpos -94
+ypos -343
+}
+set Na2e61e0 [stack 0]
+Constant {
+inputs 0
+channels rgb
+color 0.05
+name Constant1
+xpos 158
+ypos -484
+}
+CheckerBoard2 {
+inputs 0
+name CheckerBoard1
+xpos 22
+ypos -486
+}
+Switch {
+inputs 2
+which {{1-parent.ch}}
+name Switch1
+xpos 76
+ypos -403
+}
+Shuffle {
+alpha white
+name Shuffle1
+xpos 76
+ypos -377
+}
+CopyBBox {
+inputs 2
+name CopyBBox1
+xpos 76
+ypos -329
+}
+Dot {
+name Dot6
+xpos 92
+ypos -268
+}
+set N1854cd90 [stack 0]
+Reformat {
+type "to box"
+box_width {{"\[python nuke.thisNode().input(0).bbox().w()]"}}
+box_height {{"\[python nuke.thisNode().input(0).bbox().h()]"}}
+box_fixed true
+name Reformat2
+xpos -19
+ypos -220
+}
+push $N1854cd90
+Reformat {
+name Reformat3
+xpos 141
+ypos -218
+}
+Switch {
+inputs 2
+which {{parent.Reformat2.box_width>1}}
+name Switch20
+xpos 76
+ypos -161
+}
+Input {
+inputs 0
+name Roto
+xpos -399
+ypos -256
+number 1
+}
+Blur {
+channels rgba
+name Blur1
+label "\[value size]"
+xpos -399
+ypos -187
+}
+push $Na2843f0
+Copy {
+inputs 2
+from0 rgba.alpha
+to0 rgba.alpha
+name Copy1
+xpos -273
+ypos -187
+}
+Premult {
+name Premult1
+xpos -273
+ypos -47
+disable {{parent.Switch2.which}}
+}
+set Na297c50 [stack 0]
+Merge2 {
+inputs 2
+operation under
+name Merge1
+xpos 76
+ypos -47
+}
+NoOp {
+name BG
+xpos 76
+ypos 161
+}
+push $Na297c50
+Dot {
+name Dot2
+xpos -257
+ypos 85
+}
+push $Na2e61e0
+Grade {
+inputs 1+1
+white {1 5 1 1}
+name Grade1
+xpos -110
+ypos 99
+}
+NoOp {
+name color
+xpos -110
+ypos 269
+}
+Switch {
+inputs 2
+which {{type x1 0}}
+name Switch5
+xpos 76
+ypos 269
+}
+set Na300c10 [stack 0]
+push $Na300c10
+Output {
+name Output2
+xpos 76
+ypos 489
+}
+Viewer {
+inputs 2
+frame_range 1-490
+name Viewer1
+xpos 477
+ypos 246
+}
+end_group

@@ -1,0 +1,651 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global int $pxValidateSceneValid;
+global int $pxValidateSceneFail;
+global int $pxValidateSceneNote;
+global string $validatePhysXSceneWindow="PhysXValidateSceneWindow";
+
+global proc ValidatePhysXSceneCmd()
+{
+	global string $validatePhysXSceneWindow;
+	int $automateDone=0;
+	if (`window -exists $validatePhysXSceneWindow`)
+	{
+		deleteUI $validatePhysXSceneWindow;
+	}
+	
+    $validatePhysXSceneWindow = `window -title "Validate PhysX Scene" -widthHeight 600 600`;
+
+	frameLayout -collapsable false -label "Select the validation option(s) to run:" -labelIndent 10 -marginHeight 5;
+		rowColumnLayout  -numberOfColumns 3 -columnWidth 1 300 -columnWidth 2 270 -columnWidth 3 20 -columnOffset 1 left 10;
+
+  		checkBox -label "Scaled Objects" -annotation "Find any graphical meshes used by PhysX that have a scale other than 100%/100%/100% applied"-value 1 scaledObjects;
+		progressBar -maxValue 10 -width 270 scaledObjectProgress;
+		button -backgroundColor 0.5 0.5 0.5 -width 20 -height 20 -label "" -enable false scaledObjectButton;
+
+		checkBox -label "Non-Uniform Scaling" -annotation "Find any graphical meshes used by PhysX that have differing scales per axis" -value 1 nonUniformScaling;
+		progressBar -maxValue 10 -width 270 nonUniformScalingProgress;
+		button -backgroundColor 0.5 0.5 0.5 -width 20 -height 20 -label "" -enable false nonUniformScalingButton;
+		
+		checkBox -label "Animated Scale" -annotation "Find any grahpical meshes used by PhysX with a scale that has been animated" -value 1 animatedScale;
+		progressBar -maxValue 10 -width 270 animatedScaleProgress;
+		button -backgroundColor 0.5 0.5 0.5 -width 20 -height 20 -label "" -enable false animatedScaleButton;
+		
+		checkBox -label "Skewed Objects" -annotation "Find any graphical meshes used by PhysX that have been scaled other than along the primary axis" -value 1 skewedObjects;
+		progressBar -maxValue 10 -width 270 skewedObjectsProgress;
+		button -backgroundColor 0.5 0.5 0.5 -width 20 -height 20 -label "" -enable false skewedObjectsButton;
+		
+		checkBox -label "PhysX Clothing: Non-Orthonormal Bind-pose Matrices" -annotation "Find skewed, scaled or inverted bones used by PhysX clothing" -value 1 nonOrthonormal;
+		progressBar -maxValue 10 -width 270 nonOrthonormalProgress;
+		button -backgroundColor 0.5 0.5 0.5 -width 20 -height 20 -label "" -enable false nonOrthonormalButton;
+		
+		//checkBox -label "PhysX Clothing: >20 vertices for collision meshes" -annotation "Find convex hulls or custom rigid bodies with more vertices than allowed by PhysX Clothing" -value 1 moreThan20Vertices;
+		//progressBar -maxValue 10 -width 270 moreThan20VerticesProgress;
+		
+		checkBox -label "PhysX Clothing: Simulated Vertex Count" -annotation "Provides an informative count of the number of physical vertices simulated for each piece of PhysX Clothing" -value 1 simulatedVertexCount;
+		progressBar -maxValue 10 -width 270 simulatedVertexCountProgress;
+		button -backgroundColor 0.5 0.5 0.5 -width 20 -label "" -enable false simulatedVertexCountButton;
+
+	setParent ..;
+	setParent ..;
+
+	frameLayout -collapsable false -label ""-height 300 -width 600;
+		//columnLayout -columnAlign "left" -columnAttach "both" 5 -rowSpacing 5 -columnWidth 400;
+		string $scrollLayout = `scrollLayout -horizontalScrollBarThickness 16 -verticalScrollBarThickness   16`;
+
+		text -wordWrap true -align "left" -width 600 -label "" validateSceneResultText;
+	setParent ..;
+	setParent ..;
+
+	frameLayout -collapsable false -label ""  -marginHeight 5 -marginWidth 5 -height 60;
+	  rowLayout -height 30 -numberOfColumns 4 -adjustableColumn 2 -columnWidth4 90 150 90 90 -columnAlign4 "center" "left" "center" "center";
+		button -label "Validate" -width 80 -height 30 -command "runPhysXValidateScene()";
+		text -wordWrap true -label "" resultText;
+		button -label "OK" -width 80 -height 30 -command ("deleteUI " + $validatePhysXSceneWindow);
+		button -label "Cancel" -width 80 -height 30 -command  ("deleteUI " + $validatePhysXSceneWindow);
+	setParent ..;
+	setParent ..;
+   
+ showWindow;
+	
+}
+
+global proc string automatedValidateScene()
+{
+	int $automatedTestFailed=0;
+	string $result="";
+	string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+	string $jointsFound[] = `ls -type joint`;
+	float $scaleFactor[];
+	float $scaleMatrix[];
+	float $tolerance=0.01;
+	int $i=0;
+	int $j=0;
+	for ($i=0;$i<size($rigidbodiesFound);$i++)
+	{
+		string $failText=checkScaleOfParent($rigidbodiesFound[$i],"Uniform");
+		$failText+=checkScaleOfParent($rigidbodiesFound[$i],"NonUniform");
+		$failText+=checkScaleOfParent($rigidbodiesFound[$i],"Skew");
+		if($failText!="")
+		{
+			$automatedTestFailed++;
+		}
+
+		string $parentOfRB[]=`listRelatives -fullPath -parent $rigidbodiesFound[$i]`;
+		float $scaleX[]=`keyframe -at scaleX -q -valueChange -timeChange $parentOfRB[0]`;
+		float $scaleY[]=`keyframe -at scaleY -q -valueChange -timeChange $parentOfRB[0]`;
+		float $scaleZ[]=`keyframe -at scaleZ -q -valueChange -timeChange $parentOfRB[0]`;
+		for($j=0; $j<size($scaleX);$j=$j+2)
+		{
+			if(abs($scaleX[$j+1]-1.0)>=$tolerance)
+			{
+				$automatedTestFailed++;
+			}
+			if(abs($scaleY[$j+1]-1.0)>=$tolerance)
+			{
+				$automatedTestFailed++;
+			}
+			if(abs($scaleZ[$j+1]-1.0)>=$tolerance)
+			{
+				$automatedTestFailed++;
+			}
+		}
+		
+	}
+	for ($i=0;$i<size($jointsFound);$i++)
+	{
+		$cmd="xform -q -scale -r " + $jointsFound[$i];
+		$scaleMatrix=eval($cmd);
+		if($scaleMatrix[0]!=1 || $scaleMatrix[1]!=1 || $scaleMatrix[2]!=1)
+		{	
+			$automatedTestFailed++;
+		}
+	}
+
+	if($automatedTestFailed>0)
+	{
+		warning("Valid scene before export has "+$automatedTestFailed + " failures.");
+
+		$result="fail";
+		ValidatePhysXSceneCmd();
+		runPhysXValidateScene();
+		$result=`confirmDialog -title "PhysX Validate Scene" -message "There are some errors detected while validating scene for export. Continue with export?" -button "OK" -button "Cancel" -defaultButton "OK" -cancelButton "Cancel" -dismissString "OK"`;
+	}
+	else
+	{
+	$result="OK";
+	}
+	return $result;
+}
+
+global proc string checkScaleOfParent(string $RBName, string $scaleType)
+{
+	global int $pxValidateSceneFail;
+	int $result=0;
+	string $failText="";
+	int $i=0;
+	float $tolerance=0.001;
+	string $cmd="";
+	string $failed="";
+	string $parentOfRB=firstParentOf($RBName);
+	string $array[];
+	$array = stringToStringArray($parentOfRB, "|");
+	string $directParentOfRB[]=`listRelatives -fullPath -parent $RBName`;
+	for($i =0;  $i< size($array);$i++)
+	{
+		$cmd=("xform -q -scale -r "+$array[$i]+";");
+		float $scaleFactor[];
+		$scaleFactor=eval($cmd);
+		
+		if($scaleType=="Uniform")
+		{
+			if(abs($scaleFactor[0]-1.0)>=$tolerance && abs($scaleFactor[1]-1.0)>=$tolerance && abs($scaleFactor[2]-1.0)>=$tolerance )
+			{
+				string $parentOfRB[]=`listRelatives -fullPath -parent $RBName`;
+				$failText=$array[$i];
+				$failText=$failText+", scale factor: "+$scaleFactor[0];
+			}
+		}
+		else if($scaleType=="NonUniform")
+		{
+			if(abs($scaleFactor[0]-$scaleFactor[1])>=$tolerance || abs($scaleFactor[0]-$scaleFactor[2])>=$tolerance)
+			{
+				string $parentOfRB[]=`listRelatives -fullPath -parent $RBName`;
+				$failText=$directParentOfRB[0];
+				$failText=$failText+" X: "+$scaleFactor[0];
+				$failText=$failText+" Y: "+$scaleFactor[1];
+				$failText=$failText+" Z: "+$scaleFactor[2];
+			}
+		}
+		else
+		{
+			$cmd=("xform -q -shear -r "+$array[$i]+";");
+			float $skewFactor[];
+			$skewFactor=eval($cmd);
+			if(abs($skewFactor[0])>=$tolerance || abs($skewFactor[1])>=$tolerance || abs($skewFactor[2])>=$tolerance)
+			{
+				string $parentOfRB[]=`listRelatives -parent $RBName`;
+				$failText=$directParentOfRB[0];
+				$failText=$failText+" X: "+$skewFactor[0];
+				$failText=$failText+" Y: "+$skewFactor[1];
+				$failText=$failText+" Z: "+$skewFactor[2];
+			}
+		}
+	}
+return $failText;
+}
+
+global proc validateScaledObjects()
+{
+	global int $pxValidateSceneValid;
+	global int $pxValidateSceneFail;
+	string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+	int $i=0;
+	int $failedValidation=0;
+	string $cmd="";
+	string $newText="";
+	float $scaleFactor[];
+	prepProgressBar(size($rigidbodiesFound),"scaledObjectProgress");
+	for ($i=0;$i<size($rigidbodiesFound);$i++)
+	{
+		string $parentOfRB[]=`listRelatives -fullPath -parent $rigidbodiesFound[$i]`;
+		string $failText=checkScaleOfParent($rigidbodiesFound[$i],"Uniform");
+		if($failText!="")
+		{
+			if($newText=="")
+			{
+				$newText=$failText;
+			}
+			else
+			{
+				$newText=$newText+", "+$failText;
+			}
+			$failedValidation++;
+		}
+		updateValidateSceneProgressBar("scaledObjectProgress");
+	}
+	if($newText!="")
+	{
+		button -edit -backgroundColor 0.66 0 0 scaledObjectButton;
+		string $existingText= `text -q -label validateSceneResultText`;
+		$newText=$existingText + "Scaled Objects \nThe following objects have been scaled: "+$newText +"\n\n";
+		text -edit -label $newText validateSceneResultText;
+		//progressBar -edit -enableBackground true -backgroundColor 166 0 0 scaledObjectProgress;
+	}
+	else
+	{
+		button -edit -backgroundColor 0.18 0.85 0.0 scaledObjectButton;
+	}
+	
+	updateValidateSceneProgressBar("scaledObjectProgress");
+	$pxValidateSceneFail+=$failedValidation;
+	$pxValidateSceneValid+=(size($rigidbodiesFound)-$failedValidation);
+}
+
+global proc validateNonUniformScaling()
+{
+	global int $pxValidateSceneValid;
+	global int $pxValidateSceneFail;
+	string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+	int $i=0;
+	int $failedValidation=0;
+	string $cmd="";
+	string $newText="";
+	float $scaleFactor[];
+	prepProgressBar(size($rigidbodiesFound),"nonUniformScalingProgress");
+	for ($i=0;$i<size($rigidbodiesFound);$i++)
+	{
+		string $parentOfRB[]=`listRelatives -fullPath -parent $rigidbodiesFound[$i]`;
+		string $failText=checkScaleOfParent($rigidbodiesFound[$i],"NonUniform");
+		if($failText!="")
+		{
+			if($newText=="")
+			{
+				$newText=$failText;
+			}
+			else
+			{
+				$newText=$newText+", "+$failText;
+			}
+			$failedValidation++;
+		}
+		updateValidateSceneProgressBar("nonUniformScalingProgress");
+	}
+	if($newText!="")
+	{
+		button -edit -backgroundColor 0.66 0 0 nonUniformScalingButton;
+		string $existingText= `text -q -label validateSceneResultText`;
+		$newText=$existingText +"Non-Uniform Scaling\nThe following objects have non-uniform scaling: "+$newText+"\n\n";
+		text -edit -label $newText validateSceneResultText;
+	}
+	else
+	{
+		button -edit -backgroundColor 0.18 0.85 0.0 nonUniformScalingButton;
+	}
+	updateValidateSceneProgressBar("nonUniformScalingProgress");
+	$pxValidateSceneFail+=$failedValidation;
+	$pxValidateSceneValid+=(size($rigidbodiesFound)-$failedValidation);
+}
+
+global proc validateAnimatedScale()
+{
+	global int $pxValidateSceneValid;
+	global int $pxValidateSceneFail;
+	float $tolerance=0.001;
+	string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+	int $i=0;
+	int $j=0;
+	string $cmd="";
+	string $newText="";
+	float $scaleFactor[];
+	int $failedValidation=0;
+	prepProgressBar(size($rigidbodiesFound),"animatedScaleProgress");
+	for ($i=0;$i<(size($rigidbodiesFound));$i++)
+	{
+		string $parentOfRB[]=`listRelatives -fullPath -parent $rigidbodiesFound[$i]`;
+		float $scaleX[]=`keyframe -at scaleX -q -valueChange -timeChange $parentOfRB[0]`;
+		float $scaleY[]=`keyframe -at scaleY -q -valueChange -timeChange $parentOfRB[0]`;
+		float $scaleZ[]=`keyframe -at scaleZ -q -valueChange -timeChange $parentOfRB[0]`;
+		for($j=0; $j<size($scaleX);$j=$j+2)
+		{
+			if(abs($scaleX[$j+1]-1.0)>=$tolerance)
+			{
+				$newText=$newText+ $parentOfRB[0]+" X: "+$scaleX[$j+1] + " . At keyframe: "+$scaleX[$j] +" ";
+			}
+			if(abs($scaleY[$j+1]-1.0)>=$tolerance)
+			{
+				$newText=$newText+ $parentOfRB[0]+" Y: "+$scaleY[$j+1] + " . At keyframe: "+$scaleY[$j] +" ";
+			}
+			if(abs($scaleZ[$j+1]-1.0)>=$tolerance)
+			{
+				$newText=$newText+ $parentOfRB[0]+" Z: "+$scaleZ[$j+1] + " . At keyframe: "+$scaleZ[$j] +" ";
+			}
+			$failedValidation++;
+		}
+		updateValidateSceneProgressBar("animatedScaleProgress");
+	}
+	if($newText!="")
+	{
+		button -edit -backgroundColor 0.66 0 0 animatedScaleButton;
+		string $existingText= `text -q -label validateSceneResultText`;
+		$newText=$existingText+"Animated Scaling\nThe following objects have animated scaling: "+$newText+"\n\n";
+		text -edit -label $newText validateSceneResultText;
+	}
+	else
+	{
+		button -edit -backgroundColor 0.18 0.85 0.0 animatedScaleButton;
+	}
+	updateValidateSceneProgressBar("animatedScaleProgress");
+	$pxValidateSceneFail+=$failedValidation;
+	$pxValidateSceneValid+=(size($rigidbodiesFound)-$failedValidation);
+}
+
+global proc validateSkewedObjects()
+{
+	global int $pxValidateSceneValid;
+	global int $pxValidateSceneFail;
+	string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+	int $i=0;
+	int $failedValidation=0;
+	string $cmd="";
+	string $newText="";
+	float $scaleFactor[];
+	prepProgressBar(size($rigidbodiesFound),"skewedObjectsProgress");
+	for ($i=0;$i<size($rigidbodiesFound);$i++)
+	{
+		string $failText=checkScaleOfParent($rigidbodiesFound[$i],"Skew");
+		if($failText!="")
+		{
+			if($newText=="")
+			{
+				$newText=$failText;
+			}
+			else
+			{
+				$newText=$newText+", "+$failText;
+			}
+			$failedValidation++;
+		}
+		updateValidateSceneProgressBar("skewedObjectsProgress");
+	}
+	if($newText!="")
+	{
+		button -edit -backgroundColor 0.66 0 0 skewedObjectsButton;
+		string $existingText= `text -q -label validateSceneResultText`;
+		$newText=$existingText+"Skewed Objects\nThe following objects have a scale applied along an unaligned axis: "+$newText+"\n\n";
+		text -edit -label $newText validateSceneResultText;
+	}
+	else
+	{
+		button -edit -backgroundColor 0.18 0.85 0.0 skewedObjectsButton;
+	}
+	updateValidateSceneProgressBar("skewedObjectsProgress");
+	$pxValidateSceneFail+=$failedValidation;
+	$pxValidateSceneValid+=(size($rigidbodiesFound)-$failedValidation);
+}
+
+global proc validateNonOrthonormal()
+{
+	global int $pxValidateSceneValid;
+	global int $pxValidateSceneFail;
+	string $skinFound[] = `ls -type skinCluster`;
+	string $jointsFound[] = `ls -type joint`;
+	int $i=0;
+	int $failedValidation=0;
+	string $cmd="";
+	string $newText="";
+	float $skinMatrix[];
+	float $scaleMatrix[];
+	float $result=0;
+	float $tolerance=0.00001;
+	prepProgressBar(size($skinFound),"nonOrthonormalProgress");
+	for ($i=0;$i<size($skinFound);$i++)
+	{
+		$cmd="getAttr "+$skinFound[$i]+".bindPreMatrix[0]";
+
+		$skinMatrix=eval($cmd);
+		float $v1[3] = {$skinMatrix[0],$skinMatrix[4],$skinMatrix[8]};
+		float $v2[3] = {$skinMatrix[1],$skinMatrix[5],$skinMatrix[9]};
+		float $v3[3] = {$skinMatrix[2],$skinMatrix[6],$skinMatrix[10]};
+		$result1=dotProduct($v1, $v2, 0);
+		$result2=dotProduct($v1, $v3, 0);
+		$result3=dotProduct($v2, $v3, 0);
+		if(abs($result1)>=$tolerance || abs($result2)>=$tolerance || abs($result3)>=$tolerance)
+		{
+			$newText=$newText+ $skinFound[$i]+", ";
+			$failedValidation++;
+		}
+		updateValidateSceneProgressBar("nonOrthonormalProgress");
+	}
+	for ($i=0;$i<size($jointsFound);$i++)
+	{
+		$cmd="xform -q -scale -r " + $jointsFound[$i];
+		$scaleMatrix=eval($cmd);
+		if(abs($scaleMatrix[0]-1)>=$tolerance || abs($scaleMatrix[1]-1)>=$tolerance || abs($scaleMatrix[2]-1)>=$tolerance)
+		{	
+			string $failText=$jointsFound[$i];
+			
+			if($newText=="")
+			{
+				$newText=$failText;
+			}
+			else
+			{
+				$newText=$newText+", "+$failText;
+			}
+			$failedValidation++;
+		}
+	}
+			
+	if($newText!="")
+	{
+		button -edit -backgroundColor 0.66 0 0 nonOrthonormalButton;
+		string $existingText= `text -q -label validateSceneResultText`;
+		$newText=$existingText+"Non-Orthonormal Bind-pose Matrices\nThe following bones have scaled axis: "+$newText+"\n\n";
+		text -edit -label $newText validateSceneResultText;
+	}
+	else
+	{
+		button -edit -backgroundColor 0.18 0.85 0.0 nonOrthonormalButton;
+	}
+	updateValidateSceneProgressBar("nonOrthonormalProgress");
+	$pxValidateSceneFail+=$failedValidation;
+	//print ("failed validation: "+$pxValidateSceneFail );
+	$pxValidateSceneValid+=(size($skinFound)-$failedValidation);
+}
+
+global proc validateMoreThan20Vertices()
+{
+	string $clothingFound[] = `ls -type apexClothing`;
+	string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+	
+	string $jointNames[];
+	//findRelatedSkinCluster("pPlane1");
+	//skinCluster -q -geometry skinCluster2;
+	//need to step simulation before simulated vertex count command
+	//physxShelf_StepSimulationFrameForwardCommand;
+	//physxShelf_ResetSimulationCommand;
+	string $simulatedVertices=`NvSolverGetClothingSimulatedVertices`;
+	prepProgressBar(size($clothingFound),"moreThan20VerticesProgress");
+	string $array[];
+	
+	//if($simulatedVertices!="")
+	//{
+	//	$array=stringToStringArray($simulatedVertices,",");
+	//	string $existingText= `text -q -label validateSceneResultText`;
+	//	string $newText=$existingText+"The following rigid bodies have physical meshes with more than 20 vertices \n"+$simulatedVertices+"\n\n";
+	//	text -edit -label $newText validateSceneResultText;
+	//}
+
+	for ($i=0;$i<size($clothingFound);$i++)
+	{
+		string $clothingMesh[] = `deformer -q -geometry $clothingFound[$i]`;
+		string $relatedSkinCluster=`findRelatedSkinCluster($clothingMesh[0])`;
+
+		string $allInfluences[] = `skinCluster -q -weightedInfluence $relatedSkinCluster`;
+		for ($eachInfluence in $allInfluences)
+		{
+			if (`nodeType $eachInfluence` == "joint")
+			{
+				$jointNames[ size($jointNames)]=$eachInfluence;
+			}
+		}
+		for ($i=0;$i<size($jointNames);$i++)
+		{
+		//	if($jointNames[$i]!=$jointNames2[$i])
+		//	{
+		//		break;
+		//	}
+		}
+
+	//	string $relatedGeometry=skinCluster -q -geometry $relatedSkinCluster;
+
+		updateValidateSceneProgressBar("moreThan20VerticesProgress");
+	}
+	updateValidateSceneProgressBar("moreThan20VerticesProgress");
+}
+
+global proc validateSimulatedVertexCount()
+{
+	string $clothingFound[] = `ls -type apexClothing`;
+	//need to step simulation before simulated vertex count command
+	physxShelf_StepSimulationFrameForwardCommand;
+	physxShelf_ResetSimulationCommand;
+	string $simulatedVertices=`NvSolverGetClothingSimulatedVertices`;
+	prepProgressBar(size($clothingFound),"simulatedVertexCountProgress");
+	string $array[];
+	if($simulatedVertices!="")
+	{
+		$array=stringToStringArray($simulatedVertices,",");
+		//string $existingText= `text -q -label validateSceneResultText`;
+		string $existingText="";
+		string $newText="";
+		for($i=0;$i<size($array);$i++)
+		{
+			string $failText=$array[$i];
+			
+			if($newText=="")
+			{
+				$newText=$failText;
+			}
+			else
+			{
+				$newText=$newText+", "+$failText;
+			}
+		
+		}
+		$existingText= `text -q -label validateSceneResultText`;
+		$newText=$existingText+"PhysX Simulated vertices \n"+$newText+"\n\n";
+		text -edit -label $newText validateSceneResultText;
+	}
+	for ($i=0;$i<size($clothingFound);$i++)
+	{
+		updateValidateSceneProgressBar("simulatedVertexCountProgress");
+	}
+	button -edit -backgroundColor 0.8 0.8 0.0 simulatedVertexCountButton;
+	updateValidateSceneProgressBar("simulatedVertexCountProgress");
+	
+}
+
+global proc runPhysXValidateScene()
+{
+	global int $pxValidateSceneValid;
+	global int $pxValidateSceneFail;
+	global int $pxValidateSceneNote;
+	//reset whole gui before validating
+	progressBar -edit -progress 0 scaledObjectProgress;
+	progressBar -edit -progress 0 nonUniformScalingProgress;
+	progressBar -edit -progress 0 animatedScaleProgress;
+	progressBar -edit -progress 0 skewedObjectsProgress;
+	progressBar -edit -progress 0 nonOrthonormalProgress;
+	//progressBar -edit -progress 0 moreThan20VerticesProgress;
+	progressBar -edit -progress 0 simulatedVertexCountProgress;
+
+	text -edit -label "" validateSceneResultText;
+	text -edit -label "" resultText;
+	//string $rigidbodiesFound[] = `ls -type nxRigidBody`;
+
+	if(`checkBox -q -v scaledObjects`)
+	{
+		validateScaledObjects();
+		//$pxValidateSceneValid=size($rigidbodiesFound);
+	}
+	if(`checkBox -q -v nonUniformScaling`)
+	{
+		validateNonUniformScaling();
+	}
+	if(`checkBox -q -v animatedScale`)
+	{
+		validateAnimatedScale();
+	}
+	if(`checkBox -q -v skewedObjects`)
+	{
+		validateSkewedObjects();
+	}
+	if(`checkBox -q -v nonOrthonormal`)
+	{
+		validateNonOrthonormal();
+	}
+	//if(`checkBox -q -v moreThan20Vertices`)
+	//{
+	//	validateMoreThan20Vertices();
+	//}
+	if(`checkBox -q -v simulatedVertexCount`)
+	{
+		validateSimulatedVertexCount();
+	}
+	string $newText="Results:";
+	if($pxValidateSceneValid!=0)
+	{
+		$newText=$newText+" Valid: "+$pxValidateSceneValid;
+	}
+	if($pxValidateSceneFail!=0)
+	{
+		$newText=$newText+" Fail: "+$pxValidateSceneFail;
+	}
+	if($pxValidateSceneNote!=0)
+	{
+		$newText=$newText+" Note: "+$pxValidateSceneNote;
+	}
+	text -edit -label $newText resultText;
+	//reset global variables
+	$pxValidateSceneValid=0;
+	$pxValidateSceneFail=0;
+	$pxValidateSceneNote=0;
+}
+
+global proc prepProgressBar(int $numOfTestObjs, string $progressBarName)
+{
+	if($numOfTestObjs!=0)
+	{
+		progressBar-edit -maxValue $numOfTestObjs $progressBarName;
+		progressBar-edit -step 1 $progressBarName;
+	}
+	else
+	{
+		progressBar-edit -minValue 0 $progressBarName;
+		progressBar-edit -maxValue 1 $progressBarName;
+	}
+}
+
+global proc updateValidateSceneProgressBar(string $progressBarName)
+{
+	progressBar-edit -step 1 $progressBarName;
+}
+
+
+global proc physXValidateSceneControls()
+{
+	//rowLayout -numberOfColumns 1 -columnAlign1 "center";
+	rowLayout  -numberOfColumns 2 -columnWidth2 140 200;
+		text -label "";
+		string $ctrlValidateScene = `checkBox -label "Validate Scene" -align "center"`; 
+		checkBox -e -value `optionVar -q "validatePhysXSceneBeforeExport"` $ctrlValidateScene;
+		checkBox -e -cc ( "optionVar -iv \"validatePhysXSceneBeforeExport\" `checkBox -q -value " + $ctrlValidateScene + "`" ) $ctrlValidateScene;
+	setParent ..;
+}

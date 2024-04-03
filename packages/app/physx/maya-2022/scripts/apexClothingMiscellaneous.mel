@@ -1,0 +1,620 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global proc selectClothingAndTransform()
+{
+	// Select all clothing
+	$clothlist = `ls -type "apexClothing"`;
+	select $clothlist;
+
+	//and their relevant shape transform
+	for( $cloth in $clothlist )
+	{
+		select -add `listConnections -d on -s off ($cloth+".showGraphicalMesh")`;
+	}
+}
+
+//global proc string getSelectedClothingGraphicalMesh()
+//{
+//	string $selected  = apexClothingGetSelected();
+//	if($selected != "")
+//		return apexClothingGetGraphicalMesh( $selected );
+//
+//	return ("");
+//}
+
+//// returns the 1st mesh found.
+//global proc string getSelectedMesh()
+//{
+//	//apexClothing not selected.  Search by mesh instead!
+//	string $selected[] = `ls -sl -dag -objectsOnly -type mesh -noIntermediate`;
+//	if( size($selected) > 0)
+//		return $selected[0]; 
+//
+//	return "";
+//}
+
+// returns all selected meshes.
+global proc string[] getSelectedMeshes()
+{
+	//apexClothing not selected.  Search by mesh instead!
+	return `ls -sl -dag -objectsOnly -type mesh -noIntermediate`;
+}
+
+global proc apexClothingResetVertexChannel ( string $arg, float $value )
+{
+	print ("apexClothingResetVertexChannel( "+$arg+" )\n");
+
+    string $connections[] = `listConnections -d off -s on -plugs on $arg`;
+ 	if(size($connections) > 0)
+ 		$arg = $connections[0];  	
+	
+	print ("Redirecting: "+$arg+"\n");
+	
+	float $data[] = `getAttr $arg`;
+	int $size = size($data);
+	
+	print ("Size: "+$size+"\n");
+	
+	if($size > 0)
+	{
+		int $i;
+		string $data = $size;
+		string $part = " " + $value;
+		for($i=0;$i<$size;$i++)
+			$data += $part;
+
+		$cmd = "setAttr " + $arg + " -type doubleArray " +  $data;
+		eval($cmd);
+	}
+}
+
+global proc apexClothingRebuild( string $node )
+{
+	int $trigger = `getAttr ($node + ".rebuildTrigger")`;
+	$trigger = $trigger + 1;
+	setAttr ($node + ".rebuildTrigger") $trigger;
+}
+
+global proc string getApexClothingFromMesh(string $mesh)
+{
+	string $type = `nodeType $mesh`;
+	if($type == "apexClothing")
+		return $mesh;
+		
+	string $history[] = `listHistory $mesh`;
+	for($obj in $history)
+	{
+		$type = `nodeType $obj`;
+		if($type == "apexClothing")
+			return $obj;
+	}
+	
+	string $future[] = `listHistory -future true $mesh`;
+	for($obj in $history)
+	{
+		$type = `nodeType $obj`;
+		if($type == "apexClothing")
+			return $obj;
+	}	
+	
+	return "";
+}
+
+global proc int[] nxGetPlugConnectedSparseIndices(string $plugName)
+{
+	//print ("nxGetPlugConnectedSparseIndices( "+$plugName+" )\n");
+	int $meshIndices[];
+
+	string $connections[] = `listConnections -s off -d on -connections on -plugs on $plugName`;
+
+	//print ("Connections Count = "+size($connections)/2+"\n");
+	
+	for ( $i = 0; $i < size($connections); $i += 2 )
+	{
+		//print ("Testing connection "+$i+": "+$connections[$i]+"\n");
+		
+		int $subStart = size($plugName)+1;
+		int $subStop = size($connections[$i]);
+		string $remainder = `substring $connections[$i] $subStart $subStop`;
+		if(size($remainder) == 0)
+			continue;
+
+		if( !`gmatch $remainder "\\[[0-9]*\\]"`)
+			continue;
+
+		string $indexStr = `match "[0-9]+" $remainder`;
+		//print ("Index"+$i+" = "+$indexStr+"\n");
+		
+		if(size($indexStr) == 0)
+			continue;
+	
+		$meshIndices[ size($meshIndices) ] = (float) $indexStr; //add to end
+
+	}	
+	
+	return $meshIndices;
+}
+
+// need a version to choose which graphical mesh to return
+global proc string apexClothing_GetGraphicalLodMeshNameBySparseIndex(string $clothing, int $sparseIndex)
+{
+	string $meshNames[] = `deformer -q -geometry $clothing`;
+	int $meshIndices[] = `deformer -q -geometryIndices $clothing`;
+
+	int $i;
+	for ( $i = 0; $i < size($meshIndices); $i++ )
+	{
+		if( $meshIndices[$i] == $sparseIndex )
+		{
+			return $meshNames[$i];
+		}
+	}
+
+	warning ("apexClothing_GetGraphicalLodMeshNameBySparseIndex could not locate the sparse index");
+	return "";
+}
+
+global proc int apexClothing_ConvertToPhysicalIndex(int $logicalIndexArray[], int $logicalIndex)
+{
+	int $num = size($logicalIndexArray);
+	int $sortedArray[] = `sort $logicalIndexArray`;
+	int $i;
+	for($i = 0; $i < $num; $i++)
+	{
+		if($logicalIndex == $sortedArray[$i])
+			return $i;
+	}
+	return -1;
+}
+
+// need a version to choose which graphical mesh to return. $name is full path name
+global proc int apexClothing_GetGraphicalLodMeshIndexByName(string $clothing, string $name)
+{
+	string $meshNames[] = `deformer -q -geometry $clothing`;
+
+	if(size($meshNames) > 0)
+	{
+		string $array[];
+		// check meshNames is local or with namespace
+		// if yes, convert $name into local name
+		if(`tokenize $meshNames[0] "|" $array` == 1) 
+		{
+			tokenize $name "|" $array;
+			int $size = size($array);
+			$name = $array[$size - 1];
+		}
+	}
+	
+	int $meshIndices[] = `deformer -q -geometryIndices $clothing`;
+
+	string $name2 = $name + "Deformed";   // another possible name
+	int $i;	
+	for ( $i = 0; $i < size($meshNames); $i++ )
+	{
+		string $r =`match $meshNames[$i] $name`;
+		if( $r != "" )
+		{
+			return $meshIndices[$i];
+		}
+		string $r2 =`match $meshNames[$i] $name2`;
+		if( $r2 != "" )
+		{
+			return $meshIndices[$i];
+		}
+	}
+
+	warning ("apexClothing_GetGraphicalLodMeshIndexByName could not locate the sparse index");
+	return -1;
+}
+
+
+global proc apexClothing_ShowAllLodMeshes( string $clothingNodeName, int $show )
+{
+	string $selectedMesh = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $clothingNodeName, `getAttr ($clothingNodeName + ".currentGraphicalLOD")` );
+	print ("apexClothing_ShowAllLodMeshes focus on "+$selectedMesh+"\n");
+	
+	//ensure visible of selected at least!!! encase out of sync
+	setAttr ($selectedMesh + ".intermediateObject") false;
+	
+	string $lodMeshes[] = `deformer -q -geometry $clothingNodeName`;
+	int $numLodMesh = size( $lodMeshes );
+
+	for ( $i = 0; $i < $numLodMesh; $i++ )
+	{
+		// skip the current one because it's visibilty is locked
+		// due to connection from the showGraphicalMesh attribute in clothing node
+		if ( $selectedMesh != $lodMeshes[$i] )
+		{
+			setAttr ($lodMeshes[$i] + ".intermediateObject") ($show==false);
+			//string $ps[] = `listRelatives -parent $lodMeshes[$i]`;
+			//if(`size $ps` > 0)
+			//{
+			//	setAttr ($ps[0] + ".intermediateObject") (false);
+			//}
+		}
+	}
+}
+
+//global proc string apexClothingGetGraphicalMesh(string $clothing)
+//{
+//	string $connections[] = `listConnections -source false -destination true -shapes on ($clothing + ".outputGeometry[0]")`;
+//	string $connection = $connections[0];
+//	string $future[] = `listHistory -future true -leaf true $connection`;
+//	for($obj in $future)
+//	{
+//		string $type = `nodeType $obj`;
+//		if($type == "mesh")
+//			return $obj;
+//	}
+//	return "";
+//}
+
+//global proc string apexClothingGetInputMeshAttribute(string $clothing)
+//{
+//	string $graphics = apexClothingGetGraphicalMesh( $clothing );
+//
+//	string $skin = findRelatedSkinCluster( $graphics );
+//	string $physical = ($skin + ".input[0].inputGeometry");
+//
+//	return $physical;
+//}
+
+global proc string apexClothingGetRelatedJoints(string $clothing)
+{
+	return("NOTIMPL");
+}
+
+global proc string apexClothingGetSelected()
+{
+	string $selectionList[];
+		
+	$selectionList = `ls -sl -type apexClothing`;
+	
+	if(size($selectionList) > 0)
+	{
+		print("[apexClothingGetSelected] Found in selection: " + $selectionList[0] + "\n" );
+	
+		return $selectionList[0];
+	}
+	else
+	{
+		print("[apexClothingGetSelected] Searching meshes\n" );
+	
+		$selectionList = `ls -sl -dag -objectsOnly -type mesh`;
+		int $count = `size($selectionList)`;
+		int $i;
+		
+		for ($i = 0; $i < $count; $i++)
+		{
+			string $selected = $selectionList[$i];
+			string $type = `nodeType $selected`;
+			if($type == "apexClothing")
+			{
+				return $selected;
+			}
+			else if($type == "mesh")
+			{
+				string $found = getApexClothingFromMesh($selected);
+				if($found != "")
+				{
+					print("[apexClothingGetSelected] Found from mesh: " + $selected + " , " + $found + "\n" );
+					return $found;			
+				}
+			}
+		}
+	}
+	
+	warning("[apexClothingGetSelected] Could not locate clothing on any selected meshes \n" );
+	return "";
+}
+
+global proc string apexClothingEdit()
+{
+	string $selected = apexClothingGetSelected();
+	
+	print("[apexClothingEdit] Found: " + $selected + "\n" );
+	
+	if($selected != "")
+	{
+		print("[apexClothingEdit] Found: " + $selected + "\n" );
+		nxShowEditorExact $selected;
+	}
+
+	
+	return $selected;
+}
+
+global int $apexClothingImport_LoadGraphicalMesh = 0;
+
+global proc apexClothingTransferLoad()
+{
+    global int $apexClothingImport_LoadGraphicalMesh ;
+    
+    string $file;
+	if( getApplicationVersionAsFloat() < 2011 )
+	{
+		$file = `fileDialog -dm "*.ctw" -mode 0`;
+	}
+	else
+	{
+	    string $result[] = `fileDialog2 -cap "Load Template" -fileMode 1 -fileFilter ("Clothing Tool Workspace (*.ctw)")`;
+	    $file = $result[0];
+	}
+
+	if($file == "")
+		return;
+
+	print ("Selected File: " + $file + "\n");
+
+	string $clothing = apexClothingCreate();
+
+	string $cmd = "apexClothingImport -f \"" + $file + "\"";
+	evalEcho($cmd);
+	
+	refreshEditorTemplates();
+}
+
+global proc apexClothingExport_InitOptions()
+{
+	if( `optionVar -exists "apexClothingExport_CTP"` == false)
+		optionVar -iv "apexClothingExport_CTP" false;
+
+	if( `optionVar -exists "apexClothingExport_CTWs"` == false)
+		optionVar -iv "apexClothingExport_CTWs" false;
+
+	if( `optionVar -exists "apexClothingExport_APBs"` == false)
+		optionVar -iv "apexClothingExport_APBs" 2;      // default to 2 - APX by Autodesk
+
+	if( `optionVar -exists "apexClothingExport_FBX"` == false)
+		optionVar -iv "apexClothingExport_FBX" false;
+	
+	//if( `optionVar -exists "apexClothingExport_ModelSpace"` == false)
+	//	optionVar -iv "apexClothingExport_ModelSpace" true;
+
+	if( `optionVar -exists "apexClothingExport_Ragdoll"` == false)
+		optionVar -iv "apexClothingExport_Ragdoll" true;
+
+	if( `optionVar -exists "apexClothingExport_ReverseWind"` == false)
+		optionVar -iv "apexClothingExport_ReverseWind" false;
+	
+	if( `optionVar -exists "apexClothingExport_VisibleOnly"` == false)
+		optionVar -iv "apexClothingExport_VisibleOnly" false;
+
+	if( `optionVar -exists "apexExport_RemoveNamespaceForJoint"` == false)
+		optionVar -iv "apexExport_RemoveNamespaceForJoint" 1;
+
+	if( `optionVar -exists "PhysXExport_UseJointLongName"` == false)
+		optionVar -iv "PhysXExport_UseJointLongName" 0;
+	
+	//if( `optionVar -exists "apexClothingExport_Scale"` == false)
+	//	optionVar -fv "apexClothingExport_Scale" 1.0;
+
+	if( `optionVar -exists "PhysXExport_enableLeftHand"` == false)
+		optionVar -iv "PhysXExport_enableLeftHand" false;
+	if( `optionVar -exists "PhysXExport_leftHandTransformAxis"` == false)
+		optionVar -iv "PhysXExport_leftHandTransformAxis" 1;
+	if( `optionVar -exists "PhysXExport_leftHandTransformDegrees"` == false)
+		optionVar -fv "PhysXExport_leftHandTransformDegrees" 0.0;
+	if( `optionVar -exists "PhysXExport_leftHandCustomMatrix"` == false)
+		optionVar -sv "PhysXExport_leftHandCustomMatrix" "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
+	if( `optionVar -exists "PhysXExport_useSpecifiedNormals"` == false)
+		optionVar -iv "PhysXExport_useSpecifiedNormals" false;
+	if( `optionVar -exists "PhysXExport_specifiedNormalVectorT"` == false)
+		optionVar -iv "PhysXExport_specifiedNormalVectorT" 0;
+	if( `optionVar -exists "PhysXExport_specifiedNormalVectorB"` == false)
+		optionVar -iv "PhysXExport_specifiedNormalVectorB" 0;
+	if( `optionVar -exists "PhysXExport_specifiedNormalVectorN"` == false)
+		optionVar -iv "PhysXExport_specifiedNormalVectorN" 0;
+	if( `optionVar -exists "PhysXExport_onlyUseLod0sMaterialsOfClothing"` == false)
+		optionVar -iv "PhysXExport_onlyUseLod0sMaterialsOfClothing" false;
+
+	if( `optionVar -exists "PhysXExport_outputUnit"` == false)
+		optionVar -sv "PhysXExport_outputUnit" "meter";
+	if( `optionVar -exists "PhysXExport_customScaling"` == false)
+		optionVar -iv "PhysXExport_customScaling" false;  // default false required by Autodesk
+	if( `optionVar -exists "PhysXExport_outputScale"` == false)
+		optionVar -fv "PhysXExport_outputScale" 0.01;     // default to export in meter required by Autodesk
+	//if( `optionVar -exists "PhysXExport_massInKg"` == false)
+	//	optionVar -iv "PhysXExport_massInKg" false;       // default false
+}
+
+//global proc int apexClothingExportTranslator( string $parent, 
+//									string $action,
+//									string $initialSettings, 
+//									string $resultCallback )
+//	Parameters:
+//		$parent	- the elf parent layout for this options layout. It is
+//					always a scrollLayout.
+//		$action	- the action that is to be performed with this invokation
+//					of this proc. Valid options are:
+//						"query" - construct the options string and pass it
+//									to the resultCallback.
+//						"post"	- post all the elf controls.
+//		$resultCallback	-
+//				This is the proc to be called with the result string. 
+//				resultCallback ( string $optionsString )
+//
+//	Returns:
+//		1 if successfull.
+//		0 otherwise.
+//
+// {
+// 	if ($action == "post") {
+// 		setUITemplate -pushTemplate DefaultTemplate;
+// 		setParent $parent;
+// 		
+// 		apexClothingExportOptions_Controls();
+// 
+// 		setUITemplate -popTemplate;
+// 		return 1;
+// 	} 
+// 	else if ($action == "query") 
+// 	{
+// 		eval($resultCallback + " \"none=0;\"" ); //+" \""+$currentOptions+"\"");
+// 		return 1;
+// 	} 
+// 	else 
+// 	{
+// 		return 0;
+// 	}
+// }
+
+// global proc apexClothingExportMenuOptions( int $selected )
+// {
+// 	string $window = `window -resizeToFitChildren on "Export APEX Clothing"`;
+// 		columnLayout -adjustableColumn true;		
+// 
+// 			apexClothingExportOptions_Controls();
+// 
+// 			button -label "Export" -command ("apexClothingExportOptions_Export(\""+$window+"\", " + $selected + " )");	
+// 				
+// 		setParent ..;
+// 	showWindow $window;
+// }
+
+global proc apexClothingExportMenu( int $selected )
+{
+	string $file = `fileDialog -dm "*.ctp" -mode 1`; 
+	$file = `substitute "\.ctp$" $file ""`;
+	if($file != "")
+		apexClothingExport -d $file -s $selected;
+}
+
+global proc apexClothingExportOptions_Export(string $dialog, int $selected )
+{
+	string $file = `fileDialog -dm "*.ctp" -mode 1`; 
+	$file = `substitute "\.ctp$" $file ""`;
+	if($file != "")
+		apexClothingExport -d $file -s $selected;
+
+	deleteUI -window $dialog;
+}
+
+global proc apexClothingTransferSave()
+{
+	//string $selected[] = `ls -selection -visible -noIntermediate -untemplated -dagObjects -type mesh`;
+	string $selected[] = `ls -selection -dagObjects -objectsOnly -type mesh`;
+	if( size($selected) == 0 )
+	{
+		$selected = `ls -selection -type apexClothing`;
+		if( size($selected) == 0 )
+			return;
+	}
+
+	string $fullpath="";
+	if( getApplicationVersionAsFloat() < 2011 )
+	{
+		$fullpath = `fileDialog -dm "*.ctw" -mode 1`;
+	}
+	else
+	{
+		string $result[] = `fileDialog2 -cap "Save Template" -fileFilter ("Clothing Tool Workspace (*.ctw)")`;
+		$fullpath = $result[0];
+	}
+
+	if($fullpath == "")
+		return;
+
+	string $filename = basename( $fullpath, ".ctw" );
+	string $path = dirname( $fullpath ) + "/";
+	
+	string $command = "SaveClothingTemplateCmd -p \"" + $path +  "\" -f \"" + $filename + "\"";
+	evalEcho $command;
+	//apexClothingExport -d $fullpath -asTemplate;
+}
+
+// global proc apexClothingExportOptions_Controls()
+// {
+// 	apexClothingExport_InitOptions();
+// 	rowLayout -numberOfColumns 1 -columnAlign1 "center";
+// 		string $ctrlValidateScene = `checkBox -label "Validate scene before export" -align "center"`; 
+// 		checkBox -e -value `optionVar -q "validatePhysXSceneBeforeExport"` $ctrlValidateScene;
+// 		checkBox -e -cc ( "optionVar -iv \"validatePhysXSceneBeforeExport\" `checkBox -q -value " + $ctrlValidateScene + "`" ) $ctrlValidateScene;
+// 	setParent ..;
+// 	rowLayout  -numberOfColumns 4;
+// 	
+// 		text -l "Runtime Files" ;
+// 
+// 		radioCollection;
+// 		
+// 		string $ctrlAP0 = `radioButton -label "Off" -align "left"`; 
+// 		radioButton -e -onc ( "optionVar -iv \"apexClothingExport_APBs\" 0" ) $ctrlAP0;
+// 	
+// 		string $ctrlAPB = `radioButton -label "APB" -align "left"`; 
+// 		radioButton -e -onc ( "optionVar -iv \"apexClothingExport_APBs\" 1" ) $ctrlAPB;
+// 
+// 		string $ctrlAPX = `radioButton -label "APX" -align "left"`; 
+// 		radioButton -e -onc ( "optionVar -iv \"apexClothingExport_APBs\" 2" ) $ctrlAPX;
+// 
+// 		int $oldVaue = `optionVar -q "apexClothingExport_APBs"`;
+// 		if($oldVaue == 0)
+// 			radioButton -e -select $ctrlAP0;
+// 		else if($oldVaue == 1)
+// 			radioButton -e -select $ctrlAPB;
+// 		else if($oldVaue == 2)
+// 			radioButton -e -select $ctrlAPX;
+// 
+// 	setParent ..;
+// 
+// 
+// 	rowLayout  -numberOfColumns 4;
+// 		text -l "Clothing Tool" ;
+// 		string $ctrlCTP = `checkBox -label "CTP" -align "left"`; 
+// 		checkBox -e -value `optionVar -q "apexClothingExport_CTP"` $ctrlCTP;
+// 		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_CTP\" `checkBox -q -value " + $ctrlCTP + "`" ) $ctrlCTP;
+// 
+// 		string $ctrlFBX = `checkBox -label "FBX" -align "left"`; 
+// 		checkBox -e -value `optionVar -q "apexClothingExport_FBX"` $ctrlFBX;
+// 		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_FBX\" `checkBox -q -value " + $ctrlFBX + "`" ) $ctrlFBX;
+// 	setParent ..;
+// 
+// 	rowLayout  -numberOfColumns 3;
+// 		text -l "Clothing Template" ;
+// 	
+// 		string $ctrlCTWs = `checkBox -label "CTW" -align "left"`; 
+// 		checkBox -e -value `optionVar -q "apexClothingExport_CTWs"` $ctrlCTWs;
+// 		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_CTWs\" `checkBox -q -value " + $ctrlCTWs + "`" ) $ctrlCTWs;	
+// 	setParent ..;
+// 
+// 	rowLayout  -numberOfColumns 3;
+// 	setParent ..;
+// 
+// 	rowLayout  -numberOfColumns 3;
+// 		text -l "Collsion Hulls" ;
+// 		string $ctrlRagdoll = `checkBox -label "Enable" -align "left"`; 
+// 		checkBox -e -value `optionVar -q "apexClothingExport_Ragdoll"` $ctrlRagdoll;
+// 		checkBox -e -cc ( "optionVar -iv \"apexClothingExport_Ragdoll\" `checkBox -q -value " + $ctrlRagdoll + "`" ) $ctrlRagdoll;
+// 	setParent ..;
+// 
+// 	//rowLayout  -numberOfColumns 3;
+// 	//	text -l "Model Space" ;
+// 	//	string $ctrlModelSpace = `checkBox -label "Enable" -align "left"`; 
+// 	//	checkBox -e -value `optionVar -q "apexClothingExport_ModelSpace"` $ctrlModelSpace;
+// 	//	checkBox -e -cc ( "optionVar -iv \"apexClothingExport_ModelSpace\" `checkBox -q -value " + $ctrlModelSpace + "`" ) $ctrlModelSpace;
+// 	//setParent ..;
+// 
+// 	//rowLayout  -numberOfColumns 3;
+// 	//	text -l "Scale";
+// 	//	string $ctrlScale = `floatField`;
+// 	//	floatField -e -value `optionVar -q "apexClothingExport_Scale"` $ctrlScale;
+// 	//	floatField -e -cc ( "optionVar -fv \"apexClothingExport_Scale\" `floatField -q -value "+$ctrlScale+"`" ) $ctrlScale;
+// 	//setParent ..;
+// }
+
+global proc apexClothingCopyPaintAttributes(string $nodeSrc, int $mappedIndex, string $nodeDes, int $index, string $attributes[])
+{
+	int $i, $size;
+	$size = `size $attributes`;
+	for($i = 0; $i < $size; $i++)
+	{
+		string $plugSrc = $nodeSrc + "." + $attributes[$i] + "[" + $mappedIndex + "]";
+		string $plugDes = $nodeDes + "." + $attributes[$i] + "[" + $index + "]";
+		string $cmd = "setAttr " + $plugDes + "`getAttr " + $plugSrc + "`";
+		evalEcho $cmd;
+	}
+}

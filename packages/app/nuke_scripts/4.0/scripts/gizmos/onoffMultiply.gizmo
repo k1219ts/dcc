@@ -1,0 +1,34 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+note_font "DejaVu Sans Bold Italic Bold Italic Bold Italic"
+note_font_size 20
+addUserKnob {20 controrl}
+addUserKnob {3 cf l continueFrame}
+cf 1
+addUserKnob {22 mc l makeCurve T "node = nuke.thisNode()\nsf = nuke.frame()\nconFrame =  node.knob('cf').value()\nef = int(sf + conFrame - 1)\ncvoff = 0\ncvon = 1\ncurveValue = nuke.thisNode().knob('cv')\n\ncurveValue.clearAnimated()\ncurveValue.setAnimated()\ncurveValue.setValueAt(cvoff,sf-1)\ncurveValue.setValueAt(cvon,sf)\ncurveValue.setValueAt(cvon,ef)\ncurveValue.setValueAt(cvoff,ef+1)\n\nnode.knob('label').setValue(str(sf) + '-' +  str(ef)) " +STARTLINE}
+addUserKnob {22 amc l addMakeCurve T "if sf == nuke.frame():\n    pass\n\nelse:\n    sf = nuke.frame()\n    conFrame =  nuke.thisNode().knob('cf').value()\n    ef = int(sf + conFrame - 1)\n    cvoff = 0\n    cvon = 1\n    curveValue = nuke.thisNode().knob('cv')\n\n    curveValue.setAnimated()\n    curveValue.setValueAt(cvoff,sf-1)\n    curveValue.setValueAt(cvon,sf)\n    curveValue.setValueAt(cvon,ef)\n    curveValue.setValueAt(cvoff,ef+1)\n\n    old = node.knob('label').value()\n    lv = str(sf) + '-' +  str(ef) + '\\n' + old\n    node.knob('label').setValue(lv) \n" +STARTLINE}
+addUserKnob {19 cv l curveValue}
+cv 1
+addUserKnob {20 show}
+}
+Input {
+inputs 0
+name Input1
+xpos 494
+ypos 263
+}
+Multiply {
+channels rgba
+value {{parent.cv}}
+name set
+selected true
+xpos 494
+ypos 325
+}
+Output {
+name Output1
+xpos 494
+ypos 403
+}
+end_group

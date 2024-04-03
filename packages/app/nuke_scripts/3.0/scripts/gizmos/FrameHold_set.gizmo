@@ -1,0 +1,32 @@
+#! /opt/Nuke12.2v4/libnuke-12.2.4.so -nx
+version 12.2 v4
+Gizmo {
+ tile_color 0xada253ff
+ label Set_frame
+ addUserKnob {20 User}
+ addUserKnob {41 first_frame_1 l "first frame" T FrameHold_BOCK1.first_frame_1}
+ addUserKnob {41 Set_Frame l set T FrameHold_BOCK1.Set_Frame}
+ addUserKnob {41 increment T FrameHold_BOCK1.increment}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 479
+  ypos 501
+ }
+ FrameHold {
+  first_frame 1001
+  name FrameHold_BOCK1
+  selected true
+  xpos 479
+  ypos 541
+  addUserKnob {20 User}
+  addUserKnob {41 first_frame_1 l "first frame" T FrameHold_BOCK1.first_frame}
+  addUserKnob {22 Set_Frame l set T "nuke.thisNode()\['first_frame'].setValue(nuke.frame())" +STARTLINE}
+ }
+ Output {
+  name Output1
+  xpos 479
+  ypos 641
+ }
+end_group

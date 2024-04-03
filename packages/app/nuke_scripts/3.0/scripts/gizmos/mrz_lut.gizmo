@@ -1,0 +1,23 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ label "mrz_lut
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 503
+  ypos 119
+ }
+ Colorspace {
+  primary_out AlexaV3LogC
+  name Colorspace1
+  xpos 503
+  ypos 159
+ }
+ Output {
+  name Output1
+  xpos 503
+  ypos 259
+ }
+end_group

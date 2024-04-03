@@ -1,0 +1,90 @@
+#! /usr/local/Nuke7.0v5/Nuke7.0 -nx
+version 7.0 v5
+Gizmo {
+ tile_color 0x63ffa1ff
+ addUserKnob {20 User}
+ addUserKnob {41 area T outer_rect.area}
+ addUserKnob {41 color T outer_rect.color}
+ addUserKnob {7 thickness}
+ thickness 5
+ addUserKnob {26 versionnotes l "" +STARTLINE T "helper drawbox gizmo\nv0.00 - prototype only (v1 language)\nanthony.tan@greenworm.net : 26/Mar/2015"}
+ addUserKnob {41 message T Text1.message}
+ addUserKnob {41 disable_1 l disable -STARTLINE T Text1.disable}
+}
+ Dot {
+  inputs 0
+  name Dot1
+  xpos 250
+  ypos -3
+ }
+set N6be3e70 [stack 0]
+ Rectangle {
+  cliptype none
+  area {{outer_rect.area+thickness} {outer_rect.area+thickness} {parent.outer_rect.area-thickness} {parent.outer_rect.area-thickness}}
+  color {{parent.outer_rect.color} {parent.outer_rect.color} {parent.outer_rect.color} {parent.outer_rect.color}}
+  name inner_rect
+  xpos 344
+  ypos 55
+ }
+push $N6be3e70
+ Rectangle {
+  cliptype none
+  area {870 700 1473 1038.75}
+  color {1 1 1 1}
+  name outer_rect
+  xpos 216
+  ypos 54
+ }
+ Merge2 {
+  inputs 2
+  operation from
+  name Merge1
+  xpos 216
+  ypos 183
+ }
+ Text {
+  cliptype none
+  message ""
+  font /netapp/dexter/production/inhouse/fonts/nhn-nanum/NanumGothic.ttf
+  size 75
+  yjustify top
+  Transform 1
+  box {{inner_rect.area+thickness x32 637 x1013 728} {inner_rect.area+thickness x32 633 x1013 698} {inner_rect.area-thickness x32 1200 x1013 1291} {inner_rect.area-thickness x32 931.75 x1013 996.75}}
+  color {{parent.outer_rect.color} {parent.outer_rect.color} {parent.outer_rect.color} {parent.outer_rect.color}}
+  name Text1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  selected true
+  xpos 106
+  ypos 183
+ }
+set N8414c50 [stack 0]
+ Viewer {
+  frame 1013
+  frame_range 1-109
+  input_process false
+  name Viewer1
+  xpos 288
+  ypos 294
+ }
+push $N8414c50
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+  ypos -9
+ }
+ Merge2 {
+  inputs 2
+  operation exclusion
+  sRGB true
+  name Merge2
+  xpos 0
+  ypos 183
+ }
+ Output {
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group

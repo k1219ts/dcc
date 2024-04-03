@@ -1,0 +1,210 @@
+#! /opt/Nuke13.2v5/libnuke-13.2.5.so -nx
+version 13.2 v5
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="3840" y="254" w="2560" h="1307" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="2487" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1254"/>
+                <splitter orientation="1">
+                    <split size="1401"/>
+                    <splitter orientation="2">
+                        <split size="528"/>
+                        <dock id="" activePageId="Viewer.1">
+                            <page id="Viewer.2"/>
+                            <page id="Viewer.1"/>
+                        </dock>
+                        <split size="629"/>
+                        <splitter orientation="1">
+                            <split size="699"/>
+                            <dock id="" activePageId="Properties.1">
+                                <page id="Properties.1"/>
+                            </dock>
+                            <split size="698"/>
+                            <dock id="" activePageId="DAG.1">
+                                <page id="DAG.1"/>
+                            </dock>
+                        </splitter>
+                        <split size="89"/>
+                        <splitter orientation="1">
+                            <split size="1158"/>
+                            <dock id="" activePageId="Curve Editor.1">
+                                <page id="DopeSheet.1"/>
+                                <page id="Curve Editor.1"/>
+                            </dock>
+                            <split size="239"/>
+                            <dock id="" activePageId="Toolbar_CompToolbar.1">
+                                <page id="Toolbar_CompToolbar.1"/>
+                            </dock>
+                        </splitter>
+                    </splitter>
+                    <split size="1082"/>
+                    <splitter orientation="2">
+                        <split size="1254"/>
+                        <dock id="" activePageId="uk.co.thefoundry.scripteditor.2">
+                            <page id="com.adrianpueyo.KnobScripterPane"/>
+                            <page id="uk.co.thefoundry.scripteditor.2"/>
+                        </dock>
+                    </splitter>
+                </splitter>
+                <split size="0"/>
+                <dock id=""/>
+            </splitter>
+            <split size="25"/>
+            <dock id=""/>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name "/WORK_DATA/develop/__MY_TA__/일지/-11월-/13에 넣을 캐터리/MODNet.nk"
+ format "2048 1318 0 0 2048 1318 1 GOD"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ OCIO_config custom
+ customOCIOConfigPath /opt/Nuke14.0v2/plugins/OCIOConfigs/configs/cg-config-v1.0.0_aces-v1.3_ocio-v2.1.ocio
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+ luts {linear {}
+   sRGB {}
+   rec709 {}
+   Cineon {}
+   Gamma1.8 {}
+   Gamma2.2 {}
+   Gamma2.4 {}
+   Gamma2.6 {}
+   Panalog {}
+   REDLog {}
+   ViperLog {}
+   AlexaV3LogC {}
+   PLogLin {}
+   SLog {}
+   SLog1 {}
+   SLog2 {}
+   SLog3 {}
+   CLog {}
+   Log3G10 {}
+   Log3G12 {}
+   HybridLogGamma {}
+   Protune {}
+   BT1886 {}
+   st2084 {}
+   "Blackmagic Film Generation 5" {}
+   ARRILogC4 {}
+   REDSpace {}
+   cineon2 {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}}
+}
+Group {
+ inputs 0
+ name MODNet
+ onCreate "import sys\nthis = nuke.thisNode()\ninference = nuke.toNode(f\"\{this.name()\}.Inference2\")\nthis\[\"gpuName\"].setValue(inference\[\"gpuName\"].value())\nthis\[\"channelsIn\"].setValue(\"rgba.red, rgba.green, rgba.blue\")\ninference.forceValidate()\nis_enabled = inference\[\"modelFile\"].enabled()\nif (sys.platform.lower() == \"darwin\") and (not inference\[\"useGPUIfAvailable\"].enabled()): this\[\"useGPUIfAvailable\"].setValue(False), this\[\"useGPUIfAvailable\"].setEnabled(False)\nif not is_enabled:\n    for k in this.knobs(): this\[k].setEnabled(False)\nthis\[\"halfPrecision\"].setVisible(this\[\"useGPUIfAvailable\"].enabled())"
+ onDestroy "nuke.thisNode()\[\"knobChanged\"].setValue(\"\")"
+ knobChanged "this = nuke.thisNode()\nthis\[\"halfPrecision\"].setVisible(this\[\"useGPUIfAvailable\"].value())"
+ xpos -147
+ ypos 7
+ addUserKnob {20 MODNet}
+ addUserKnob {26 localGPU l "Local GPU:" T ""}
+ addUserKnob {26 gpuName l "" -STARTLINE T "Not available"}
+ addUserKnob {6 useGPUIfAvailable l "Use GPU if available" t "Select this to render on the <b>Local GPU</b>, if available.\n\nYou can select this even if no GPU is currently available on your machine. The GPU will then be used whenever the script is opened on a machine which does have a GPU available. You should also select this if you wish to render from the command line with the <b>--gpu</b> option.\n\nIf this node requires full frames from its inputs, and is therefore unable to reduce its memory overhead, it will fall back to the CPU if an attempt to render a frame on the GPU fails due to lack of memory. When this occurs, a warning message will be printed to the console." +STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {26 channelsIn l "Channels In:" t "The channels the model expects as input." T "rgba.red, rgba.green, rgba.blue"}
+ addUserKnob {41 in_colorspace l "Input Colorspace" t "Define the colorspace that the input image is in." T OCIOColorSpace1.in_colorspace}
+ addUserKnob {6 resize_input l "Resize input for best results" t "Before applying MODNet to the input, resize it so that either its width or height is of size 512. Images of this size often give the best results. " +STARTLINE}
+ resize_input true
+ addUserKnob {6 halfPrecision l "Optimize for Speed and Memory" t "Whether to process at half float precision. This speeds up execution and enables the processing of larger images, however there is the risk of artifacts with some trained models." +HIDDEN +STARTLINE}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x388e8e00
+  label "Resize image so one side is 512. \nThis gives best results."
+  note_font_size 12
+  xpos -662
+  ypos -62
+  bdwidth 257
+  bdheight 90
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x8e374aff
+  gl_color 0xcc3b36ff
+  label "Ensure input to Inference has height \nand width values that are multiples\nof 32."
+  note_font_size 12
+  xpos -660
+  ypos 84
+  bdwidth 260
+  bdheight 87
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos -588
+  ypos -102
+ }
+ Reformat {
+  type scale
+  scale {{"(min(input.width, input.height) == input.width) ? (512)/input.width :  (512)/input.height"}}
+  name Reformat1
+  xpos -588
+  ypos -3
+  disable {{!(parent.resize_input)}}
+ }
+ OCIOColorSpace {
+  in_colorspace scene_linear
+  out_colorspace color_picking
+  name OCIOColorSpace1
+  xpos -588
+  ypos 44
+ }
+ Crop {
+  box {0 {"input.height%32 == 0 ? 0 : 0 - (32 - input.height%32) "} {"input.width%32 == 0 ? input.width : (32 - input.width%32) + input.width"} {input.height}}
+  reformat true
+  crop false
+  name Crop4
+  xpos -588
+  ypos 144
+ }
+ Inference {
+  useGPUIfAvailable {{parent.useGPUIfAvailable x1 0}}
+  modelFile /backstage/dcc/packages/app/nuke_scripts/4.0/scripts/Cattery/MODNet/modnet.cat
+  halfPrecision {{parent.halfPrecision}}
+  serialiseKnob {}
+  name Inference2
+  xpos -588
+  ypos 225
+ }
+ Crop {
+  box {0 {"OCIOColorSpace1.height%32 == 0 ? 0 : (32 - OCIOColorSpace1.height%32)"} {"OCIOColorSpace1.width%32 == 0 ? input.width : input.width - (32 - OCIOColorSpace1.width%32)"} {input.height}}
+  reformat true
+  crop false
+  name Crop5
+  xpos -588
+  ypos 305
+ }
+ Reformat {
+  type scale
+  scale {{1/(Reformat1.scale)}}
+  name Reformat2
+  xpos -588
+  ypos 354
+  disable {{!(parent.resize_input)}}
+ }
+ Output {
+  name Output1
+  xpos -588
+  ypos 410
+ }
+end_group

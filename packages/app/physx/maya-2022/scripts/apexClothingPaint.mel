@@ -1,0 +1,1475 @@
+//// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+//// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+//// rights in and to this software and related documentation and any modifictions thereto.
+//// Any use, reproduction, disclosure or distribution of this software and related 
+//// documentation without an express license agreement from NVIDIA Corporation 
+//// is strictly prohibited.
+//
+//// Global variables to maintain state information.
+////
+////Start at apexClothingPaintToolScript()  This launches the tool.
+////Then you go to callbacks
+////	-activeListChangedProc "apexClothingPaintToolSelectionChanged"
+////	-toolOnProc "apexClothingPaintToolOn"
+////	-toolOffProc "apexClothingPaintToolOff" 
+////	-duringStrokeCmd "apexClothingPaintDuringStroke"
+////	-afterStrokeCmd "apexClothingPaintAfterStroke"
+//
+//// Default paint range values for the different channels (refer to apexClothingCheckValidPaintRange()):
+//// 1. Max Distance: 0 to ~
+//// 2. Backstop radius & offset: unbounded
+//// 3. Latch to Nearest: 0 to 1 (Binary: on/off)
+//
+//// this is defined in float.h
+////#define FLT_MAX 3.402823466e+38F // max value
+//global float $MAX_FLOAT = 3.402823466e+38;
+//global float $backStopMin = -1000.0;
+//global float $backStopMax = 1000.0;
+//global float $currentValue = 0.0;
+//
+////global int $currentOperation = 0; // 0 - Replace, 1 - Add, 2 - Scale, 3 - Smooth
+//
+//global string $apexClothingPaintOldDisplayAppearance = "";
+//global string $apexClothingPaintOldDisplayLights = "";
+////global int $apexClothingPaintOldDisplayVertexColor = false;
+////global string $apexClothingPaintOldDisplayDefaultMaterial = "";
+//
+//global string $apexClothingPaintOldColorSet[];
+//global int $apexClothingPaintOldShadedDisplay[];
+//global int $apexClothingPaintOldOpposite;
+//global int $apexClothingPaintOldDoubleSided;
+//global string $apexClothingPaintOldMaterialBlend[];
+//global string $apexClothingPaintOldMaterialChannel[];
+//global string $apexClothingPaintPanel = "";
+//
+////global int $simulationEnable = false;
+//global string $apexClothingPaintMesh = "";
+//global string $apexClothingPaintNode = "";
+//global string $apexClothingPaintAttribute = "maxDistances";
+//global int $apexClothingPaintAttributeChanging = false;
+//global float $apexClothingPaintRangeUpper = 1.0;
+//global float $apexClothingPaintRangeLower = 0.0;
+//
+//global int $paintOn = 0;
+//
+//global string $apexClothingPaintContext = "apexClothingPaintContext";
+//global string $apexClothingPaintRangeCtrl = "apexClothingPaintRangeCtrl";
+//global string $apexClothingAutoPaintRangeBtn = "apexClothingAutoPaintRangeBtn";
+//
+//global proc	string apexClothingPaintToolScript()
+//{
+//	global int $paintOn;
+//
+//	if ( 0 == $paintOn )
+//	{
+//		//DISABLE-DEBUG//print( "[apexClothingPaintToolScript] BEGIN\n");
+//		// Global variables...
+//		//
+//		global string $apexClothingPaintContext;
+//		global string $apexClothingPaintAttribute;
+//		global int $apexClothingPaintAttributeChanging;
+//		
+//		string $selection[] = `ls -sl`;
+//		string $found = "";
+//		for ($i = 0; $i < size($selection); $i++)
+//		{
+//			string $curr = getApexClothingFromMesh( $selection[$i] );
+//			if ( $curr != "" )
+//				$found = $curr;
+//		}
+//		
+//		if ( $found == "" )
+//		{
+//			print( "Wrong object selected for Paint Mode\n" );
+//			return "";
+//		}
+//		else
+//		{
+//			// Check if the context has already been created.
+//			//
+//			if (!`artAttrCtx -exists $apexClothingPaintContext`) 
+//			{
+//				// Set the name of your tool.
+//				//
+//				string $tool = "artApexClothingPaint";
+//
+//				if (! `artAttrTool -exists $tool`) 
+//				{
+//					artAttrTool -add $tool;
+//				}
+//
+//				// Create the context by invoking artAttrCtx in create mode with
+//				// the specified tool.
+//				//
+//				string $cmd = "artAttrCtx -whichTool \""+ $tool+ "\" " + $apexClothingPaintContext;
+//				rememberCtxSettings `eval($cmd)`;
+//
+//				// Define any tool-specific qualities and callbacks.
+//				// There are additional settings one could choose: check the
+//				// artAttrCtx command documentation for details.
+//				//
+//				artAttrCtx -edit -colorfeedback false $apexClothingPaintContext;
+//				artAttrCtx -edit -activeListChangedProc "apexClothingPaintToolSelectionChanged" $apexClothingPaintContext;
+//				artAttrCtx -edit -toolOnProc "apexClothingPaintToolOn" $apexClothingPaintContext;
+//				artAttrCtx -edit -toolOffProc "apexClothingPaintToolOff" $apexClothingPaintContext;
+//				artAttrCtx -edit -interactiveUpdate true $apexClothingPaintContext;
+//
+//				artAttrCtx -edit -beforeStrokeCmd "" $apexClothingPaintContext;
+//				artAttrCtx -edit -duringStrokeCmd "" $apexClothingPaintContext;
+//				artAttrCtx -edit -afterStrokeCmd "" $apexClothingPaintContext;
+//
+//				artAttrCtx -edit -stampProfile "solid" $apexClothingPaintContext;
+//				artAttrCtx -edit -outline true $apexClothingPaintContext;
+//				artAttrCtx -edit -outwhilepaint false $apexClothingPaintContext;//d:false
+//				artAttrCtx -edit -brushfeedback true $apexClothingPaintContext;//d:true
+//				artAttrCtx -edit -projective false $apexClothingPaintContext;//d:false
+//				artAttrCtx -edit -surfaceConformedBrushVertices true $apexClothingPaintContext;//d:false
+//				artAttrCtx -edit -selectedattroper "absolute" $apexClothingPaintContext;//aka replace
+//				
+//				//if($apexClothingPaintAttribute == "collisionFactor")
+//				//{
+//				//	artAttrCtx -edit -minvalue -1.0 $apexClothingPaintContext;
+//				//	artAttrCtx -edit -maxvalue 1.0 $apexClothingPaintContext;
+//				//}
+//			}
+//			
+//			// Set the current tool based on our context.
+//			// This will implicitely look for two MEL procedures, which are also
+//			// defined in this file.
+//			//		apexClothingPaintProperties()
+//			//		apexClothingPaintValues()
+//			//
+//			setToolTo $apexClothingPaintContext;
+//
+//			if($apexClothingPaintAttributeChanging == false)
+//			{
+//				// Define the property display.
+//				//
+//				toolPropertyWindow;
+//			}
+//
+//			// Return the name of the context. The first invocation of this
+//			// procedure creates the context. Subsequent invocations return
+//			// that same name.
+//			//
+//			
+//			// for setting min and max paintable value when changing channel to paint
+//			if ( `optionMenuGrp -exists "apexClothingPaintAttributeMenu"` )
+//			{
+//				// make sure the range is set properly when we quit painting mode and go back
+//				if ( `radioButtonGrp -q -enable2 "artAttrValueOption"` )
+//				{
+//					if ( `radioButtonGrp -q -select "artAttrValueOption"` == 2 )
+//					{
+//						noEffectOnCommand();
+//					}
+//				}
+//			}
+//
+//			//DISABLE-DEBUG
+//			//print( "[apexClothingPaintToolScript] ON END\n");
+//
+//			return( $apexClothingPaintContext );
+//		}
+//	}
+//	else if ( 0 != $paintOn )
+//	{
+//		//print( "[apexClothingPaintToolScript] ON BEGIN\n");
+//
+//		ToggleToolSettings;
+//		if (`isUIComponentVisible("Tool Settings")`) {
+//			toggleUIComponentVisibility("Tool Settings");
+//		}
+//		else
+//		{
+//			toolPropertyWindow -inMainWindow true;
+//		}
+//		; updateMainWindowComponentState();
+//		toolPropertyWindow1 ("Main Window");
+//		defaultToolValues nurbsSelect;
+//		toolPropertyShow;
+//		findNewCurrentModelView;
+//		
+//		restoreLastPanelWithFocus(); updatePrefsMenu();
+//
+//		//print( "[apexClothingPaintToolScript] ON END\n");
+//		return "";
+//	}
+//}
+//
+//// method to change the min and max limit for the values that the current paint brush can paint.
+//// used in apexClothingPaintToolScript() as well as noEffectOnCommand() and noEffectOffCommand()
+//global proc changeAllowedPaintValueRange( float $lower, float $upper, float $value )
+//{
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintMesh;
+//	string  $currContext = `currentCtx`;
+//		
+//	setAttr ($apexClothingPaintNode + ".paintRangeLower") $lower;
+//	setAttr ($apexClothingPaintNode + ".paintRangeUpper") $upper;
+//
+//	artAttrCtx -e -minvalue $lower $currContext;
+//	artAttrCtx -e -maxvalue $upper $currContext;
+//	artAttrCtx -e -clamp none $currContext; 
+//	artAttrCtx -e -clamplower $upper $currContext; 
+//	artAttrCtx -e -clampupper $lower $currContext;
+//	artAttrCtx -e -value $value $currContext;
+//	
+//	//floatFieldGrp -e -value1 $lower -value2 $upper artAttrRangeActiveValue;
+//	//floatSliderGrp -e -minValue $lower -maxValue $upper artAttrValueSlider;
+//	
+//	apexClothingPaintRange $apexClothingPaintNode;
+//	
+//	//floatSliderGrp -e -v $defaultValue "artAttrValueSlider";
+//}
+//
+//global proc setEnableStateOfRange( int $state )
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	if ( 0 == $state ) // disable
+//		floatFieldGrp -e -en false $apexClothingPaintRangeCtrl;
+//	else if ( 0 != $state )
+//		floatFieldGrp -e -en true $apexClothingPaintRangeCtrl;
+//}
+//
+//global proc maskOutOverriddenVerticesCheckBoxCmd( int $turnOn )
+//{
+//	global string $apexClothingPaintNode;	
+//	if( $turnOn )
+//		setAttr ($apexClothingPaintNode + ".maskOutOverriddenVertices") 1;
+//	else
+//		setAttr ($apexClothingPaintNode + ".maskOutOverriddenVertices") 0;
+//}
+//
+//global proc backStopDisplacementCheckBoxCmd( int $turnOn )
+//{
+//	global string $apexClothingPaintNode;
+//
+//	if( $turnOn )
+//		setAttr ($apexClothingPaintNode + ".backStopDisplacement") 1;
+//	else
+//		setAttr ($apexClothingPaintNode + ".backStopDisplacement") 0;
+//}
+//
+//global proc noEffectOnCommand()
+//{
+//	global float $currentValue;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintContext;
+//	if(	`radioButtonGrp -q -select artAttrValueOption` == 1 )
+//		$currentValue = `floatSliderGrp -q -v "artAttrValueSlider"`;
+//	
+//	string $currPaintChannel = `optionMenuGrp -q -v "apexClothingPaintAttributeMenu"`;
+//	
+//	if ( $currPaintChannel == "backStopOffset" )
+//	{
+//		global float $MAX_FLOAT;
+//		$lower = $MAX_FLOAT;
+//		$upper = $MAX_FLOAT;
+//		$value = $MAX_FLOAT;
+//		changeAllowedPaintValueRange( $lower, $upper, $value );
+//		
+//		// disable value slider and eyedropper
+//		evalDeferred( "floatSliderGrp -e -en false artAttrValueSlider" );
+//		evalDeferred( "symbolButton -e -en false artAttrValuePick" );
+//		
+//		// set state for painting mode
+//		artAttrCtx -edit -selectedattroper "absolute" $apexClothingPaintContext;//aka replace
+//		// disable add/scale/smooth
+//		radioButtonGrp -e -enable2 false artAttrOperRadioButton0;
+//		radioButtonGrp -e -enable false artAttrOperRadioButton1;
+//	}
+//	else
+//	{
+//		print("noEffectOnCommand() paintChannel name doesn't match\n");
+//	}
+//	
+//	setEnableStateOfRange( 0 );
+//}
+//
+//global proc noEffectOffCommand()
+//{
+//	global float $currentValue;
+//	global string $apexClothingPaintRangeCtrl;
+//	
+//	string $currPaintChannel = `optionMenuGrp -q -v "apexClothingPaintAttributeMenu"`;
+//	
+//	$lower = `floatFieldGrp -q -value1 $apexClothingPaintRangeCtrl`;
+//	$upper = `floatFieldGrp -q -value2 $apexClothingPaintRangeCtrl`;
+//
+//	changeAllowedPaintValueRange( $lower, $upper, $currentValue );
+//	
+//	// enable value slider and eyedropper
+//	evalDeferred( "floatSliderGrp -e -en true artAttrValueSlider" );
+//	evalDeferred( "symbolButton -e -en true artAttrValuePick" );
+//	
+//	// enable add/scale/smooth
+//	radioButtonGrp -e -enable2 true artAttrOperRadioButton0;
+//	radioButtonGrp -e -enable true artAttrOperRadioButton1;
+//	
+//	setEnableStateOfRange( 1 );
+//}
+//
+//global proc int getCurrentOperationMode()
+//{
+//	$radioSet1 = `radioButtonGrp -q -sl artAttrOperRadioButton0`; // print($radioSet1 + "\n");
+//	$radioSet2 = `radioButtonGrp -q -sl artAttrOperRadioButton1`; // print($radioSet2 + "\n");
+//	
+//	if (0 == $radioSet1 && 2 == $radioSet2) // Smooth
+//	{
+//		return 3;
+//	}
+//	else if (0 == $radioSet1 && 1 == $radioSet2) // Scale
+//	{
+//		return 2;
+//	}
+//	else if (1 == $radioSet1 && 0 == $radioSet2) // Replace
+//	{
+//		return 1;
+//	}
+//	else if (2 == $radioSet1 && 0 == $radioSet2) // Add
+//	{
+//		return 0;
+//	}
+//}
+//
+//global proc apexClothingPaintAttributeChanged(string $attr)
+//{
+//	global string $apexClothingPaintAttribute;
+//	global int $apexClothingPaintAttributeChanging;
+//	global string $apexClothingPaintContext;
+//	global string $apexClothingPaintMesh;
+//		
+//	if ( $attr == "backStopOffset" )
+//	{
+//		radioButtonGrp -e -enable2 true artAttrValueOption;
+//		//checkBox -e -en true backStopDisplacementCheckBox;
+//		setEnableStateOfRange( 1 );
+//	}
+//	else
+//	{
+//		// enable value slider and eyedropper
+//		evalDeferred( "floatSliderGrp -e -en true artAttrValueSlider" );
+//		evalDeferred( "symbolButton -e -en true artAttrValuePick" );
+//	
+//		// enable add/scale/smooth
+//		radioButtonGrp -e -enable2 true artAttrOperRadioButton0;
+//		radioButtonGrp -e -enable true artAttrOperRadioButton1;
+//
+//		radioButtonGrp -e -enable2 false -select 1 artAttrValueOption;
+//		//checkBox -e -en false backStopDisplacementCheckBox;
+//		setEnableStateOfRange( 1 );
+//	}
+//	$apexClothingPaintAttribute = $attr;
+//	$apexClothingPaintAttributeChanging = true;
+//
+//	// hack to go to the correct executation path in apexClothingPaintToolScript
+//	// because the original code is to run the script in the case when 
+//	// $paintOn is 0
+//	global int $paintOn;
+//	$paintOn = 0;
+//	apexClothingPaintToolScript();
+//	$paintOn = 1;
+//
+//	// Display Paint Visualizer if checkbox is turned on
+//	apexClothingShowHelper();
+//}
+//
+//global proc apexClothingPaintAttributes()
+////
+//// Common Attribute Paint UI - operation, value, clamping.
+////
+//{
+//	// Paint Operation.
+//	string $attribPaint = (uiRes("m_artAttrProperties.kAttribPaintAnnot"));
+//	radioButtonGrp -nrb 2
+//		-label (uiRes("m_artAttrProperties.kPaintOperation")) 
+//		-label1 (uiRes("m_artAttrProperties.kReplace"))  
+//		-label2 (uiRes("m_artAttrProperties.kAdd"))  
+//		-annotation $attribPaint 
+//	artAttrOperRadioButton0;
+//
+//	radioButtonGrp -shareCollection artAttrOperRadioButton0
+//		-nrb 2 
+//		-label  ""
+//		-label1 (uiRes("m_artAttrProperties.kScale"))  
+//		-label2 (uiRes("m_artAttrProperties.kSmooth")) 
+//		-annotation $attribPaint 
+//	artAttrOperRadioButton1;
+//
+//	separator -h 10 -style "none";
+//	
+//	// Value Range. 
+//	radioButtonGrp 
+//		-numberOfRadioButtons 2
+//		-label (uiRes("m_artAttrProperties.kValue"))  
+//		-annotation (uiRes("m_artAttrProperties.kPaintValueAnnot")) 
+//		-labelArray2 "Standard" "No Effect"
+//		-onCommand1 ""
+//		-offCommand1 ""
+//		-select 1
+//		-onCommand2 "noEffectOnCommand();"
+//		-offCommand2 "noEffectOffCommand();"
+//		-enable2 false // because default is MaxDistances
+//	artAttrValueOption;
+//
+//	rowColumnLayout -nc 2 -cw 1 350 -cw 2 20;
+//		floatSliderGrp 
+//			-field true
+//			-precision 4 
+//			-min 0.0 -max 1.0 
+//			-fieldMinValue -10000.0 -fieldMaxValue 10000.0
+//			-value 1.0
+//			-step 0.01
+//		artAttrValueSlider;
+//
+//		symbolButton -w 10 -h 10 -image "eyeDropper.xpm" artAttrValuePick;
+//	setParent .. ;
+//
+//	//separator -h 15 -style "none";
+//		
+//	floatFieldGrp -label (uiRes("m_artAttrProperties.kMinMaxValue"))
+//		-numberOfFields 2
+//		-annotation (uiRes("m_artAttrProperties.kMinMaxValueAnnot"))
+//		-precision 4
+//		-value1 0.0
+//		-value2 1.0
+//		-vis false
+//	artAttrMinMaxValue;
+//
+//	// Clamp options.
+//	string $lower	= (uiRes("m_artAttrProperties.kLower"));
+//	string $upper	= (uiRes("m_artAttrProperties.kUpper"));
+//	checkBoxGrp -ncb 2 -label (uiRes("m_artAttrProperties.kClamp")) 
+//		-cw3 131 68  68 
+//		-labelArray2 $lower $upper
+//		-annotation (uiRes("m_artAttrProperties.kClampPaint"))
+//		-vis false
+//	artAttrClampChkBox;
+//			
+//	floatFieldGrp -label (uiRes("m_artAttrProperties.kClampValues"))  
+//		-numberOfFields 2
+//		-annotation (uiRes("m_artAttrProperties.kLowerUpperClampAnnot")) 
+//		-precision 4
+//		-value1 0.0 
+//		-value2 1.0
+//		-vis false
+//	artAttrClampField;
+//	
+//	//separator -h 10 -style "none";
+//
+//	// Flood
+//	rowColumnLayout -nc 1 -cs 1 130 -cw 1 240;
+//		button  -label (uiRes("m_artAttrProperties.kFlood")) 
+//			-annotation (uiRes("m_artAttrProperties.kFloodSelectedAnnot")) 
+//		artAttrFloodButton;
+//	setParent ..;			
+//	
+//	separator -h 10 -style "none";
+//	
+//	apexClothingPaintRangeControl_Add();
+//}
+//
+//global proc changeShowVertexVisualization()
+//{
+//	global string $apexClothingPaintNode;
+//	//int $showVis = `getAttr ($apexClothingPaintNode + ".showVertexVisualization")`;
+//
+//	string $vis_style = `optionMenuGrp -q -v showVertVisualizerMenuGrp`;
+//	setAttr ($apexClothingPaintNode + ".showHelper") 0; // turn off red normals by default
+//	if ( $vis_style == "Off" )
+//	{
+//		setAttr ($apexClothingPaintNode + ".showVertexVisualization") 0;
+//	}
+//	else if ( $vis_style == "Volumetric Point" )
+//	{
+//		setAttr ($apexClothingPaintNode + ".showVertexVisualization") 1;
+//	}
+//	else if ( $vis_style == "Wireframe Values" )
+//	{
+//		// Remove drawing of backstop sphere in wireframe mode
+//		//setAttr ($apexClothingPaintNode + ".showVertexVisualization") 2;
+//
+//		// Display the red normals representing maxDistances, backstop radius
+//		apexClothingShowHelper();
+//	}
+//	else if ( $vis_style == "Volumetric Solid" )
+//	{
+//		setAttr ($apexClothingPaintNode + ".showVertexVisualization") 3;
+//	}
+//	//if ( 0 != $showVis )
+//	//	setAttr ($apexClothingPaintNode + ".showVertexVisualization") 0;
+//	//else
+//	//	setAttr ($apexClothingPaintNode + ".showVertexVisualization") 1;
+//}
+//
+////
+//// Paint Visualizer for different channels with adjustable scale.
+////
+//global proc apexClothingPaintVisualizer()
+//{	
+//	global string $apexClothingPaintNode;
+//
+//	rowColumnLayout -nc 1 -cw 1 260;
+//		optionMenuGrp -label "Visualization Mode"
+//					-cc ("changeShowVertexVisualization()") 
+//					showVertVisualizerMenuGrp;
+//				
+//				menuItem -label "Off";
+//				menuItem -label "Wireframe Values";
+//				menuItem -label "Volumetric Point";
+//				menuItem -label "Volumetric Solid";
+//	setParent ..;
+//
+//	initVisualizationMode();
+//
+//	rowColumnLayout -nc 1 -cs 1 132 -cw 1 240;
+//		checkBox -label "Mask Out Overridden Vertices"
+//			-onCommand "maskOutOverriddenVerticesCheckBoxCmd( on );"
+//			-offCommand "maskOutOverriddenVerticesCheckBoxCmd( off );"
+//		    maskOutOverriddenVerticesCheckBox;
+//
+//		//checkBox -label "Backstop Displacement"
+//		//	-onCommand "backStopDisplacementCheckBoxCmd( on );"
+//		//	-offCommand "backStopDisplacementCheckBoxCmd( off );"
+//		//	-enable false // because default is MaxDistances
+//		//    backStopDisplacementCheckBox;
+//	setParent ..;
+//
+//	rowColumnLayout -nc 1 -cw 1 350;	
+//		floatSliderGrp -label "Scale"
+//					   -precision 3 
+//					   -min 0.0 -max 1.0
+//					   -value 1.0
+//					   -step 0.01 
+//					   -changeCommand "apexClothingDrawingScaled()"
+//					   apexClothingDrawingScaledSlider;
+//	setParent ..;
+//	
+//}
+//
+//global proc apexClothingShowHelper()
+//{	
+//	global string $apexClothingPaintNode;
+//	string $currPaintChannel = `optionMenuGrp -q -v "apexClothingPaintAttributeMenu"`;
+//	//string $currPaintState = `checkBox -q -v "paintVisualizerCheckBox"`;
+//	string $vis_style = `optionMenuGrp -q -v showVertVisualizerMenuGrp`;
+//
+//	setAttr ($apexClothingPaintNode + ".showHelper") 0;
+//
+//	// Display paint visualizer
+//	if( $vis_style == "Wireframe Values" )
+//	{
+//		if( $currPaintChannel == "maxDistances" )
+//			setAttr ($apexClothingPaintNode + ".showHelper") 1;
+//		
+//		if( $currPaintChannel == "backStopOffset" )
+//			setAttr ($apexClothingPaintNode + ".showHelper") 3;
+//
+//		if( $currPaintChannel == "backStopRadius" )
+//			setAttr ($apexClothingPaintNode + ".showHelper") 4;
+//		if( $currPaintChannel == "vertexSelection" )
+//			setAttr ($apexClothingPaintNode + ".showHelper") 5;
+//	}
+//		
+//}
+//
+//global proc initVisualizationMode()
+//{
+//	global string $apexClothingPaintNode;
+//	string $currPaintChannel = `optionMenuGrp -q -v "apexClothingPaintAttributeMenu"`;
+//	string $vis_style = `optionMenuGrp -q -v showVertVisualizerMenuGrp`;
+//
+//	if( `getAttr ($apexClothingPaintNode + ".showVertexVisualization")` == 0 )
+//	{
+//		if( `getAttr ($apexClothingPaintNode + ".showHelper")` !=0 )
+//		{
+//			optionMenuGrp -e -v "Wireframe Values" showVertVisualizerMenuGrp;
+//			return;
+//		}
+//
+//	}
+//
+//	if( `getAttr ($apexClothingPaintNode + ".showVertexVisualization")` == 1 )
+//	{
+//		optionMenuGrp -e -v "Volumetric Point" showVertVisualizerMenuGrp;
+//		return;
+//	}
+//
+//	if( `getAttr ($apexClothingPaintNode + ".showVertexVisualization")` == 3 )
+//	{
+//		optionMenuGrp -e -v "Volumetric Solid" showVertVisualizerMenuGrp;
+//		return;
+//	}
+//}
+//
+//global proc apexClothingDrawingScaled()
+//{	
+//	global string $apexClothingPaintNode;
+//	float $scaleValue = `floatSliderGrp -q -value "apexClothingDrawingScaledSlider"`;
+//	
+//	setAttr ($apexClothingPaintNode + ".drawingScaled") $scaleValue;
+//}
+//
+//global proc activeRangeChanged()
+//{
+//	//DISABLE-DEBUG//print( "[activeRangeChanged] BEGIN\n");
+//
+//	global float $currentValue;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintMesh;
+//	global string $apexClothingPaintRangeCtrl;
+//	string  $currContext = `currentCtx`;
+//
+//	int $active = 0;
+//	if(`control -exists $apexClothingPaintRangeCtrl`)
+//	{	
+//		$apexClothingPaintRangeLower = `floatFieldGrp -q -value1 $apexClothingPaintRangeCtrl`;
+//		setAttr ($apexClothingPaintNode + ".paintRangeLower") $apexClothingPaintRangeLower;
+//		
+//		$currentValue = $apexClothingPaintRangeLower; // reset currentValue
+//		
+//		$apexClothingPaintRangeUpper = `floatFieldGrp -q -value2 $apexClothingPaintRangeCtrl`;
+//		setAttr ($apexClothingPaintNode + ".paintRangeUpper") $apexClothingPaintRangeUpper;
+//
+//		artAttrCtx -e -minvalue $apexClothingPaintRangeLower $currContext;
+//		artAttrCtx -e -maxvalue $apexClothingPaintRangeUpper $currContext;
+//		artAttrCtx -e -clamplower $apexClothingPaintRangeUpper $currContext; 
+//		artAttrCtx -e -clampupper $apexClothingPaintRangeLower $currContext;
+//	}
+//
+//	apexClothingPaintRange $apexClothingPaintNode;
+//
+//	//DISABLE-DEBUG//print( "[activeRangeChanged] END\n");
+//}
+//
+//
+//global proc	artApexClothingPaintProperties()
+//{
+//	// Global variables...
+//	//
+//
+//	// Query the current tool.
+//	//
+//	string  $currContext = `currentCtx`;
+//	string  $currTool    = `contextInfo -c $currContext`;
+//
+//	source "artisanProperties.mel";
+//	source "artisanCallback.mel";
+//
+//	source "artAttrProperties.mel";
+//	source "artAttrSkinCallback.mel";
+//	source "artisanNamedCommandSetup.mel";
+//
+//	//////////////////////////////////////////////////
+//	//
+//	// Define UI elements for the tool. What follows
+//	// is best understood if you bring up the tool UI
+//	// in Maya and 
+//	//
+//	setUITemplate -pushTemplate DefaultTemplate;
+//	string $parent =`toolPropertyWindow -q -location`;
+//	setParent $parent;
+//
+//	columnLayout -adj true artApexClothingPaint;
+//		columnLayout -adj true artAttrphysxCloth;
+//
+//		// Selection framelayout.
+//		//
+//		frameLayout -l "Selection"
+//			-collapsable true 
+//			-collapse false
+//			artAttrSelectFrame;
+//
+//			setUITemplate -pushTemplate OptionsTemplate;
+//			setParent artAttrSelectFrame;
+//			columnLayout;
+//
+//			// User interface definitions specific to the attribute(s) this
+//			// tool is capable of painting.
+//			//
+//			columnLayout paintAttrColLayout;		
+//				
+//				optionMenuGrp -label "Attribute"
+//					-columnWidth2 130 240
+//					-cc ("apexClothingPaintAttributeChanged #1") 
+//					apexClothingPaintAttributeMenu;
+//				
+//				menuItem -label "maxDistances";
+//				//menuItem -label "collisionFactor";
+//				//menuItem -label "usedForPhysics";
+//				menuItem -label "latchToNearest";
+//				menuItem -label "backStopOffset";
+//				menuItem -label "backStopRadius";
+//				menuItem -label "vertexSelection";
+//				
+//			setParent ..;
+//
+//			separator -h 10 -width 1 -style "none";
+//
+//			setParent ..;
+//					
+//		setUITemplate -popTemplate;
+//		setParent ..;
+//
+//		// Brush frameLayout.
+//		//
+//		frameLayout -label (uiRes("m_apexClothingPaint.kExamplePaintBrush")) 
+//			-collapsable true 
+//			-collapse false 
+//			artAttrphysxClothBrushFrame;
+//
+//			// Create brush option menu.
+//			//
+//			artisanCreateBrushFrame( "artAttrphysxClothBrushFrame", $currTool );		
+//		setParent ..;
+//
+//		// Operations framelayout.
+//		//
+//		frameLayout -l "Paint Attributes"
+//			-collapsable true 
+//			-collapse false
+//			artCommonOperationFrame;
+//
+//			setUITemplate -pushTemplate OptionsTemplate;
+//			setParent artCommonOperationFrame;
+//			columnLayout;
+//
+//			apexClothingPaintAttributes();
+//
+//			setParent ..;
+//			setUITemplate -popTemplate;
+//		setParent ..;
+//
+//		// Paint Visualizer framelayout.
+//		//
+//		frameLayout -l "Paint Visualizer"
+//			-collapsable true 
+//			-collapse false
+//			artPaintVisualizerFrame;
+//
+//			setUITemplate -pushTemplate OptionsTemplate;
+//			setParent artPaintVisualizerFrame;
+//			columnLayout;
+//
+//			apexClothingPaintVisualizer();
+//
+//			setParent ..;
+//			setUITemplate -popTemplate;
+//		setParent ..;
+//			
+//		// Stroke options.
+//		//
+//		frameLayout -l (uiRes("m_apexClothingPaint.kExamplePaintStroke"))
+//			-collapsable true 
+//			-collapse true
+//			artAttrphysxClothStrokeFrame;
+//
+//			// Create stroke options.
+//			//
+//			artisanCreateStrokeFrame( "artAttrphysxClothStrokeFrame", $currTool );
+//		setParent ..;
+//
+//		// Stylus Pressure options.
+//		//
+//		frameLayout -l (uiRes("m_apexClothingPaint.kExamplePaintStylusPressure"))
+//			-collapsable true 
+//			-collapse true
+//			artAttrphysxClothPressureFrame;
+//
+//			// Create stroke options.
+//			//
+//			artisanCreatePressureFrame( "artAttrphysxClothPressureFrame", $currTool );
+//		setParent ..;
+//
+//		// Attribute Maps options.
+//		//
+//		frameLayout -l (uiRes("m_apexClothingPaint.kExamplePaintAttributeMaps"))
+//			-collapsable true 
+//			-collapse true
+//			artAttrAttrMapFrame;
+//
+//			// Create Attribute Map option menu.
+//			//
+//			artisanCreateAttrMapFrame( "artAttrAttrMapFrame", $currTool );
+//		setParent ..;
+//
+//		// Display options.
+//		//
+//		frameLayout -l (uiRes("m_apexClothingPaint.kExamplePaintDisplay"))
+//			-collapsable true -collapse true
+//			artAttrphysxClothDisplayFrame;
+//
+//			// Create Display options.
+//			//
+//			artisanCreateDisplayFrame( "artAttrphysxClothDisplayFrame", $currTool );
+//		setParent ..;
+//	setParent ..;
+//
+//	setUITemplate -popTemplate;
+//
+//	//////////////////////////////////////////////////
+//	//
+//	// Set the callbacks and various global functions.
+//	//
+//	string $artCommand = "artAttrCtx";
+//
+//    // Basic Brush frameLayout.
+//	//
+//    artisanBrushCallback( $artCommand, $currTool );
+//
+//    // Operations layout.
+//	//
+//    artAttrCommonCallback( $artCommand, $currTool );
+//
+//	button -e 
+//		-c "apexClothingPaintFlood()"
+//	artAttrFloodButton;
+//	
+//
+//    // Stroke frameLayout.
+//	//
+//    artisanStrokeCallback( $artCommand, $currTool );
+//
+//    // Pressure frameLayout.
+//	//
+//    artisanPressureCallback( $artCommand, $currTool );
+//
+//    // Attribute Maps frameLayout.
+//	//
+//    artisanAttrMapCallback( $artCommand, $currTool );
+//
+//    // Display frameLayout.
+//	//
+//    artisanDisplayCallback( $artCommand, $currTool );
+//}
+//
+//global proc	artApexClothingPaintValues(string $toolName)
+//{
+//	// Global variables...
+//	//
+//
+//	// Include global Artisan declarations.
+//	//
+//	source "artisanCallback.mel";
+//	source "artisanValues.mel";
+//	source "artAttrValues.mel";
+//	
+//	// Get the context info.
+//	// Note that the apexClothingPaint tool uses the "artAttrCtx" by
+//	// definition.
+//	//
+//	string  $artCommand  = "artAttrCtx";
+//	string  $currContext = `currentCtx`;
+//	string  $currTool    = `contextInfo -c $currContext`;
+//
+//	string $parent = (`toolPropertyWindow -q -location` + "|artApexClothingPaint");
+//	setParent $parent;
+//
+//
+//	symbolCheckBox -e -enable true spGaussianChBx;
+//	symbolCheckBox -e -enable true spPolyBrushChBx;
+//	
+//	floatSliderGrp -e -visible true opacitySlider;
+//	
+//	frameLayout -e -visible true artCommonOperationFrame;
+//
+//	// Assign common tool property values.
+//	//
+//	string $icon = "attrPaint.xpm";		// You can use a custom icon here.
+//	string $helpTag = "apexClothingPaintTool";
+//  toolPropertySetCommon $toolName $icon $helpTag;
+//
+//  // Brush frameLayout values.
+//	//
+//  artisanBrushValues( $artCommand, $currTool );
+// 
+//  // Common Attribute Paint UI.
+//  //
+//  artAttrCommonValues( $artCommand, $currTool );
+//
+//
+//  // Stroke frameLayout values.
+//	//
+//  artisanStrokeValues( $artCommand, $currTool );
+//                                                                                
+//  // Stylus Pressure frameLayout values.
+//	//
+//  artisanPressureValues( $artCommand, $currTool );
+//
+//  // Attribute Maps frameLayout values.
+//	//
+//  artisanAttrMapValues( $artCommand, $currTool );
+//
+//  // Display frameLayout values.
+//	//
+//  artisanDisplayValues( $artCommand, $currTool );
+//
+//  toolPropertySelect artApexClothingPaint;   
+//}
+//
+//global proc	apexClothingPaintToolSelectionChanged()
+//{
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolSelectionChanged] BEGIN \n");
+//	
+//	apexClothingPaintSelect();
+//	
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolSelectionChanged] END \n");
+//}
+//
+//global proc apexClothingPaintSelect()
+//{
+//	//DISABLE-DEBUG//print( "[apexClothingPaintSelect] BEGIN\n");
+//
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintMesh;
+//	//global int $simulationEnable;
+//
+//	//Take whatever mesh is selected and find the apexClothing node
+//	$apexClothingPaintNode = apexClothingGetSelected();
+//	print( "[apexClothingPaintSelect] $apexClothingPaintNode = " + $apexClothingPaintNode + "\n");
+//	
+//	//now find the mesh we are ACTUALLY supposed to paint on for verification
+//	$apexClothingPaintMesh = apexClothingGetGraphicalMesh( $apexClothingPaintNode );
+//	print( "[apexClothingPaintSelect] $apexClothingPaintMesh = " + $apexClothingPaintMesh + "\n");
+//
+//	if(getSelectedMesh() != $apexClothingPaintMesh)
+//	{
+//		select $apexClothingPaintMesh;
+//		
+//		print( "[apexClothingPaintSelect] EXIT TO RESTART WITH NEW SELECTION\n" );
+//		return;
+//	}
+//
+//	//Fixes the visibility for painting
+//	//$simulationEnable = `getAttr ($apexClothingPaintNode + ".enableSimulation")`;
+//	//setAttr ($apexClothingPaintNode + ".enableSimulation") false;
+//	setAttr ($apexClothingPaintNode + ".showPhysicalMeshSolid") false;
+//	setAttr ($apexClothingPaintNode + ".showPhysicalMeshWire") false;
+//	setAttr ($apexClothingPaintNode + ".showGraphicalMesh") true;
+//	
+//	//DISABLE-DEBUG//print( "[apexClothingPaintSelect] END\n");
+//}
+//
+//global proc	apexClothingPaintToolOn()
+//{
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolOn] BEGIN \n");
+//
+//	// Global variables...
+//	//
+//
+//	global string	$apexClothingPaintOldDisplayAppearance;
+//	global string	$apexClothingPaintOldDisplayLights;
+//	//global int	$apexClothingPaintOldDisplayVertexColor;
+//	global string	$apexClothingPaintOldColorSet[];
+//	global int		$apexClothingPaintOldShadedDisplay[];
+//	global string 	$apexClothingPaintOldMaterialBlend[];
+//	global string 	$apexClothingPaintOldMaterialChannel[];
+//	global int $apexClothingPaintOldOpposite;
+//	global int $apexClothingPaintOldDoubleSided;
+//
+//	global int $paintOn;
+//	$paintOn = 1;
+//	
+//	global string	$apexClothingPaintPanel;
+//	global string $apexClothingPaintMesh;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintAttribute;
+//	global int $apexClothingPaintAttributeChanging;
+//
+//	apexClothingPaintSelect();
+//	
+//	// Query the attribute that the user last chose to paint.
+//	//if (`optionVar -exists apexClothingPaintWhichAttr`) 
+//	//{
+//	//	$attrValue = `optionVar -query apexClothingPaintWhichAttr`;
+//	//}	
+//	
+//	// Setup the model editor for attribute painting 
+//	//
+//	$apexClothingPaintPanel = "";
+//	string $panels[] = `getPanel -type modelPanel`;	
+//	int $iPanel;
+//	for($iPanel = 0; $iPanel < size($panels); $iPanel = $iPanel + 1)
+//	{
+//		
+//		if(`modelEditor -q -activeView $panels[$iPanel]` == true)
+//		{
+//			$apexClothingPaintPanel = $panels[$iPanel];
+//			break;
+//		}
+//	}
+//
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolOn] ModelEditor: " + $apexClothingPaintPanel + "\n");
+//	if($apexClothingPaintPanel != "")
+//	{
+//		$apexClothingPaintOldDisplayAppearance = `modelEditor -q -displayAppearance $apexClothingPaintPanel`;
+//		modelEditor -edit -displayAppearance smoothShaded -activeView $apexClothingPaintPanel;
+//		//
+//		//$apexClothingPaintOldDisplayLights = `modelEditor -q -displayLights $apexClothingPaintPanel`;
+//		//modelEditor -edit -displayLights none -activeView $apexClothingPaintPanel;
+//		//
+//		//$apexClothingPaintOldDisplayDefaultMaterial = `modelEditor -q -useDefaultMaterial $apexClothingPaintPanel`;
+//		//modelEditor -edit -useDefaultMaterial true -activeView $apexClothingPaintPanel;
+//	}
+//	
+//	// check for existing color sets
+//	//polyColorSet -create -representation "RGB" -colorSet "apexClothingColorSet" $selectedMesh;
+//	$apexClothingPaintAllColorSets = `polyColorSet -query -allColorSets $apexClothingPaintMesh`;
+//	for ( $name in $apexClothingPaintAllColorSets )
+//	{
+//		if ( startsWith( $name, "apexClothingColorSet" ) == 1 )
+//		{
+//			polyColorSet -delete -colorSet $name;
+//		}
+//	}
+//	
+//	// create a colorset
+//	$apexClothingPaintOldColorSet = `polyColorSet -q -currentColorSet $apexClothingPaintMesh`;
+//	polyColorSet -create -representation "RGB" -colorSet "apexClothingColorSet" $apexClothingPaintMesh;
+//	polyColorSet -currentColorSet -colorSet "apexClothingColorSet" $apexClothingPaintMesh;	
+//
+//	$apexClothingPaintOldShadedDisplay = `polyOptions -q -colorShadedDisplay $apexClothingPaintMesh`;
+//	polyOptions -colorShadedDisplay 1 $apexClothingPaintMesh;
+//
+//	$apexClothingPaintOldMaterialBlend = `polyOptions -q -materialBlend $apexClothingPaintMesh`;
+//	polyOptions -materialBlend overwrite $apexClothingPaintMesh;
+//
+//	$apexClothingPaintOldMaterialChannel = `polyOptions -q -colorMaterialChannel $apexClothingPaintMesh`;
+//	polyOptions -colorMaterialChannel none $apexClothingPaintMesh;
+//	
+//	$apexClothingPaintOldDoubleSided = `getAttr ($apexClothingPaintMesh+".doubleSided")`;
+//	setAttr ($apexClothingPaintMesh+".doubleSided") 0;
+//	
+//	$apexClothingPaintOldOpposite = `getAttr ($apexClothingPaintMesh+".opposite")`;
+//	setAttr ($apexClothingPaintMesh+".opposite") 0;
+//	
+//	
+//	makePaintable -activateAll false;
+//	//if($apexClothingPaintAttribute == "usedForPhysics")
+//	//	makePaintable -attrType "multiFloat" "apexClothing" $apexClothingPaintAttribute;
+//	//else
+//	//	makePaintable -attrType "multiDouble" "apexClothing" $apexClothingPaintAttribute;
+//	makePaintable -attrType "multiDouble" "apexClothing" $apexClothingPaintAttribute;
+//
+//	artAttrPaintInstSelectAllDN("apexClothing", $apexClothingPaintNode + "." + $apexClothingPaintAttribute );
+//
+//	connectAttr -force ($apexClothingPaintMesh + ".message") ($apexClothingPaintNode + ".paintMesh");
+//	if($apexClothingPaintAttribute == "maxDistances")
+//		setAttr ($apexClothingPaintNode + ".paintChannel") 1;
+//	//else if($apexClothingPaintAttribute == "collisionFactor")
+//	//	setAttr ($apexClothingPaintNode + ".paintChannel") 2;
+//	//else if($apexClothingPaintAttribute == "usedForPhysics")
+//	//	setAttr ($apexClothingPaintNode + ".paintChannel") 2;
+//	else if($apexClothingPaintAttribute == "latchToNearest")
+//		setAttr ($apexClothingPaintNode + ".paintChannel") 2;
+//	else if($apexClothingPaintAttribute == "backStopOffset")
+//		setAttr ($apexClothingPaintNode + ".paintChannel") 3;
+//	else if($apexClothingPaintAttribute == "backStopRadius")
+//		setAttr ($apexClothingPaintNode + ".paintChannel") 4;
+//	else if($apexClothingPaintAttribute == "vertexSelection")
+//		setAttr ($apexClothingPaintNode + ".paintChannel") 5;
+//
+//	apexClothingPaintRangeControl_MinMaxInit;
+//	//activeRangeChanged();
+//
+//	$apexClothingPaintAttributeChanging = false;
+//
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolOn] END\n");
+//} 
+//
+//global proc	apexClothingPaintToolOff()
+//{
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolOff] BEGIN\n");
+//	// Global variables...
+//	//
+//
+//	//global int      $simulationEnable;
+//	global string	$apexClothingPaintOldDisplayAppearance;
+//	global string	$apexClothingPaintOldDisplayLights;
+//	//global int	$apexClothingPaintOldDisplayVertexColor;
+//	global string	$apexClothingPaintOldColorSet[];
+//	global int $apexClothingPaintOldShadedDisplay[];
+//	global string $apexClothingPaintOldMaterialBlend[];
+//	global string $apexClothingPaintOldMaterialChannel[];
+//	global int $apexClothingPaintOldOpposite;
+//	global int $apexClothingPaintOldDoubleSided;
+//	
+//	global int $paintOn;
+//	$paintOn = 0;
+//	
+//	global string $apexClothingPaintPanel;
+//	global string $apexClothingPaintMesh;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintAttribute;
+//	global int $apexClothingPaintAttributeChanging;
+//
+//	// In our tool we have a choice of attributes to paint, so we save
+//	// the current selection here by querying the GUI and saving in an
+//	// optionVar.
+//	//
+//	//string $attrNameUI = `optionMenuGrp -query -value $apexClothingPaintColorMenuGrp`;
+//	//optionVar -stringValue apexClothingPaintWhichAttr $attrNameUI;
+//
+//	// Make our attributes non-paintable so they don't show up in the
+//	// general Attribute paint tool menus.
+//	//
+//	makePaintable -remove "apexClothing" $apexClothingPaintAttribute;
+//
+//	polyOptions -materialBlend $apexClothingPaintOldMaterialBlend[0] $apexClothingPaintMesh;
+//	polyOptions -colorMaterialChannel $apexClothingPaintOldMaterialChannel[0] $apexClothingPaintMesh;
+//	polyOptions -colorShadedDisplay $apexClothingPaintOldShadedDisplay[0] $apexClothingPaintMesh;
+//	setAttr ($apexClothingPaintMesh+".opposite") $apexClothingPaintOldOpposite;
+//	setAttr ($apexClothingPaintMesh+".doubleSided") $apexClothingPaintOldDoubleSided;
+//
+//	// delete existing color set upon exiting paintmode
+//	if ( size($apexClothingPaintOldColorSet) > 0 
+//	&&   $apexClothingPaintOldColorSet[0] != "")
+//	{
+//		polyColorSet -currentColorSet -colorSet $apexClothingPaintOldColorSet[0] $apexClothingPaintMesh;
+//	}
+//	polyColorSet -delete -colorSet "apexClothingColorSet";
+//
+//	// deleting created createColorSet, polyColorPerVertex and deleteColorSet Nodes
+//	string $createColorSetNodeName[] = `listConnections -t "createColorSet" $apexClothingPaintNode`;
+//	string $deleteColorSetNodeName[] = `listConnections -t "deleteColorSet" $apexClothingPaintNode`;
+//	string $polyColorPerVertexNodeName[] = `listConnections -t "polyColorPerVertex" $apexClothingPaintNode`;
+//
+//	while ( !( size($createColorSetNodeName)     == 0 &&
+//		       size($deleteColorSetNodeName)     == 0 &&
+//			   size($polyColorPerVertexNodeName) == 0 ) )
+//	{
+//		if ( size($createColorSetNodeName) > 0 )
+//		{
+//			string $toBeDelete = $createColorSetNodeName[0];
+//			//print( "createColorSet: " + $toBeDelete + "\n" );
+//			$createColorSetNodeName = `listConnections -t "createColorSet" $toBeDelete`;
+//			$deleteColorSetNodeName = `listConnections -t "deleteColorSet" $toBeDelete`;
+//			$polyColorPerVertexNodeName = `listConnections -t "polyColorPerVertex" $toBeDelete`;
+//			delete $toBeDelete;
+//		}
+//
+//		if ( size($polyColorPerVertexNodeName) > 0 )
+//		{
+//			string $toBeDelete = $polyColorPerVertexNodeName[0];
+//			//print( "polyColorPerVertex: " + $toBeDelete + "\n" );
+//			$createColorSetNodeName = `listConnections -t "createColorSet" $toBeDelete`;
+//			$deleteColorSetNodeName = `listConnections -t "deleteColorSet" $toBeDelete`;
+//			$polyColorPerVertexNodeName = `listConnections -t "polyColorPerVertex" $toBeDelete`;
+//			delete $toBeDelete;
+//		}
+//
+//		if ( size($deleteColorSetNodeName) > 0 )
+//		{
+//			string $toBeDelete = $deleteColorSetNodeName[0];
+//			//print( "deleteColorSet: " + $toBeDelete + "\n" );
+//			$createColorSetNodeName = `listConnections -t "createColorSet" $toBeDelete`;
+//			$deleteColorSetNodeName = `listConnections -t "deleteColorSet" $toBeDelete`;
+//			$polyColorPerVertexNodeName = `listConnections -t "polyColorPerVertex" $toBeDelete`;
+//			delete $toBeDelete;
+//		}
+//	}
+//
+//	if($apexClothingPaintPanel != "")
+//	{
+//		modelEditor -edit -displayAppearance $apexClothingPaintOldDisplayAppearance -activeView $apexClothingPaintPanel;
+//		//modelEditor -edit -displayLights $apexClothingPaintOldDisplayLights -activeView $apexClothingPaintPanel;	
+//		//modelEditor -edit -useDefaultMaterial $apexClothingPaintOldDisplayDefaultMaterial -activeView $apexClothingPaintPanel;	
+//	}
+//
+//	//if($apexClothingPaintOldDisplayVertexColor == false)
+//	//	polyColorPerVertex -rem;
+//	
+//	setAttr ($apexClothingPaintNode + ".paintChannel") 0;
+//	disconnectAttr ($apexClothingPaintMesh + ".message") ($apexClothingPaintNode + ".paintMesh");
+//	//apexClothingRebuild( $apexClothingPaintNode );
+//	//setAttr ($apexClothingPaintNode + ".showVertexVisualization") 0; // turn off sphere visualization
+//
+//	if($apexClothingPaintAttributeChanging == false)
+//	{
+//		//ToggleAttributeEditor;
+//		// if Attribute Editor is set to be in "floating mode"
+//		// then don't call setUIComponentVisibility, otherwise it will snap back to 
+//		// main maya window on the right
+//		$shown = `optionVar -q aeInMainWindow`;
+//		if ( 1 == $shown )
+//		{
+//			setUIComponentVisibility("Attribute Editor", true); 
+//		}
+//
+//		updateMainWindowComponentState();
+//		evalDeferred( "apexClothingEdit()" );
+//	}
+//
+//	//setAttr ($apexClothingPaintNode + ".enableSimulation") $simulationEnable;
+//	//DISABLE-DEBUG//print( "[apexClothingPaintToolOff] END\n");
+//}
+//
+//global proc apexClothingPaintFlood()
+//{
+//	global string $apexClothingPaintMesh;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintAttribute;
+//	global string $apexClothingPaintContext;
+//
+//	//make sure the change callback does not occur durring flood
+//	//int $paintChannel = `getAttr ($apexClothingPaintNode + ".paintChannel")`;
+//	//setAttr ($apexClothingPaintNode + ".paintChannel") 0; 
+//
+//	$radioSet1 = `radioButtonGrp -q -sl artAttrOperRadioButton0`; // print($radioSet1 + "\n");
+//	$radioSet2 = `radioButtonGrp -q -sl artAttrOperRadioButton1`; // print($radioSet2 + "\n");
+//	$apexClothingPaintMesh = apexClothingGetGraphicalMesh( $apexClothingPaintNode );
+//	
+//	// Obtain the latest flood value from slider, refresh to update the slider's position 
+//	// & store that value into $apexClothingPaintContext
+//	float $currValue = `floatSliderGrp -q -v "artAttrValueSlider"`;
+//	refresh;
+//	artAttrCtx -e -value $currValue $apexClothingPaintContext;
+//	//float $currValue = `artAttrCtx -q -value $apexClothingPaintContext`;
+//
+//	// Update paint range if value exceeds current limits
+//	apexClothingCheckExceedPaintRange( $currValue );
+//	
+//	if (0 == $radioSet1 && 2 == $radioSet2) // Smooth
+//	{
+//		float $radius = `floatSliderGrp -q -v upperRadiusSlider`;
+//		ApexValuesPaintingFloodCmd -opt 3 -atr $apexClothingPaintAttribute -nn $apexClothingPaintNode -mn $apexClothingPaintMesh -r $radius;
+//	}
+//	else if (0 == $radioSet1 && 1 == $radioSet2) // Scale
+//	{
+//		ApexValuesPaintingFloodCmd -opt 2 -atr $apexClothingPaintAttribute -nn $apexClothingPaintNode -iv $currValue;
+//	}
+//	else if (1 == $radioSet1 && 0 == $radioSet2) // Replace
+//	{
+//		ApexValuesPaintingFloodCmd -opt 1 -atr $apexClothingPaintAttribute -nn $apexClothingPaintNode -iv $currValue;
+//	}
+//	else if (2 == $radioSet1 && 0 == $radioSet2) // Add
+//	{
+//		ApexValuesPaintingFloodCmd -opt 0 -atr $apexClothingPaintAttribute -nn $apexClothingPaintNode -iv $currValue;
+//	}
+//
+//	/* // old code where all the flood does is to replace everything with current value
+//	if (1 == $radioSet1 && 0 == $radioSet2) // Replace
+//	{
+//		//print("Replace\n");
+//		
+//		string $attr = ($apexClothingPaintNode + "." + $apexClothingPaintAttribute);
+//		string $cmd = "setAttr " + $attr + "[0:" + ($length-1) + "]";
+//		float $value = `artAttrCtx -q -value $apexClothingPaintContext`;
+//		string $valStr = " " + $value;
+//
+//		int $i;
+//		for( $i = 0 ; $i < $length ; $i++ )
+//		{
+//			$cmd += $valStr;
+//		}
+//
+//		eval( $cmd );
+//	}
+//	*/
+//
+//	//restore for regular paint mode
+//	//setAttr ($apexClothingPaintNode + ".paintChannel") $paintChannel; 
+//	//apexClothingPaintRange $apexClothingPaintNode;
+//}
+//
+//global proc apexClothingPaintRangeControl_MinMaxChange()
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//
+//	// check if the range is valid for the selected paint channel & update accordingly.
+//	apexClothingCheckValidPaintRange();
+//	
+//	optionVar -floatValue "apexClothingPaintRangeMin" `floatFieldGrp -q -value1 $apexClothingPaintRangeCtrl`;
+//	optionVar -floatValue "apexClothingPaintRangeMax" `floatFieldGrp -q -value2 $apexClothingPaintRangeCtrl`;
+//	
+//	activeRangeChanged();
+//}
+//
+//global proc apexClothingPaintRangeControl_MinMaxInit()
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintAttribute;
+//
+//	float $valueMin = 0.0; float $valueMax = 1.0;
+//	
+//	// if set a range while painting, use those values
+//	if( `optionVar -exists apexClothingPaintRangeMin` )
+//		$valueMin = `optionVar -q apexClothingPaintRangeMin`;
+//
+//	if( `optionVar -exists apexClothingPaintRangeMax` )
+//		$valueMax = `optionVar -q apexClothingPaintRangeMax`;
+//	
+//
+//	// update into the group
+//	if(`floatFieldGrp -exists $apexClothingPaintRangeCtrl`)
+//	{
+//		floatFieldGrp -e -value1 $valueMin $apexClothingPaintRangeCtrl;
+//		floatFieldGrp -e -value2 $valueMax $apexClothingPaintRangeCtrl;	
+//	}
+//
+//	// check if the range is valid for the selected paint channel & update accordingly.
+//	apexClothingCheckValidPaintRange();
+//
+//	activeRangeChanged;
+//}
+//
+//global proc apexClothingPaintRangeControl_NameInit()
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	string $var = "apexClothingPaintRangeName";
+//	string $value;
+//	if( `optionVar -exists $var` )
+//	{
+//		$value = `optionVar -q apexClothingPaintRangeName`;
+//		
+//		string $label = $value;
+//		floatFieldGrp -e -label $label $apexClothingPaintRangeCtrl;
+//		//**menuItem -e -label $label "apexClothingPaintRangePickerEntry";
+//	}
+//	else
+//		floatFieldGrp -e -label "Range" $apexClothingPaintRangeCtrl;
+//}
+//
+//global proc apexClothingPaintRangeControl_Add()
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	global string $apexClothingAutoPaintRangeBtn;
+//
+//	rowLayout 
+//		-numberOfColumns 2
+//		-columnWidth2 270 55
+//		//-columnAlign  1 "right"
+//		-columnAttach 1 "both"  0
+//		-columnAttach 2 "both"  0;
+//
+//		floatFieldGrp 
+//			-numberOfFields 2
+//			-annotation "Values of the range to limit"
+//			-precision 4
+//			-changeCommand "apexClothingPaintRangeControl_MinMaxChange()"
+//			$apexClothingPaintRangeCtrl;
+//
+//		button 
+//			-label "Auto-Fit" 
+//			-command "apexClothingToggleAutoPaintRange()"
+//			-annotation "automatically fit within the visible range"
+//			$apexClothingAutoPaintRangeBtn;
+//	setParent ..;
+//
+//	apexClothingPaintRangeControl_MinMaxInit();
+//	apexClothingPaintRangeControl_NameInit();
+//}
+//
+//// Toggle between using auto-fit or manual input for paint range
+//global proc apexClothingToggleAutoPaintRange()
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	global string $apexClothingPaintNode;
+//	global string $apexClothingPaintAttribute;
+//	
+//	// When first accessing the template attribute editor, find out the min& max painted values
+//	// depending on the current paint channel selected.
+//	// update that it into the min & max paint range
+//	float $paintValues[] = `getAttr ( $apexClothingPaintNode + "." + $apexClothingPaintAttribute )`;
+//	int $paintRangeSize = `size($paintValues)`;
+//
+//	// Initialise the min & max to the first value found
+//	$valueMin = $paintValues[0]; 
+//	$valueMax = $paintValues[0];
+//	for( $i=1; $i<$paintRangeSize; $i++ )
+//	{
+//		if( $paintValues[$i] < $valueMin ) 
+//			$valueMin = $paintValues[$i]; 
+//
+//		if( $paintValues[$i] > $valueMax ) 
+//			$valueMax = $paintValues[$i];
+//	}
+//	
+//	// Update Min & Max in optionVars
+//	//print ("Min: " + $valueMin + "Max: " + $valueMax  );
+//	optionVar -floatValue "apexClothingPaintRangeMin" $valueMin;
+//	optionVar -floatValue "apexClothingPaintRangeMax" $valueMax;
+//	
+//	apexClothingPaintRangeControl_MinMaxInit();
+//}
+//
+//// Check if the values entered in the paint range are valid for the different paint channels
+//// if not valid, update range to the defaults
+//// Default values:
+//// 1. Max Distance: 0 to ~
+//// 2. Backstop radius & offset: unbounded
+//// 3. Latch to Nearest: 0 to 1 (Binary: on/off)
+//global proc apexClothingCheckValidPaintRange()
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	global string $apexClothingPaintAttribute;
+//
+//	if(`floatFieldGrp -exists $apexClothingPaintRangeCtrl`)
+//	{
+//		// Obtain the values set in paint range
+//		float $valueMin = `floatFieldGrp -q -value1 $apexClothingPaintRangeCtrl`;
+//		float $valueMax = `floatFieldGrp -q -value2 $apexClothingPaintRangeCtrl`;	
+//
+//		// Update precision of paint value & range. default is 4 except for latchToNearest & vertexSelection, precision 0.
+//		floatSliderGrp -e -precision 4 artAttrValueSlider;
+//		floatFieldGrp -e -precision 4 $apexClothingPaintRangeCtrl;
+//
+//		// since backstop range is unbounded, check only max distance & latch to nearest for valid range
+//		if( $apexClothingPaintAttribute == "maxDistances" )
+//		{
+//			if($valueMin < 0)
+//			{
+//				$valueMin = 0;
+//				floatFieldGrp -e -value1 $valueMin $apexClothingPaintRangeCtrl;
+//				print "Min range value for Max Distances paint channel cannot be lesser than 0. Defaulting to 0.\n";
+//			}
+//
+//			if($valueMax < 0)
+//			{
+//				floatFieldGrp -e -value2 ($valueMin+100) $apexClothingPaintRangeCtrl;
+//				print "Min range value for Max Distances paint channel cannot be lesser than 0. Defaulting to 100 units more than min.\n";
+//			}
+//		}
+//		else if($apexClothingPaintAttribute == "latchToNearest"
+//		||      $apexClothingPaintAttribute == "vertexSelection")
+//		{
+//			// since the range for latchToNearest will always be 0 to 1. default them to this values without checking.
+//			floatFieldGrp -e -value1 0 -value2 1 -precision 0 $apexClothingPaintRangeCtrl;
+//			floatSliderGrp -e -precision 0 artAttrValueSlider;
+//			print "Defaulting range for Latch to Nearest paint channel: 0 to 1\n";
+//		}
+//	}
+//}
+//// Check if the values entered exceeds the paint range.
+//// If yes, update value as the new (upper or lower)limit
+//global proc apexClothingCheckExceedPaintRange(float $value)
+//{
+//	global string $apexClothingPaintRangeCtrl;
+//	global string $apexClothingPaintNode;
+//	$lower = `floatFieldGrp -q -value1 $apexClothingPaintRangeCtrl`;
+//	$upper = `floatFieldGrp -q -value2 $apexClothingPaintRangeCtrl`;
+//
+//	int $exceed = false;
+//
+//	if($value > $upper)
+//	{
+//		floatFieldGrp -e -value2 $value $apexClothingPaintRangeCtrl;
+//		$upper = $value;
+//		$exceed = true;
+//	}
+//
+//	if($value < $lower)
+//	{
+//		floatFieldGrp -e -value1 $value $apexClothingPaintRangeCtrl;
+//		$lower = $value;
+//		$exceed = true;
+//	}
+//
+//	if( $exceed )
+//	{
+//		changeAllowedPaintValueRange( $lower, $upper, $value );
+//		//apexClothingPaintRangeControl_MinMaxChange;
+//	}
+//}

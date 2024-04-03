@@ -1,0 +1,34 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ addUserKnob {20 pixel_control}
+ addUserKnob {41 xo l xOffset T Expression4.xo}
+ addUserKnob {41 yo l yOffset T Expression4.yo}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 564
+  ypos -453
+ }
+ Expression {
+  expr0 (isnan(r)||isinf(r))?r(x+xo,y+yo):r
+  expr1 (isnan(g)||isinf(g))?g(x+xo,y+yo):g
+  expr2 (isnan(b)||isinf(b))?b(x+xo,y+yo):b
+  expr3 (isnan(a)||isinf(a))?a(x+xo,y+yo):a
+  name Expression4
+  selected true
+  xpos 564
+  ypos -377
+  addUserKnob {20 User}
+  addUserKnob {7 xo l xOffset}
+  xo 1
+  addUserKnob {7 yo l yOffset}
+  yo 1
+ }
+ Output {
+  name Output1
+  xpos 564
+  ypos -313
+ }
+end_group

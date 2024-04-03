@@ -1,0 +1,803 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+// AEphysicsShapeTemplate.mel
+//
+// Author: Christian Laforte, Feeling Software Inc. (http://www.feelingsoftware.com)
+//
+
+//Global Variables used by AEPhysicsShape
+global string $gSelectRigidBodyBtn, $gSelectTransformBtn;
+
+global proc AEphysicsShapeTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;
+	
+		editorTemplate -callCustom "AEphysicsShapesCallRigidBody" "AEphysicsShapesReplace" "AEnxPhysicsShape_NavigationControls";
+
+		//editorTemplate -beginLayout "Physics Shape Attributes" -collapse false;
+		editorTemplate -beginLayout "Attributes" -collapse false;
+			editorTemplate -beginNoOptimize;
+			
+				editorTemplate -callCustom "AEnxPhysicsShape_shapeTypeNew" "AEnxPhysicsShape_shapeTypeNew" "shapeType";
+				editorTemplate -addControl "size";
+				editorTemplate -callCustom "AEnxPhysicsShape_RadiusNew" "AEnxPhysicsShape_RadiusReplace" "radius";
+				editorTemplate -callCustom "AEnxPhysicsShape_HeightNew" "AEnxPhysicsShape_HeightReplace" "height";
+				editorTemplate -addControl "bestFit" "AEnxPhysicsShape_shapeTypeChanged";
+				editorTemplate -callCustom "AERefitControlNew" "AERefitControlReplace" "refit";
+				editorTemplate -callCustom "AEnxPhysicsShape_connectSphereNew" "AEnxPhysicsShape_connectSphereNew" $nodeName;
+
+				editorTemplate -addSeparator;			
+
+				editorTemplate -label "Inflation" -addControl "inflate";
+			
+			editorTemplate -endNoOptimize;
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Physical Materials" -collapse false;
+			editorTemplate -beginNoOptimize;
+			
+				editorTemplate -addControl "useMassOrDensity" "AEnxPhysicsShape_useMassOrDensityChanged";
+				editorTemplate -label "Mass (kg)" -addControl "mass";
+				editorTemplate -label "Density (g/cm^3)" -addControl "density";
+
+			editorTemplate -endNoOptimize;
+		editorTemplate -endLayout;
+
+		//editorTemplate -beginLayout "Contact Layers" -collapse false;
+		//	editorTemplate -beginNoOptimize;
+			
+		//		editorTemplate -addControl "contactLayersOverride" "AEnxPhysicsShape_contactLayersOverrideChanged";
+		//		editorTemplate -callCustom "AEnxPhysicsShapeContactLayersNew" "AEnxPhysicsShapeContactLayersReplace" "contactLayers";
+
+		//	editorTemplate -endNoOptimize;
+		//editorTemplate -endLayout;
+
+		// include/call base class/node attributes
+		AEdynObjectCommon $nodeName;
+		AEdynObjectInclude $nodeName;
+		// Maya LT does not support the dynamics tools. use the following
+		// editorTemplate -suppress "dynamicsWeight";
+		// editorTemplate -suppress "goalGeometry";
+
+		editorTemplate -suppress "motionBlur";
+		editorTemplate -suppress "visibleInReflections";
+		editorTemplate -suppress "visibleInRefractions";
+		editorTemplate -suppress "castsShadows";
+		editorTemplate -suppress "receiveShadows";
+		editorTemplate -suppress "maxVisibilitySamplesOverride";
+		editorTemplate -suppress "maxVisibilitySamples";
+		editorTemplate -suppress "geometryAntialiasingOverride";
+		editorTemplate -suppress "antialiasingLevel";
+		editorTemplate -suppress "shadingSamplesOverride";
+		editorTemplate -suppress "shadingSamples";
+		editorTemplate -suppress "maxShadingSamples";
+		editorTemplate -suppress "volumeSamplesOverride";
+		editorTemplate -suppress "volumeSamples";
+		editorTemplate -suppress "depthJitter";
+		editorTemplate -suppress "ignoreSelfShadowing";
+		editorTemplate -suppress "primaryVisibility";
+		editorTemplate -suppress "compInstObjGroups";
+		editorTemplate -suppress "controlPoints";
+		editorTemplate -suppress "weights";
+		editorTemplate -suppress "uvSet";
+		editorTemplate -suppress "colorSet";
+		editorTemplate -suppress "collisionOffsetVelocityIncrement";
+		editorTemplate -suppress "collisionDepthVelocityIncrement";
+		editorTemplate -suppress "collisionOffsetVelocityMultiplier";
+		editorTemplate -suppress "collisionDepthVelocityMultiplier";
+
+		editorTemplate -suppress "tweak";
+		editorTemplate -suppress "relativeTweak";
+		editorTemplate -suppress "currentUVSet";
+		editorTemplate -suppress "displayImmediate";
+		editorTemplate -suppress "displayColors";
+		editorTemplate -suppress "displayColorChannel";
+		editorTemplate -suppress "currentColorSet";
+		editorTemplate -suppress "doubleSided";
+		editorTemplate -suppress "opposite";
+		editorTemplate -suppress "smoothShading";
+		editorTemplate -suppress "boundingBoxScale";
+		editorTemplate -suppress "featureDisplacement";
+		editorTemplate -suppress "initialSampleRate";
+		editorTemplate -suppress "extraSampleRate";
+		editorTemplate -suppress "textureThreshold";
+		editorTemplate -suppress "normalThreshold";
+		editorTemplate -suppress "point1";
+		editorTemplate -suppress "point2";
+		editorTemplate -suppress "deprecated_shapeMatrix";
+		editorTemplate -suppress "inMesh";
+		editorTemplate -suppress "initialShapeBakeMatrix";
+		editorTemplate -suppress "connectToClothSphere";
+		editorTemplate -suppress "contactLayersOverride";
+		editorTemplate -suppress "SimulationSetsBitArray";
+	    editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}
+
+global string $AEphysicsShapeTemplate_ShapeTypeControl = "AEphysicsShapeTemplate_ShapeTypeControl";
+global string $PhysxShapeType_Names[];
+global proc AEnxPhysicsShape_shapeTypeNew(string $attr)
+{
+	global string $AEphysicsShapeTemplate_ShapeTypeControl;
+	if(`optionMenuGrp -exists $AEphysicsShapeTemplate_ShapeTypeControl`) deleteUI $AEphysicsShapeTemplate_ShapeTypeControl;
+
+	optionMenuGrp -label "Shape Type" $AEphysicsShapeTemplate_ShapeTypeControl;
+
+	string $typesUnparsed[] = `attributeQuery -type physicsShape -listEnum "shapeType"`;
+	string $types[];
+	tokenize($typesUnparsed[0], ":", $types);
+
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		// 2.x mode doesn't support ClothSpheres
+		string $items[] ={"ClothSpheres"};
+		$types = stringArrayRemove($items, $types);
+	}
+
+	global string $PhysxShapeType_Names[];
+	clear $PhysxShapeType_Names;
+	$PhysxShapeType_Names[0] = "NULL";
+	int $i;
+	for($i = 1; $i <= `size($types)`; $i++)
+	{
+		string $type = $types[$i - 1];
+		if($i == 1)
+		{
+			string $parts[];
+			tokenize($type, "=", $parts);
+		
+			string $name = $parts[0];
+			int $value = $parts[1];
+			$PhysxShapeType_Names[$i] = $name;
+		}
+		else
+		{
+			$PhysxShapeType_Names[$i] = $type;
+		}
+		menuItem -label $PhysxShapeType_Names[$i] -data $i;
+	}
+	AEnxPhysicsShape_shapeTypeReplace($attr);
+}
+
+global proc AEnxPhysicsShape_shapeTypeReplace(string $attr)
+{
+	string $buffer[];
+	tokenize($attr, ".", $buffer);
+	string $node = $buffer[0];
+	//string $attr = $buffer[1];
+
+	global string $AEphysicsShapeTemplate_ShapeTypeControl;
+	
+	int $shapeType = `getAttr ($node + ".shapeType")`;
+	global string $PhysxShapeType_Names[];
+	string $shapeTypeStr = $PhysxShapeType_Names[$shapeType];
+
+	optionMenuGrp -e -cc ("AEnxPhysicsShape_shapeTypeMenuChanged(\"" + $node + "\")" ) $AEphysicsShapeTemplate_ShapeTypeControl;
+
+	// $shapeTypeStr can be null when we switch from 3.x into 2.x mode with ClothSpheres setting
+	if( $shapeTypeStr == "")
+	{
+		optionMenuGrp -e -select 1 $AEphysicsShapeTemplate_ShapeTypeControl;
+		setAttr ($node + ".shapeType") 1;
+	}
+	else
+	{
+		optionMenuGrp -e -value $shapeTypeStr $AEphysicsShapeTemplate_ShapeTypeControl;
+	}
+}
+
+global proc AEnxPhysicsShape_shapeTypeMenuChanged(string $nodeName)
+{
+	global string $AEphysicsShapeTemplate_ShapeTypeControl;
+
+	int $currentInt = `getAttr ($nodeName + ".shapeType")`;
+	string $selectedStr = `optionMenuGrp -q -value $AEphysicsShapeTemplate_ShapeTypeControl`;
+	int $selectInt = `PhysxShapeType_NameToValue($selectedStr)`;
+	if( $currentInt == $selectInt || $selectInt == -1)
+		return;
+
+	string $setAttrCmd = "setAttr " + $nodeName + ".shapeType" + " " +  $selectInt;
+	evalEcho $setAttrCmd;
+
+	// we disconnect all connections for non-connectedSphere.
+	if($selectInt != 6)
+	{
+		string $currentPhysicsShapeMessageAttr = $nodeName + ".message";
+		// Figure out the existed connection
+		string $connectedShape[] = `listConnections -t "physicsShape" ($currentPhysicsShapeMessageAttr)`;
+		int $i;
+		for($i = 0; $i < `size($connectedShape)`; $i++)
+		{
+			if(`isConnected $currentPhysicsShapeMessageAttr ($connectedShape[$i] + ".connectToClothSphere")`)
+			{
+				string $cmd = "disconnectAttr " + $currentPhysicsShapeMessageAttr + " " + ($connectedShape[$i] + ".connectToClothSphere");
+				evalEcho $cmd;
+			}
+		}
+
+		string $currentPhysicsShapeAttr = $nodeName + ".connectToClothSphere";
+		// Figure out the existed connection
+		$connectedShape = `listConnections -shapes true -t "physicsShape" ($currentPhysicsShapeAttr)`;
+		if(`size($connectedShape)` > 0)
+		{
+			if(`isConnected ($connectedShape[0] + ".message") $currentPhysicsShapeAttr`)
+			{
+				string $cmd = "disconnectAttr " +  $connectedShape[0] + ".message" + " " + $currentPhysicsShapeAttr;
+				evalEcho $cmd;
+			}
+		}
+	}
+
+	AEnxPhysicsShape_shapeTypeChanged($nodeName);
+}
+
+global proc int PhysxShapeType_NameToValue( string $name )
+{
+	global string $PhysxShapeType_Names[];
+	
+	int $i;
+	for( $i = 0; $i < size($PhysxShapeType_Names); $i++)
+	{
+		if($PhysxShapeType_Names[$i] == $name)
+			return $i;
+	}
+	return -1;
+}
+
+global proc AEnxPhysicsShape_RadiusNew(string $radius)
+{
+	attrFieldSliderGrp -label "Radius" -min 0.001 -max 1000.0 "nxPhysicsShape_RadiusControl";
+	AEnxPhysicsShape_RadiusReplace($radius);
+}
+
+global proc AEnxPhysicsShape_RadiusReplace(string $radius)
+{
+	float $value = `getAttr $radius`;
+	attrFieldSliderGrp -e -at $radius "nxPhysicsShape_RadiusControl";
+}
+
+global proc AEnxPhysicsShape_HeightNew(string $height)
+{
+	attrFieldSliderGrp -label "Height" -min 0.001 -max 1000.0 "nxPhysicsShape_HeightControl";
+	AEnxPhysicsShape_HeightReplace($height);
+}
+
+global proc AEnxPhysicsShape_HeightReplace(string $height)
+{
+	float $value = `getAttr $height`;
+	attrFieldSliderGrp -e -at $height "nxPhysicsShape_HeightControl";
+}
+
+global proc string  AEnxPhysicsShape_getRagdollWithShape(string $shape)
+{
+	if ( $shape == "") return "";
+	string $rbArray[] = `listConnections -t "nxRigidBody" ($shape + ".outPhysicsShape")`;
+	if(`size $rbArray` ==  0) return "";
+	string $jointArray[] = `listConnections -t "joint" ($rbArray[0] + ".target")`;
+	if(`size $jointArray` ==  0) return "";
+	string $ragdollArray[] = `listConnections -shapes true -t "nxRagdollLocator" ($jointArray[0] + ".message")`;
+	if(`size $ragdollArray` ==  0) return "";
+	return $ragdollArray[0];
+}
+
+global string $nxPhysicsShape_connectRigidBodyControl = "nxPhysicsShape_connectRigidBodyControl";
+global string $nxPhysicsShape_connectedRigidBodyLayout = "nxPhysicsShape_connectedRigidBodyLayout";
+global string $nxPhysicsShape_connectPhysicsShapeText = "nxPhysicsShape_connectPhysicsShapeText";
+global proc AEnxPhysicsShape_connectSphereNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	string $buffer[];
+	tokenize($plug, ".", $buffer);
+	string $nodeName = $buffer[0];
+	//string $attr = $buffer[1];
+
+	global string $nxPhysicsShape_connectRigidBodyControl;
+	if(`optionMenuGrp -exists $nxPhysicsShape_connectRigidBodyControl`) 
+		deleteUI $nxPhysicsShape_connectRigidBodyControl;
+
+	optionMenuGrp -label "Connect To Rigid Body" $nxPhysicsShape_connectRigidBodyControl;
+
+	menuItem -label "Disabled" ;
+	string $rigidBodyArray[];
+	string $ragdollNode = AEnxPhysicsShape_getRagdollWithShape($nodeName);
+	nxPhysicsShape_getRigidBodies($ragdollNode, $rigidBodyArray);
+	int $i;
+	for($i = 0; $i < `size($rigidBodyArray)`; $i++)
+	{
+		menuItem -label $rigidBodyArray[$i];
+	}
+	optionMenuGrp -edit -cc ("nxPhysicsShape_updateConnectedPhysicsMenu(\"" + $nodeName + "\")") $nxPhysicsShape_connectRigidBodyControl;
+
+	// Edit the menu
+	string $connectedShapeArray[] = `listConnections -shapes true -t "physicsShape" ($nodeName + ".connectToClothSphere")`;
+	if(`size $connectedShapeArray` == 0)
+		optionMenuGrp -edit -value "Disabled" $nxPhysicsShape_connectRigidBodyControl;
+	else
+	{
+		string $connectedRigidBodyArray[] = `listConnections -t "nxRigidBody" ($connectedShapeArray[0] + ".outPhysicsShape")`;
+		optionMenuGrp -edit -value $connectedRigidBodyArray[0] $nxPhysicsShape_connectRigidBodyControl;
+	}
+	
+	global string $nxPhysicsShape_connectedRigidBodyLayout;
+	if(`columnLayout -exists $nxPhysicsShape_connectedRigidBodyLayout`)
+		deleteUI $nxPhysicsShape_connectedRigidBodyLayout;
+
+	columnLayout $nxPhysicsShape_connectedRigidBodyLayout;
+	nxPhysicsShape_updateConnectedPhysicsMenu($nodeName);
+	// Edit the menu
+	global string $nxPhysicsShape_connectPhysicsShapeControl;
+	if(`size $connectedShapeArray` == 0)
+		optionMenuGrp -edit -value "Disabled" $nxPhysicsShape_connectPhysicsShapeControl;
+	else
+	{
+		optionMenuGrp -edit -value $connectedShapeArray[0] $nxPhysicsShape_connectPhysicsShapeControl;
+	}
+	setParent..;
+
+	setUITemplate -ppt;
+}
+
+global string $nxPhysicsShape_connectPhysicsShapeControl = "nxPhysicsShape_connectPhysicsShapeControl";
+global proc nxPhysicsShape_updateConnectedPhysicsMenu(string $nodeName)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	global string $nxPhysicsShape_connectPhysicsShapeControl;
+ 	if(`optionMenuGrp -exists $nxPhysicsShape_connectPhysicsShapeControl`) 
+ 	{
+ 		deleteUI $nxPhysicsShape_connectPhysicsShapeControl;
+ 	}
+
+	global string $nxPhysicsShape_connectedRigidBodyLayout;
+	setParent $nxPhysicsShape_connectedRigidBodyLayout;
+	optionMenuGrp -label "Connect To Shape" $nxPhysicsShape_connectPhysicsShapeControl;
+	menuItem -label "Disabled" ;
+
+	global string $nxPhysicsShape_connectRigidBodyControl;
+	string $currentRigidBody = `optionMenuGrp -q -value $nxPhysicsShape_connectRigidBodyControl`;
+	if($currentRigidBody != "Disabled") 
+	{
+		// one joint only have one rigid body
+		string $currentPhysicsShapeArray[] = `listConnections -shapes true -t "physicsShape" ($currentRigidBody + ".physicsShapes")`;
+		// remove current physicsShape from array
+		string $removedPhysicsShapeArray[] = {$nodeName};
+		$currentPhysicsShapeArray = stringArrayRemoveExact($removedPhysicsShapeArray, $currentPhysicsShapeArray);
+
+		int $selectItem = 1;
+		for($i = 0; $i < `size($currentPhysicsShapeArray)`; $i++)
+		{
+			//ClothSpere
+			if (`getAttr  ($currentPhysicsShapeArray[$i] + ".shapeType")` == 6)
+			{
+				// If the spheres have been paired, we don't need to connect them with the other direction
+				if(`isConnected ($nodeName+".message") ($currentPhysicsShapeArray[$i] + ".connectToClothSphere")` == false)
+				{
+					menuItem -label $currentPhysicsShapeArray[$i];
+					$selectItem = 2;
+				}
+			}
+		}
+		optionMenuGrp -e -cc ("nxPhysicsShape_connectSphereCommand(\"" + $nodeName + "\")") $nxPhysicsShape_connectPhysicsShapeControl;
+		optionMenuGrp -e -select $selectItem $nxPhysicsShape_connectPhysicsShapeControl;
+	}
+	nxPhysicsShape_connectSphereCommand($nodeName);
+
+	setUITemplate -ppt;
+}
+
+global proc nxPhysicsShape_connectSphereCommand(string $nodeName)
+{
+	global string $nxPhysicsShape_connectPhysicsShapeControl;
+	string $connectToPhysicsShape = `optionMenuGrp -q -value $nxPhysicsShape_connectPhysicsShapeControl`;
+
+	string $currentPhysicsShapeClothSphereAttr = $nodeName + ".connectToClothSphere";
+	if($connectToPhysicsShape == "Disabled")
+	{
+		// Figure out the existed connection
+		string $connectedShape[] = `listConnections -shapes true -t "physicsShape" ($currentPhysicsShapeClothSphereAttr)`;
+		if(`size($connectedShape)` > 0)
+		{
+			string $cmd = "disconnectAttr " +  ($connectedShape[0] + ".message") + " " + $currentPhysicsShapeClothSphereAttr;
+			evalEcho $cmd;
+		}
+	}
+	else
+	{
+		string $connectToPhysicsMessageAttr = $connectToPhysicsShape + ".message";
+		if(`isConnected $connectToPhysicsMessageAttr $currentPhysicsShapeClothSphereAttr` == false)
+		{
+			string $connectedShape[] = `listConnections -shapes true -t "physicsShape" ($nodeName + ".connectToClothSphere")`;
+			if(`isConnected ($connectedShape[0] + ".message" ) ($nodeName + ".connectToClothSphere")`)
+				disconnectAttr ($connectedShape[0] + ".message" ) ($nodeName + ".connectToClothSphere");
+
+			string $cmd = "connectAttr " +  $connectToPhysicsMessageAttr + " " + $currentPhysicsShapeClothSphereAttr;
+			evalEcho $cmd;
+		}
+	}
+}
+
+global proc nxPhysicsShape_getRigidBodies(string $ragdollLocator, string $rigidBodyArray[])
+{
+	clear $rigidBodyArray;
+	if($ragdollLocator == "") return;
+	string $joints[] = `listConnections -t "joint" ($ragdollLocator + ".joints")`;
+	int $i;
+	for($i = 0; $i < `size($joints)`; $i++)
+	{
+		string $rigidBodies[] = `listConnections -t "nxRigidBody" ($joints[$i] + ".worldMatrix")`;
+		$rigidBodyArray = stringArrayCatenate($rigidBodyArray, $rigidBodies);
+	}
+}
+
+global proc AEnxPhysicsShape_shapeTypeChanged(string $nodeName)
+{
+    // Possible shape types are:
+    //   0 = kNone,
+	//	 1 = kBox,
+	//	 2 = kSphere,
+	//	 3 = kCapsule,
+	//	 4 = kConvexHull,
+	//	 5 = KTriangleMesh,
+	//	 6 = kCylinder, (not in use)
+	//	 7 = kEllipsoid (not in use)
+	
+    int $dimSize = true;
+    int $dimRadius = true;
+	int $dimHeight = true;
+	int $dimBestFit = true;
+	int $enableRefit = true;
+
+	int $bestFit = `getAttr ($nodeName + ".bestFit")`;
+    int $shapeType = `getAttr ($nodeName + ".shapeType")`;
+    switch ($shapeType)
+    {
+    case 0: // kNone: set all dimmed.
+	case 4: // kConvexHull
+    case 5: // kTriangleMesh
+    default:
+		//$dimSize = false;
+		//$dimRadius = false;
+		//$dimBestFit = false;
+		$enableRefit = false;
+        break;
+    case 1: // kBox
+    case 7: // kEllipsoid
+        $dimSize = false;
+		$dimBestFit = false;
+		if( $bestFit ) $enableRefit = false;
+        break;
+    case 2: // kSphere
+	case 6: // kClothSphere
+        $dimRadius = false;
+		$dimBestFit = false;
+		if( $bestFit ) $enableRefit = false;
+        break;
+    case 3: // kCapsule
+        $dimRadius = $dimHeight = $dimBestFit = false;
+		if( $bestFit ) $enableRefit = false;
+		// the following codes it used to fix Bug #10206
+		global string $gPhysicsShapeNodeName;
+		string $strpoint2 = $nodeName + ".point2";
+		string $tmp = `connectionInfo -sourceFromDestination $strpoint2`;
+		if(size($tmp) != 0)
+		{
+			disconnectAttr $tmp $strpoint2;
+		}
+        break;
+    }
+    
+    //if there's no shape mesh connected to PS's inMesh attribute, automatically dim the control.
+    $numConn=PSInMeshConnectionsNumber();
+    if($numConn==0)
+    {
+		$dimBestFit = true;
+	}
+
+	if ( $shapeType == 5 )
+	{
+		editorTemplate -dimControl $nodeName "inflate" true;
+	}
+	else
+	{
+		editorTemplate -dimControl $nodeName "inflate" false;
+	}
+
+	global string $nxPhysicsShape_connectRigidBodyControl;
+	if( $shapeType == 6)
+		$dimConnectSphere = true;
+	else
+		$dimConnectSphere = false;
+
+	global string $nxPhysicsShape_connectRigidBodyControl;
+	global string $nxPhysicsShape_connectPhysicsShapeControl;
+
+	optionMenuGrp -edit -enable $dimConnectSphere $nxPhysicsShape_connectRigidBodyControl;
+	optionMenuGrp -edit -enable $dimConnectSphere $nxPhysicsShape_connectPhysicsShapeControl;
+
+	editorTemplate -dimControl $nodeName "size" $dimSize;
+    attrFieldSliderGrp -e -enable (1-$dimRadius) "nxPhysicsShape_RadiusControl";
+	attrFieldSliderGrp -e -enable (1-$dimHeight) "nxPhysicsShape_HeightControl";
+	//int $height = `getAttr ($nodeName + ".height")`;
+	editorTemplate -dimControl $nodeName "bestFit" $dimBestFit;
+	button -e -enable $enableRefit "refitBtn";
+}
+
+global proc AEnxPhysicsShape_useMassOrDensityChanged(string $nodeName)
+{
+    /* Possible useMassOrDensity values include:
+        0 = kDefault,
+		1 = kUseMass,
+		2 = kUseDensity
+    */
+
+    int $dimMass = true;
+    int $dimDensity = true;
+
+    int $useMassOrDensity = `getAttr ($nodeName + ".useMassOrDensity")`;
+    switch ($useMassOrDensity)
+    {
+    default:
+        $dimMass = false;
+        $dimDensity = false;
+        break;
+    case 0: // kUseMass
+        $dimMass = false;
+        break;
+    case 1: // kUseDensity
+        $dimDensity = false;
+        break;
+    }
+
+    editorTemplate -dimControl $nodeName "mass" $dimMass;
+    editorTemplate -dimControl $nodeName "density" $dimDensity;
+}
+
+// The custom creation proc for refit button.
+global proc AERefitControlNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -numberOfColumns 2 -columnWidth 2 60;
+		text -label "";
+		button -label "Refit" -width 10 -recomputeSize false -command "recomputeBestFit" "refitBtn";
+		setParent ..;
+	setUITemplate -ppt;
+}
+
+// Empty replace proc for replace
+global proc AERefitControlReplace(string $plug){ }
+
+// updates the "Go to ancestors" buttons
+global proc string AEPhysicsShape_loadPSNavigationButtons(){
+
+	global string $gAEnxRigidBodyNodeName, $gPhysicsShapeNodeName;
+	string $selectRigidBodyBtn = "selectRBBtn";
+	string $selectTransformBtn = "selectTransformBtn";
+	string $selectMeshBtn = "selectMeshBtn";
+	//print ("ps: "+$gPhysicsShapeNodeName);
+	
+	// 1. get physics shape's rigidbody parent
+	string $rbparents[]=`listRelatives -fullPath -parent -fullPath $gPhysicsShapeNodeName`;
+	//print ("ps parent 0: "+$parents[0]);
+	string $parentbuffer[];
+	tokenize $rbparents[0] "|" $parentbuffer;
+	string $nType;
+	int $count=0;
+	string $fullPathParent = "";
+	for($rbparent in $parentbuffer)
+	{
+		$fullPathParent += "|";
+	    $fullPathParent += $rbparent;
+		$nType =`nodeType $fullPathParent`;
+		if($nType =="nxRigidBody")
+		{
+			$gAEnxRigidBodyNodeName=$fullPathParent;
+			$count++;
+		}
+	}
+	//print $count;
+	
+	// 2. get physics shape's parent: transform
+	$parent = `listRelatives -fullPath -parent $gPhysicsShapeNodeName`;
+	
+	// 3. get physics shape's input mesh, if any
+	$inputmesh  = `connectionInfo -sourceFromDestination ($gPhysicsShapeNodeName+".inMesh")`;
+	//print $inputmesh;
+	
+	// 4. create/update buttons
+	$status=`button -exists $selectRigidBodyBtn`;
+	if($status==1){
+		button -edit -command ("select -r "+$inputmesh + "; nxShowEditorExact "+$inputmesh) $selectMeshBtn;
+		button -edit -command ("select -r "+$parent[0] + "; nxShowEditorExact "+$parent[0]) $selectTransformBtn;
+		button -edit -command ("select -r "+$gAEnxRigidBodyNodeName + "; nxShowEditorExact "+$gAEnxRigidBodyNodeName) $selectRigidBodyBtn;	
+	}
+	else
+	{
+		button -label "Select Shape Mesh" -command ("select -r "+$inputmesh + "; nxShowEditorExact "+$inputmesh) $selectMeshBtn;
+		button -label "Select Transform" -command ("select -r "+$parent[0] + "; nxShowEditorExact "+$parent[0]) $selectTransformBtn;
+		button -label "Select RigidBody" -command ("select -r "+$gAEnxRigidBodyNodeName + "; nxShowEditorExact "+$gAEnxRigidBodyNodeName) $selectRigidBodyBtn;	
+	}
+	
+	// if there's no input mesh, dim the control
+	if( $inputmesh == "" )
+		button -edit -enable false $selectMeshBtn;
+	else
+		button -edit -enable true $selectMeshBtn;
+	
+	return $gAEnxRigidBodyNodeName;
+
+}
+
+global proc string storePhysicsShape(string $plug)
+{
+	//print $plug;
+	global string $gPhysicsShapeNodeName;
+
+	// extract the physics shape node name.
+	string $buffer[];
+	tokenize($plug, ".", $buffer);
+
+    // Store the physics shape node name.
+	$gPhysicsShapeNodeName = $buffer[0];
+
+    return $gPhysicsShapeNodeName;
+}
+
+global proc AEphysicsShapesCallRigidBody(string $plug)
+{
+	storePhysicsShape($plug);
+	
+	//get physics shape's rigidbody & create button	
+	setUITemplate -pst attributeEditorTemplate;
+	
+		rowLayout 
+			-numberOfColumns 3 -cw 1 (350/3) -cw 2 (350/3) -cw 3 (350/3)
+			-columnAlign3 "center" "center" "center"
+			-columnAttach 1 "both" 0
+			-columnAttach 2 "both" 0
+			-columnAttach 3 "both" 0;
+			
+			AEPhysicsShape_loadPSNavigationButtons();
+			
+		setParent ..;
+			
+	setUITemplate -ppt;	
+}
+
+global proc AEphysicsShapesReplace(string $plug)
+{
+    $nodeName = storePhysicsShape($plug);
+    AEPhysicsShape_loadPSNavigationButtons();
+}
+
+// Returns the number of connections to PS's inMesh attribute
+global proc int PSInMeshConnectionsNumber()
+{
+	global string $gPhysicsShapeNodeName;
+	string $connList[] = `listConnections ($gPhysicsShapeNodeName+".inMesh")`;
+	$numConn = size($connList);
+	return $numConn;
+}
+
+// Allows user to recompute the best fit shape when bestFit isn't checked.
+global proc recomputeBestFit()
+{
+	global string $gPhysicsShapeNodeName;
+	int $currentShapeType = `getAttr ($gPhysicsShapeNodeName + ".shapeType")`;
+	$inputmesh  = `connectionInfo -sourceFromDestination ($gPhysicsShapeNodeName+".inMesh")`;
+	computePhysicsShapeFromMeshCmd -physShapeName $gPhysicsShapeNodeName -rf -shapeType $currentShapeType;
+	select -r $gPhysicsShapeNodeName;
+}
+
+// ------------ PHYSICS SHAPES CONTACT LAYERS COMMANDS [START] ------------ //
+global proc AEnxPhysicsShapeContactLayersNew( string $plug )
+{
+    $physicsShape = storePhysicsShape($plug);
+
+	// Obtain the list of layers that physics shape belongs to.
+	string $contactLayers = GetContactLayersList( $physicsShape, off, 0 );
+
+	// Create the textFieldGrp
+	setUITemplate -pst attributeEditorTemplate;
+		rowColumnLayout -numberOfColumns 2 -cw 1 144 -cw 2 250 -columnAlign 1 "right" -columnOffset 1 "right" 3;
+		
+			text -align "right" -label "In Contact Layers";
+			scrollField 
+				-wordWrap true
+				-height 60
+				-editable false
+				-text $contactLayers
+				"physicsShapeContactLayersList";
+
+			global int $turnOnAlsoContactsWith;
+			if( $turnOnAlsoContactsWith )
+			{
+				// Obtain the list of layers that PS is colliding with.
+				$contactLayers = GetContactLayersList( $physicsShape, on, 0 );
+				text -align "right" -label "Also Contacts With";
+				scrollField 
+					-wordWrap true
+					-height 60
+					-editable false
+					-text $contactLayers
+					"physicsShapeContactLayersInteractList";
+			}
+		
+			text -label "";
+			button -label "Setup Contact Layers" -command ("ContactLayersDialog( \"physxobject\", \""+$physicsShape+"\")") "physicsShapeContactLayersBtn";
+
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	// if contact layers membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersMember;
+	$contactLayersMember = $physicsShape;
+	updateConLayMembershipDialogIfExist();
+}
+
+global proc AEnxPhysicsShapeContactLayersReplace( string $plug )
+{
+    $physicsShape = storePhysicsShape($plug);
+    if(`scrollField -q -exists "physicsShapeContactLayersList"`)
+	{
+		string $contactLayers = GetContactLayersList( $physicsShape, off, 0 );
+		scrollField -e -text $contactLayers "physicsShapeContactLayersList";
+
+		global int $turnOnAlsoContactsWith;
+		if( $turnOnAlsoContactsWith )
+		{
+			$contactLayers = GetContactLayersList( $physicsShape, on, 0 );
+			scrollField -e -text $contactLayers "physicsShapeContactLayersInteractList";
+		}
+
+		button -e -command ("ContactLayersDialog( \"physxobject\", \""+$physicsShape+"\")") "physicsShapeContactLayersBtn";
+	}
+
+	// if contact layers membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersMember;
+	if( $contactLayersMember != $physicsShape )
+	{
+		$contactLayersMember = $physicsShape;
+		updateConLayMembershipDialogIfExist();
+	}
+}
+
+global proc AEnxPhysicsShape_contactLayersOverrideChanged( string $nodeName )
+{
+	editorTemplate -dimControl $nodeName "contactLayersOverride" true;
+	global int $turnOnAlsoContactsWith;
+
+	if( `getAttr ($nodeName + ".contactLayersOverride")` ) // override checked
+	{
+		// Enable membership & interact with controls 
+		scrollField -e -enable true "physicsShapeContactLayersList";
+		//button -e -enable true "physicsShapeContactLayersBtn";
+		if( $turnOnAlsoContactsWith )
+			scrollField -e -enable true "physicsShapeContactLayersInteractList";
+	}
+	else // override unchecked
+	{
+		// Disable membership & interact with controls 
+		scrollField -e -enable false "physicsShapeContactLayersList";
+		//button -e -enable false "physicsShapeContactLayersBtn";
+		if( $turnOnAlsoContactsWith )
+			scrollField -e -enable false "physicsShapeContactLayersInteractList";
+	}
+}
+
+// ------------ PHYSICS SHAPES CONTACT LAYERS COMMANDS [END] ------------ //

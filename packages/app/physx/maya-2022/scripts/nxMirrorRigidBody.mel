@@ -1,0 +1,760 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+// nxMirrorRigidBody.mel
+//
+// MEL scripts to mirror rigid bodies in ragdoll. Called from ragdoll helper node: AEnxRagdollLocatorTemplate.mel
+// Allow users to mirror rigidbodies on selected or all joints in the ragdoll based on text pattern (user input)
+// Performs creation of new rigidbodies with duplicated settings from source rigid bodies respectively.
+// 
+// In this context, Joints = Bones. 
+//
+
+//Global Variables
+global string $gMirrorRagdollSourceBonesTextField;
+global string $gMirrorRagdollReplaceBonesTextField;
+global string $gMirrorRagdollSourceBonesScrollList;
+global string $gMirrorRagdollReplaceBonesScrollList;
+global string $gSourceJointList[];
+global string $gRbsMirrorDlgFrom[], $gRbsMirrorDlgTo[];  // full list, no matter selected or not
+
+// Global Variables Declare in AEnxRagdollLocatorTemplate.mel
+global string $gRBIndicatorLabel;
+global string $gAEnxRagdollLocatorNodeName;
+
+source AEnxRigidBodyTemplate.mel;
+source AEnxRigidConstraintTemplate.mel;
+
+// Main display for all "mirror rigid bodies" features
+//
+global proc mirrorRigidBodyGUI()
+{
+	global string $gMirrorRagdollSourceBonesTextField, $gMirrorRagdollReplaceBonesTextField;
+	global string $gMirrorRagdollSourceBonesScrollList, $gMirrorRagdollReplaceBonesScrollList;
+
+	// Create a new window
+	$mirrorRBWindow = `window -title "Mirror Ragdoll Rigid Bodies" -widthHeight 350 400 -resizeToFitChildren true "MirrorRagdollRBWindow"`;
+	columnLayout -adjustableColumn true;
+		frameLayout -labelVisible false -marginHeight 15 -marginWidth 15;
+			rowColumnLayout 
+				-numberOfColumns 2
+				-columnWidth 1 170
+				-columnWidth 2 170
+				-columnAlign 1 "left"
+				-columnAlign 2 "left"
+				-columnSpacing 2 15;
+				
+				text -align "left" -label "Find bones named with";
+				text -align "left" -label "Mirror to bones replacing with";
+				// begin search when tab, keypad-enter, return is press 
+				$gMirrorRagdollSourceBonesTextField = `textField -changeCommand "findSourceJointsWithRigidBodyList"`;
+				$gMirrorRagdollReplaceBonesTextField = `textField -changeCommand "findReplaceJointsList"`;
+				$gMirrorRagdollSourceBonesScrollList = `textScrollList -numberOfRows 20 -allowMultiSelection true
+																	   -selectCommand "highlightSelection( true )"`;
+				$gMirrorRagdollReplaceBonesScrollList = `textScrollList -numberOfRows 20 -allowMultiSelection true
+																		-selectCommand "highlightSelection( false )"`;
+
+			setParent ..;  
+			
+		setParent ..;
+
+		rowColumnLayout 
+			-numberOfColumns 4
+			-columnSpacing 1 15
+			-columnWidth 1 180
+			-columnWidth 2 30
+			-columnWidth 3 30
+			-columnWidth 4 30;
+			text -align "center" -label "Flip across local axes";
+			checkBox -label "X" -changeCommand "ragMirrorDlg_axis_x_CheckBoxChanged"  "ragMirrorDlg_axis_x_CheckBox";
+			checkBox -label "Y" -changeCommand "ragMirrorDlg_axis_y_CheckBoxChanged"  "ragMirrorDlg_axis_y_CheckBox";
+			checkBox -label "Z" -changeCommand "ragMirrorDlg_axis_z_CheckBoxChanged"  "ragMirrorDlg_axis_z_CheckBox";
+		setParent ..;
+		
+		text -label "" "MakeSomeSpace1";  // make some space here
+
+		rowColumnLayout 
+			-numberOfColumns 3
+			-columnSpacing 1 15
+			-columnWidth 1 120
+			-columnWidth 2 120
+			-columnWidth 3 120;
+			button -align "center" -label "Mirror Selected" -command "preMirrorRigidBodies( false )";
+			button -align "center" -label "Mirror All" -command "preMirrorRigidBodies( true )";
+			button -align "center" -label "Close" -command ("deleteUI -window " + $mirrorRBWindow );
+		setParent ..;
+
+		text -label "" "MakeSomeSpace2";  // make some space here
+
+	setParent ..;
+
+	showWindow $mirrorRBWindow;
+}
+
+global proc ragMirrorDlg_axis_x_CheckBoxChanged()
+{
+	if(`checkBox -q -exists "ragMirrorDlg_axis_x_CheckBox"`)
+	{
+		int $flipAxix = `checkBox -q -value "ragMirrorDlg_axis_x_CheckBox"`;
+		if($flipAxix)
+		{
+			if(`checkBox -q -exists "ragMirrorDlg_axis_y_CheckBox"`)
+				checkBox -e -value 0 "ragMirrorDlg_axis_y_CheckBox";
+			if(`checkBox -q -exists "ragMirrorDlg_axis_z_CheckBox"`)
+				checkBox -e -value 0 "ragMirrorDlg_axis_z_CheckBox";
+		}
+	}
+}
+
+global proc ragMirrorDlg_axis_y_CheckBoxChanged()
+{
+	if(`checkBox -q -exists "ragMirrorDlg_axis_y_CheckBox"`)
+	{
+		int $flipAxix = `checkBox -q -value "ragMirrorDlg_axis_y_CheckBox"`;
+		if($flipAxix)
+		{
+			if(`checkBox -q -exists "ragMirrorDlg_axis_z_CheckBox"`)
+				checkBox -e -value 0 "ragMirrorDlg_axis_z_CheckBox";
+			if(`checkBox -q -exists "ragMirrorDlg_axis_x_CheckBox"`)
+				checkBox -e -value 0 "ragMirrorDlg_axis_x_CheckBox";
+		}
+	}
+}
+
+global proc ragMirrorDlg_axis_z_CheckBoxChanged()
+{
+	if(`checkBox -q -exists "ragMirrorDlg_axis_z_CheckBox"`)
+	{
+		int $flipAxix = `checkBox -q -value "ragMirrorDlg_axis_z_CheckBox"`;
+		if($flipAxix)
+		{
+			if(`checkBox -q -exists "ragMirrorDlg_axis_y_CheckBox"`)
+				checkBox -e -value 0 "ragMirrorDlg_axis_y_CheckBox";
+			if(`checkBox -q -exists "ragMirrorDlg_axis_x_CheckBox"`)
+				checkBox -e -value 0 "ragMirrorDlg_axis_x_CheckBox";
+		}
+	}
+}
+
+// compare two strings. Count the matching letters at matching positions. If they are the same, return -1.
+// we can use the return value for mirroring bones purpose.
+global proc int countMatchingLetters(string $s1, string $s2)
+{
+    int $len1 = `size $s1`;
+    int $len2 = `size $s2`;
+    int $sameLen = ($len1 == $len2);
+    if($len2 < $len1)
+        $len1 = $len2;
+    if($len1 < 1)
+        return 0;
+    int $count = 0;
+    string $ch1 = `endString $s1 1`;
+    string $ch2 = `endString $s2 1`;
+    print ("-->" + $ch1 + "," + $ch2 + "\n");
+    if($ch1 == $ch2)
+        $count++;
+    for($i=1; $i<$len1; $i++)
+    {
+        $ch1 = `substring $s1 $i 1`;
+        $ch2 = `substring $s2 $i 1`;
+        print ("-->" + $ch1 + "," + $ch2 + "\n");
+        if($ch1 == $ch2)
+            $count++;
+    }
+    print ("$sameLen="+$sameLen+"\n");
+    if($sameLen && ($len1 == $count))
+        return -1;
+    return $count;
+}
+
+// Display list of source joints with rigid bodies based on user input
+// Ignore capitalization of characters in the search string during comparison
+// Set cursor to focus on the replace bone text field
+//
+global proc findSourceJointsWithRigidBodyList()
+{
+	global string $gAEnxRagdollLocatorNodeName, $gMirrorRagdollSourceBonesScrollList;
+	global string $gMirrorRagdollSourceBonesTextField, $gMirrorRagdollReplaceBonesTextField;
+
+	// 1. Obtain string to search & turn all characters to lower for comparison
+	string $searchString = `textField -q -text $gMirrorRagdollSourceBonesTextField`;
+	$searchString = `tolower $searchString`;
+	//print $searchString;
+
+	// 2. Obtain list of connected joints & clear textScrollList before search
+	$joints = `listConnections -t "joint" ($gAEnxRagdollLocatorNodeName + ".joints")`;
+	textScrollList -edit -removeAll $gMirrorRagdollSourceBonesScrollList;
+	
+	// 3. Look for joints with nxRigidBody and if the name contains the search string, append them to source bone list 
+	for ($item in $joints)
+	{
+		$jointChildList = `listRelatives -fullPath -children -type "nxRigidBody" $item`;
+		if( size( $jointChildList ) > 0 )
+		{
+			string $jointName = $item;
+			$jointName = `tolower $jointName`;
+
+			if(`gmatch $jointName ("*"+$searchString+"*")`)
+				textScrollList -edit -append $item $gMirrorRagdollSourceBonesScrollList;
+		}
+	};	
+
+	// 4. Set the cursor to the replacing name text field
+	setFocus $gMirrorRagdollReplaceBonesTextField;
+}
+
+// Search for list of joints using names subsituted by replaced string 
+// Display the joints aligned to their respective source joints.
+// Suffix their names with an indicator if the joint has an existing rigidbody
+// If no joints are found or joint names are the same, display blank. 
+// Ignore capitalization of characters in the search string during comparison
+// Set cursor to focus on source bones scroll list field.
+//
+global proc findReplaceJointsList()
+{
+	global string $gAEnxRagdollLocatorNodeName, $gRBIndicatorLabel;
+	global string $gMirrorRagdollSourceBonesTextField, $gMirrorRagdollReplaceBonesTextField;
+	global string $gMirrorRagdollSourceBonesScrollList, $gMirrorRagdollReplaceBonesScrollList;
+
+	// 1. Obtain string to search & turn all characters to lower for comparison
+	string $sourceString = `textField -q -text $gMirrorRagdollSourceBonesTextField`;
+	$sourceString = `tolower $sourceString`;
+	string $replaceString = `textField -q -text $gMirrorRagdollReplaceBonesTextField`;
+	$replaceString = `tolower $replaceString`;
+	//print $replaceString;
+
+	// clear replace bones list
+	textScrollList -edit -removeAll $gMirrorRagdollReplaceBonesScrollList;
+
+	// Begin search only if source & replace strings are not the same or the replace or source string are not empty
+	//if ( (!`gmatch $sourceString $replaceString`) || ($sourceString!="") || ($replaceString!="") )
+	if ( (!`gmatch $sourceString $replaceString`) && (size($sourceString)>0) && (size($replaceString)>0))
+	{
+
+		// 2. Obtain list of connected joints & source joints with rigid bodies & clear replace joints textScrollList before search
+		$allJoints = `listConnections -t "joint" ($gAEnxRagdollLocatorNodeName + ".joints")`;
+		string $possibleTargets[] = {};
+		for ($item in $allJoints)
+		{
+			string $jointName = $item;
+			$jointName = `tolower $jointName`;
+			if(`gmatch $jointName ("*"+$replaceString+"*")`)
+				stringArrayInsertAtIndex(10000, $possibleTargets, $item);
+		}
+		//print $possibleTargets[0];
+
+		$sourceJoints = `textScrollList -q -allItems $gMirrorRagdollSourceBonesScrollList`;
+		
+		// 3. Look for joints with nxRigidBody and if the name contains the search string, append them to source bone list with rbIndicator
+		for ($sourceJoint in $sourceJoints)
+		{			
+			string $sourceJointName = $sourceJoint;
+			$sourceJointName = `tolower $sourceJointName`;
+
+			string $searchString = `substituteAllString $sourceJointName $sourceString $replaceString`;
+			//print ("ss: " + $searchString + "\n");
+
+			int $found = 0;
+			string $replaceJointName="";
+			for ($item in $possibleTargets)
+			{
+				string $jointName = $item;
+				$jointName = `tolower $jointName`;
+				// if a joint is found based on the subsituted name, append name to replace bone scroll list
+				if(`gmatch $jointName $searchString`) 
+				{
+					$found++;
+					$replaceJointName = $item;
+				}
+			}
+
+			if( $found > 0 )
+			{
+				$jointChildList = `listRelatives -fullPath -children -type "nxRigidBody" $replaceJointName`;
+
+				// Append a rbIndicator suffix if current joint has an exisitng rigidbody
+				if( size( $jointChildList ) > 0 )
+					textScrollList -edit -append ($replaceJointName+$gRBIndicatorLabel) $gMirrorRagdollReplaceBonesScrollList;
+				else
+					textScrollList -edit -append $replaceJointName $gMirrorRagdollReplaceBonesScrollList;
+			}
+			else // If no joints are found, append a blank line to the list
+				textScrollList -edit -append " " $gMirrorRagdollReplaceBonesScrollList;
+		}	
+		// 4. Set the cursor to the source bones scroll list field
+		setFocus $gMirrorRagdollSourceBonesScrollList;
+	}
+	else
+		warning "Please check that neither the source / destination search terms are not empty or the same.\n";
+}
+
+// Highlights the matching joints when selection is made either source/replace joint list
+global proc highlightSelection( int $sourceSelection )
+{
+	global string $gMirrorRagdollSourceBonesScrollList, $gMirrorRagdollReplaceBonesScrollList;
+	if( $sourceSelection )
+	{
+		// check if there's any destination bones in the scroll list
+		if( `textScrollList -q -numberOfItems $gMirrorRagdollReplaceBonesScrollList` == 0 )
+		{
+			warning "Please enter search terms for matching bones before selection.\n";
+			return;
+		}
+
+		// Clear all selection
+		textScrollList -e -deselectAll $gMirrorRagdollReplaceBonesScrollList;
+
+		// Get the indices of the selected items
+		int $sourceJointsIndex[] = `textScrollList -q -selectIndexedItem $gMirrorRagdollSourceBonesScrollList`;
+
+		// Reflect the selection in the matching joints
+		for( $item in $sourceJointsIndex )
+		{
+			textScrollList -e -selectIndexedItem $item $gMirrorRagdollReplaceBonesScrollList;
+		}
+	}
+	else
+	{
+		// Clear all selection
+		textScrollList -e -deselectAll $gMirrorRagdollSourceBonesScrollList;
+
+		// Get the indices of the selected items
+		int $replaceJointsIndex[] = `textScrollList -q -selectIndexedItem $gMirrorRagdollReplaceBonesScrollList`;
+
+		// Reflect the selection in the matching joints
+		for( $item in $replaceJointsIndex )
+		{
+			textScrollList -e -selectIndexedItem $item $gMirrorRagdollSourceBonesScrollList;
+		}
+	}
+
+	// To ensure joints with no matching pairs, deselect any selection with joints labeled as " " in replace bone list
+	string $replaceJoints[] = `textScrollList -q -selectItem $gMirrorRagdollReplaceBonesScrollList`;
+	int $replaceJointsIndex[] = `textScrollList -q -selectIndexedItem $gMirrorRagdollReplaceBonesScrollList`;
+	int  $count=0;
+	for( $item in $replaceJoints )
+	{
+		if(`gmatch $item " "`)
+		{
+			textScrollList -e -deselectItem $item $gMirrorRagdollReplaceBonesScrollList;
+			textScrollList -e -deselectIndexedItem $replaceJointsIndex[$count] $gMirrorRagdollSourceBonesScrollList;
+		}
+		$count++;
+	}
+
+
+}
+
+// Interface to process user's request to mirror all/selected the rigidbodies found in the source joint list to their matching 
+// bones in the destination joints list, irregardless whether the matching bones have existing rigid bodies.
+// Display a confirmation dialog to proceed mirroring, if there are existing rigid bodies.
+//
+global proc preMirrorRigidBodies( int $selectAll )
+{
+	global string $gRBIndicatorLabel, $gSourceJointList[];
+	global string $gMirrorRagdollSourceBonesScrollList, $gMirrorRagdollReplaceBonesScrollList;
+	global string $gRbsMirrorDlgFrom[], $gRbsMirrorDlgTo[];
+	string $jointsWithRB[];
+	string $replaceJointList[];
+
+	$gRbsMirrorDlgTo = `textScrollList -q -allItems $gMirrorRagdollReplaceBonesScrollList`;
+	$gRbsMirrorDlgFrom = `textScrollList -q -allItems $gMirrorRagdollSourceBonesScrollList`;
+	for( $i=0; $i<size( $gRbsMirrorDlgTo ); $i++ )
+	{
+		if( `gmatch $gRbsMirrorDlgTo[$i] ("*"+$gRBIndicatorLabel)` == 1 )
+		{
+			// Remove rbIndicator from the label
+			$gRbsMirrorDlgTo[$i] = substituteAllString($gRbsMirrorDlgTo[$i], $gRBIndicatorLabel, "");
+		}
+	}
+	// 1. Obtain all/selected bones in the destination joint list & check if there are existing rigid bodies
+	if( $selectAll )
+	{
+		$replaceJointList = `textScrollList -q -allItems $gMirrorRagdollReplaceBonesScrollList`;
+		$gSourceJointList = `textScrollList -q -allItems $gMirrorRagdollSourceBonesScrollList`;
+	}
+	else 
+	{
+		$replaceJointList = `textScrollList -q -selectItem $gMirrorRagdollReplaceBonesScrollList`;
+		$gSourceJointList = `textScrollList -q -selectItem $gMirrorRagdollSourceBonesScrollList`;
+	}
+
+	if( ( size($gSourceJointList) > 0 ) && ( size($replaceJointList) > 0 ) )
+	{	
+		int $count = 0;
+		for( $i=0; $i<size( $replaceJointList ); $i++ )
+		{
+			if( `gmatch $replaceJointList[$i] ("*"+$gRBIndicatorLabel)` == 1 )
+			{
+				// Remove rbIndicator from the label
+				$replaceJointList[$i] = substituteAllString($replaceJointList[$i], $gRBIndicatorLabel, "");
+				// Save list of joints with RB for confirmation dialog
+				$jointsWithRB[$count] = $replaceJointList[$i];
+				$count++;
+				//print ($jointsWithRB[$count]+"\n");
+			}
+		}
+
+		// 2. if there are existing rigid bodies, display confirmation dialog
+		if( $count > 0 )
+			mirrorConfirmationDialog( $jointsWithRB, $replaceJointList );
+		else // 3. proceed with mirroring
+			mirrorRigidBodies( $replaceJointList );
+	}
+	else
+		warning "No selection made. Mirror will not continue.";
+}
+
+
+// Confirmation dialog to proceeed mirroring if there are existing rigid bodies.
+// 
+// 
+global proc mirrorConfirmationDialog( string $jointsWithRigidBodies[], string $fullReplaceJointList[] )
+{
+	int $numRB = `size($jointsWithRigidBodies)`;
+
+	string $message="";
+
+	if( $numRB == 1 )
+	{
+		$message = ( "The following bone has existing rigid body applied:\n" 
+				  + $jointsWithRigidBodies[0] + "\n\n" 
+				  + "Really replace the rigid body on this bone?" );
+
+	}
+	else
+	{
+		string $rbList = "";
+		int $count = 0;
+		for( $item in $jointsWithRigidBodies )
+		{
+			$rbList = $rbList + $item + ", ";
+			if($count == 3) // for every 4th item, add a new line
+			{
+				$rbList = $rbList + "\n";
+				$count = 0;
+			}
+			$count++;
+		}
+
+		//strip the last set of ", "
+		int $numChar = `size($rbList)`;
+		$rbList = `substring $rbList 1 ( $numChar - 2 )`;
+
+
+		$message = ( "The following " + $numRB + " bones have existing rigid bodies applied:\n" 
+				  + $rbList + "\n\n" 
+				  + "Really replace the existing rigid bodies on these bones?" );
+	}
+
+	$response = `confirmDialog 
+		-title "Proceed with mirroring?" 
+		-message $message 
+		-button "Yes" 
+		-button "No" 
+		-defaultButton "Yes"
+		-cancelButton "No" 
+		-dismissString "No"`;
+
+	if( $response == "Yes" )
+		mirrorRigidBodies( $fullReplaceJointList );
+}
+
+global proc nxClearRigidbodyShapes(string $shapes[])
+{
+	//$shapes = `listConnections -d off -s on -type "physicsShape" ($rigidBody + ".physicsShapes")`;
+	for($item in $shapes)
+	{
+		$shapeParents = `listRelatives -fullPath -parent -type "transform" -path $item`;
+		if (`nodeType $shapeParents[0]`!="transform")
+		{
+			//warning "Unable to find physics shape's transform parent. Only Physics Shape deleted.\n";
+			delete $item;
+		}
+		else
+		{
+			$shapeParent = $shapeParents[0];
+			delete $shapeParent;
+		}
+	}
+}
+
+global proc nxFliptShapes(string $rigidBody, int $axes[])
+{
+	$psUnderRB = `listConnections -d off -s on -type "physicsShape" ($rigidBody + ".physicsShapes")`;
+	for($item in $psUnderRB)
+	{
+		int $shapeType = `getAttr ($item + ".shapeType")`;
+		if($axes[0])
+		{
+			float $oldV = `getAttr ($item + ".translateX")`;
+			setAttr ($item + ".translateX") (-$oldV);
+
+			$oldV = `getAttr ($item + ".translateY")`;
+			setAttr ($item + ".translateY") (-$oldV);
+
+			$oldV = `getAttr ($item + ".rotateY")`;
+			setAttr ($item + ".rotateY") ($oldV + 180);
+		}
+		else if($axes[1])
+		{
+			float $oldV = `getAttr ($item + ".translateZ")`;
+			setAttr ($item + ".translateZ") (-$oldV);
+
+			$oldV = `getAttr ($item + ".translateX")`;
+			setAttr ($item + ".translateX") (-$oldV);
+
+			$oldV = `getAttr ($item + ".rotateX")`;
+			setAttr ($item + ".rotateX") ($oldV + 180);
+
+			$oldV = `getAttr ($item + ".rotateZ")`;
+			setAttr ($item + ".rotateZ") ($oldV + 180);
+		}
+		else if($axes[2])
+		{
+			float $oldV = `getAttr ($item + ".translateY")`;
+			setAttr ($item + ".translateY") (-$oldV);
+
+			$oldV = `getAttr ($item + ".translateZ")`;
+			setAttr ($item + ".translateZ") (-$oldV);
+
+			$oldV = `getAttr ($item + ".rotateZ")`;
+			setAttr ($item + ".rotateZ") ($oldV + 180);
+		}
+	}
+}
+
+global proc copyFloat3Attr(string $psFrom, string $psTo, string $name)
+{
+	float $sv[] = `getAttr ($psFrom + $name)`;
+	setAttr ($psTo + $name) -type "float3"  $sv[0] $sv[1] $sv[2];
+}
+
+global proc copyPhysicsShapeParams(string $psFrom, string $psTo)
+{
+	//print("copy RB shape params from" + $psFrom + " to " + $psTo + " \n");
+	setAttr ($psTo + ".shapeType") (`getAttr ($psFrom + ".shapeType")`);
+	setAttr ($psTo + ".bestFit")   (`getAttr ($psFrom + ".bestFit")`);
+	setAttr ($psTo + ".radius")    (`getAttr ($psFrom + ".radius")`);
+	setAttr ($psTo + ".height")    (`getAttr ($psFrom + ".height")`);
+	setAttr ($psTo + ".inflate")   (`getAttr ($psFrom + ".inflate")`);
+	copyFloat3Attr($psFrom, $psTo, ".size");
+	string $fromTransform[] = `listRelatives -fullPath -parent -type "transform" -path $psFrom`;
+	string $toTransform[] = `listRelatives -fullPath -parent -type "transform" -path $psTo`;
+	if(size($fromTransform) == 1 && size($toTransform) ==1)
+	{
+		//print("copy RB transform params \n");
+		//copyAttr -values $fromTransform[0] $toTransform[0];
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".translate");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".rotate");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".scale");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".shear");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".rotateAxis");
+		setAttr ($toTransform[0] + ".rotateOrder")  (`getAttr ($fromTransform[0] + ".rotateOrder")`);
+		setAttr ($toTransform[0] + ".inheritsTransform")  (`getAttr ($fromTransform[0] + ".inheritsTransform")`);
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".scalePivot");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".rotatePivot");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".rotatePivotTranslate");
+		copyFloat3Attr($fromTransform[0], $toTransform[0], ".scalePivotTranslate");
+	}
+}
+
+// Set joints to be mirrored as active selection & execute mirrorRagdollRigidBodyCmd
+// Refresh replace bones list.
+//
+global proc mirrorRigidBodies( string $selectedJoints[] )
+{
+	global string $gMirrorRagdollSourceBonesScrollList;
+	global string $gMirrorRagdollSourceBonesTextField, $gMirrorRagdollReplaceBonesTextField;
+	global string $gSourceJointList[];
+	global string $gRbsMirrorDlgFrom[], $gRbsMirrorDlgTo[];  // full list, no matter selected or not
+	print "mirroring rigidbodies...\n";
+
+	int $flipAxes[] = {0, 0, 0};
+	if(`checkBox -q -exists "ragMirrorDlg_axis_x_CheckBox"`)
+		$flipAxes[0] = `checkBox -q -value "ragMirrorDlg_axis_x_CheckBox"`;
+	if(`checkBox -q -exists "ragMirrorDlg_axis_y_CheckBox"`)
+		$flipAxes[1] = `checkBox -q -value "ragMirrorDlg_axis_y_CheckBox"`;
+	if(`checkBox -q -exists "ragMirrorDlg_axis_z_CheckBox"`)
+		$flipAxes[2] = `checkBox -q -value "ragMirrorDlg_axis_z_CheckBox"`;
+
+	// 1. Mirror RigidBodies | Execute mirrorRagdollRigidBodyCmd (future)
+	//    Go through list of selected joints 
+
+	//for($item in $selectedJoints)
+	string $selectedPhysicsShapeList[] = {};
+	string $replacedPhysicsShapeList[] = {};
+	int $i, $n;
+	for($i=0; $i<size($selectedJoints); $i++)
+	{
+		// 1.0 if there are no matching joints, skip mirroring
+		if(`gmatch $selectedJoints[$i] " "`)
+			continue;
+
+		// 1.1 Find the matching joint's rigid body
+		$sourceRigidBody = `listRelatives -fullPath -children -type "nxRigidBody" $gSourceJointList[$i]`;
+		print ("joints: " + $selectedJoints[$i] + " - " + $gSourceJointList[$i] + "\n");
+
+		$physicsShapeList = `listConnections -shapes true ($sourceRigidBody[0]+".physicsShapes")`;
+		if(`size $physicsShapeList`<1)
+		{
+			warning ("Mirror Rigid Bodies: Source Rigid body (" + $sourceRigidBody[0] + ") has no shapes. Skip it.\n");
+			continue;
+		}
+
+		// 1.2 Delete existing rigid body, first in the list.
+		string $jointChildList[] = `listRelatives -fullPath -children -type "nxRigidBody" $selectedJoints[$i]`;
+
+		if( size( $jointChildList ) < 1 )
+		{
+			warning ("Mirror Rigid Bodies: Source Rigid body (" + $sourceRigidBody[0] + ") has no target Rigid body. Skip it.\n");
+			continue;
+		}
+		//string $targetphysicsShapeList[] = `listConnections -shapes true ($jointChildList[0]+".physicsShapes")`;
+
+		// 1.3 get the target rigid body
+		//select -r $selectedJoints[$i];
+		//$replaceRigidBody = `nxRigidBody  -skipShapes -n ( $selectedJoints[$i] + "RigidBody" )`;
+		$replaceRigidBody = $jointChildList[0];
+
+		// 1.5 Copy the matching joint's rigid body attribute values over to newly created rigid body
+		//if( size( $sourceRigidBody ) > 0 )
+			copyAttr -values $sourceRigidBody[0] $replaceRigidBody;
+
+		// 1.6 Duplicate all Physics Shapes parented under source rigidbody
+		appendStringArray($selectedPhysicsShapeList, $physicsShapeList, `size $physicsShapeList` );
+		//print ("rb: " + $sourceRigidBody[0] + "\n");
+		// we put the ps whose sibling include mesh front
+		int $index ;
+		int $length = size($physicsShapeList);
+		for( $index = 0; $index < $length; $index++ )
+		{
+			string $psTransform[] = `listRelatives -fullPath -p $physicsShapeList[$index]`;
+			if(size(`listRelatives -fullPath -allDescendents -type "mesh" $psTransform[0]`) > 0)
+			{
+				break;
+			}
+		}
+		if( $index < $length && $index > 0 && $length > 1)
+		{
+			string $temp;
+			$temp = $physicsShapeList[$index];
+			$physicsShapeList[$index] = $physicsShapeList[0];
+			$physicsShapeList[0] = $temp;
+		}
+
+		//clear existing shapes
+		//$psUnderRB = `listConnections -d off -s on -type "physicsShape" ($replaceRigidBody + ".physicsShapes")`;
+		//nxClearRigidbodyShapes($psUnderRB);
+		$toShapeList = `listConnections -shapes true ($replaceRigidBody + ".physicsShapes")`;
+
+		int $szSrc = size($physicsShapeList);
+		int $szTarget = size($toShapeList);
+
+		// add shapes to match shape number
+		for($n = $szTarget; $n < ($szSrc); $n++)
+		{
+			$ps = $physicsShapeList[$n];
+			duplicatePhysicsShape( $ps, $replaceRigidBody, false, $replacedPhysicsShapeList );
+		}
+
+		int $numToCopy = $szSrc;
+		if($szSrc > $szTarget)
+			$numToCopy = $szTarget;
+
+		for($n = 0; $n < ($numToCopy); $n++)
+		{
+			copyPhysicsShapeParams($physicsShapeList[$n], $toShapeList[$n]);
+		}
+		
+		nxFliptShapes($replaceRigidBody, $flipAxes);
+
+		// 1.7 Duplicate all constraints parented under rigid body
+		$constraintList = `listConnections -shapes true ($replaceRigidBody+".adapter")`;
+		for( $rConstraint in $constraintList )
+		{
+			// delete old constraint
+			delete $rConstraint;
+		}
+		$constraintList = `listConnections -shapes true ($sourceRigidBody[0]+".adapter")`;
+		string $shortName = shortNameOf($replaceRigidBody);
+		for( $constraint in $constraintList)
+		{
+			duplicateConstraint($constraint, $sourceRigidBody[0], $shortName);
+		}
+	}
+	for($i = 0; $i < size($selectedPhysicsShapeList); $i++)
+	{
+		string $ps = $selectedPhysicsShapeList[$i];
+		string $currentPhysicsShapeAttr = $ps  + ".connectToClothSphere";
+		// Figure out the existed connection
+		$connectedShape = `listConnections -shapes true -t "physicsShape" ($currentPhysicsShapeAttr)`;
+		if(`size($connectedShape)` > 0)
+		{
+			if(`isConnected ($connectedShape[0] + ".message") $currentPhysicsShapeAttr`)
+			{
+				int $j;
+				int $index = -1;
+				for($j = 0; $j < size($selectedPhysicsShapeList); $j++)
+				{
+					if($connectedShape[0] == $selectedPhysicsShapeList[$j])
+					{
+						$index = $j;
+						break;
+					}
+				}
+
+				string $connectToPhysicsMessageAttr, $shapeName;
+				if($index != -1)
+				{
+					$shapeName = $replacedPhysicsShapeList[$index];
+				}
+				else 
+				{
+					$shapeName = $connectedShape[0];
+				}
+				for($j = 0; $j < size($gRbsMirrorDlgFrom); $j++)
+				{
+					if ($gRbsMirrorDlgTo[$j] == " ")
+						continue;
+					//print("Trying1... " + $gRbsMirrorDlgFrom[0] + "\n");
+					//print("Trying1... " + $gRbsMirrorDlgTo[0] + "\n");
+					$rigidBodySrc = `listRelatives -fullPath -children -type "nxRigidBody" $gRbsMirrorDlgFrom[$j]`;
+					$rigidBodyTarget = `listRelatives -fullPath -children -type "nxRigidBody" $gRbsMirrorDlgTo[$j]`;
+					if(size($rigidBodySrc) < 1 && size($rigidBodyTarget) < 1)
+						continue;
+					//print("Trying2... " + $rigidBodySrc[0] + "\n");
+					$psSrc = `listConnections -shapes true -et true -type "physicsShape" ($rigidBodySrc[0]+".physicsShapes")`;
+					$psTarget = `listConnections -shapes true -et true -type "physicsShape" ($rigidBodyTarget[0]+".physicsShapes")`;
+					if(size($psSrc) < 1 && size($psTarget) < 1)
+						continue;
+					//print("Trying3... " + $psSrc[0] + "\n");
+					if($shapeName == $psSrc[0])
+					{
+						$shapeName = $psTarget[0];
+						//print (" find a matching " + $shapeName + "\n");
+						break;
+					}
+				}
+
+				$connectToPhysicsMessageAttr = $shapeName + ".message";
+
+				string $currentPhysicsShapeClothSphereAttr = $replacedPhysicsShapeList[$i] + ".connectToClothSphere";
+				string $cmd = "connectAttr " +  $connectToPhysicsMessageAttr + " " + $currentPhysicsShapeClothSphereAttr;
+				//print (" connect cmd is: " + $cmd + "\n");
+				evalEcho $cmd;
+			}
+		}
+	}
+
+	global string $gAEnxRagdollLocatorNodeName;
+	select $gAEnxRagdollLocatorNodeName;
+	evalDeferred ("nxShowEditorExact " + $gAEnxRagdollLocatorNodeName);
+	// 2. Refresh replace bones list.
+	// findReplaceJointsList;
+	print "mirroring rigidbodies... completed.\n";
+}

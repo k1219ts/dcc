@@ -1,0 +1,377 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ tile_color 0x162b52ff
+ addUserKnob {20 control}
+ addUserKnob {41 focal l camera_focal T front_Cam1.focal}
+ addUserKnob {4 camera_select M {4viewer front back left right ""}}
+ addUserKnob {26 ""}
+ addUserKnob {26 by l "" +STARTLINE T "\n\nVR Four Viewer Gizmo\nfor DEXTER DIGITAL \nby Technical Artist Giuk.Kim"}
+}
+ Camera2 {
+  inputs 0
+  rotate {0 90 0}
+  focal {{parent.front_Cam1.focal}}
+  win_scale {1.2 1.2}
+  name right_Cam1
+  xpos -304
+  ypos 335
+ }
+ Input {
+  inputs 0
+  name InputLatlong_Img
+  xpos -513
+  ypos 64
+ }
+ Sphere {
+  uniform_scale 13.6
+  name Sphere1
+  xpos -513
+  ypos 142
+ }
+set N227dde90 [stack 0]
+ Constant {
+  inputs 0
+  channels rgb
+  format "2048 1024 0 0 2048 1024 1 2K_LatLong"
+  name Constant1
+  xpos -786
+  ypos 140
+ }
+set N227ec960 [stack 0]
+ ScanlineRender {
+  inputs 3
+  conservative_shader_sampling false
+  filter Lanczos4
+  motion_vectors_type distance
+  name ScanlineRender2
+  xpos -218
+  ypos 355
+ }
+ Mirror2 {
+  flop true
+  name Mirror2_6
+  xpos -218
+  ypos 381
+ }
+ Text2 {
+  font_size_toolbar 100
+  font_width_toolbar 100
+  font_height_toolbar 100
+  message right
+  old_message {{114 105 103 104 116}
+    }
+  box {2.5 913.5 219.5 1014.5}
+  transforms {{0 2}
+    }
+  cursor_position 5
+  scale {1 1}
+  cursor_initialised true
+  initial_cursor_position {{2.5 1014.5}
+    }
+  group_animations {{0} imported: 0 selected: items: "root transform/"}
+  animation_layers {{1 11 1024 512 0 0 1 1 0 0 0 0}
+    }
+  name Text3
+  xpos -218
+  ypos 425
+ }
+set N21c0e3f0 [stack 0]
+ Dot {
+  name Dot8
+  xpos -286
+  ypos 423
+ }
+ Dot {
+  name Dot6
+  xpos -286
+  ypos 879
+ }
+ Camera2 {
+  inputs 0
+  rotate {0 -90 0}
+  focal {{parent.front_Cam1.focal}}
+  win_scale {1.2 1.2}
+  name left_Cam1
+  xpos -493
+  ypos 337
+ }
+push $N227dde90
+push $N227ec960
+ ScanlineRender {
+  inputs 3
+  conservative_shader_sampling false
+  filter Lanczos4
+  motion_vectors_type distance
+  name ScanlineRender7
+  xpos -398
+  ypos 357
+ }
+ Mirror2 {
+  flop true
+  name Mirror2_7
+  xpos -398
+  ypos 383
+ }
+ Text2 {
+  font_size_toolbar 100
+  font_width_toolbar 100
+  font_height_toolbar 100
+  message left
+  old_message {{108 101 102 116}
+    }
+  box {2.5 913.5 148.5 1014.5}
+  transforms {{0 2}
+    }
+  cursor_position 4
+  scale {1 1}
+  center {1024 512}
+  cursor_initialised true
+  initial_cursor_position {{2.5 1014.5}
+    }
+  group_animations {{0} imported: 0 selected: 0 items: "root transform/"}
+  animation_layers {{1 11 1024 512 0 0 1 1 0 0 0 0}
+    }
+  name Text8
+  xpos -398
+  ypos 421
+ }
+set N25fd1660 [stack 0]
+ Dot {
+  name Dot7
+  xpos -473
+  ypos 419
+ }
+ Dot {
+  name Dot5
+  xpos -473
+  ypos 875
+ }
+ Camera2 {
+  inputs 0
+  rotate {0 180 0}
+  focal {{parent.front_Cam1.focal}}
+  win_scale {1.2 1.2}
+  name back_Cam1
+  xpos -871
+  ypos 341
+ }
+push $N227dde90
+push $N227ec960
+ ScanlineRender {
+  inputs 3
+  conservative_shader_sampling false
+  filter Lanczos4
+  motion_vectors_type distance
+  name ScanlineRender8
+  xpos -786
+  ypos 361
+ }
+ Mirror2 {
+  flop true
+  name Mirror2_8
+  xpos -786
+  ypos 387
+ }
+ Text2 {
+  font_size_toolbar 100
+  font_width_toolbar 100
+  font_height_toolbar 100
+  message back
+  old_message {{98 97 99 107}
+    }
+  box {2.5 913.5 217.5 1014.5}
+  transforms {{0 2}
+    }
+  cursor_position 4
+  scale {1 1}
+  center {1024 512}
+  cursor_initialised true
+  initial_cursor_position {{2.5 1014.5}
+    }
+  group_animations {{0} imported: 0 selected: 0 items: "root transform/"}
+  animation_layers {{1 11 1024 512 0 0 1 1 0 0 0 0}
+    }
+  name Text9
+  xpos -786
+  ypos 420
+ }
+set N601c2930 [stack 0]
+ Dot {
+  name Dot4
+  xpos -814
+  ypos 411
+ }
+ Dot {
+  name Dot3
+  xpos -814
+  ypos 916
+ }
+ Camera2 {
+  inputs 0
+  focal 8
+  win_scale {1.2 1.2}
+  name front_Cam1
+  xpos -676
+  ypos 352
+ }
+push $N227dde90
+push $N227ec960
+ ScanlineRender {
+  inputs 3
+  conservative_shader_sampling false
+  filter Lanczos4
+  motion_vectors_type distance
+  name ScanlineRender1
+  xpos -594
+  ypos 372
+ }
+ Mirror2 {
+  flop true
+  name Mirror2_5
+  xpos -594
+  ypos 402
+ }
+ Text2 {
+  font_size_toolbar 100
+  font_width_toolbar 100
+  font_height_toolbar 100
+  message front
+  old_message {{102 114 111 110 116}
+    }
+  box {2.5 913.5 227.5 1014.5}
+  transforms {{0 2}
+    }
+  cursor_position 5
+  scale {1 1}
+  center {1024 512}
+  cursor_initialised true
+  initial_cursor_position {{2.5 1014.5}
+    }
+  group_animations {{0} imported: 0 selected: 0 items: "root transform/"}
+  animation_layers {{1 11 1024 512 0 0 1 1 0 0 0 0}
+    }
+  name Text2
+  xpos -594
+  ypos 437
+ }
+set N71571b90 [stack 0]
+ Dot {
+  name Dot2
+  xpos -633
+  ypos 435
+ }
+ Dot {
+  name Dot1
+  xpos -633
+  ypos 902
+ }
+push $N21c0e3f0
+ Transform {
+  center {1024 512}
+  name Transform1
+  xpos -218
+  ypos 463
+ }
+push $N25fd1660
+ Transform {
+  translate {2048 {parent.Transform1.translate.y}}
+  center {1024 512}
+  name Transform2
+  xpos -398
+  ypos 454
+ }
+push $N71571b90
+ Transform {
+  translate {0 {parent.Transform4.translate.y}}
+  center {1024 512}
+  name Transform3
+  xpos -594
+  ypos 497
+ }
+push $N601c2930
+ Transform {
+  translate {2048 1136}
+  center {1024 512}
+  name Transform4
+  xpos -786
+  ypos 481
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "4096 2160 0 0 4096 2160 1 4K_DCP"
+  name Constant2
+  xpos -925
+  ypos 533
+ }
+ Merge2 {
+  inputs 2
+  name Merge6
+  xpos -786
+  ypos 556
+ }
+ Merge2 {
+  inputs 2
+  name Merge13
+  xpos -594
+  ypos 556
+ }
+ Merge2 {
+  inputs 2
+  name Merge15
+  xpos -398
+  ypos 556
+ }
+ Merge2 {
+  inputs 2
+  name Merge16
+  xpos -218
+  ypos 556
+ }
+ Text2 {
+  font_size_toolbar 100
+  font_width_toolbar 100
+  font_height_toolbar 100
+  message "\[frame]"
+  old_message {{49}
+    }
+  old_expression_markers {{0 0}
+    }
+  box {1940.5 1019.5 2153.5 1120.5}
+  transforms {{0 2}
+    }
+  cursor_position 7
+  scale {1 1}
+  cursor_initialised true
+  initial_cursor_position {{1940.5 1120.5}
+    }
+  group_animations {{0} imported: 0 selected: items: "root transform/"}
+  animation_layers {{1 11 2048 1080 0 0 1 1 0 0 0 0}
+    }
+  name Text10
+  xpos -218
+  ypos 686
+ }
+ Switch {
+  inputs 5
+  which {{parent.camera_select}}
+  name Switch1
+  xpos -218
+  ypos 1105
+ }
+set N273cdfd0 [stack 0]
+ Output {
+  name Output1
+  xpos -218
+  ypos 1287
+ }
+push $N273cdfd0
+ Viewer {
+  frame_range 100-100
+  fps 60
+  name Viewer1
+  xpos -411
+  ypos 709
+ }
+end_group

@@ -1,0 +1,1460 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+// AEnxRigidBodyTemplate
+//
+// Author: Christian Laforte, Feeling Software Inc. (http://www.feelingsoftware.com)
+//
+
+// Global variables current rigid body node.
+global string $gAEnxRigidBodyNodeName;
+global string $gPhysicsShapeNodeName;
+global string $gAEphysicsShapeList;
+global string $gCopiedPhysicsShapeNodeName[];
+global int $gCopyCutPhysicsShapeMode; // 0: copy, 1: cut
+global string $gAEphysicsShapeClothSpherePopMenu1 = "AEphysicsShapeClothSpherePopMenu1";
+global string $gAEphysicsShapeClothSpherePopMenu2 = "AEphysicsShapeClothSpherePopMenu2";
+global string $gAEphysicsShapeClothSphereSubMenuAdd = "AEphysicsShapeClothSphereSubMenuAdd";
+
+global string $gAEnxRigidBody_CurShape = "";
+
+global proc AEnxRigidBodyTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Rigid Body Attributes" -collapse false;
+			editorTemplate -beginNoOptimize;
+				editorTemplate -addControl "simulationType" "nxRigidBody_activeControls";			
+				editorTemplate -addControl "switchToDynamic" "dimControl_switchToDynamic";
+				editorTemplate -label "At Frame" -addControl "switchAtFrame";
+
+				editorTemplate -addSeparator;
+
+				editorTemplate -addControl "enableGravity";
+				editorTemplate -addControl "forceToSleep";
+			editorTemplate -endNoOptimize;			      
+		editorTemplate -endLayout;
+			
+		editorTemplate -beginLayout "Physical Material" -collapse false;
+
+			editorTemplate -addControl "overrideMassOrDensity" "nxRigidBody_overrideMassOrDensity";
+			editorTemplate -label "Mass (kg)" -addControl "mass";
+			editorTemplate -label "Density (g/cm^3)" -addControl "density";
+
+			editorTemplate -addSeparator;
+					
+			editorTemplate -addControl "bounciness";
+			editorTemplate -addControl "staticFriction";
+			editorTemplate -addControl "dynamicFriction";
+
+			//editorTemplate -addControl "impulsePosition";
+			//editorTemplate -addControl "impulse";
+			//editorTemplate -addControl "spinImpulse";
+
+			//editorTemplate -addControl "solverId";
+			
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Shapes";
+			editorTemplate -callCustom "AEnxRigidBodyPhysicsShapesNew" 
+						"AEnxRigidBodyPhysicsShapesReplace" 
+						"shapes";
+		editorTemplate -endLayout;
+		
+		//editorTemplate -beginLayout "Contact Layers" -collapse true;
+		//	editorTemplate -callCustom "AEnxRigidBodyContactLayersNew" "AEnxRigidBodyContactLayersReplace" "contactLayers";
+		//editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Simulation Sets" -collapse true;
+			editorTemplate -callCustom "AEnxRigidBodySimulationSetsNew" "AEnxRigidBodySimulationSetsReplace" "simulationSets";
+		editorTemplate -endLayout;
+
+				
+		editorTemplate -beginLayout "Advanced" -collapse true;
+
+			editorTemplate -addControl "overrideGlobalIterationCount";
+			editorTemplate -addControl "positionIterationCount"; // "EnableDisablePhysXVersionRelatedControls positionIterationCount";
+			editorTemplate -addControl "velocityIterationCount" "EnableDisablePhysXVersionRelatedControls velocityIterationCount";
+		
+			editorTemplate -addSeparator;			
+
+			editorTemplate -addControl "contactShellOverride";
+			editorTemplate -addControl "contactShellDepth";
+			editorTemplate -addControl "contactShellOffset" "EnableDisablePhysXVersionRelatedControls contactShellOffset";
+	
+			editorTemplate -addSeparator;			
+
+			editorTemplate -addControl "sleepThesholdsOverride";
+			editorTemplate -addControl "sleepEnergyThreshold";
+					
+			editorTemplate -addSeparator;
+						
+			editorTemplate -addControl "linearDamping";
+            editorTemplate -addControl "angularDamping";
+			//editorTemplate -addControl "maxAngularVelocity";
+
+			editorTemplate -addSeparator;			
+
+			editorTemplate -addControl "centerOfMassMode" "nxRigidBody_COMControls";
+			editorTemplate -addControl "centerOfMassOverride";
+			//editorTemplate -addControl "inertiaTensor";
+			
+			editorTemplate -addSeparator;	
+					
+			editorTemplate -addControl "initialVelocity";
+			editorTemplate -addControl "initialSpin";	
+			
+			editorTemplate -addSeparator;	
+
+			editorTemplate -addControl "initialPosition" "updateParentTransform false";
+			editorTemplate -addControl "initialOrientation" "updateParentTransform false";
+				
+			//editorTemplate -addControl "standIn";
+			//editorTemplate -addControl "applyForceAt";
+			//editorTemplate -addControl "tessellationFactor";
+			//editorTemplate -addControl "collisionLayer";
+			//editorTemplate -addControl "collisions";
+			//editorTemplate -addControl "ignore";
+
+			editorTemplate -beginLayout "High Velocity Contact Enhancement";
+				editorTemplate -beginNoOptimize;
+				editorTemplate -label "Enabled Locally" -addControl "enableCCD";
+				// editorTemplate -label "Support Dynamic vs Dynamic" -addControl "dynamicDynamicCCD";
+				editorTemplate -label "Velocity Threshold" -addControl "CCDMotionThreshold";
+				editorTemplate -endNoOptimize;
+			editorTemplate -endLayout;
+				
+			editorTemplate -beginLayout "Simulation Results";
+			
+				editorTemplate -addControl "volume";
+				editorTemplate -addControl "velocity";
+				editorTemplate -addControl "spin";
+				//editorTemplate -addControl "linearMomentum";
+				//editorTemplate -addControl "angularMomentum";
+							
+			editorTemplate -endLayout;
+			
+		editorTemplate -endLayout;
+				
+
+		// Suppressed attributes
+		editorTemplate -suppress "inputGeometryCnt";
+		editorTemplate -suppress "inputGeometryMsg";
+		editorTemplate -suppress "interpenetrateWith";
+		//editorTemplate -suppress "choice";
+		//editorTemplate -suppress "contactCount";
+		editorTemplate -suppress "collisionData";
+		editorTemplate -suppress "collisionRecords";
+		editorTemplate -suppress "cacheData";
+		editorTemplate -suppress "minTransLimit";
+		editorTemplate -suppress "maxTransLimit";
+		editorTemplate -suppress "minRotLimit"; 
+		editorTemplate -suppress "maxRotLimit";
+		editorTemplate -suppress "minScaleLimit"; 
+		editorTemplate -suppress "maxScaleLimit";
+		editorTemplate -suppress "minTransLimitEnable";
+		editorTemplate -suppress "maxTransLimitEnable";
+		editorTemplate -suppress "minRotLimitEnable";
+		editorTemplate -suppress "maxRotLimitEnable";
+		editorTemplate -suppress "minScaleLimitEnable";
+		editorTemplate -suppress "maxScaleLimitEnable";
+
+		editorTemplate -suppress "caching";
+		editorTemplate -suppress "nodeState";
+		editorTemplate -suppress "blackBox";
+		editorTemplate -suppress "rmbCommand";
+		editorTemplate -suppress "templateName";
+		editorTemplate -suppress "templatePath";
+		editorTemplate -suppress "viewName";
+		editorTemplate -suppress "iconName";
+		editorTemplate -suppress "viewMode";
+		editorTemplate -suppress "templateVersion";
+		editorTemplate -suppress "uiTreatment";
+		editorTemplate -suppress "customTreatment";
+		editorTemplate -suppress "creator";
+		editorTemplate -suppress "creationDate";
+		editorTemplate -suppress "containerType";
+		editorTemplate -suppress "visibility";
+		editorTemplate -suppress "intermediateObject";
+		editorTemplate -suppress "template";
+		editorTemplate -suppress "ghosting";
+
+		editorTemplate -suppress "ghostingControl";
+		editorTemplate -suppress "ghostPreSteps";
+		editorTemplate -suppress "ghostPostSteps";
+		editorTemplate -suppress "ghostStepSize";
+		editorTemplate -suppress "ghostColorPreA";
+		editorTemplate -suppress "ghostColorPre";
+		editorTemplate -suppress "ghostColorPostA";
+		editorTemplate -suppress "ghostColorPost";
+		editorTemplate -suppress "ghostRangeStart";
+		editorTemplate -suppress "ghostRangeEnd";
+		editorTemplate -suppress "ghostDriver";
+		editorTemplate -suppress "translate";
+		editorTemplate -suppress "rotate";
+		editorTemplate -suppress "rotateOrder";
+		editorTemplate -suppress "scale";
+		editorTemplate -suppress "shear";
+		editorTemplate -suppress "rotatePivot";
+		editorTemplate -suppress "rotatePivotTranslate";
+		editorTemplate -suppress "scalePivot";
+		editorTemplate -suppress "scalePivotTranslate";
+		editorTemplate -suppress "rotateAxis";
+		editorTemplate -suppress "selectHandle";
+		editorTemplate -suppress "inheritsTransform";
+		editorTemplate -suppress "displayHandle";
+		editorTemplate -suppress "displayScalePivot";
+		editorTemplate -suppress "displayRotatePivot";
+		editorTemplate -suppress "displayLocalAxis";
+		editorTemplate -suppress "dynamics";
+		editorTemplate -suppress "showManipDefault";
+		editorTemplate -suppress "rotateQuaternion";
+		editorTemplate -suppress "enableRestPosition";
+		editorTemplate -suppress "lockOutput";
+		editorTemplate -suppress "objectColorRGB";
+		editorTemplate -suppress "useObjectColor";
+		editorTemplate -suppress "objectColor";
+		editorTemplate -suppress "lodVisibility";
+		editorTemplate -suppress "selectionChildHighlighting";
+		editorTemplate -suppress "scvJoint";
+		editorTemplate -suppress "dynamicDynamicCCD";
+		editorTemplate -suppress "deprecated_shapes";
+		editorTemplate -suppress "deprecated_aShapeMatrices";
+		editorTemplate -suppress "deprecated_aIdentityMatrix";
+		editorTemplate -suppress "deprecated_PIdentityMatrix";
+		editorTemplate -suppress "deprecated_aCurrentTime";
+		editorTemplate -suppress "deprecated_aID";
+		
+		editorTemplate -suppress "drawOverride";
+		editorTemplate -suppress "instObjGroups";
+		editorTemplate -suppress "renderInfo";
+		editorTemplate -suppress "renderLayerInfo";
+		editorTemplate -suppress "target";
+
+		editorTemplate -suppress "ghostCustomSteps";
+		editorTemplate -suppress "ghostFrames";
+		editorTemplate -suppress "geometry";
+		editorTemplate -suppress "physicsShapes";
+		editorTemplate -suppress "deprecated_inSimulate";
+		
+		// include/call base class/node attributes
+		//AEdynObjectCommon $nodeName;
+		//AEdynObjectInclude $nodeName;
+
+	    editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+
+	//nxRigidBody_physXVersionRelatedControls($nodeName);
+	
+	// Dim unsupported attributes.
+	//editorTemplate -dimControl $nodeName "particleCollision" true;
+	//editorTemplate -dimControl $nodeName "allowDisconnection" true;
+}
+
+
+global proc nxRigidBody_activeControls(string $nodeName)
+{
+    string $attr = $nodeName + ".simulationType";
+    int $isActive = `getAttr $attr`;
+	int $dimIt = true;
+
+	if ($isActive == 1)
+		$dimIt = false;
+
+	// If the rigid body is passive then dim the mass attribute.
+	//
+    editorTemplate -dimControl $nodeName "mass" $dimIt;
+    //editorTemplate -dimControl $nodeName "particleCollision" $dimIt;
+	editorTemplate -dimControl $nodeName "linearDamping" $dimIt;
+    editorTemplate -dimControl $nodeName "angularDamping" $dimIt;
+	editorTemplate -dimControl $nodeName "centerOfMassMode" $dimIt;	
+	if ($isActive == 1)
+		nxRigidBody_COMControls($nodeName);
+	else
+		editorTemplate -dimControl $nodeName "centerOfMassOverride" $dimIt;		
+	
+	//editorTemplate -dimControl $nodeName "impulse" $dimIt;		
+	//editorTemplate -dimControl $nodeName "impulsePosition" $dimIt;		
+	//editorTemplate -dimControl $nodeName "spinImpulse" $dimIt;		
+	//editorTemplate -dimControl $nodeName "applyForceAt" $dimIt;	
+
+	// Activate "switchToDynamic" controls only if type is kinematic
+	int $dimSTD = true, $dimAF = true;
+	if ( $isActive == 0 )
+	{
+		$dimSTD = false;
+		if ( `getAttr ($nodeName + ".switchToDynamic")` )
+			$dimAF = false;
+	}
+
+	editorTemplate -dimControl $nodeName "switchToDynamic" $dimSTD;
+	editorTemplate -dimControl $nodeName "switchAtFrame" $dimAF;
+
+}
+
+global proc dimControl_switchToDynamic(string $nodeName)
+{
+	// Activate "switchToDynamic" controls only if type is kinematic
+	int $dimAF = true;
+	if ( `getAttr ($nodeName + ".switchToDynamic")` )
+		$dimAF = false;
+
+	editorTemplate -dimControl $nodeName "switchAtFrame" $dimAF;
+
+}
+
+global proc nxRigidBody_COMControls(string $nodeName)
+{
+    int $isManual = `getAttr ($nodeName + ".centerOfMassMode")`;
+	int $dimIt = false;
+
+	if ($isManual == 0)
+		$dimIt = true;
+
+	// If "Calculate from shapes" is On then dim the COMoverride attribute.
+	editorTemplate -dimControl $nodeName "centerOfMassOverride" $dimIt;			
+}
+
+global proc nxRigidBody_overrideMassOrDensity(string $nodeName)
+{
+    int $dimMass = true;
+    int $dimDensity = true;
+
+    int $useMassOrDensity = `getAttr ($nodeName + ".overrideMassOrDensity")`;
+    switch ($useMassOrDensity)
+    {
+    case 0:
+    default:
+        break;
+    case 1: // kOverrideMass
+        $dimMass = false;
+        break;
+    case 2: // kOverrideDensity
+        $dimDensity = false;
+        break;
+    }
+
+    editorTemplate -dimControl $nodeName "mass" $dimMass;
+    editorTemplate -dimControl $nodeName "density" $dimDensity;	
+}
+
+proc string storeRigidBody(string $plug)
+{
+	global string $gAEnxRigidBodyNodeName;
+	//print ("plug: " + $plug);
+
+	// Store the rigid body node name.
+	string $buffer[];
+	tokenize($plug, ".", $buffer);
+
+    // Store the rigid body name.
+	$gAEnxRigidBodyNodeName = $buffer[0];
+
+    return $gAEnxRigidBodyNodeName;
+}
+
+global proc string getRigidBodyName()
+{
+    global string $gAEnxRigidBodyNodeName;
+	//if($gAEnxRigidBodyNodeName=="") // happens when storeRigidBody() is not called yet
+	//{
+	//	//store the first name in the active selection
+	//	$rb =`ls -selection -type "nxRigidBody"`;
+	//	$gAEnxRigidBodyNodeName = $rb[0];
+	//}
+    return $gAEnxRigidBodyNodeName;
+}
+
+// ------------ RIGID BODY PHYSICS SHAPES COMMANDS [START] ------------ //
+
+// The custom creation proc for the physics shapes buttons.
+//
+global proc AEnxRigidBodyPhysicsShapesNew(string $plug)
+{
+    storeRigidBody($plug);
+
+	// Create the textFieldGrp
+	setUITemplate -pst attributeEditorTemplate;
+		loadConnectedPhysicsShape();
+
+	setUITemplate -ppt;
+
+	AEnxRigidBodyPhysicsShapesReplace($plug);
+}
+
+global proc AEnxRigidBodyPhysicsShapesReplace(string $plug)
+{
+    storeRigidBody($plug);
+    reloadPhysicsShapeList();
+	AEnxRigidBodyPhysicsShapesAddMenu();
+}
+
+global proc AEnxRigidBodyPhysicsShapesAddMenu()
+{
+	int $enable = 1;
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		$enable = 0;
+	}
+	global string $gAEphysicsShapeClothSphereSubMenuAdd;
+	global string $gAEphysicsShapeClothSpherePopMenu1;
+	global string $gAEphysicsShapeClothSpherePopMenu2;
+	menuItem -edit -enable $enable ($gAEphysicsShapeClothSpherePopMenu1 + "|" + $gAEphysicsShapeClothSphereSubMenuAdd);
+	menuItem -edit -enable $enable ($gAEphysicsShapeClothSpherePopMenu2 + "|" + $gAEphysicsShapeClothSphereSubMenuAdd);
+}
+
+proc printSelection()
+{
+    $currentSelection = `ls -selection`;
+
+    print ("Selection contains " + size($currentSelection) + " items:\n");
+
+    for ($n in $currentSelection)
+            print($n + "\n");
+            
+    print ("\n\n");
+}
+
+global proc string nxRigidBodyCreatePhysicsShapes(string $rigidBody, int $shapeType)
+{ 
+	string $shape = nxCreatePhysicsShapeEx($shapeType, $rigidBody);
+	if ($shape == "")
+		error "unable to create physicsShape.";
+   
+    string $xforms[] = `listRelatives -fullPath -parent -path $rigidBody`;
+    string $xform = $xforms[0];
+    float $boundsX = `getAttr ($xform+".boundingBoxSizeX")`;
+    float $boundsY = `getAttr ($xform+".boundingBoxSizeY")`;
+    float $boundsZ = `getAttr ($xform+".boundingBoxSizeZ")`;
+    float $bounds = max( max( $boundsX, $boundsY), $boundsZ);
+
+	setAttr ($shape+".sizeX") ($bounds);
+	setAttr ($shape+".sizeY") ($bounds);
+	setAttr ($shape+".sizeZ") ($bounds);
+	setAttr ($shape+".point1X") (-$bounds*0.5);
+	setAttr ($shape+".point2X") ($bounds*0.5);
+	setAttr ($shape+".radius") ($bounds*0.5);
+	//setAttr ($shape+".inflate") ($bounds*0.05);
+
+	$parent = `listRelatives -parent -fullPath $shape`;
+	select -r $parent;
+
+	return $shape;
+}
+
+// Reload PhysicsShapeList in RB Attr Editor
+global proc reloadPhysicsShapeList()
+{
+	global string $gAEphysicsShapeList;
+	$status=`textScrollList -exists $gAEphysicsShapeList`;
+	//print $status;
+
+	if($status==1){
+		textScrollList -edit -removeAll $gAEphysicsShapeList;
+		//deleteUI -control $gAEphysicsShapeList;
+	}
+	
+	$rigidBody = getRigidBodyName();
+
+	//$children = `listRelatives -allDescendents -type "physicsShape" $rigidBody`;
+	$children = `listConnections -shapes true -et true -type "physicsShape" $rigidBody`;
+	
+	global string $gAEnxRigidBody_CurShape;
+	int $bFind = 0;
+	for ($item in $children)
+	{
+		//print $item;
+		textScrollList -edit -append $item $gAEphysicsShapeList;
+		if($gAEnxRigidBody_CurShape == $item)
+		{
+			$bFind = 1;
+		}
+	};
+
+	if($bFind)
+	{
+		textScrollList -e -selectItem $gAEnxRigidBody_CurShape $gAEphysicsShapeList;
+	}
+	else
+	{
+		// simply choose the first one, index based from 1.
+		textScrollList -e -selectIndexedItem 1 $gAEphysicsShapeList;
+	}
+
+	//textScrollList -edit -doubleClickCommand "getSelectedPhysicsShape()" $gAEphysicsShapeList;
+
+	//if there's no PS in the list, disable the buttons
+	int $enable = true;
+	if( size( $children ) == 0 )
+		$enable = false;
+
+	button -e -enable $enable selectPhysicsShapeBtn;
+	button -e -enable $enable renamePhysicsShapeBtn;
+	button -e -enable $enable deletePhysicsShapeBtn;
+	button -e -enable $enable copyPhysicsShapeBtn;
+	button -e -enable $enable cutPhysicsShapeBtn;
+	button -e -enable $enable pastePhysicsShapeBtn;
+	button -e -enable $enable hideAllPhysicsShapeBtn;
+	button -e -enable $enable showAllPhysicsShapeBtn;
+}
+
+// form and execute the cmd string to create physics shapes.
+global proc getCreatePSCmd( int $type, int $shapeType ){
+	string $rigidBody = getRigidBodyName();
+	string $cmd = "";
+	if( $type == 0 ) // create around self
+		$cmd = ( "createShapesAroundSelf( \"" + $rigidBody + "\", " + $shapeType + " )" );
+	else if( $type == 1 ) // create around object
+		$cmd = ( "createShapesAroundObject( \"" + $rigidBody + "\", " + $shapeType + " )" );
+	else if( $type == 2 ) // create & attach to child
+		$cmd = ( "createShapesAttachToChild( \"" + $rigidBody + "\", " + $shapeType + " )" );
+
+	eval $cmd;
+}
+
+proc createPopUpMenu()
+{
+	menuItem -subMenu true -tearOff true -label "Box";
+	{
+		menuItem -label "Around Self" -command ("getCreatePSCmd( 0, 1 )");
+		menuItem -label "Around Object..." -command ("getCreatePSCmd( 1, 1 )");
+		menuItem -label "Attached to Child..." -command ("getCreatePSCmd( 2, 1 )");
+		setParent -menu ..;
+	}
+	
+	menuItem -subMenu true -tearOff true -label "Sphere";
+	{
+		menuItem -label "Around Self" -command ("getCreatePSCmd( 0, 2 )");
+		menuItem -label "Around Object..." -command ("getCreatePSCmd( 1, 2 )");
+		menuItem -label "Attached to Child..." -command ("getCreatePSCmd( 2, 2 )");
+		setParent -menu ..;
+	}
+
+	menuItem -subMenu true -tearOff true -label "Capsule";
+	{
+		menuItem -label "Around Self" -command ("getCreatePSCmd( 0, 3 )");
+		menuItem -label "Around Object..." -command ("getCreatePSCmd( 1, 3 )");
+		menuItem -label "Attached to Child..." -command ("getCreatePSCmd( 2, 3 )");
+		setParent -menu ..;
+	}
+
+	menuItem -subMenu true -tearOff true -label "Convex Hull";
+	{
+		menuItem -label "Around Self" -command ("getCreatePSCmd( 0, 4 )");
+		menuItem -label "Around Object..." -command ("getCreatePSCmd( 1, 4 )");
+		menuItem -label "Attached to Child..." -command ("getCreatePSCmd( 2, 4 )");
+		setParent -menu ..;
+	}
+
+	global string $gAEphysicsShapeClothSphereSubMenuAdd;
+	menuItem -subMenu true -tearOff true -label "ClothSperes" -enable true $gAEphysicsShapeClothSphereSubMenuAdd;
+	{
+		menuItem -label "Around Self" -command ("getCreatePSCmd( 0, 6 )");
+		menuItem -label "Around Object..." -command ("getCreatePSCmd( 1, 6 )") ;
+		menuItem -label "Attached to Child..." -command ("getCreatePSCmd( 2, 6 )") ;
+		setParent -menu ..;
+	}
+}
+
+// Search for the shape mesh's parent transform from current RB's physics shape that have connected shape meshes
+// Use connections instead of hierarchy may make this feature less breakable.
+// Returns an array of shape mesh's parent transform, if more than 1 shape mesh is found
+// if there's no connected mesh, check if there's mesh / joint for child.
+
+proc string[] getRigidBodyShapeParent( string $rigidBody )
+{
+	int $count=0;
+	string $shapeMeshTransform[];
+	if ( $rigidBody == "" )
+		return $shapeMeshTransform;
+
+	string $physicsShapes[] = `listConnections -destination off -source on -type "physicsShape" -shapes on ($rigidBody+".physicsShapes")`;
+
+	// if there's no connecting ps, check hierarchy for shapes in single/group transforms
+	if ( size($physicsShapes) == 0 )
+	{
+		//print( $rigidBody + " has no physics shapes with mesh to base the new shape on. Use Add > Shape > Around Object, to select the shape mesh.\n" );
+		// a. check for shapes in single transform
+		$shapeMeshTransform = `listRelatives -fullPath -parent -type transform $rigidBody`;
+		if ( size($shapeMeshTransform) == 0 )
+			return $shapeMeshTransform;
+
+		// take the first transform found.
+		$shapeUnderRBParent = `listRelatives -fullPath -children -type mesh $shapeMeshTransform[0]`;
+		// return transform if mesh is found, else check if RB's in a group transform 
+		if ( size($shapeUnderRBParent) > 0 )
+			return $shapeMeshTransform;
+		
+		// b. check if there are shapes under the transform in a group
+		$groupTransforms = `listRelatives -fullPath -children -type transform $shapeMeshTransform[0]`;
+		if ( size($groupTransforms) == 0 )
+			return $groupTransforms;
+
+		$count=0;
+		for( $transform in $groupTransforms )
+		{
+			$shapeUnderRBParent = `listRelatives -fullPath -children -type mesh $transform`;
+			if( size($shapeUnderRBParent) >0 )
+			{
+				$shapeMeshTransform[$count] = $transform;
+				$count++;
+			}
+		}
+		return $shapeMeshTransform;
+	}
+
+	// if there are connected shape mesh, return the list of connected shape mesh's parent transform
+	$count=0;
+	for( $physicsShape in $physicsShapes )
+	{
+		//$shapeMeshTmp = `listConnections -destination off -source on -type "mesh" -shapes on ($physicsShape+".inMesh")`;
+		$shapeMeshTmp = `listConnections -destination off -source on -type "mesh" ($physicsShape+".inMesh")`;
+		if( size($shapeMeshTmp) == 1 )
+		{
+			if( !stringArrayContains($shapeMeshTmp[0], $shapeMeshTransform) )
+			{
+				$shapeMeshTransform[$count] = $shapeMeshTmp[0];
+				$count++;
+			}
+		}
+	}
+
+	return $shapeMeshTransform;
+}
+
+// Return the appropriate naming convention for physics shapes
+// https://wiki.nvidia.com/engwiki/index.php/Devtools/PhysX_DCC/Design_Specs/US3621
+global proc string renamePhysicsShape( string $physicsShape )
+{
+	// 1. Get the name of the connected rigid body
+	$rb = `listConnections -d on -s off -type "nxRigidBody" ($physicsShape+".outPhysicsShape")`;
+
+	// 2. Get physics shape's parent transform
+	$psParent = `listRelatives -fullPath -parent $physicsShape`;
+
+	// 3. Format: <Parent Name> + RigidBody + Shape<#> 
+	$newName = ( $rb[0] + "Shape#" );
+
+	// 4. Rename physics shape & it's parent Transform
+	$newPSName = `rename $physicsShape $newName`;
+	rename $psParent[0] ( $newPSName + "Transform" );
+	return $newPSName;
+}
+
+// Duplicate PS under specified RB
+// used by mirror RB & paste RB methods
+global proc duplicatePhysicsShape( string $ps, string $replaceRigidBody, int $useSameMesh, string $replacedPhysicsShapeList[] )
+{
+	//print ("ps: " + $ps + "\n");
+	// Create new physicsShape & the shape mesh (if any)
+	$psDuplicateTransform = `duplicate -renameChildren $ps`;
+
+	//** To be deleted when duplicate is working properly for physicsShape
+	$psDuplicate = `listRelatives -fullPath -children -shapes -type "physicsShape" $psDuplicateTransform`;
+	delete $psDuplicate;
+	$psDuplicate[0] = `createNode -parent $psDuplicateTransform physicsShape`;
+	
+	// Rename the physics shape transform properly
+	$psDuplicateTransform[0] = `rename -ignoreShape $psDuplicateTransform[0] ($psDuplicate[0] + "Transform")`;
+
+	// Reparent physics shape transform duplicate under new rigid body
+	if( !isParentOf($replaceRigidBody, $psDuplicateTransform[0]) )
+	{
+		if( isRigidBodyInAGroup( $replaceRigidBody ) )
+		{
+			$rbParent = `listRelatives -fullPath -parent $replaceRigidBody`;
+			parent -shape -relative $psDuplicateTransform $rbParent[0];
+		}
+		else
+			parent -shape -relative $psDuplicateTransform $replaceRigidBody;
+	}
+
+	// if there's a connected shape mesh in the matching joints, establish it in the duplicates as well
+	$sourceShapeMesh = `listConnections -shapes true ($ps+".inMesh")`;
+	$connectedJoint = `listConnections -shapes true ($ps+".point2")`;
+	if( size($sourceShapeMesh ) > 0)
+	{
+		if( $useSameMesh ) // Connect to original shape mesh. Used in paste RB
+		{
+			// Connect shape mesh to physics shape
+			connectAttr ( $sourceShapeMesh[0] + ".outMesh" ) ( $psDuplicate[0] + ".inMesh" );
+		}
+		else // Connect to shape mesh parented under duplicated PS. Used in mirror RB
+		{
+			// Get the duplicated shape mesh
+			$meshDuplicate = `listRelatives -fullPath -children -shapes -type "mesh" $psDuplicateTransform`;
+			if(size($meshDuplicate) == 0)
+			{
+				string $rigidBodyDest[] = `listRelatives -fullPath -p $psDuplicateTransform`;
+				string $desChildren[] = `listRelatives -fullPath -allDescendents -type "mesh" $rigidBodyDest[0]`;
+				// only one mesh is included for a rigid body
+				$meshDuplicate[0] = $desChildren[0];
+			}
+			// Connect shape mesh to physics shape
+			if($meshDuplicate[0] != "")
+				connectAttr ( $meshDuplicate[0] + ".outMesh" ) ( $psDuplicate[0] + ".inMesh" );
+		}
+	}
+	// for bug 6942. Sometimes, we don't create mesh for convex hull. We get attrubite point2 from child joint's translate
+	else if(size($connectedJoint ) > 0)
+	{
+		string $rigidBodyDest[] = `listRelatives -fullPath -p $psDuplicateTransform`;
+		if(size($rigidBodyDest))
+		{
+			string $jointDest[] = `listRelatives -fullPath -p $rigidBodyDest[0]`;
+			if(size($jointDest))
+			{
+				$jointDuplicate = `listRelatives -fullPath -children -type "joint" $jointDest[0]`;
+				if(size($jointDuplicate) > 0)
+				{
+					connectAttr ( $jointDuplicate[0] + ".translate" ) ( $psDuplicate[0] + ".point2" );
+				}
+			}
+		}
+	}
+
+	//** To be deleted when duplicate is working properly for physicsShape
+	// Copy the matching physicsShape attribute values over to newly created physicsShape
+	string $psSettings = ( "NvidiaPhysXInternalsTemp" );
+	nodePreset -save $ps $psSettings;
+	nodePreset -load $psDuplicate[0] $psSettings;
+	nodePreset -delete $ps $psSettings;
+
+	// Connect physics shape to the new rigid body & nxRigidSolver
+	connectAttr -nextAvailable ( $psDuplicate[0] + ".outPhysicsShape" ) ($replaceRigidBody + ".physicsShapes");
+
+	// Rename the created physics shape 
+	string $newPSName = renamePhysicsShape( $psDuplicate[0] );
+	$replacedPhysicsShapeList[`size $replacedPhysicsShapeList`] = $newPSName;
+}
+
+global proc int isRigidBodyInAGroup( string $rigidBody )
+{
+	$connectedPS = `listConnections -shapes true -et true -type "physicsShape" $rigidBody`;
+	if(size($connectedPS) == 0)
+		return false;
+
+	$psParent = `listRelatives -fullPath -parent $connectedPS[0]`;
+	$isRB = `listRelatives -fullPath -parent -type "nxRigidBody" $psParent[0]`;
+	if( size($isRB) > 0 )
+		return false;
+	else
+		return true;
+}
+
+// If parent transform of rigidbody is a joint & has no child mesh
+// create the shape using size & point properties calculated from the parent & child joints
+global proc createPhysicsShapeUsingJoints( string $rigidbody, string $shapeMeshTrans, int $shapeType )
+{
+	global string $gAEphysicsShapeList;
+
+	// Create physics shape only if there are children joints
+	string $childJoints[] = `listRelatives -fullPath -children -type joint $shapeMeshTrans`;
+	if( size( $childJoints ) == 0 )
+		print "No child joints, no physics shape will be created.\n";
+	else
+	{
+		// if $shapeType = 4 (convexhull), prompt that with no mesh, convex hull cannot be computed. 
+		// and capsule will be created instead
+		if( $shapeType == 4 )
+		{
+			print "There's no shape mesh under joint, convex hull cannot be computed. Create capsule instead.\n";
+			$shapeType =3 ;
+		}
+
+		// Create a physics shape for each child joint found.
+		for( $childJoint in $childJoints  )
+		{
+			$newShape = nxRigidBodyCreatePhysicsShapes($rigidbody, $shapeType);
+			textScrollList -edit -append $newShape $gAEphysicsShapeList;
+
+			string $physShapeparent[] = `listRelatives -fullPath -parent -type transform $newShape`;
+
+			// then making use of the -absolute flag in the parent command, we parent it back to the rigidbody
+			// but keep the current transformation. the math will be done by the command itself to change the local transformation
+			// COOL!
+			//parent -absolute $physShapeparent[0] $rigidbody; // parent back to rigidbody but keep the transformation
+			parent $physShapeparent[0] $rigidbody; // parent back to rigidbody but keep the transformation
+
+			// instead of doing the math ourselves, we parent the physics shape to the mesh that we selected
+			// so that it gets the correct transformation
+			parent -relative $physShapeparent[0] $shapeMeshTrans; // parent to selected mesh's transform first
+
+			// Update physics shape type
+			setAttr ($newShape+".shapeType") $shapeType;
+
+			// set point 1 & 2, radius & size:
+			// Set Point 1 to 0.0, 0.0, 0.0, with no extra translation required
+			setAttr ($newShape+".point1X") 0.0;
+			setAttr ($newShape+".point1Y") 0.0;
+			setAttr ($newShape+".point1Z") 0.0;
+
+			// Connect Point 2 to the child joint's translate
+			connectAttr ( $childJoint + ".translate" ) ($newShape+".point2") ;
+			//setAttr ($newShape+".point2X") `getAttr ( $childJoint + ".translateX" )`;
+			//setAttr ($newShape+".point2Y") `getAttr ( $childJoint + ".translateY" )`;
+			//setAttr ($newShape+".point2Z") `getAttr ( $childJoint + ".translateZ" )`;
+
+			// Set Radius to parent joint's radius x2 
+			float $radius = `getAttr ( $childJoint + ".radius" )`;
+			// [yilun] apparently maya joint's radius is in fact diameter, hence there's no need to double the radius size.
+			// using the diameter as physics shape's radius ensures that the physics shape encompass the entire bone.
+			setAttr ($newShape+".radius") $radius;
+
+			// Set size xyz to parent joitn's radius x2
+			//setAttr ($newShape+".sizeX") ( `getAttr ( $childJoint + ".translateX" )` + ( $radius * 2 ) );
+			setAttr ($newShape+".sizeX") ( $radius * 2 );
+			setAttr ($newShape+".sizeY") ( $radius * 2 );
+			setAttr ($newShape+".sizeZ") ( $radius * 2 );
+		}
+	}
+}
+
+// attach and detach so that physicsshape can have best fit size and shape
+global proc CreateAndAttachAndDetachMeshToPhysicsShape( string $rigidbody, string $shapeMeshTrans, int $shapeType )
+{
+	global string $gAEphysicsShapeList;
+	$newShape = nxRigidBodyCreatePhysicsShapes($rigidbody, $shapeType);
+	if( `textScrollList -exists $gAEphysicsShapeList` )
+		textScrollList -edit -append $newShape $gAEphysicsShapeList;
+
+	string $physShapeparent[] = `listRelatives -fullPath -parent -type transform $newShape`;
+	string $shapeMeshName[] = `listRelatives -fullPath -children -type mesh -noIntermediate $shapeMeshTrans`;
+
+	// instead of doing the math ourselves, we parent the physics shape to the mesh that we selected
+	// so that it gets the correct transformation
+	parent -relative $physShapeparent[0] $shapeMeshTrans; // parent to selected mesh's transform first
+	$physShapeparent = `listRelatives -fullPath -parent -type transform $newShape`;
+
+	// then making use of the -absolute flag in the parent command, we parent it back to the rigidbody
+	// but keep the current transformation. the math will be done by the command itself to change the local transformation
+	// COOL!
+	parent -absolute $physShapeparent[0] $rigidbody; // parent back to rigidbody but keep the transformation
+
+	// Compute physics shape's properties based on a given mesh
+	//select -r $newShape $shapeMeshName[0];
+	computePhysicsShapeFromMeshCmd -psn $newShape -m $shapeMeshName[0] -st $shapeType;
+
+	// Rename generated physics shape
+	renamePhysicsShape( $newShape );
+
+	select $rigidbody;
+}
+
+// attached the physics shape to the mesh instead of under the rigidbody
+global proc CreateAttachToChildShape( string $rigidbody, string $shapeMeshTrans[], int $shapeType )
+{
+	global string $gAEphysicsShapeList;
+	$newShape = nxRigidBodyCreatePhysicsShapes($rigidbody, $shapeType);
+	if( `textScrollList -exists $gAEphysicsShapeList` )
+		textScrollList -edit -append $newShape $gAEphysicsShapeList;
+
+	string $physShapeparent[] = `listRelatives -fullPath -parent -type transform $newShape`;
+	string $shapeMeshName[] = `listRelatives -fullPath -children -type mesh -noIntermediate $shapeMeshTrans[size($shapeMeshTrans) - 1]`;
+
+	//print( "PhysicsShape: " + $physShapeparent[0] + ", mesh name: " + $shapeMeshName[0] + "\n" );
+	parent -relative $physShapeparent[0] $shapeMeshTrans[size($shapeMeshTrans) - 1];
+
+	// Compute physics shape's properties based on a given mesh
+	//select -r $newShape $shapeMeshName[0];
+	computePhysicsShapeFromMeshCmd -psn $newShape -m $shapeMeshName[0] -st $shapeType;
+
+	// Rename generated physics shape
+	renamePhysicsShape( $newShape );
+}
+
+// Create physics shape:
+// 1 - box
+// 2 - sphere
+// 3 - capsule
+// 4 - convex hull
+
+// for 4 types of combination: 
+// a. shape mesh under single transform
+// b. shape meshes under group transform
+// c. shape mesh under physics shape of joints in ragdoll
+// d. wrapping around parent & child joint without shape mesh - to do
+global proc createShapesAroundSelf( string $rigidBody, int $shapeType )
+{
+	// Search for the shape mesh from a. to c. combinations
+	string $shapeMeshParents[] = getRigidBodyShapeParent( $rigidBody );
+
+	// If there are no connecting shape meshes to the existing physicshape or no existing physicsshape
+	if( size($shapeMeshParents) == 0 ) 
+	{
+		// if there's no connected shape mesh, check if there's a joint under RB's parent transform
+		$rbTransform = `listRelatives -fullPath -parent $rigidBody`;
+		string $parentType = `nodeType -apiType $rbTransform[0]`;
+		$childJoint = `listRelatives -fullPath -children -type joint $rbTransform[0]`;
+
+		// if there's a parent & child joint, create physics shape
+		if(( $parentType == "kJoint" ) && ( size($childJoint) > 0 ) )
+			createPhysicsShapeUsingJoints( $rigidBody, $rbTransform[0], $shapeType );
+		else
+		{
+			print( $rigidBody + " has no physics shapes with mesh to base the new shape on. Use Add > Shape > Around Object, to select the shape mesh.\n" );
+			return;
+		}
+	}
+
+	for($shapeMeshTransform in $shapeMeshParents)
+	{
+		// If parent transform of rigidbody is a joint & has no child mesh
+		// create the shape using size & point properties calculated from the parent & child joints
+		string $parentType = `nodeType -apiType $shapeMeshTransform`;
+		string $shapeMeshName[] = `listRelatives -fullPath -children -type mesh -noIntermediate $shapeMeshTransform`;
+
+		if(( `gmatch $parentType "kJoint"` == 1 ) && ( size( $shapeMeshName ) == 0) )
+			createPhysicsShapeUsingJoints( $rigidBody, $shapeMeshTransform, $shapeType );
+		else // else create physics shape using the mesh
+			CreateAndAttachAndDetachMeshToPhysicsShape( $rigidBody, $shapeMeshTransform, $shapeType );
+	}	
+}
+
+global proc createShapesAroundObject( string $rigidbody, int $shapeType )
+{
+	if ( 1 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAndAttachAndDetachMeshToPhysicsShape( \"" + $rigidbody + "\", $shapeMeshTrans[size($shapeMeshTrans) - 1], 1 );"); }
+	if ( 2 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAndAttachAndDetachMeshToPhysicsShape( \"" + $rigidbody + "\", $shapeMeshTrans[size($shapeMeshTrans) - 1], 2 );"); }
+	if ( 3 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAndAttachAndDetachMeshToPhysicsShape( \"" + $rigidbody + "\", $shapeMeshTrans[size($shapeMeshTrans) - 1], 3 );"); }
+	if ( 4 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAndAttachAndDetachMeshToPhysicsShape( \"" + $rigidbody + "\", $shapeMeshTrans[size($shapeMeshTrans) - 1], 4 );"); }
+}
+
+global proc createShapesAttachToChild( string $rigidbody, int $shapeType )
+{
+	if ( 1 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAttachToChildShape( \"" + $rigidbody + "\", $shapeMeshTrans, 1 );"); }
+	if ( 2 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAttachToChildShape( \"" + $rigidbody + "\", $shapeMeshTrans, 2 );"); }
+	if ( 3 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAttachToChildShape( \"" + $rigidbody + "\", $shapeMeshTrans, 3 );"); }
+	if ( 4 == $shapeType )
+	{	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd ("source AEnxRigidBodyTemplate.mel; $shapeMeshTrans = `NvExecuteOnSelection -q`; CreateAttachToChildShape( \"" + $rigidbody + "\", $shapeMeshTrans, 4 );"); }
+}
+
+global proc gAEphysicsShapeList_selectCommand()
+{
+	//print ("gAEphysicsShapeList_selectCommand\n");
+
+	global string $gAEnxRigidBody_CurShape;
+	if($gAEnxRigidBody_CurShape != "")
+	{
+		if(`objExists $gAEnxRigidBody_CurShape`)
+		{
+			select -deselect $gAEnxRigidBody_CurShape;
+		}
+		$gAEnxRigidBody_CurShape = "";
+	}
+	string $selected[];
+	$selected = `textScrollList -q -selectItem "rigidBody_pslist"`;
+	if(size($selected) > 0)
+	{
+		$gAEnxRigidBody_CurShape = $selected[0];
+
+		select -add $gAEnxRigidBody_CurShape;
+		global string $gAEnxRigidBodyNodeName;
+		select -add $gAEnxRigidBodyNodeName;
+	}
+}
+
+// A displayed of all PhysicsShape that are a child of the rigid body.
+// Provide buttons to create, go to, & delete the physics shapes.
+global proc loadConnectedPhysicsShape()
+{	
+	
+	$rigidBody = getRigidBodyName();
+	global string $gAEphysicsShapeList;
+	$gAEphysicsShapeList="rigidBody_pslist";
+	
+	rowColumnLayout -numberOfColumns 1 -cw 1 350;
+	
+		textScrollList 
+			-numberOfRows 5 
+			-allowMultiSelection false 
+			-selectCommand "gAEphysicsShapeList_selectCommand"
+			//-doubleClickCommand "getSelectedPhysicsShape()"
+			$gAEphysicsShapeList;
+	
+		// list all physics shapes connected to the physicsShape plug for rigidbody
+		$children = `listConnections -shapes true -et true -type "physicsShape" $rigidBody`;
+		
+		for ($item in $children)
+		{
+			//print $item;
+			textScrollList -edit -append $item $gAEphysicsShapeList;
+		};	
+
+	setParent ..;
+	
+	global string $gAEphysicsShapeClothSpherePopMenu1;
+	global string $gAEphysicsShapeClothSpherePopMenu2;
+
+	rowColumnLayout -numberOfColumns 4 -cw 1 (350/4) -cw 2 (350/4) -cw 3 (350/4) -cw 4 (350/4);
+		
+		button -label "Add" ;
+			// for left click
+			popupMenu -button 1 $gAEphysicsShapeClothSpherePopMenu1;
+				createPopUpMenu();
+			// for right click
+ 			popupMenu $gAEphysicsShapeClothSpherePopMenu2;
+ 				createPopUpMenu();
+		//setParent;
+
+		button -label "Select" -command "getSelectedPhysicsShape();" selectPhysicsShapeBtn;
+		button -label "Rename" -command "renameSelectedPhysicsShape();" renamePhysicsShapeBtn;
+		button -label "Delete" -command "deleteSelectedPhysicsShape();" deletePhysicsShapeBtn;
+		
+	setParent ..;
+
+	rowColumnLayout -numberOfColumns 5 -cw 1 (350/5) -cw 2 (350/5) -cw 3 (350/5) -cw 4 (350/5) -cw 5 (350/5);
+		
+		button -label "Copy" -command "copyCutSelectedPhysicsShape(0)" copyPhysicsShapeBtn;
+		button -label "Cut" -command "copyCutSelectedPhysicsShape(1)" cutPhysicsShapeBtn;
+		button -label "Paste" -command "pasteSelectedPhysicsShape()" pastePhysicsShapeBtn;
+		button -label "Hide All" -command "AEnxRigidBody_ShowPhysicsShape(0)" hideAllPhysicsShapeBtn;
+		button -label "Show All" -command "AEnxRigidBody_ShowPhysicsShape(1)" showAllPhysicsShapeBtn;
+		
+	setParent ..;
+
+}
+
+//Get the PS that highlighted within the textScrollList
+global proc getSelectedPhysicsShape()
+{
+	global string $gAEphysicsShapeList;
+	// Get the selected physics shape
+	$selected = `textScrollList -q -si $gAEphysicsShapeList`;
+	$gPhysicsShapeNodeName=$selected[0];
+
+	// Display selected physics shape in the attribute editor
+	if($gPhysicsShapeNodeName!="")
+	{
+		select -r $gPhysicsShapeNodeName;
+		nxShowEditorExact $gPhysicsShapeNodeName;
+	}
+	else
+		print "No physics shape selected.\n";
+}
+
+// rename PS that highlighted within the textScrollList
+global proc renameSelectedPhysicsShape()
+{
+	global string $gAEphysicsShapeList;
+
+	string $selected[];
+	if(`textScrollList -exists $gAEphysicsShapeList`)
+		$selected = `textScrollList -q -si $gAEphysicsShapeList`;
+
+	//print $selected;
+	if (size($selected) == 0 )
+       error "No physics shape selected for rename.\n";
+    else
+    {
+		$gPhysicsShapeNodeName=$selected[0];
+		string $newName;
+		string $result = `promptDialog
+			-title ("Rename " + $gPhysicsShapeNodeName )
+			-message "Enter Name:"
+			-button "OK" -button "Cancel"
+			-defaultButton "OK" -cancelButton "Cancel"
+			-dismissString "Cancel"`;
+
+		if ($result == "OK") {
+			$newName = `promptDialog -query -text`;
+			rename $gPhysicsShapeNodeName $newName;
+			reloadPhysicsShapeList();
+		}
+
+	}
+}
+
+// Delete PS(s) that highlighted within the textScrollList
+global proc deleteSelectedPhysicsShape()
+{
+	global string $gAEphysicsShapeList;
+
+	string $selected[];
+	if(`textScrollList -exists $gAEphysicsShapeList`)
+	{
+		int $selectedIndexes[];
+		$selectedIndexes = `textScrollList -q -sii $gAEphysicsShapeList`;
+		if(size($selectedIndexes) == 0)
+		{
+			warning "No physics shape selected.\n";
+			return;
+		}
+		if($selectedIndexes[0] == 1)
+		{
+			warning "can not delete the first physics shape.\n";
+			return;
+		}
+		$selected = `textScrollList -q -si $gAEphysicsShapeList`;
+	}
+	else
+		$selected = `ls -selection -type "physicsShape"`;
+
+	//print $selected;
+	if (size($selected) == 0 )
+       error "No physics shape selected.";
+    else
+    {
+		global string $gAEnxRigidBody_CurShape;
+		$gAEnxRigidBody_CurShape = "";
+		for( $select in $selected )
+		{
+			// warn user if it's the last physics shape in the connected rigidbody
+			string $rb[] = `listConnections -d on -s off -type "nxRigidBody" ($select+".outPhysicsShape")`;
+			$psUnderRB = `listConnections -d off -s on -type "physicsShape" ($rb[0]+".physicsShapes")`;
+			if(size($psUnderRB) == 1)
+				warning ( $select + " to be deleted, is last physic shape in the rigidbody.\n" );
+
+			$shapeParents = `listRelatives -fullPath -parent -type "transform" -path $select`;
+			if (`nodeType $shapeParents[0]`!="transform")
+			{
+				warning "Unable to find physics shape's transform parent. Only Physics Shape deleted.\n";
+				delete $select;
+			}
+			else
+			{
+				$shapeParent = $shapeParents[0];
+				delete $shapeParent;
+			}
+
+			// remove item from list if UI exists
+			if(`textScrollList -exists $gAEphysicsShapeList`)
+				textScrollList -edit -removeItem $select $gAEphysicsShapeList;
+
+			// refresh GUI
+			reloadPhysicsShapeList();
+
+		}
+		print "Physics shape(s) deleted.\n";
+	}	
+}
+
+// During "copy/cut physics shape" operation, no actual copying is done.
+// storing on the PS name that highlighted within the textScrollList into a global variable.
+// duplicating in "paste physics shape" operation will be based on that stored name.
+// Mode: 0 - copy, 1 - cut
+global proc copyCutSelectedPhysicsShape( int $mode )
+{
+	global string $gAEphysicsShapeList;
+	global string $gCopiedPhysicsShapeNodeName[];
+	global int $gCopyCutPhysicsShapeMode;
+
+	// Clear array before copying.
+	clear $gCopiedPhysicsShapeNodeName;
+
+	if(`textScrollList -exists $gAEphysicsShapeList`)
+		$gCopiedPhysicsShapeNodeName = `textScrollList -q -si $gAEphysicsShapeList`;
+
+	//print $selected;
+	if (size($gCopiedPhysicsShapeNodeName) == 0 )
+       error "No physics shape selected for copy.\n";
+	else
+	{
+		$gCopyCutPhysicsShapeMode = $mode;
+		if($mode == 0)
+			print "Physics shape(s) copied.\n";
+		else
+			print "Physics shape(s) cut.\n";
+	}
+}
+
+// Copy: Duplicating in physics shapes stored in the global variable into the current rigid body.
+// Cut: change the parent while preserving the world space transformation.
+global proc pasteSelectedPhysicsShape()
+{
+	global string $gAEphysicsShapeList;
+	global string $gCopiedPhysicsShapeNodeName[];
+	global int $gCopyCutPhysicsShapeMode;
+
+	// 1. Get Rb name
+	$rigidBody = getRigidBodyName();
+
+	//print $selected;
+	if (size($gCopiedPhysicsShapeNodeName) == 0 )
+       error "No physics shape selected for paste.\n";
+	else
+	{
+		string $replacedPhysicsShapeList[] = {};
+		for($i=0; $i<size($gCopiedPhysicsShapeNodeName); $i++)
+		{
+			if( $gCopyCutPhysicsShapeMode == 0 ) // paste (copy)
+			{
+				// duplicate the ps & it's transform
+				duplicatePhysicsShape( $gCopiedPhysicsShapeNodeName[$i], $rigidBody, true, $replacedPhysicsShapeList );
+			}
+			else // paste (cut)
+			{
+				// Change parent while mantaining world space transformation
+				if( isRigidBodyInAGroup( $rigidBody ) )
+				{
+					$rbParent = `listRelatives -fullPath -parent $rigidBody`;
+					parent -absolute $gCopiedPhysicsShapeNodeName[$i] $rbParent;
+				}
+				else
+					parent -absolute $gCopiedPhysicsShapeNodeName[$i] $rigidBody;
+
+				// Update the physics shape connection to the new rigid body
+				string $connectedRB[] = `listConnections -plugs true -et true -type "nxRigidBody" $gCopiedPhysicsShapeNodeName[$i]`;
+				disconnectAttr ($gCopiedPhysicsShapeNodeName[$i] + ".outPhysicsShape") $connectedRB[0];
+				connectAttr -na ($gCopiedPhysicsShapeNodeName[$i] + ".outPhysicsShape") ($rigidBody + ".physicsShapes");
+			}
+		}
+
+		if( $gCopyCutPhysicsShapeMode == 0 ) // paste (copy)
+		{
+			int $i;
+			for($i = 0; $i < size($gCopiedPhysicsShapeNodeName); $i++)
+			{
+				string $ps = $gCopiedPhysicsShapeNodeName[$i];
+				string $currentPhysicsShapeAttr = $ps  + ".connectToClothSphere";
+				// Figure out the existed connection
+				$connectedShape = `listConnections -shapes true -t "physicsShape" ($currentPhysicsShapeAttr)`;
+				if(`size($connectedShape)` > 0)
+				{
+					if(`isConnected ($connectedShape[0] + ".message") $currentPhysicsShapeAttr`)
+					{
+						int $j;
+						int $index = -1;
+						for($j = 0; $j < size($gCopiedPhysicsShapeNodeName); $j++)
+						{
+							if($connectedShape[0] == $gCopiedPhysicsShapeNodeName[$j])
+							{
+								$index = $j;
+								break;
+							}
+						}
+
+						string $connectToPhysicsMessageAttr;
+						if($index != -1)
+						{
+							$connectToPhysicsMessageAttr = $replacedPhysicsShapeList[$index] + ".message";
+						}
+						else 
+						{
+							$connectToPhysicsMessageAttr = $connectedShape[0] + ".message";
+						}
+						string $currentPhysicsShapeClothSphereAttr = $replacedPhysicsShapeList[$i] + ".connectToClothSphere";
+						string $cmd = "connectAttr " +  $connectToPhysicsMessageAttr + " " + $currentPhysicsShapeClothSphereAttr;
+						evalEcho $cmd;
+					}
+				}
+			}
+		}
+		
+	}
+}
+
+//
+// Show / Hide Physics shapes in the rigidbody
+// if there's no selection on the list, default it as show/hide all
+//
+global proc AEnxRigidBody_ShowPhysicsShape( int $show )
+{
+	// 1. Get Rb name
+	$rigidBody = getRigidBodyName();
+	
+	// 2. Select RB
+	select -r $rigidBody;
+	
+	// 3. Show/hide the selection
+	if( $show )
+		physicsShowPhysicsShapes;	
+	else
+		physicsShowNonPhysicsShapes;
+		
+	// 4. After showing / hiding the physics shape, reselect rigidBody
+	select $rigidBody;
+}
+
+// If user manually inputs from the GUI, move/rotate the parent transform to the new values
+global proc updateParentTransform( int $updatePosition, string $rigidBody )
+{
+	// Get RB's transform to obtain the translate & rotate
+	$rbTransform = `listRelatives -fullPath -parent -type transform $rigidBody`;
+	if (size($rbTransform) > 0)
+	{
+		if( $updatePosition ) // updates position
+		{
+			$tx = `getAttr ($rigidBody + ".initialPositionX")`;
+			setAttr ($rbTransform[0] + ".translateX") $tx;
+			$ty = `getAttr ($rigidBody + ".initialPositionY")`;
+			setAttr ($rbTransform[0] + ".translateY") $ty;
+			$tz = `getAttr ($rigidBody + ".initialPositionZ")`;
+			setAttr ($rbTransform[0] + ".translateZ") $tz; 
+		}
+		else // updates orientation
+		{
+			$rx = `getAttr ($rigidBody + ".initialOrientationX")`;
+			setAttr ($rbTransform[0] + ".rotateX") $rx;
+			$ry = `getAttr ($rigidBody + ".initialOrientationY")`;
+			setAttr ($rbTransform[0] + ".rotateY") $ry;
+			$rz = `getAttr ($rigidBody + ".initialOrientationZ")`;
+			setAttr ($rbTransform[0] + ".rotateZ") $rz;  
+		}
+	}
+}
+
+// ------------ RIGID BODY PHYSICS SHAPES COMMANDS [END] ------------ //
+
+// ------------ RIGID BODY CONTACT LAYERS COMMANDS [START] ------------ //
+/*global proc AEnxRigidBodyContactLayersNew( string $plug )
+{
+    $rigidBody = storeRigidBody($plug);
+	//print ($plug + "\n" );
+
+	// Obtain the list of layers that RB belongs to.
+	string $RBContactLayers = GetContactLayersList( $rigidBody, off, 0 );
+
+	// Create the textFieldGrp
+	setUITemplate -pst attributeEditorTemplate;
+		rowColumnLayout -numberOfColumns 2 -cw 1 144 -cw 2 250 -columnAlign 1 "right" -columnOffset 1 "right" 3;
+		
+			text -align "right" -label "In Contact Layers";
+			scrollField 
+				-wordWrap true
+				-height 60
+				-editable false
+				-text $RBContactLayers
+				"RBContactLayersList";
+
+			global int $turnOnAlsoContactsWith;
+			if( $turnOnAlsoContactsWith )
+			{
+				// Obtain the list of layers that RB is colliding with.
+				$RBContactLayers = GetContactLayersList( $rigidBody, on, 0 );
+				text -align "right" -label "Also Contacts With";
+				scrollField 
+					-wordWrap true
+					-height 60
+					-editable false
+					-text $RBContactLayers
+					"RBContactLayersInteractList";
+			}
+		
+			text -label "";
+			button -label "Setup Contact Layers" -command ("ContactLayersDialog( \"physxobject\", \""+$rigidBody+"\")") "RBContactLayersBtn";
+
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	// if collision group membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersMember;
+	$contactLayersMember = $rigidBody;
+	updateConLayMembershipDialogIfExist();
+}
+
+global proc AEnxRigidBodyContactLayersReplace( string $plug )
+{
+    $rigidBody = storeRigidBody($plug);
+	if(`scrollField -q -exists "RBContactLayersList"`)
+	{
+		string $RBContactLayers = GetContactLayersList( $rigidBody, off, 0 );
+		scrollField -e -text $RBContactLayers "RBContactLayersList";
+
+		global int $turnOnAlsoContactsWith;
+		if( $turnOnAlsoContactsWith )
+		{
+			$RBContactLayers = GetContactLayersList( $rigidBody, on, 0 );
+			scrollField -e -text $RBContactLayers "RBContactLayersInteractList";
+		}
+
+		button -e -command ("ContactLayersDialog( \"physxobject\", \""+$rigidBody+"\")") "RBContactLayersBtn";
+	}
+
+	// if collision group membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersMember;
+	if( $contactLayersMember != $rigidBody )
+	{
+		$contactLayersMember = $rigidBody;
+		updateConLayMembershipDialogIfExist();
+	}
+}
+*/
+// ------------ RIGID BODY CONTACT LAYERS COMMANDS [END] ------------ //
+
+// ------------ RIGID BODY SIMULATION SETS COMMANDS [START] ------------ //
+global proc AEnxRigidBodySimulationSetsNew( string $plug )
+{
+	source "SimulationSetWindowUI.mel";
+	//Store rigid body name to global varibles
+    $rigidBody = storeRigidBody($plug);
+
+	// Create the textFieldGrp
+	setUITemplate -pst attributeEditorTemplate;
+		rowColumnLayout -numberOfColumns 1  -h 120;
+				
+			textScrollList 
+				-numberOfRows 3 -h 100
+				-allowMultiSelection false 
+				"AERBSimulationSetList";
+						
+			button -label "Setup Simulation Sets" -command ("createSimulationSetManagerWindow(\""+$rigidBody+"\")");					
+
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	AEnxRigidBodySimulationSetsReplace($plug);
+}
+
+global proc AEnxRigidBodySimulationSetsReplace( string $plug )
+{
+    $rigidBody = storeRigidBody($plug);
+	if(`textScrollList -q -exists "AERBSimulationSetList"`)
+	{
+		textScrollList -edit -removeAll "AERBSimulationSetList";
+
+		string $shapes[] = `listRelatives -ad -fullPath -type "physicsShape" $rigidBody`;
+		string $simuSets[];
+		for($shape in $shapes)
+		{
+			string $sets[] = `simulationSets -ls $shape`;
+			int $i = 0;
+			for($set in $sets)
+			{
+				if($set != "")
+				{
+					int $bNew = true;
+					for($known in $simuSets)
+					{
+						if($set == $known)
+						{
+							$bNew = false;
+						}
+					}
+					if($bNew)
+					{
+						//textScrollList -edit -append ("" + shortNameOf($shape) + " : " + $set) "AERBSimulationSetList";
+						textScrollList -edit -append ($set) "AERBSimulationSetList";
+						$simuSets[$i] = $set;
+						$i++;
+					}
+				}
+			}		
+		}
+	}
+}
+
+// ------------ RIGID BODY SIMULATION SETS COMMANDS [END] ------------ //

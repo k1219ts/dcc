@@ -1,0 +1,49 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ knobChanged "\nif nuke.thisKnob().name() == 'shotName':\n    shotName = nuke.thisKnob().value()\n    seqName = shotName.split('_')\[0]\n    if seqName == 'ALT':\n        shotNum = shotName.split('_')\[-1]\n        if int(shotNum) < 2000: \n            nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/night_fantastic.cube')\n        else:\n            nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/day_fantastic.cube')    \n\n    if seqName == 'BOT':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/river_bamboo.cube')\n\n    if seqName == 'EPA':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/day_fantastic.cube')\n\n    if seqName == 'EPW':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/bambooforst_cjhyy_vfx_20190921.cube')\n    if seqName == 'EXH':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/LUT/EXH_toDD_191217/LUT/night_fantastic.cube')        \n    if seqName == 'FSG':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/night_forest.cube')\n\n    if seqName == 'FST':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/bambooforst_cjhyy_vfx_20190921.cube')\n\n    if seqName == 'PPS':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/redroom.cube')\n    \n    if seqName == 'CLF':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/bambooforst_cjhyy_vfx_20190921.cube')\n\n    if seqName == 'BFC':\n        shotNum = shotName.split('_')\[-1]        \n        if shotNum in \['0010', '0020']:\n            nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/LUT/20200805/0_LUT/BFC_night_bamboo.cube')        \n        else:\n            nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/LUT/20200814_BFC/LUT/night_fantastic.cube')\n\n    if seqName == 'LIM':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/LIM_night_fantastic.cube')\n\n    if seqName == 'RVS':\n        nuke.thisNode()\['vfield_file'].setValue('/mach/show/imt/stuff/post/_LUT/RVS_night_fantastic.cube')\n\n    \n    nuke.thisNode().setName(shotName)\n    ff = '/mach/show/imt/stuff/post/_LUT/IMT_platelist.json'\n    df = '/mach/show/imt/stuff/post/_LUT/ccc'\n    shotLutDic  = json.load(open(ff, 'r'))\n    if shotLutDic.get(shotName):\n        nuke.thisNode()\['plate'].setValues(shotLutDic\[shotName].keys())\n        plateName = nuke.thisNode()\['plate'].value()\n        fname = shotLutDic\[shotName]\[plateName] + '.ccc'\n        nuke.thisNode()\['file'].setValue(os.path.join(df, fname))\n\n\nelif nuke.thisKnob().name() == 'plate':\n    shotName = nuke.thisNode()\['shotName'].value()        \n    ff = '/mach/show/imt/stuff/post/_LUT/IMT_platelist.json'\n    shotLutDic  = json.load(open(ff, 'r'))\n    if shotLutDic.get(shotName):\n        nuke.thisNode()\['plate'].setValues(shotLutDic\[shotName].keys())\n        plateName = nuke.thisNode()\['plate'].value()\n        fname = shotLutDic\[shotName]\[plateName] + '.ccc'\n        nuke.thisNode()\['file'].setValue(os.path.join(df, fname))\n"
+ addUserKnob {20 User}
+ addUserKnob {1 shotName}
+ shotName BFC_0010
+ addUserKnob {4 plate M {ref1 main1}}
+ addUserKnob {41 file T OCIOCDLTransform2.file}
+ addUserKnob {41 reload T OCIOCDLTransform2.reload}
+ addUserKnob {26 ""}
+ addUserKnob {41 vfield_file l "vectorfield file" T Vectorfield3.vfield_file}
+ addUserKnob {41 colorspaceIn l "colorspace in" T Vectorfield3.colorspaceIn}
+ addUserKnob {41 colorspaceOut l "colorspace out" T Vectorfield3.colorspaceOut}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+ }
+ OCIOCDLTransform {
+  slope {1 1 1}
+  offset {0 0 0}
+  power {1 1 1}
+  working_space Cineon
+  read_from_file true
+  file /mach/show/imt/stuff/post/_LUT/ccc/B239_C005_0524S9.ccc
+  version 2
+  cccid B239_C005_0524S9
+  name OCIOCDLTransform2
+  xpos 0
+  ypos 136
+ }
+ Vectorfield {
+  vfield_file /mach/show/imt/stuff/LUT/20200805/0_LUT/BFC_night_bamboo.cube
+  version 10
+  file_type cube
+  colorspaceIn Cineon
+  name Vectorfield3
+  selected true
+  xpos 0
+  ypos 192
+ }
+ Output {
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group

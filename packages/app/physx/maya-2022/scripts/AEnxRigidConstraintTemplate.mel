@@ -1,0 +1,691 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+// AEnxRigidConstraintTemplate
+//
+// Author: Christian Laforte, Feeling Software Inc. (http://www.feelingsoftware.com)
+//
+
+
+
+global proc AEnxRigidConstraintTemplate(string $nodeName)
+{
+	editorTemplate -suppress "rigidBody1";
+	editorTemplate -suppress "rigidBody2";
+	editorTemplate -suppress "worldVector";
+
+	editorTemplate -beginScrollLayout;
+	
+	editorTemplate -beginLayout "General Attributes" -collapse false;
+			
+		editorTemplate -callCustom "AEnxRigidConstraintManageChild" "AEnxRigidConstraintManageChildReplace" "RigidConstraintChild";
+
+		editorTemplate -beginNoOptimize;	
+		editorTemplate -label "Enabled" -addControl "constrain";
+		editorTemplate -label "Acceleration Mode" -addControl "useAcceleration";
+		editorTemplate -addControl "interpenetrate";
+		//editorTemplate -addControl "showAxis";
+		editorTemplate -endNoOptimize;
+		
+		editorTemplate -addSeparator;	
+
+		editorTemplate -addControl "translate";
+		editorTemplate -addControl "rotate";
+		editorTemplate -addControl "radiusScale";
+		
+		editorTemplate -addSeparator;	
+
+		//editorTemplate -addControl "positionMode" "nxRigidConstraint_positionModeControl";
+		//editorTemplate -addControl "localPosition2";
+		
+		editorTemplate -addControl "orientationMode"; //"nxRigidConstraint_orientationModeControl";
+		//editorTemplate -addControl "localOrientation2";
+		
+		//editorTemplate -addSeparator;
+		//editorTemplate -addControl "manipulateFrame";
+		//editorTemplate -addControl "manipulateVector";
+		
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Limits" -collapse false;
+		
+		editorTemplate -beginLayout "Swing" -collapse false;
+
+			editorTemplate -label "SwingY Freedom Mode"		-addControl "motionSwingY" "nxRigidConstraint_swing1MotionControls";
+			editorTemplate -label "SwingY Limit Angle"		-addControl  "swing1LimitValue" "nxRigidConstraint_swing1LimitAngleControls";
+			editorTemplate -label "SwingY Limit Bounciness" -addControl "swing1LimitRestitution";
+			editorTemplate -label "SwingY Limit Springiness" -addControl "swing1LimitSpring";
+			editorTemplate -label "SwingY Limit Damping"	-addControl "swing1LimitDamping";
+		
+			editorTemplate -addSeparator;	
+		
+			editorTemplate -label "SwingZ Freedom Mode"		-addControl "motionSwingZ" "nxRigidConstraint_swing2MotionControls";
+			editorTemplate -label "SwingZ Limit Angle"		-addControl "swing2LimitValue";
+			editorTemplate -label "SwingZ Limit Bounciness" -addControl "swing2LimitRestitution";
+			editorTemplate -label "SwingZ Limit Springiness" -addControl "swing2LimitSpring";
+			editorTemplate -label "SwingZ Limit Damping"	-addControl "swing2LimitDamping";
+		
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Twist" -collapse true;
+
+			editorTemplate -label "Twist Freedom Mode"		-addControl "motionTwist" "nxRigidConstraint_twistMotionControls";
+
+			editorTemplate -addSeparator;	
+			
+			editorTemplate -label "Twist Limit Low Angle"		-addControl "twistLowLimitValue";
+			editorTemplate -label "Twist Limit Low Bounciness"	-addControl "twistLowLimitRestitution";
+			editorTemplate -label "Twist Limit Low Springiness"	-addControl "twistLowLimitSpring";
+			editorTemplate -label "Twist Limit Low Damping"		-addControl "twistLowLimitDamping";
+			
+			editorTemplate -addSeparator;	
+	
+			editorTemplate -label "Twist Limit High Angle"		-addControl "twistHighLimitValue";
+			editorTemplate -label "Twist Limit High Bounciness"	-addControl "twistHighLimitRestitution";
+			editorTemplate -label "Twist Limit High Springiness"	-addControl "twistHighLimitSpring";
+			editorTemplate -label "Twist Limit High Damping"		-addControl "twistHighLimitDamping";
+		
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Translate" -collapse true;
+		
+			editorTemplate -label "TranslateX Freedom Mode"		 -addControl "motionX" "nxRigidConstraint_linearMotionControls";
+			editorTemplate -label "TranslateY Freedom Mode"		 -addControl "motionY" "nxRigidConstraint_linearMotionControls";
+			editorTemplate -label "TranslateZ Freedom Mode"		 -addControl "motionZ" "nxRigidConstraint_linearMotionControls";
+			editorTemplate -label "Translate Limit Distance"	 -addControl "linearLimitValue";
+			editorTemplate -label "Translate Limit Bounciness"	 -addControl "linearLimitRestitution";
+			editorTemplate -label "Translate Limit Springiness"	 -addControl "linearLimitSpring";
+			editorTemplate -label "Translate Limit Damping"		 -addControl "linearLimitDamping";
+		
+		editorTemplate -endLayout;
+		
+	editorTemplate -endLayout;
+
+	//editorTemplate -beginLayout "Spring and Damping" -collapse true;
+			
+		editorTemplate -beginLayout "Damping";
+
+			//editorTemplate -addControl "goalLinearVelocity";	//if we support this it would not be "damp to rest" it would be "drive to velocity"
+			editorTemplate -label "Damping X" -addControl "driveDampingX";
+			editorTemplate -label "Damping Y" -addControl "driveDampingY";
+			editorTemplate -label "Damping Z" -addControl "driveDampingZ";
+			
+			editorTemplate -addSeparator;
+
+			//editorTemplate -addControl "goalAngularVelocity"; //if we support this it would not be "damp to rest" it would be "drive to velocity"
+			editorTemplate -label "Damping Swing" -addControl "driveDampingSwing";
+			editorTemplate -label "Damping Twist" -addControl "driveDampingTwist";
+			editorTemplate -label "Damping SLERP" -addControl "driveDampingSlerp";
+
+			//we're not actually going to make any API but just cheat to get callbacks for free
+			editorTemplate -callCustom "AEnxRigidConstraint_SlerpModeNew" "AEnxRigidConstraint_SlerpModeReplace" "RigidConstraint_SlerpMode";
+
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Spring";
+
+			editorTemplate -label "Goal Space" -addControl "goalSpace";
+			editorTemplate -label "Goal Position" -addControl "goalPosition";//additional offset from start
+			editorTemplate -label "Goal Orientation" -addControl "goalOrientation";//additional offset from start
+			
+			editorTemplate -addSeparator;
+			
+			editorTemplate -label "Spring X" -addControl "driveSpringX";
+			editorTemplate -label "Spring Y" -addControl "driveSpringY";
+			editorTemplate -label "Spring Z" -addControl "driveSpringZ";
+				
+			editorTemplate -addSeparator;
+
+			editorTemplate -label "Spring Swing" -addControl "driveSpringSwing";
+			editorTemplate -label "Spring Twist" -addControl "driveSpringTwist";
+			editorTemplate -label "Spring SLERP" -addControl "driveSpringSlerp";
+		
+			//we're not actually going to make any API but just cheat to get callbacks for free
+			editorTemplate -callCustom "AEnxRigidConstraint_SlerpModeNew" "AEnxRigidConstraint_SlerpModeReplace" "RigidConstraint_SlerpMode";
+	
+		editorTemplate -endLayout;
+
+	//editorTemplate -endLayout;
+	
+	//editorTemplate -beginLayout "Spring Attributes";
+	//	editorTemplate -addControl "springStiffness";
+	//	editorTemplate -addControl "springDamping";
+	//	editorTemplate -addControl "springRestLength";
+	//editorTemplate -endLayout;
+
+
+	editorTemplate -beginLayout "Breakable" -collapse true;
+
+		//editorTemplate -addControl "force";
+		editorTemplate -addControl "breakableForce" "nxRigidConstraint_breakableForceControls";
+		editorTemplate -label "Maximum" -addControl "maxForce";
+
+		editorTemplate -addSeparator;	
+
+		//editorTemplate -addControl "torque";
+		editorTemplate -addControl "breakableTorque" "nxRigidConstraint_breakableTorqueControls";
+		editorTemplate -label "Maximum" -addControl "maxTorque";
+		
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Advanced" -collapse true;;
+		
+		editorTemplate -label "Reverse Parent/Child" -addControl "reverse" "nxRigidConstraint_reverseControls";
+
+		editorTemplate -addSeparator;
+		
+		editorTemplate -addControl "projectionMode";
+		editorTemplate -addControl "projectionDistance";
+		editorTemplate -addControl "projectionAngle";
+
+		editorTemplate -addSeparator;
+
+		editorTemplate -addControl "angularDriveMode";	//slerp or swing&twist
+	
+	
+	editorTemplate -endLayout;
+
+		// More suppression
+		editorTemplate -suppress "caching";
+		editorTemplate -suppress "nodeState";
+		editorTemplate -suppress "blackBox";
+		editorTemplate -suppress "rmbCommand";
+		editorTemplate -suppress "templateName";
+		editorTemplate -suppress "templatePath";
+		editorTemplate -suppress "viewName";
+		editorTemplate -suppress "iconName";
+		editorTemplate -suppress "viewMode";
+		editorTemplate -suppress "templateVersion";
+		editorTemplate -suppress "uiTreatment";
+		editorTemplate -suppress "customTreatment";
+		editorTemplate -suppress "creator";
+		editorTemplate -suppress "creationDate";
+		editorTemplate -suppress "containerType";
+		editorTemplate -suppress "visibility";
+		editorTemplate -suppress "intermediateObject";
+		editorTemplate -suppress "template";
+		editorTemplate -suppress "ghosting";
+
+		editorTemplate -suppress "ghostingControl";
+		editorTemplate -suppress "ghostPreSteps";
+		editorTemplate -suppress "ghostPostSteps";
+		editorTemplate -suppress "ghostStepSize";
+		editorTemplate -suppress "ghostColorPreA";
+		editorTemplate -suppress "ghostColorPre";
+		editorTemplate -suppress "ghostColorPostA";
+		editorTemplate -suppress "ghostColorPost";
+		editorTemplate -suppress "ghostRangeStart";
+		editorTemplate -suppress "ghostRangeEnd";
+		editorTemplate -suppress "ghostDriver";
+		editorTemplate -suppress "translate";
+		editorTemplate -suppress "rotate";
+		editorTemplate -suppress "rotateOrder";
+		editorTemplate -suppress "scale";
+		editorTemplate -suppress "shear";
+		editorTemplate -suppress "rotatePivot";
+		editorTemplate -suppress "rotatePivotTranslate";
+		editorTemplate -suppress "scalePivot";
+		editorTemplate -suppress "scalePivotTranslate";
+		editorTemplate -suppress "rotateAxis";
+		editorTemplate -suppress "selectHandle";
+		editorTemplate -suppress "inheritsTransform";
+		editorTemplate -suppress "displayHandle";
+		editorTemplate -suppress "displayScalePivot";
+		editorTemplate -suppress "displayRotatePivot";
+		editorTemplate -suppress "displayLocalAxis";
+		editorTemplate -suppress "dynamics";
+		editorTemplate -suppress "showManipDefault";
+		editorTemplate -suppress "rotateQuaternion";
+		editorTemplate -suppress "enableRestPosition";
+		editorTemplate -suppress "lockOutput";
+		editorTemplate -suppress "objectColorRGB";
+		editorTemplate -suppress "useObjectColor";
+		editorTemplate -suppress "objectColor";
+		editorTemplate -suppress "lodVisibility";
+		editorTemplate -suppress "selectionChildHighlighting";
+
+		editorTemplate -suppress "ghostCustomSteps";
+		editorTemplate -suppress "ghostFrames";
+		editorTemplate -suppress "geometry";
+
+		editorTemplate -suppress "minTransLimit";
+		editorTemplate -suppress "maxTransLimit";
+		editorTemplate -suppress "minTransLimitEnable";
+		editorTemplate -suppress "maxTransLimitEnable";
+		editorTemplate -suppress "minRotLimit";
+		editorTemplate -suppress "maxRotLimit";
+		editorTemplate -suppress "minRotLimitEnable";
+		editorTemplate -suppress "maxRotLimitEnable";
+		editorTemplate -suppress "minScaleLimit";
+		editorTemplate -suppress "maxScaleLimit";
+		editorTemplate -suppress "minScaleLimitEnable";
+		editorTemplate -suppress "maxScaleLimitEnable";
+		
+		editorTemplate -suppress "drawOverride";
+		editorTemplate -suppress "instObjGroups";
+		editorTemplate -suppress "renderInfo";
+		editorTemplate -suppress "renderLayerInfo";
+		editorTemplate -suppress "target";
+
+		editorTemplate -suppress "deprecated_outRigidConstraint";
+		editorTemplate -suppress "constraintType";
+		editorTemplate -suppress "localPosition2";
+		editorTemplate -suppress "localOrientation2";
+		editorTemplate -suppress "deprecated_aShowAxis";
+		editorTemplate -suppress "positionMode";
+		editorTemplate -suppress "deprecated_angularDrive";
+		editorTemplate -suppress "goalLinearVelocity";
+		editorTemplate -suppress "goalAngularVelocity";
+		editorTemplate -suppress "deprecated_relativeTo";
+		editorTemplate -suppress "deprecated_springDamping";
+		editorTemplate -suppress "deprecated_PIdentityMatrix";
+		editorTemplate -suppress "deprecated_inSimulate";
+
+	// include/call base class/node attributes
+	//AEdynBaseTemplate $nodeName;
+	//AEdynObjectCommon $nodeName;
+	//AEdynObjectInclude $nodeName;
+	
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}
+
+//global proc nxRigidConstraint_relativeToControls(string $nodeName)
+//{
+//	string $attr = $nodeName + ".relativeTo";
+//	int $type = `getAttr $attr`;
+//
+//	if ($type == 3) 
+//	{
+//		// User Defined Position
+//		editorTemplate -dimControl $nodeName "userDefinedPosition" false;
+//	}
+//	else 
+//		editorTemplate -dimControl $nodeName "userDefinedPosition" true;
+//}
+
+//global proc nxRigidConstraint_positionModeControl(string $nodeName)
+//{
+//	int $dim = `getAttr ($nodeName + ".positionMode")` != 0;
+//	editorTemplate -dimControl $nodeName "localPosition2" $dim;
+//}
+
+//global proc nxRigidConstraint_orientationModeControl(string $nodeName)
+//{
+//	int $dim = `getAttr ($nodeName + ".orientationMode")` != 0;
+//	editorTemplate -dimControl $nodeName "localOrientation2" $dim;
+//}
+
+global proc nxRigidConstraint_reverseControls(string $nodeName)
+{
+	$rb1 = `listConnections -d off -s on ($nodeName + ".rigidBody1")`;
+	$rb2 = `listConnections -d off -s on ($nodeName + ".rigidBody2")`;
+
+	int $numConnectedRB = size( $rb1 ) + size( $rb2 );
+
+	// Dim control if there's only 1 rigid body attached.
+	if( $numConnectedRB == 1 )
+		$dim = 1;
+	else
+		$dim = 0;
+	
+	editorTemplate -dimControl $nodeName "reverse" $dim;
+}
+
+
+global proc nxRigidConstraint_breakableForceControls(string $nodeName)
+{
+	int $dim = `getAttr ($nodeName + ".breakableForce")` != 1;
+	
+	// User Defined Position
+	editorTemplate -dimControl $nodeName "maxForce" $dim;
+}
+
+global proc nxRigidConstraint_breakableTorqueControls(string $nodeName)
+{
+	int $dim = `getAttr ($nodeName + ".breakableTorque")` != 1;
+	
+	// User Defined Position
+	editorTemplate -dimControl $nodeName "maxTorque" $dim;
+}
+
+global proc nxRigidConstraint_constraintTypeControls(string $nodeName)
+{
+	string $attr = $nodeName + ".constraintType";
+	int $type = `getAttr $attr`;
+
+	int $type_none = 0;
+	int $type_pin = 1;
+	int $type_nail = 2;
+	int $type_directionalHinge = 3;
+	int $type_deprecatedHinge = 4;
+	int $type_hinge = 5;
+	int $type_deprecatedSpring = 6;
+	int $type_multispring = 7;
+	int $type_barrier = 8;
+
+	if ($type == $type_none) 
+	{
+		editorTemplate -dimControl $nodeName "interpenetrate" false;
+		//editorTemplate -dimControl $nodeName "showAxis" false;
+		editorTemplate -dimControl $nodeName "springStiffness" false;
+		editorTemplate -dimControl $nodeName "springDamping" false;
+		editorTemplate -dimControl $nodeName "springRestLength" false;
+		editorTemplate -dimControl $nodeName "initialPosition" false;
+		editorTemplate -dimControl $nodeName "initialOrientation" false;
+	} 
+	else if ($type ==  $type_pin) 
+	{
+		// Pin
+		editorTemplate -dimControl $nodeName "interpenetrate" false;
+		//editorTemplate -dimControl $nodeName "showAxis" false;
+		editorTemplate -dimControl $nodeName "springStiffness" true;
+		editorTemplate -dimControl $nodeName "springDamping" true;
+		editorTemplate -dimControl $nodeName "springRestLength" true;
+		editorTemplate -dimControl $nodeName "initialPosition" false;
+		editorTemplate -dimControl $nodeName "initialOrientation" true;
+	} 
+	else if ($type == $type_nail || $type == $type_barrier) 
+	{
+		// 2 = Nail & 5 = Barrier
+		editorTemplate -dimControl $nodeName "interpenetrate" true;
+		//editorTemplate -dimControl $nodeName "showAxis" true;
+		editorTemplate -dimControl $nodeName "springStiffness" true;
+		editorTemplate -dimControl $nodeName "springDamping" true;
+		editorTemplate -dimControl $nodeName "springRestLength" true;
+		editorTemplate -dimControl $nodeName "initialPosition" false;
+
+		if ($type == $type_barrier)
+			editorTemplate -dimControl $nodeName "initialOrientation" false;
+		else
+			editorTemplate -dimControl $nodeName "initialOrientation" true;
+	} 
+	else if ($type == $type_directionalHinge || $type == $type_hinge) 
+	{
+		// 3 = uniHinge & 4 = hinge
+		editorTemplate -dimControl $nodeName "interpenetrate" false;
+		//editorTemplate -dimControl $nodeName "showAxis" false;
+		editorTemplate -dimControl $nodeName "springStiffness" true;
+		editorTemplate -dimControl $nodeName "springDamping" true;
+		editorTemplate -dimControl $nodeName "springRestLength" true;
+		editorTemplate -dimControl $nodeName "initialPosition" false;
+		editorTemplate -dimControl $nodeName "initialOrientation" false;
+	} 
+	else if ($type_deprecatedSpring == 6 || $type_multispring == 7) 
+	{
+		// spring & 7 = multi spring
+		editorTemplate -dimControl $nodeName "interpenetrate" false;
+		//editorTemplate -dimControl $nodeName "showAxis" false;
+		editorTemplate -dimControl $nodeName "springStiffness" false;
+		editorTemplate -dimControl $nodeName "springDamping" false;
+		editorTemplate -dimControl $nodeName "springRestLength" false;
+		editorTemplate -dimControl $nodeName "initialPosition" true;
+		editorTemplate -dimControl $nodeName "initialOrientation" true;
+	}
+}
+
+global proc nxRigidConstraint_dimLimit(string $nodeName, string $limitName, int $dim)
+{
+	editorTemplate -dimControl $nodeName ($limitName + "LimitValue") $dim;
+	editorTemplate -dimControl $nodeName ($limitName + "LimitRestitution") $dim;
+	editorTemplate -dimControl $nodeName ($limitName + "LimitSpring") $dim;
+	editorTemplate -dimControl $nodeName ($limitName + "LimitDamping") $dim;
+}
+
+global proc nxRigidConstraint_linearMotionControls(string $nodeName)
+{
+	// If motionX, motionY or motionZ is set to limited,
+	// do not dim the linear limit attributes.
+	//
+	if (`getAttr ($nodeName + ".motionX")` == 1 ||
+		`getAttr ($nodeName + ".motionY")` == 1 ||
+		`getAttr ($nodeName + ".motionZ")` == 1)
+	{
+		nxRigidConstraint_dimLimit($nodeName, "linear", 0);
+	}
+	else
+		nxRigidConstraint_dimLimit($nodeName, "linear", 1);
+}
+
+global proc nxRigidConstraint_swing1MotionControls(string $nodeName)
+{
+	if (`getAttr ($nodeName + ".motionSwingY")` == 1)
+		nxRigidConstraint_dimLimit($nodeName, "swing1", 0);
+	else
+		nxRigidConstraint_dimLimit($nodeName, "swing1", 1);
+}
+
+global proc nxRigidConstraint_swing1LimitAngleControls(string $nodeName)
+{
+	int $motionSwingYValue  = `getAttr ($nodeName + ".motionSwingY")`;
+	int $motionSwingZValue  = `getAttr ($nodeName + ".motionSwingZ")`;
+	if($motionSwingYValue == 1 && $motionSwingZValue == 2)
+	{
+		int $swing1LimitValue  = `getAttr ($nodeName + ".swing1LimitValue")`;
+		if($swing1LimitValue >90)
+			setAttr ($nodeName + ".swing1LimitValue") 90;
+	}
+}
+
+global proc nxRigidConstraint_swing2MotionControls(string $nodeName)
+{
+	if (`getAttr ($nodeName + ".motionSwingZ")` == 1)
+		nxRigidConstraint_dimLimit($nodeName, "swing2", 0);
+	else
+		nxRigidConstraint_dimLimit($nodeName, "swing2", 1);
+	nxRigidConstraint_swing1LimitAngleControls($nodeName);
+}
+
+global proc nxRigidConstraint_twistMotionControls(string $nodeName)
+{
+	if (`getAttr ($nodeName + ".motionTwist")` == 1)
+	{
+		nxRigidConstraint_dimLimit($nodeName, "twistLow", 0);
+		nxRigidConstraint_dimLimit($nodeName, "twistHigh", 0);
+	}
+	else
+	{
+		nxRigidConstraint_dimLimit($nodeName, "twistLow", 1);
+		nxRigidConstraint_dimLimit($nodeName, "twistHigh", 1);
+	}
+}
+	
+global proc AEnxRigidConstraint_SlerpModeNew( string $plug )
+{
+	AEnxRigidConstraint_SlerpModeReplace($plug);
+}	
+	
+global proc AEnxRigidConstraint_SlerpModeReplace( string $plug )
+{
+	$nodeName = extractNodeName($plug);
+	
+	//0=swing&twist 1=SLERP
+	int $mode = `getAttr ($nodeName+".angularDriveMode")`; 
+
+	editorTemplate -dimControl $nodeName "driveSpringSwing" ($mode != 0);
+	editorTemplate -dimControl $nodeName "driveSpringTwist" ($mode != 0);
+	editorTemplate -dimControl $nodeName "driveSpringSlerp" ($mode == 0);
+	editorTemplate -dimControl $nodeName "driveDampingSwing" ($mode != 0);
+	editorTemplate -dimControl $nodeName "driveDampingTwist" ($mode != 0);
+	editorTemplate -dimControl $nodeName "driveDampingSlerp" ($mode == 0);
+}
+
+//Create button to connect/disconnect child rigid constraint
+global proc AEnxRigidConstraintManageChild( string $plug )
+{
+	$rcNode = extractNodeName($plug);
+	AEnxRigidConstraintManageChildBtnSetup( $rcNode );
+}
+
+global proc AEnxRigidConstraintManageChildReplace( string $plug )
+{
+	$rcNode = extractNodeName($plug);
+	AEnxRigidConstraintManageChildBtnSetup( $rcNode );
+}
+
+global proc AEnxRigidConstraintManageChildBtnSetup( string $nodeName )
+{
+	string $addLabel = "Add Rigid Constraint Child";
+	string $removeLabel = "Remove Rigid Constraint Child";
+	string $label = "";
+	int $connect = 0;
+
+	if( connectedRCChildExists( $nodeName ) )
+		$label = $removeLabel;
+	else 
+	{
+		$label = $addLabel;
+		$connect = 1;
+	}
+
+	if( !`button -exists AEnxRigidConstraintManageChildBtn` )	
+		button -label $label -command ("connectOrDisconnectRigidConstraintChild "+$connect+" "+$nodeName ) AEnxRigidConstraintManageChildBtn;
+	else
+		button -e -label $label -command ("connectOrDisconnectRigidConstraintChild "+$connect+" "+$nodeName ) AEnxRigidConstraintManageChildBtn;
+
+}
+
+global proc int connectedRCChildExists( string $nodeName )
+{
+	$rcChild = `connectionInfo -sourceFromDestination ($nodeName + ".rigidBody2")`;
+	if( $rcChild == "" )
+		return false;
+	else
+		return true;
+}
+
+global proc connectOrDisconnectRigidConstraintChild( int $connect, string $nodeName )
+{
+	// connect to new rigid body
+	if( $connect )
+	{
+		select -clear;
+		NvExecuteOnSelection -hint "Please select rigid body to connect." -cmd ("connectRigidConstraintChildAfterSelect " + $nodeName); 
+	}
+	else // disconnect current constraint child
+	{
+		$rcChild = `connectionInfo -sourceFromDestination ($nodeName + ".rigidBody2")`;
+		disconnectAttr $rcChild ($nodeName + ".rigidBody2");
+	}
+
+	AEnxRigidConstraintManageChildBtnSetup( $nodeName );
+}
+
+global proc connectRigidConstraintChildAfterSelect( string $nodeName )
+{
+	string $rcChild = "";
+	$selected = `NvExecuteOnSelection -q`;
+
+	if( size($selected) == 0)
+	{
+		error "No selection made. Add constraint child will not continue.\n";
+		return;
+	}
+
+	// Look for rigidbody from selection
+	if( `nodeType $selected[0]` == "nxRigidBody" )
+		$rcChild = $selected[0];
+	else // or from selected transform
+	{
+		string $transformChild[] = `listRelatives -fullPath -allDescendents -type "nxRigidBody" $selected[0]`;
+		//print ("selected: " + $selected[0] + " - transChild: " + $transformChild[0] );
+		if( size($transformChild) == 0)
+		{
+			error "No rigid body in selected transform. Add constraint child will not continue.\n";
+			return;
+		}
+		
+		$rcChild = $transformChild[0];
+	}
+
+	// Check if selected rb is already a child of constraint. if yes prompt error
+	string $rcParent = `connectionInfo -sourceFromDestination ($nodeName + ".rigidBody1")`;
+
+	if( $rcParent == ($rcChild + ".adapter"))
+	{
+		error "Selected rigid body is a parent of the constraint. Add constraint child will not continue.\n";
+		return;
+	}
+	
+	connectAttr ($rcChild + ".adapter") ($nodeName + ".rigidBody2");
+
+	// return selection to constraint;
+	select $nodeName;
+}
+
+global proc duplicateConstraint(string $constraint, string $sourceRigidBody, string $replaceRigidBody)
+{
+	if(isParentOf($sourceRigidBody, $constraint))
+	{
+		$csDuplicate = `createNode nxRigidConstraint`;
+		$csDuplicateLocator = `createNode -parent $csDuplicate nxRigidConstraintLocator`;
+
+		// Rename the constraint transform properly
+		$csDuplicate = `rename -ignoreShape $csDuplicate ($replaceRigidBody + "Constraint")`;
+		$csDuplicateLocator = `rename ($csDuplicate + "Locator")`;
+
+		// Reparent physics shape transform duplicate under new rigid body
+		parent -shape -relative $csDuplicate $replaceRigidBody;
+		connectAttr ($replaceRigidBody+ ".adapter") ($csDuplicate + ".rigidBody1");
+		// duplicate attribute values
+		copyAttr -values $constraint $csDuplicate;
+
+		// duplicate rigidBody2. As tracking the joint's graph is not easy, we make all connections
+		// this is for case: grand father joint's rigidbody
+		string $parentJointRigidBody = getRigidBodyOfGrandFatherJointFromRigidBody($replaceRigidBody);
+		if($parentJointRigidBody != "")
+		{
+			connectAttr ($parentJointRigidBody+ ".adapter") ($csDuplicate + ".rigidBody2");
+		}
+
+		// this is for case: children joint's rigidbody
+		string $parentJoint = getParentJointFromRigidBody($replaceRigidBody);
+		string $childJoints[] = `listRelatives -fullPath -children -type "joint" $parentJoint`;
+		for($joint in $childJoints)
+		{
+			string $rigidBodies[]= `listRelatives -fullPath -children -type "nxRigidBody" $joint`;
+			if(`size $rigidBodies` > 0)
+			{
+				string $constraintArray[] = `listRelatives -fullPath -children -type "nxRigidConstraint" $rigidBodies[0]`;
+				for($cs in $constraintArray)
+				{
+					if(`isConnected ($replaceRigidBody+ ".adapter") ($cs + ".rigidBody2")` == 0)
+						connectAttr ($replaceRigidBody+ ".adapter") ($cs + ".rigidBody2");
+				}
+			}
+		}
+	}
+}
+
+global proc string getRigidBodyOfGrandFatherJointFromRigidBody(string $rigidBody)
+{
+	string $joints[] = `listRelatives -fullPath -p -type "joint" $rigidBody`;
+	if(`size $joints` == 0) return "";
+	$joints = `listRelatives -fullPath -p -type "joint" $joints[0]`;
+	if(`size $joints` == 0) return "";
+	string $rigidBodies[] = `listRelatives -fullPath -children -type "nxRigidBody" $joints`;
+	if(`size $rigidBodies` == 0) return "";
+	return $rigidBodies[0];
+}
+
+global proc string getParentJointFromRigidBody(string $rigidBody)
+{
+	string $joints[] = `listRelatives -fullPath -p -type "joint" $rigidBody`;
+	if(`size $joints` == 0) return "";
+	return $joints[0];
+}

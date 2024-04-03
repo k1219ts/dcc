@@ -1,0 +1,59 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global proc apexClothingTetraWindow()
+{
+	string $layout = getOptionBox();
+	setParent $layout;
+	setUITemplate -pushTemplate DefaultTemplate;
+	waitCursor -state 1;
+
+	// Retrieve the option variables
+	float $th = `optionVar -q "tetraherdralizeThickness"`;
+	
+	// Create the controls for the options
+	string $parent = `columnLayout -adjustableColumn 1`;
+	floatSliderGrp -label "Thickness" -value $th -min 0.01 -max 10.0 -fieldMinValue 0.01 -fieldMaxValue 10.0 tetraThickness;
+
+	waitCursor -state 0;
+	setUITemplate -popTemplate;
+
+	string $applyBtn = getOptionBoxApplyBtn();
+	button -edit -label "Create"
+		   -command ("apexClothingTetraSaveOptions( \"" + $parent + "\" ); tetraExecute();")
+		   $applyBtn;
+	string $saveBtn = getOptionBoxSaveBtn();
+	button -edit 
+		   -command ("apexClothingTetraSaveOptions( \"" + $parent + "\");")
+		   $saveBtn;
+	string $resetBtn = getOptionBoxResetBtn();
+	button -edit 
+		   -command "apexClothingTetraSaveOptions(1); tetraWindow();"
+		   $resetBtn;
+			 
+	setOptionBoxTitle( "tetra Options" );
+
+	showOptionBox();
+}
+
+global proc apexClothingTetraSaveOptions( string $parent )
+{		
+	// Get values of controls
+	setParent $parent;
+	float $th = `floatSliderGrp -query -value tetraThickness`;
+	
+	// Update option variables
+	optionVar -floatValue tetraThickness $th;
+}
+
+global proc apexClothingMolecule4UpdateWindow()
+{
+	// Retrieve the option variables
+	float $th = `optionVar -q "tetraThickness"`;
+
+	floatSliderGrp -edit -value $th "tetraThickness";
+}

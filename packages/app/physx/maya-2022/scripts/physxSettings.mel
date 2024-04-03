@@ -1,0 +1,74 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+// physxSettings.mel
+//
+// Features to reset user's maya environment variables to factory defaults if
+// 
+global proc nxRestoreFactoryCheck()
+{
+	string $resetDate;
+	if( `nxBuildIsDebug` )
+		$resetDate = "debug";
+	else	
+		$resetDate = nxBuildGetDate();
+	
+	string $resetOptVarName = "physxResetDate";
+	//global int $isRunningUnitTest; // used during the execution of unit tests to skip the reset prompt;
+	if( $resetDate == "debug" )//|| $isRunningUnitTest ) // skip prompt & reset directly
+		nxLoadFactorySettings;
+	else
+	{
+		if( `optionVar -exists $resetOptVarName` )
+		{
+			if( `optionVar -q $resetOptVarName` == $resetDate )
+				return;
+
+			// if it's not the same, bring up reset prompt dialog & store the new date into option var
+			optionVar -stringValue $resetOptVarName $resetDate;
+			nxRestoreFactoryPrompt;
+		}
+		else
+		{
+			if( `optionVar -exists "rigidName"` )
+			{
+				// if it does exists, bring up reset prompt dialog & store the new date into option var
+				optionVar -stringValue $resetOptVarName $resetDate;
+				nxRestoreFactoryPrompt;
+			}
+			else
+				nxLoadFactorySettings;
+		}
+	}
+}
+
+// Reset to factory settings
+global proc nxLoadFactorySettings()
+{
+	source "nxDynSetOptionVars.mel";
+	
+	// Settings available for reset
+	string $settings[] = {"Rigid","RigidConstraint","ParticleRenderCache","ParticleInstancer","VolumeAxis","Constrain","Emitter"};
+	for($item in $settings)
+	{
+		string $procName = ("nxSet"+$item+"OptionVars");
+		eval ($procName+" true");
+	}
+	print "PhysX factory settings loaded.\n";
+}
+
+global proc nxRestoreFactoryPrompt()
+{
+	string $toReset = `confirmDialog 
+		-title "Restore to PhysX factory defaults" 
+		-message "Some vital settings had been updated. Would you like to reset?"
+		-button "Yes" -button "No" -defaultButton "Yes"
+		-cancelButton "No" -dismissString "No"`;
+
+	if( $toReset == "Yes" )
+		nxLoadFactorySettings;
+}

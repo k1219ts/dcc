@@ -1,0 +1,152 @@
+#! /usr/local/Nuke6.2v2/Nuke6.2 -nx
+version 6.2 v2
+Gizmo {
+ note_font "Bitstream Vera Sans"
+ mapsize {0.15 0.15}
+ addUserKnob {20 User}
+ addUserKnob {41 rotate_1 l rotate T scanline_Transform1.rotate}
+ addUserKnob {41 size_1 l line_size T scanline_Grid1.size}
+ addUserKnob {41 number_1 l number T scanline_Grid1.number}
+ addUserKnob {41 mix_1 l mix T scanline_smix.mix}
+}
+ Input {
+  inputs 0
+  name scanline_Input1
+  xpos -505
+  ypos -305
+ }
+set N9269eb0 [stack 0]
+ Dot {
+  name Dot1
+  xpos -284
+  ypos -300
+ }
+set N926c290 [stack 0]
+push $N926c290
+push $N9269eb0
+ NoOp {
+  name scanline_NoOp1
+  xpos -505
+  ypos -266
+ }
+set N926f260 [stack 0]
+ Keyer {
+  operation "luminance key"
+  range {0.5757682887 1 1 1}
+  name scanline_Keyer1
+  xpos -390
+  ypos -168
+ }
+ Premult {
+  name scanline_Premult1
+  xpos -390
+  ypos -126
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "4096 4096 0 0 4096 4096 1 4kk"
+  name scanline_Constant1
+  xpos -744
+  ypos -368
+ }
+ Grid {
+  number {0 1024}
+  name scanline_Grid1
+  xpos -744
+  ypos -289
+ }
+ Transform {
+  translate {{-(4096-scanline_NoOp1.width)/2} {-(4096-scanline_NoOp1.height)/2}}
+  center {2048 2048}
+  name scanline_Transform1
+  xpos -744
+  ypos -261
+ }
+push $N926f260
+ Grade {
+  add -1
+  name scanline_Grade1
+  xpos -658
+  ypos -258
+ }
+ Merge2 {
+  inputs 2
+  name scanline_Merge1
+  xpos -698
+  ypos -215
+ }
+ Blur {
+  size 1.6
+  name scanline_Blur1
+  xpos -698
+  ypos -177
+ }
+set N92a2bc0 [stack 0]
+push $N926f260
+ Shuffle {
+  alpha black
+  name scanline_Shuffle1
+  xpos -576
+  ypos -216
+ }
+set N92aab40 [stack 0]
+ Merge2 {
+  inputs 2
+  operation multiply
+  name scanline_Merge2
+  xpos -656
+  ypos -100
+ }
+push $N92a2bc0
+ Invert {
+  name scanline_Invert1
+  xpos -594
+  ypos -177
+ }
+push $N92aab40
+ Merge2 {
+  inputs 2
+  operation multiply
+  name scanline_Merge5
+  xpos -485
+  ypos -130
+ }
+ Grade {
+  white {{"1 + (1- scanline_smix.mix)" i}}
+  mix 0.395
+  name scanline_Grade2
+  xpos -485
+  ypos -83
+ }
+ Merge2 {
+  inputs 2
+  mix 0.4
+  name scanline_smix
+  xpos -485
+  ypos -29
+ }
+ Merge2 {
+  inputs 2
+  name scanline_Merge3
+  xpos -447
+  ypos 24
+ }
+ CopyBBox {
+  inputs 2
+  name scanline_CopyBBox1
+  xpos -318
+  ypos 24
+ }
+ ShuffleCopy {
+  inputs 2
+  name scanline_ShuffleCopy1
+  xpos -219
+  ypos 24
+ }
+ Output {
+  name scanline_Output1
+  xpos -219
+  ypos 63
+ }
+end_group

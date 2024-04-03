@@ -1,0 +1,79 @@
+
+set cut_paste_input [stack 0]
+version 9.0 v5
+BackdropNode {
+inputs 0
+name BackdropNode3
+tile_color 0xaaaaaa00
+label "QC HSV Sat\nColor Check"
+note_font_size 42
+selected true
+xpos -10892
+ypos 47402
+bdwidth 511
+bdheight 271
+}
+push $cut_paste_input
+Dot {
+name Dot6
+label INPUT
+selected true
+xpos -10711
+ypos 47371
+}
+Dot {
+name Dot7
+selected true
+xpos -10711
+ypos 47482
+}
+set N3c465d40 [stack 0]
+Colorspace {
+colorspace_out HSV
+name Colorspace1
+selected true
+xpos -10745
+ypos 47550
+}
+set N3afb1ce0 [stack 0]
+Shuffle {
+green red
+blue red
+alpha red
+name HUE
+selected true
+xpos -10880
+ypos 47641
+}
+push $N3afb1ce0
+Shuffle {
+red green
+blue green
+alpha green
+name SAT
+selected true
+xpos -10745
+ypos 47642
+}
+push $N3afb1ce0
+Shuffle {
+red blue
+green blue
+alpha blue
+name VAL
+selected true
+xpos -10608
+ypos 47640
+}
+push $N3c465d40
+Saturation {
+saturation 60
+name Saturation
+label "Sat \[value saturation]"
+selected true
+xpos -10468
+ypos 47636
+}
+
+
+

@@ -1,0 +1,25 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -703
+  ypos -240
+ }
+ Vectorfield {
+  vfield_file /netapp/dexter/show/gcd1/asset/LUT/170703_Comp_LUT/COMP_LUT_ZMX_v005.csp
+  version 6
+  file_type csp
+  name GCD1_ZMX_LUT
+  selected true
+  xpos -703
+  ypos -76
+ }
+ Output {
+  name Output1
+  xpos -703
+  ypos 160
+ }
+end_group

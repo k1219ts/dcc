@@ -1,0 +1,582 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global proc apexRemoveOneClothing(string $apexSel)
+{
+	if($apexSel == "")
+		return;
+
+	physxShelf_ResetSimulationCommand;
+	//$connections = `listConnections -d on -s off -shapes on ($apexSel + ".visualizer")`;
+	//if(size($connections) > 0)
+	//	delete $connections[0];
+
+	// Close paint window if not closed already.
+	global int $apexClothingPaint2_On;
+	if( $apexClothingPaint2_On == on )
+		apexClothingPaint2_OnOff($apexSel);
+
+	string $connects[] = `listConnections -t "apexClothingDisplayable" ($apexSel + ".relativeDisplayNode")`;
+	int $connectcount = `size $connects`;
+	if($connectcount > 0)
+	{
+		string $cmd = ("disconnectAttr " + $connects[0] + ".relativeApexClothing " + $apexSel + ".relativeDisplayNode");
+		evalEcho $cmd;
+		delete $connects[0];
+	}
+
+	// Delete the createColorSet & polyColorPerVertex nodes
+
+	//string $polyCNode[] = `listConnections -type "polyColorPerVertex" -exactType true $apexSel`;
+	//$clothingGrpParts = `listConnections -type "groupParts" -exactType true $apexSel`;
+	//string $colorSetNode[] = `listConnections -type "createColorSet" -exactType true $clothingGrpParts[0]`;
+
+	string $colorSetNode[] = `listConnections -type "createColorSet" -exactType true $apexSel`;
+
+	if(size($colorSetNode) > 0)
+	{		
+		string $polyCNode[] = `listConnections -type "polyColorPerVertex" -exactType true $colorSetNode[0]`;
+		delete $polyCNode $colorSetNode;
+		//print ("APEX colour set node [" + $colorSetNode[0] + "] deleted.\n");
+		//print ("APEX Poly node [" + $polyCNode[0] + "] deleted.\n");
+	}
+
+	// select the clothing node to prevent bug http://jira/browse/GWDCC-73 GWDCC-73 Maya - cannot delete Clothing after painting
+	$selectionList = `ls -sl -dag -objectsOnly -type transform`;
+	int $count = `size($selectionList)`;
+	int $i;
+	if($count>0)
+	{
+		select -clear;
+	}
+	for ($i = 0; $i < $count; $i++)
+	{
+		//print ("selected: "+$selectionList[$i]+"\n");
+		select -add $selectionList[$i];
+	}
+
+	// Delete the deformer for the clothing node 
+	string $meshNames[] = `deformer -q -geometry $apexSel`;
+
+	// unbind custom physical mesh
+	int $idx = 0;
+	for ( $i=0; $i < size($meshNames); $i++ )
+	{
+		string $mesh = $meshNames[$i];
+		$type = `nodeType $mesh`;
+		if ( $type == "mesh" )
+		{
+			apexClothingUnbindManualPhysicalMeshArgs( $apexSel,  $idx);
+			$idx++;
+		}
+	}
+
+	for ( $i = 0; $i < size($meshNames); $i++ )
+	{
+		deformer -e -rm -g $meshNames[$i];
+		setAttr ($meshNames[$i] + ".intermediateObject") false;
+		string $ps[] = `listRelatives -parent $meshNames[$i]`;
+		if(`size $ps` > 0)
+		{
+			// because some old bugs, it may hide the parent node. So, we have to make it show here.
+			setAttr ($ps[0] + ".intermediateObject") false;
+		}
+	}
+    
+
+	//@@ hack
+    delete $apexSel;
+
+	print ("PhysX Clothing [" + $apexSel + "] deleted.\n");
+}
+
+global proc apexClothingRemove()
+{
+	string $apexSel = apexClothingGetSelected();
+	apexRemoveOneClothing $apexSel;
+}
+
+//global proc int apexClothingEnsureMeshJointIsSubset( string $mesh, string $clothingNode )
+//{
+//	string $manualMeshSkinCluster = `findRelatedSkinCluster $mesh`;
+//	if ( "" != $manualMeshSkinCluster )
+//	{
+//		string $manualMeshJoints[] = `skinCluster -q -inf $manualMeshSkinCluster`;
+//		
+//		string $allLODs[] = `deformer -q -geometry $clothingNode`;
+//		string $mainMesh = $allLODs[0];
+//
+//		string $mainSkinCluster = `findRelatedSkinCluster $mainMesh`;
+//		string $mainJoints[] = `skinCluster -q -inf $mainSkinCluster`;
+//
+//		for ( $mmJoint in $manualMeshJoints )
+//		{
+//			// see if current joint is part of original joints of the clothing object
+//			int $isSubset = 0;
+//			for ( $mJoint in $mainJoints )
+//			{
+//				if ( $mmJoint == $mJoint )
+//				{
+//					$isSubset = 1;
+//				}
+//			}
+//
+//			if ( $isSubset == 0 )
+//			{
+//				return 0;
+//			}
+//		}
+//
+//		return 1;
+//	}
+//	else
+//	{
+//		return 0;
+//	}
+//}
+
+global proc int apexClothingIsSameSetofBones( string $otherMesh, string $clothingNode )
+{
+	string $otherSkinCluster = `findRelatedSkinCluster $otherMesh`;
+	if ( "" == $otherSkinCluster )
+	{
+		print ("apexClothingIsSameSetofBones: \"" + $otherMesh + "\" has no skinCluster. \n");
+		return 0;
+	}	
+	
+	string $otherJoints[] = `skinCluster -q -inf $otherSkinCluster`;
+	
+	string $allLODs[] = `deformer -q -geometry $clothingNode`;
+	string $mainMesh = $allLODs[0];
+
+	string $mainSkinCluster = `findRelatedSkinCluster $mainMesh`;
+	string $mainJoints[] = `skinCluster -q -inf $mainSkinCluster`;
+
+	int $sizeOtherJoint = `size( $otherJoints )`;
+	int $sizeMainJoint = `size( $mainJoints )`;
+	
+	if ( $sizeOtherJoint != $sizeMainJoint )
+	{
+		print ("apexClothingIsSameSetofBones: $sizeOtherJoint has differene joints with the LOD 0 graphics mesh. (" + $sizeOtherJoint + " vs " + $sizeMainJoint + ")\n");
+		return 0;
+	}
+
+	int $mainIdx = 0;
+	int $otherIdx = 0;
+	for ( $otherIdx = 0; $otherIdx < $sizeOtherJoint; $otherIdx = $otherIdx + 1 )
+	{
+		int $sharedJoint = 0;
+		
+		for ( $mainIdx = 0; $mainIdx < $sizeMainJoint; $mainIdx = $mainIdx + 1 )
+		{
+			if ( $otherJoints[$otherIdx] == $mainJoints[$mainIdx] )
+			{
+				$sharedJoint = 1;
+				break;
+			}
+		}
+		
+		if($sharedJoint == 0)
+		{
+			print ("apexClothingIsSameSetofBones: Bone \"" + $otherJoints[$otherIdx] + "\" is missing from LOD 0 graphics mesh. \n");	
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+global proc apexClothingBindManualPhysicalMesh()
+{
+	string $selected[] = `ls -selection -visible -noIntermediate -untemplated -dagObjects -type mesh`;
+
+	apexClothingBindManualPhysicalMeshFromStringArray($selected);
+}
+
+global proc apexClothingBindManualPhysicalMeshFromStringArray( string $selected[])
+{
+	//Now need to steps, 1 find current clothing node
+	//Then determine if new mesh is selected, and remove transform/hook it up
+		
+	string $outputMesh = "";
+	string $apexNode = "";
+	string $manualPhysical = "";
+
+	int $selectedCount = size($selected);
+		
+	for ($i = 0; $i < $selectedCount; $i++)
+	{
+	    string $selectedMesh = $selected[$i];
+	    string $findClothing = getApexClothingFromMesh($selectedMesh);
+		if ($findClothing == "")
+		{
+			$manualPhysical = $selectedMesh;
+		}
+		else
+		{
+			$apexNode = $findClothing;	
+			$outputMesh = $selectedMesh;
+		}
+	}	
+	
+	if($manualPhysical == "")
+	{
+		error("Could not find manual mesh");
+		return;
+	}
+
+	// If we use mesh to be used, Maya will have everything disappear. This will be a case when using menu PhysX clothing->Physical mesh->Bind. Not sure why.
+	if(`nodeType $manualPhysical` == "mesh")
+	{
+		$manualPhysical = firstParentOf($manualPhysical);
+	}
+	
+	if($apexNode == "")
+	{
+		string $clothing[] = `ls -selection -type "apexClothing"`;
+		if ( size( $clothing ) > 0 )
+		{
+			$apexNode = $clothing[0];
+		}
+		else
+		{
+			error("Could not find PhysX clothing");
+			return;
+		}
+	}
+
+	// check if manual mesh is skinned to same set of bones
+	//if ( 0 == apexClothingEnsureMeshJointIsSubset( $manualPhysical, $apexNode ) )
+	if ( 0 == apexClothingIsSameSetofBones( $manualPhysical, $apexNode ) )
+	{
+		warning( "The custom physical mesh must be skinned to the same set of bones as the original clothing object" );
+	}
+
+	apexClothingBindCustomPhysicalMesh( $apexNode, $manualPhysical );
+}
+
+global proc apexClothingBindCustomPhysicalMesh(string $apexNode, string $manualPhysical )
+{
+	print ("PhysX Clothing:"  + $apexNode + "\n");
+	print ("Physical Mesh:"  + $manualPhysical + "\n");
+
+	// if the physical mesh is a mesh, not a transform. need change it to transform.
+	if(!`objExists $manualPhysical`)
+		return;
+
+	$type = `nodeType $manualPhysical`;
+	if ( $type == "mesh" )
+	{
+		string $parentNode[] = `listRelatives -fullPath -parent $manualPhysical`;
+		int $parentSize = size($parentNode);
+		if ($parentSize > 0)
+		{
+			$manualPhysical = $parentNode[0];
+		}
+	}
+
+	select -r $apexNode;
+	//Unbind first just in case
+	apexClothingUnbindManualPhysicalMesh();
+
+	//string $graphical = apexClothingGetGraphicalMesh($apexNode);
+	int $currLogicalLod = `getAttr ($apexNode + ".currentGraphicalLOD")`;
+	string $graphical = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $apexNode, $currLogicalLod );
+	
+	print ("Graphics Mesh:"  + $graphical + "\n");
+	
+	//Finally connect
+	$currLogicalLod = `getAttr ($apexNode + ".currentGraphicalLOD")`;
+	//connectAttr -f ($manualPhysical + ".outMesh") ($apexNode + ".deprecated_manualPhysicalMeshIn");
+	connectAttr -f ($manualPhysical + ".outMesh") ($apexNode + ".lodCompoundAttributes[" + $currLogicalLod + "].lodManualPhysicalMeshIn");
+	setAttr ($manualPhysical + ".intermediateObject") (true);
+	
+	setAttr ($apexNode + ".lodCompoundAttributes[" + $currLogicalLod + "].lodPhysicalMeshStyle") 2; // set to custom
+	updateAE $apexNode;
+}
+
+global proc apexClothingUnbindManualPhysicalMesh()
+{
+	apexClothingStopPainting();
+
+	string $apexNode = apexClothingGetSelected();
+	if($apexNode == "")
+	{
+		warning("Clothing node does not exists");
+		return;
+	}
+
+	int $currLogicalLod = `getAttr ($apexNode + ".currentGraphicalLOD")`;
+	
+	apexClothingUnbindManualPhysicalMeshArgs( $apexNode,  $currLogicalLod);
+	updateAE $apexNode;
+}
+
+global proc apexClothingUnbindManualPhysicalMeshArgs(string $apexNode, int $currLogicalLod)
+{
+	
+	//Now disconnect it
+	$connections = `listConnections -s on -d off -shapes on ($apexNode + ".lodCompoundAttributes[" + $currLogicalLod + "].lodManualPhysicalMeshIn")`;
+	
+	if(size($connections) == 0)
+	{
+		print("Nothing to unbind\n");
+		return;
+	}
+	
+	string $physical = $connections[0];	
+	disconnectAttr($physical + ".outMesh", ($apexNode + ".lodCompoundAttributes[" + $currLogicalLod + "].lodManualPhysicalMeshIn"));
+
+	setAttr ($physical + ".intermediateObject") (false);
+	string $parent = `firstParentOf $physical`;
+	setAttr ($parent + ".intermediateObject") (false);
+	
+	//setAttr ($apexNode + ".lodCompoundAttributes[" + $currLogicalLod + "].lodPhysicalMeshStyle") 1; // go back to from graphical 
+}
+
+/*~
+~name apexClothingCreate
+~desc This command create clothings for selected mesh
+~returnValue None
+~example 
+	apexClothingCreate;
+
+*/
+global proc string apexClothingCreate()
+{
+	int $i;
+	string $cmd;
+
+    // Get the selected mesh objects
+	// skinned mesh have 2 meshes underneath the transform
+	// one intermediate, which represents the original mesh
+	// one non-intermediate, to be deformed. We filtered out the intermediate one with the -noIntermediate flag
+    string $selected[] = `ls -selection -dagObjects -objectsOnly -type mesh -noIntermediate -untemplated -visible`;
+    if (size($selected) == 0)
+    {
+        return "";
+    }
+
+	if ( size($selected) != 1 )
+	{
+		return "";
+	}
+
+	string $selectedMesh = $selected[0]; 
+
+    //test to see if clothing already exists and exit if so
+   	string $history[] = `listHistory $selectedMesh`;
+	for($obj in $history)
+	{
+		$type = `nodeType $obj`;
+		if($type == "apexClothing")
+		{
+			physxShelf_FocusSelectedCommand();
+			return "";
+		}
+	} 
+    
+    string $bindPoseMesh = "";
+    
+    // Check for a skin cluster, since we want to deform the skin output
+    string $skinCluster = `findRelatedSkinCluster $selectedMesh`;
+
+    if ($skinCluster == "")
+    {
+		error("The selected mesh does not have a skinning deformer");
+		return "";
+    }
+
+	// bake the mesh first to prevent bugs like GWDCC-344
+	bakePartialHistory $selectedMesh;
+    
+    print "Clothing Input Mesh: ";
+    print $selectedMesh;
+    print "\n";
+
+	//warning, invalid character
+    //string $originalTransform[] = `listRelatives -fullPath -parent $selectedMesh`;
+	string $originalTransform[] = `listRelatives -path -parent $selectedMesh`;
+
+	// The clothing node. Connected to the incoming mesh.
+	select $skinCluster;
+	// See bug #7226: Apex cloth disappears in UDK
+	// we use "before" instead of "after" as FBX fails to export deformmed mesh with "after".
+	// "before" and "after doesn't make difference", so use "before"
+    string $clothNodes[] = `deformer -before -type apexClothing $selectedMesh`;//`createNode apexClothing`;
+    string $clothNode = $clothNodes[0];
+	setAttr ($clothNode + ".updateLodIndexMaps") 1;
+
+	// Rename clothing node to this format: parentName + Clothing
+	// since, apexClothing node is not under any hierachy, use the transform node, where the mesh visualiser is parented under.
+	$clothNode = `rename $clothNode ( $originalTransform[0] + "Clothing" )`;
+
+	// connect joints to the joint world matrix attribute on the clothing node
+	//ConnectJointMatrixToClothingNodeCmd -sn $skinCluster -cn $clothNode;
+
+	//DH: CAN'T SEEM TO GET IT TO WORK//setAttr ($skinCluster+".nodeState") 1; // 0=Normal, 1=PassThrough, 2=Blocking 3=Internally disabled
+
+    // these are done in c++ code in ApexClothingNode.cpp
+    int $initSize = `getAttr -size ($selectedMesh + ".vrts")`;
+
+	float $meshSize = `getAttr ($clothNode+".meshSize")`;
+	for($i=0; $i < $initSize; $i++)
+	{
+		//setAttr ($clothNode + ".deprecated_maxDistances[" + $i + "]") ($meshSize * 0.1);
+		setAttr ($clothNode + ".lodCompoundAttributes[0].maxDistances[" + $i + "]") 0;//($meshSize * 0.1);
+
+		// see bug 6849 and 6609. we set default value here, not the default value of the attribute for compatibility.
+		setAttr ($clothNode + ".lodCompoundAttributes[0].lodLatchToNearestGroup[" + $i + "]") 0;
+	}
+	
+	// removed because collision factor is not in use anymore
+	// deprecated in favor of backstopOffset
+	//for($i=0; $i < $initSize; $i++)
+	//	setAttr ($clothNode + ".collisionFactor[" + $i + "]") 0.0;
+	
+	//for($i=0; $i < $initSize; $i++)
+	//	setAttr ($clothNode + ".usedForPhysics[" + $i + "]") true;
+
+	//for($i=0; $i < $initSize; $i++)
+	//	setAttr ($clothNode + ".latchToNearest[" + $i + "]") false;
+		
+	//for($i=0; $i < $initSize; $i++)
+	//	setAttr ( $clothNode + ".backStopOffset[" + $i + "]") 999999999.9;
+
+	for($i=0; $i < $initSize; $i++)
+	{
+		//setAttr ( $clothNode + ".backStopRadius[" + $i + "]") $meshSize;
+		setAttr ($clothNode + ".lodCompoundAttributes[0].backStopRadius[" + $i + "]") ($meshSize * 0.1);
+	}
+
+    //for($i=0; $i < $initSize; $i++)
+	//	setAttr ( $clothNode + ".drawingHidden[" + $i + "]") 0;
+    
+    connectAttr -f ($clothNode + ".showGraphicalMesh") ($selectedMesh + ".visibility");
+
+	string $connects[] = `listConnections -t "apexClothingDisplayable" ($clothNode + ".relativeDisplayNode")`;
+	int $connectcount = `size $connects`;
+	if($connectcount == 0)
+	{
+		string $displayNode = `createNode apexClothingDisplayable`;
+		string $cmd = ("connectAttr " + $displayNode + ".relativeApexClothing " + $clothNode + ".relativeDisplayNode");
+		evalEcho $cmd;
+		rename $displayNode ( $clothNode + "Node" );
+	}
+
+	//For solver
+	//nxCreateHelperRB();
+	//nxLazilyCreateSolverAndDebug();
+	//Now connect to solver
+	//$nextIndex = nxGetNextIndex("nxRigidSolver1", "inClothing");
+	//connectAttr ($clothNode + ".outClothing") ("nxRigidSolver1.inClothing[" + $nextIndex + "]");
+	//connectAttr "nxRigidSolver1.simulate" ($clothNode + ".inSimulate");
+    //connectAttr -f ("time1.outTime") ($clothNode + ".currentTime");
+
+	// setup locator
+	//string $physicalMeshLocator = `createNode apexClothingPhysicalMesh -parent $originalTransform[0]`;//"nimaInternalPhysics"`;//
+	//$physicalMeshLocator = `rename $physicalMeshLocator ($originalTransform[0] + "ClothingVisualizer")`;
+	//setAttr ($physicalMeshLocator + ".intermediateObject") false;
+	//connectAttr ($clothNode + ".deprecated_visualizer") ($physicalMeshLocator + ".owner");
+
+	// initialize physical material set
+	getAttr ($clothNode + ".physicalMaterialSets[0].pmName");
+	setAttr ($clothNode + ".physicalMaterialTable[0]") 0;
+	setAttr ($clothNode + ".physicalMaterialExport[0]") 1;
+
+	evalDeferred( "nxShowEditorExact " + $clothNode );
+	select -r $clothNode; 
+
+	return $clothNode;
+}
+
+
+global proc apexClothingSaveVertexSelection(string $clothing )
+{	
+	int $currLogicalLod = `getAttr ($clothing + ".currentGraphicalLOD")`;
+	//string $mesh = apexClothingGetGraphicalMesh( $clothing );
+	string $mesh = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $clothing, $currLogicalLod );
+	 
+	print "[apexClothingSaveVertexSelection] Begin\n";
+	print ("Clothing: " + $clothing + "\n");
+	print ("Mesh: " + $mesh + "\n");
+	
+    int $i; 
+    int $vertexCount[] = `polyEvaluate -vertex $mesh`;
+	
+	print ("VertexCount: " + $vertexCount[0] + "\n");
+    
+    for($i=0; $i < $vertexCount[0]; $i++)
+    {
+		setAttr ($clothing + ".drawingHidden["+$i+"]") true;
+   	}    
+   	
+	string $selectedList[] = `filterExpand -sm 31 -fp 0 -ex 1`;     
+    for($i=0; $i < size($selectedList); $i++)
+    {
+		string $selected = $selectedList[$i];
+		
+		setAttr( $clothing + ".drawingHidden" + `match "\[[0-9]+\]$" $selected` , false);
+	}  
+	
+	print "[apexClothingSaveVertexSelection] End\n";	 
+}
+
+global proc apexClothingRestoreVertexSelection(string $clothing )
+{
+	int $currLogicalLod = `getAttr ($clothing + ".currentGraphicalLOD")`;
+	//string $mesh = apexClothingGetGraphicalMesh( $clothing );
+	string $mesh = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $clothing, $currLogicalLod );
+	
+	print "[apexClothingRestoreVertexSelection] Begin\n";
+	print ("Clothing: " + $clothing + "\n");
+	print ("Mesh: " + $mesh + "\n");
+	
+    int $i; 
+    int $vertexCount[] = `polyEvaluate -vertex $mesh`;
+    
+	print ("VertexCount: " + $vertexCount[0] + "\n");
+
+    for($i=0; $i < $vertexCount[0]; $i++)
+    {
+		setAttr ($clothing + ".drawingHidden["+$i+"]") false;
+   	}	
+	print "[apexClothingRestoreVertexSelection] End\n";	 
+}
+
+global proc apexClothingCreateDisplayNodes( string $apexClothings )
+{
+	if($apexClothings == "")
+	{
+		return;
+	}
+
+	string $apexClothing[];
+	int $apexClothingCount = `tokenize $apexClothings ";" $apexClothing`;
+	int $i;
+	for($i = 0; $i < $apexClothingCount; $i++)
+	{
+		if($apexClothing[$i] == "")
+		{
+			continue;
+		}
+
+		string $connects[] = `listConnections -t "apexClothingDisplayable" ($apexClothing[$i] + ".relativeDisplayNode")`;
+		int $connectcount = `size $connects`;
+		if($connectcount > 0)
+		{
+			continue;
+		}
+
+		string $displayNode = `createNode apexClothingDisplayable`;
+		string $cmd = ("connectAttr " + $displayNode + ".relativeApexClothing " + $apexClothing[$i] + ".relativeDisplayNode");
+		evalEcho $cmd;
+		rename $displayNode ( $apexClothing[$i] + "Node" );
+
+	}
+	select -clear;
+}

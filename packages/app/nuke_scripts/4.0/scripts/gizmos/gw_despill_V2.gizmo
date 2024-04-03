@@ -1,0 +1,569 @@
+#! C:/Program Files/Nuke11.3v6/nuke-11.3.6.dll -nx
+version 11.1
+Group {
+name GW_Despill_V2
+ inputs 4
+ knobChanged "n = nuke.thisNode()\nk = nuke.thisKnob()\n\n\n###-----------------###\n\n### Hide/ Unhide BG controls\"\nif n\[\"pulldown\"].value() == \"Use BG Input\":\n                n\[\"BackgroundAdjustments\"].setVisible(True)                \nelse:\n n\[\"BackgroundAdjustments\"].setVisible(False)\n###-----------------###\n\n### Hide/ Unhide Constant Colour\"\nif n\[\"pulldown\"].value() == \"Use Constant Colour\":\n                n\[\"group_2\"].setVisible(True)\nelse:\n n\[\"group_2\"].setVisible(False)\n###----------###\n\n### Hide/ Unhide Edge Extend\"\nif n\[\"pulldown\"].value() == \"Edge Extend\":\n                n\[\"group_3\"].setVisible(True)\nelse:\n n\[\"group_3\"].setVisible(False)\n###----------###\n\n### Hide/ Unhide IBK\"\nif n\[\"pulldown\"].value() == \"IBK Extend\":\n                n\[\"group_4\"].setVisible(True)\nelse:\n n\[\"group_4\"].setVisible(False)\n###----------###\n\n "
+ tile_color 0x520cff
+ label GW_Despill_V2
+ note_font "Verdana Bold Bold"
+ note_font_size 12
+ addUserKnob {20 Controls}
+ addUserKnob {20 group_1 l "Screen Colour" n 1}
+ addUserKnob {20 endGroup_1 l endGroup n -1}
+ addUserKnob {41 screenColour l "Select Spill Colour" T Keylight11.screenColour}
+ addUserKnob {26 ""}
+ addUserKnob {20 group_6 l "Despill Blending" n 1}
+ addUserKnob {4 pulldown l "Edge Blending Method" M {"Use BG Input" "Use Constant Colour" "Edge Extend" "IBK Extend" None "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""}}
+ pulldown None
+ addUserKnob {41 Spill_Bias l "Spill Color Adjust" t "Use this to adjust any remaining spill contamination or if despill results in unwanted coloration (good for protecting skintones)" T Keylight11.alphaBias}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup n -1}
+ addUserKnob {20 group_5 l "Luma Method" n 1}
+ addUserKnob {41 mode l "luminance math" T Saturation_Spill.mode}
+ addUserKnob {6 ViewLuma l "View Spill Map (Output)" +STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup_5 l endGroup n -1}
+ addUserKnob {20 group_2 l "Constant Colour Despill" +HIDDEN n 1}
+ addUserKnob {26 text_1 l "If Using Constant Colour:"}
+ addUserKnob {41 color l "Pick a Colour " T Constant1.color}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 group_3 l "Edge Extend Despill" +HIDDEN n 1}
+ addUserKnob {26 text_3 l "If Edge Extend:"}
+ addUserKnob {41 size_1 l "Edge Blur Size" T Blur2.size}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup_3 l endGroup n -1}
+ addUserKnob {20 group_4 l "IBK Extend Despill" +HIDDEN n 1}
+ addUserKnob {26 text_4 l "If IBK Extend:"}
+ addUserKnob {41 st l "screen type" T IBKGizmoV3_1.st}
+ addUserKnob {41 white_1 l "IBK Alpha Gain" T Grade1.white}
+ addUserKnob {41 gamma_1 l "IBK Alpha Gamma" T Grade1.gamma}
+ addUserKnob {41 IBK_Saturation l "Cleanplate Saturation" T Saturation2.saturation}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup_4 l endGroup n -1}
+ addUserKnob {20 BackgroundAdjustments l "Background Adjustments" +HIDDEN n 1}
+ addUserKnob {26 txt02 l " (Only if BG type selected)"}
+ addUserKnob {41 size l "Blur Amount" T Blur1.size}
+ addUserKnob {41 white l "BG gain" T Grade20.white}
+ addUserKnob {41 gamma l "BG gamma" T Grade20.gamma}
+ addUserKnob {41 saturation l "BG saturation" T Saturation3.saturation}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup_6 l endGroup n -1}
+ addUserKnob {20 Masking n 1}
+ addUserKnob {41 maskChannelMask l "Despill Mask" T Merge43.maskChannelMask}
+ addUserKnob {41 invert_mask l invert -STARTLINE T Merge43.invert_mask}
+ addUserKnob {6 Overall_M l "Overall Mask? (Masks Everything)" +STARTLINE}
+ addUserKnob {6 MInvert l Invert -STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup_7 l endGroup n -1}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x896b2bff
+  label "Edge Extend"
+  note_font_size 38
+  xpos 1976
+  ypos -1513
+  bdwidth 222
+  bdheight 478
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0xa5b06ff
+  label IBK
+  note_font_size 42
+  xpos 883
+  ypos -1246
+  bdwidth 227
+  bdheight 394
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode21
+  tile_color 0x388e8e00
+  label "Tweak BG"
+  note_font_size 38
+  xpos 1277
+  ypos -1346
+  bdwidth 244
+  bdheight 370
+  z_order 1
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote59
+  label "GS Color"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 546
+  ypos -957
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote58
+  label "Luminence only"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 57
+  ypos -630
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote60
+  label "Spill Map"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 350
+  ypos -816
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote2
+  label "Replace Color Selector"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 1611
+  ypos -1092
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote1
+  label "Replace GS Color with BG / Solid or Edge Extend"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 430
+  ypos -525
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote6
+  label "Saturation if colors \ntoo bad"
+  note_font "Verdana Bold Bold"
+  note_font_size 18
+  xpos 1079
+  ypos -1207
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote3
+  label "IBK Unpremult Method"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 861
+  ypos -840
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote4
+  label "Control Alpha"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 1048
+  ypos -984
+ }
+ Input {
+  inputs 0
+  name RGB_IN
+  label "RGB Input"
+  xpos -147
+  ypos -1399
+ }
+set Na572e400 [stack 0]
+ Dot {
+  name Dot120
+  xpos -113
+  ypos -1157
+ }
+set Na572e000 [stack 0]
+ Dot {
+  name Dot126
+  xpos 279
+  ypos -1157
+ }
+set Na572fc00 [stack 0]
+push $Na572e000
+ OFXuk.co.thefoundry.keylight.keylight_v201 {
+  show "Final Result"
+  unPreMultiply false
+  screenColour {1 1 1}
+  screenGain 1
+  screenBalance 0.5
+  alphaBias {0.5 0.5 0.5}
+  despillBias {0.5 0.5 0.5}
+  gangBiases true
+  preBlur 0
+  "Screen Matte" 0
+  screenClipMin 0
+  screenClipMax 1
+  screenClipRollback 0
+  screenGrowShrink 0
+  screenSoftness 0
+  screenDespotBlack 0
+  screenDespotWhite 0
+  screenReplaceMethod "Soft Colour"
+  screenReplaceColour {0.5 0.5 0.5}
+  Tuning 0
+  midPoint 0.5
+  lowGain 1
+  midGain 1
+  highGain 1
+  "Inside Mask" 1
+  sourceAlphaHandling Ignore
+  insideReplaceMethod "Soft Colour"
+  insideReplaceColour {0.5 0.5 0.5}
+  Crops 0
+  SourceXMethod Colour
+  SourceYMethod Colour
+  SourceEdgeColour 0
+  SourceCropL 0
+  SourceCropR 1
+  SourceCropB 0
+  SourceCropT 1
+  balanceSet false
+  insideComponent None
+  outsideComponent Alpha
+  cacheBreaker true
+  name Keylight11
+  selected true
+  xpos -147
+  ypos -1035
+ }
+set Na5745c00 [stack 0]
+ Dot {
+  name Dot132
+  xpos -113
+  ypos -804
+ }
+set Na5745800 [stack 0]
+ Merge2 {
+  inputs 2
+  operation minus
+  name Merge32
+  xpos 245
+  ypos -807
+ }
+ Saturation {
+  saturation 0
+  name Saturation_Spill
+  xpos 245
+  ypos -625
+ }
+ set Ca5745000 [stack 0]
+set Na5745000 [stack 0]
+ Dot {
+  name Dot15
+  xpos 170
+  ypos -512
+ }
+ Dot {
+  name Dot13
+  label "\nView Spill Map"
+  note_font "Verdana Bold Bold"
+  note_font_size 18
+  xpos 170
+  ypos 129
+ }
+ Input {
+  inputs 0
+  name MASK
+  label Mask
+  xpos -415
+  ypos -79
+  number 2
+ }
+set Na5744400 [stack 0]
+push 0
+ Switch {
+  inputs 2
+  which {{Overall_M}}
+  name Switch2
+  xpos -415
+  ypos 35
+ }
+ Invert {
+  mix {{1-MInvert}}
+  name Invert1
+  xpos -282
+  ypos 29
+ }
+push $Na572e000
+ Dot {
+  name Dot14
+  xpos -5
+  ypos -1074
+ }
+ Dot {
+  name Dot11
+  label "Overall Mask "
+  note_font "Verdana Bold Bold"
+  note_font_size 18
+  xpos -5
+  ypos 38
+ }
+push $Na5744400
+ Constant {
+  inputs 0
+  channels rgb
+  color {{parent.Keylight11.screenColour.r} {parent.Keylight11.screenColour.g} {parent.Keylight11.screenColour.b} 0}
+  name Constant6
+  xpos 562
+  ypos -1061
+ }
+clone $Ca5745000 {
+  xpos 562
+  ypos -626
+  selected false
+ }
+set Na576cc00 [stack 0]
+ Dot {
+  name Dot12
+  label "Nothing - Despill Only"
+  note_font "Verdana Bold Bold"
+  note_font_size 14
+  xpos 1190
+  ypos -623
+ }
+ Input {
+  inputs 0
+  name CP
+  xpos 1118
+  ypos -1501
+  number 3
+ }
+ Saturation {
+  name Saturation2
+  xpos 1118
+  ypos -1124
+ }
+ Dot {
+  name Dot10
+  xpos 1152
+  ypos -1034
+ }
+push $Na572fc00
+ Dot {
+  name Dot7
+  xpos 987
+  ypos -1157
+ }
+ IBKGizmoV3 {
+  inputs 2
+  name IBKGizmoV3_1
+  selected false
+  xpos 1118
+  ypos -1016
+ }
+ Grade {
+  channels alpha
+  name Grade1
+  xpos 953
+  ypos -984
+ }
+ Unpremult {
+  name Unpremult2
+  xpos 953
+  ypos -903
+ }
+ Dot {
+  name Dot9
+  xpos 987
+  ypos -698
+ }
+push $Na5745c00
+ Dot {
+  name Dot5
+  xpos 766
+  ypos -1700
+ }
+ Dot {
+  name Dot2
+  xpos 2060
+  ypos -1700
+ }
+push $Na5745c00
+ Dot {
+  name Dot4
+  xpos 771
+  ypos -1700
+ }
+ Dot {
+  name Dot1
+  xpos 2060
+  ypos -1700
+ }
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy1
+  xpos 2026
+  ypos -1412
+ }
+ Premult {
+  name Premult1
+  xpos 2026
+  ypos -1325
+ }
+ Blur {
+  size 1
+  name Blur2
+  xpos 2026
+  ypos -1260
+ }
+ Unpremult {
+  name Unpremult1
+  xpos 2026
+  ypos -1201
+ }
+ Blur {
+  size {{parent.Blur2.size/2.5}}
+  name Blur3
+  xpos 2026
+  ypos -1138
+ }
+ Dot {
+  name Dot3
+  xpos 2060
+  ypos -698
+ }
+set Na57e0000 [stack 0]
+ Constant {
+  inputs 0
+  channels rgb
+  color {1 1 1 0}
+  name Constant1
+  xpos 1717
+  ypos -1182
+ }
+ Dot {
+  name Dot6
+  xpos 1751
+  ypos -817
+ }
+ Dot {
+  name Dot8
+  xpos 1622
+  ypos -817
+ }
+ Input {
+  inputs 0
+  name BG_IN
+  label BG
+  xpos 1355
+  ypos -1531
+  number 1
+ }
+ Grade {
+  name Grade20
+  xpos 1355
+  ypos -1246
+ }
+ Saturation {
+  name Saturation3
+  xpos 1355
+  ypos -1158
+ }
+ Blur {
+  channels rgb
+  name Blur1
+  xpos 1355
+  ypos -1078
+ }
+ Switch {
+  inputs 5
+  which {{pulldown}}
+  name Switch1
+  xpos 1355
+  ypos -701
+ }
+ Dot {
+  name Dot116
+  label "BG\n"
+  note_font "Verdana Bold Bold"
+  note_font_size 24
+  xpos 1389
+  ypos -460
+ }
+push $Na576cc00
+ Merge2 {
+  inputs 2
+  operation divide
+  name Merge28
+  xpos 562
+  ypos -463
+ }
+ Dot {
+  name Dot118
+  xpos 596
+  ypos -254
+ }
+push $Na5745000
+ Merge2 {
+  inputs 2
+  operation multiply
+  name Merge39
+  xpos 245
+  ypos -257
+ }
+ Dot {
+  name Dot135
+  xpos 279
+  ypos -70
+ }
+push $Na5745800
+ Dot {
+  name Dot16
+  xpos -113
+  ypos -141
+ }
+ Merge2 {
+  inputs 2+1
+  operation plus
+  maskChannelMask -rgba.alpha
+  invert_mask true
+  name Merge43
+  xpos -147
+  ypos -73
+ }
+ Keymix {
+  inputs 3
+  name Keymix1
+  xpos -147
+  ypos 29
+ }
+ Switch {
+  inputs 2
+  which {{ViewLuma}}
+  name Switch3
+  xpos -147
+  ypos 126
+ }
+ Output {
+  name Output1
+  label OUT
+  xpos -147
+  ypos 451
+ }
+ StickyNote {
+  inputs 0
+  name StickyNote53
+  label "Insert New Color\n(only in spill areas)"
+  note_font "Verdana Bold Bold"
+  note_font_size 22
+  xpos 139
+  ypos -332
+ }
+push $Na57e0000
+push 0
+push $Na572e400
+ Viewer {
+  inputs 3
+  frame_range 1-173
+  name Viewer1
+  xpos 2136
+  ypos -701
+ }
+end_group

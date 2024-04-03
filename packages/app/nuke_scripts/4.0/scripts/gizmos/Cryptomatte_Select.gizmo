@@ -1,0 +1,19 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ tile_color 0x995c58ff
+ addUserKnob {20 user}
+ addUserKnob {1 FindCharacter}
+ addUserKnob {22 Make_Cryptomatte T "findCharactor = nuke.thisNode().knob('FindCharacter').value()\nnodeName = nuke.thisNode().input(0).name()\nwith nuke.Root():\n\tif nuke.toNode(nodeName).metadata('exr/cryptomatte/9171e81/manifest') != None :\n\t\tlist = nuke.toNode(nodeName).metadata('exr/cryptomatte/9171e81/manifest')\n\t\tlist = list.split('\"')\n\telse :\n\t\tlist = nuke.toNode(nodeName).metadata('exr/cryptomatte/61c7308/manifest')\n\t\tlist = list.split('\"')\n\tresult = \[]\n\n\tfor i in list:\n\t    if i.find(findCharactor) != -1:\n\t        result.append(i)\n\n\tnuke.createNode(\"Cryptomatte\")\['matteList'].setValue(\",\".join(result))\n" +STARTLINE}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+ }
+ Output {
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group

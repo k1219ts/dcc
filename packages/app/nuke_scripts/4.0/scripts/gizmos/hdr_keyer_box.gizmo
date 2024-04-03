@@ -1,0 +1,112 @@
+#! /usr/local/Nuke6.3v8/Nuke6.3 -nx
+version 6.3 v8
+Gizmo {
+ inputs 2
+ tile_color 0x999a93ff
+ label "\nLDV\n\nhdr_Keyer_BOX"
+ note_font "Bitstream Vera Sans Bold Bold Bold Bold Bold Bold"
+ note_font_color 0xffca7fff
+ addUserKnob {20 hdr_keyer}
+ addUserKnob {20 Keyer_range n 1}
+ addUserKnob {41 maskChannelMask l "" -STARTLINE T Copy6.maskChannelMask}
+ addUserKnob {41 size_1 l Mask_blur T Mask_blur.size}
+ addUserKnob {26 ""}
+ addUserKnob {41 size l keyer_blur T Blur6.size}
+ addUserKnob {41 white l gain T GRD.white}
+ addUserKnob {41 multiply T GRD.multiply}
+ addUserKnob {41 gamma T GRD.gamma}
+ addUserKnob {26 ""}
+ addUserKnob {41 range T Keyer6.range}
+ addUserKnob {26 ""}
+ addUserKnob {20 endGroup n -1}
+}
+ Input {
+  inputs 0
+  name Input_mask
+  xpos 737
+  ypos 234
+  number 1
+ }
+ Blur {
+  size 150
+  name Mask_blur
+  label "\[value size]"
+  selected true
+  xpos 621
+  ypos 222
+ }
+ Shuffle {
+  green red
+  blue red
+  alpha red
+  name Shuffle1
+  xpos 507
+  ypos 234
+ }
+ Input {
+  inputs 0
+  name hdr_in
+  xpos 250
+  ypos -49
+ }
+ Output {
+  name Output2
+  xpos 250
+  ypos 25
+ }
+set N5de10a0 [stack 0]
+ Keyer {
+  operation "luminance key"
+  range {0.1290939623 1 1 1}
+  name Keyer6
+  xpos 163
+  ypos 150
+ }
+ Blur {
+  channels alpha
+  size 100
+  name Blur6
+  label "\[value size]"
+  xpos 163
+  ypos 222
+ }
+push $N5de10a0
+ Copy {
+  inputs 2+1
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy6
+  tile_color 0xc000ff
+  xpos 357
+  ypos 228
+ }
+ Premult {
+  name Premult6
+  xpos 357
+  ypos 306
+ }
+ Grade {
+  white 3.04
+  multiply 3.68
+  gamma 1.5
+  name GRD
+  xpos 357
+  ypos 339
+ }
+ Output {
+  name Output3
+  xpos 357
+  ypos 365
+ }
+ Output {
+  name Output1
+  xpos 357
+  ypos 465
+ }
+ Viewer {
+  input_process false
+  name Viewer1
+  xpos 513
+  ypos 572
+ }
+end_group

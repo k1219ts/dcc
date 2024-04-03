@@ -1,0 +1,2008 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+// nxPerformDynamics.mel
+//
+// Author: Christian Laforte, Feeling Software Inc. (http://www.feelingsoftware.com)
+//
+// Much of this code was adapted from Maya's performDynamics.mel. This was
+// necessary to reduce possible interoperability issues.
+//
+
+source nxDynApplyCallback.mel;
+
+//  Description:
+//     This is one of five scripts used to implement menus and option boxes for
+//  the Dynamics menu.  The five scripts are:
+//
+//    nxDynCreateLayout - makes the layout of the option boxes, declares the controls
+//    nxDynApplyCallback - callback routines to set values of option vars from
+//                      the option controls.
+//    nxPerformDynamics - generates command lines which are invoked when a menu item
+//                      is selected or dragged to the shelf.
+//    nxDynSetOptionVars - sets default values of option variables (the variables which
+//                      store the user's values for the option boxes)
+//    nxDynSetOptionControls - sets values of the option box controls from the option vars.
+//                      Sort of the inverse of nxDynApplyCallback.
+//
+//    All the data is actually stored in option vars.  These routines basically pass
+//    the option vars around.  The flow is:
+//
+//    User brings up option box: 
+//        nxDynCreateLayout sets up the option controls. (Done only once.) 
+//        nxDynSetOptionVars creates option vars and sets factory defaults,
+//           if the variables don't already exist. (If the variables have been
+//           saved with the user's prefs, they are automatically read from there.)
+//		  nxDynSetOptionControls reads values from option vars, sets 
+//           option box controls accordingly.
+//
+//    User changes control:  
+//        nxDynApplyCallback stores values in option vars 
+//
+//    User hits Create:  
+//        nxPerformDynamics reads values from option vars, generates command
+//      
+//  
+//  NOTE: There are frequent references in this script to "create" and "add."  These
+//  were two different types of menu choices used in versions prior to v3.0.
+//  As of v3.0, there is no more create vs. add distinction and these references are
+//  largely vestigial.  Unfortunately we don't have the time to remove them all or
+//  restructure the scripts.  js 11-01-99
+//
+//  Input Arguments to nxPerformDynamics():
+//		$createFlag:	1 = create field/emitter 
+//						0 = add field/emitter/collision/goal
+//						2 = create/add not relevant
+//
+//		string $type      -- the command selected
+//		int    $optionBox -- bring up the option box or not
+//
+//  Return Value:
+//      None.
+//
+//
+//  ========== nxCreateDynamicsOptions ==========
+//
+//  SYNOPSIS
+//      Create the Dynamics option box and option vars,
+//		and set up the appropriate layout for the selected
+//		command.
+//
+global proc nxCreateDynamicsOptions(string $type, int $createFlag)
+{
+	// Title of the option box.
+	//
+	string $optionBoxTitle;
+
+	// Used in the setOptionsControls command to tell whether to reset
+	// the option vars and controls to their default values if the
+	// option vars already exist.
+	//
+	int $resetToDefaults;
+
+	// Name and arguments of the call to set the values of the option
+	// box controls.
+	//
+	string $setOptionControls = "nxDynSetOptionControls ";
+
+	// Name and arguments of the callback, called when the Create/Add
+	// button is selected, that sets the option vars from the controls
+	// and calls nxPerformDynamics to execute the command.
+	//
+	string $applyCallback = "nxDynApplyCallback ";
+
+	// $type = name of the command (with initial capital letter)
+	// for this option box 
+
+	// Do some separate processing for rigid bodies, as we have to distinguish
+	// between active and passive.
+	//
+	if ($type == "ActiveRigid" || $type == "PassiveRigid" || $type == "StaticRigid" )
+	{
+		// Set the type optionVar to active or passive
+		//
+		if ($type == "ActiveRigid")
+			optionVar -intValue rigidCollisionType 1;
+		else if ($type == "PassiveRigid")
+			optionVar -intValue rigidCollisionType 0;
+		else if ($type == "StaticRigid")
+			optionVar -intValue rigidCollisionType -1;
+
+		// Set the command type arg of the nxDynSetOptionControls proc.
+		//
+		$setOptionControls = $setOptionControls + "Rigid";
+
+		// Set the command type arg of the option box Create/Add button
+		// callback.
+		//
+		$applyCallback = $applyCallback + "Rigid";
+
+		// Set the option box title for rigid bodies.
+		//
+		$optionBoxTitle = "Rigid Options";
+	}
+	else if ($type == "RigidConstraint")
+	{
+		// Set the command type arg of the nxDynSetOptionControls proc.
+		//
+		$setOptionControls = $setOptionControls + $type;
+
+		// Set the command type arg of the option box Create/Add button
+		// callback.
+		//
+		$applyCallback = $applyCallback + $type;
+		
+	    // Set the option box title for rigid bodies.
+		//
+		$optionBoxTitle = "Rigid Constraint Options";
+	}
+	else
+	{
+		// Set the command type arg of the nxDynSetOptionControls proc.
+		//
+		$setOptionControls = $setOptionControls + $type;
+
+		// Set the command type arg of the option box Create/Add button
+		// callback.
+		//
+		$applyCallback = $applyCallback + $type;
+
+		// Set the option box title.
+		//
+		if ($type == "ParticleRenderCache")
+			$optionBoxTitle = "Particle Render Cache Options";
+		else
+		if ($type == "ParticleInstancer")
+			$optionBoxTitle = "Particle Instancer Options";
+		else
+		if ($type == "VolumeAxis")
+			$optionBoxTitle = "Volume Axis Options";
+		else
+		if ($type == "Constrain")
+			$optionBoxTitle = "Constraint Options";
+		else
+			$optionBoxTitle = $type+" Options";
+	}
+
+	// For emitters, label according to whether we are creating
+	// a positional or emitting from an object.
+	//
+	if ($type == "Emitter")
+	{
+		if ($createFlag == 1)
+			$optionBoxTitle = $optionBoxTitle + " (Create)";
+		else if ($createFlag == 0)
+			$optionBoxTitle = $optionBoxTitle + " (Emit from Object)";
+	}
+
+	// Set the title for the apply button
+	// 
+	string $applyButtonTitle;
+	$applyButtonTitle = "Create";
+	
+	// Get the parent option box layout and set to it.
+	//
+	string $layout = getOptionBox();
+	setParent $layout;
+
+	// Build the window, with a tab layout
+	//
+	setUITemplate -pushTemplate DefaultTemplate;
+	waitCursor -state 1;
+
+	tabLayout -scr true -tv false;
+	string $parent = `columnLayout -adjustableColumn 1 -columnAttach "both" 5` ;
+
+	// Create the layout for this option box.
+	//
+	if ($type == "ActiveRigid" || $type ==  "PassiveRigid")
+		nxDynCreateLayout $parent "Rigid" $createFlag;
+	else
+		nxDynCreateLayout $parent $type $createFlag;
+
+	waitCursor -state 0;
+	setUITemplate -popTemplate;
+
+	// Get and set the title and callback for the standard buttons.
+	//
+	int $executeCmd1;
+
+    string $applyBtn = getOptionBoxApplyBtn();
+
+	// Set up "apply" button with callback for executing the command.
+	//
+	$executeCmd = 1;
+    button -edit
+		-l $applyButtonTitle
+        -command ($applyCallback + " " + $parent + " " + $executeCmd)
+        $applyBtn;
+
+    //  'Save' button.
+    //
+	// Set up "Save" button, to save the option vars, 
+	// but not execute the command.
+	//
+	$executeCmd = 0;
+    string $saveBtn = getOptionBoxSaveBtn();
+    button -edit
+        -command ($applyCallback + " " + $parent + " " + $executeCmd + "; hideOptionBox")
+        $saveBtn;
+
+    // Set up 'Reset' button to reset the option vars and controls 
+	// to their default values.
+    //
+    string $resetBtn = getOptionBoxResetBtn();
+
+	// The last arg means do reset the option controls and vars to their
+	// default value.
+	//
+	$resetToDefaults = 1;
+    button -edit
+        -command ($setOptionControls + " " + $parent + " " + $resetToDefaults)
+        $resetBtn;
+
+	setOptionBoxTitle($optionBoxTitle);
+
+
+	//	Customize the 'Help' menu item text.
+	//
+	switch ($type) 
+	{
+		case "Air":
+			setOptionBoxHelpTag( "Air" );
+			break;		
+
+		case "Drag":
+			setOptionBoxHelpTag( "Drag" );
+			break;		
+
+		case "Gravity":
+			setOptionBoxHelpTag( "Gravity" );
+			break;
+
+		case "Newton":
+			setOptionBoxHelpTag( "Newton" );
+			break;
+
+		case "Radial":
+			setOptionBoxHelpTag( "Radial" );
+			break;
+
+		case "Turbulence":
+			setOptionBoxHelpTag( "Turbulence" );
+			break;
+
+		case "Uniform":
+			setOptionBoxHelpTag( "Uniform" );
+			break;
+
+		case "Vortex":
+			setOptionBoxHelpTag( "Vortex" );
+			break;
+
+		case "VolumeAxis":
+			setOptionBoxHelpTag( "VolumeAxis" );
+			break;
+
+		case "Emitter":
+			if ($createFlag == 1) {
+				setOptionBoxHelpTag( "CreateEmitter" );
+			} else if ($createFlag == 0) {
+				setOptionBoxHelpTag( "EmitfromObject" );
+			}
+			break;
+
+		case "Collision":
+			setOptionBoxHelpTag( "MakeCollide" );
+			break;
+
+		case "Goal":
+			setOptionBoxHelpTag( "Goal" );
+			break;
+
+		//case "ActiveRigid":
+		//	// [claforte] Should that be Nx? Or no Nx?
+		//	setOptionBoxHelpTag( "NxCreateActiveRigidBody" );
+		//	break;
+
+		//case "PassiveRigid":
+		//	setOptionBoxHelpTag( "NxCreatePassiveRigidBody" );
+		//	break;
+		//	
+		//case "RigidConstraint":
+		//	setOptionBoxHelpTag( "NxCreateRigidConstraint" );
+		//	break;
+
+		case "Soft":
+			setOptionBoxHelpTag( "CreateSoftBody" );
+			break;
+
+		case "Constrain":
+			setOptionBoxHelpTag( "CreateConstraint" );
+			break;
+
+		case "Spring":
+			setOptionBoxHelpTag( "CreateSprings" );
+			break;
+
+		case "ParticleInstancer":
+			setOptionBoxHelpTag( "Instancer" );
+			break;
+
+		case "ParticleRenderCache":
+			setOptionBoxHelpTag( "CreateParticleDiskCache" );
+			break;
+	}	
+
+
+	// Call the "method" to set the values of the option box controls.
+	//
+	// The last arg means do not reset the option controls and vars to their
+	// default value if they already exist.  Just use the current values.
+	//
+	$resetToDefaults = 0;
+	eval (($setOptionControls + " " + $parent + " " + $resetToDefaults));      
+
+	showOptionBox();
+}
+
+global proc string nxDynSetCollisionShelfCommand(string $theCmd)
+{
+	// This is just setting up the command to drag to the shelf.  
+	// The return command is the mel script that will execute
+	// the collision command.
+	//
+	string $collisionCmd = "\"" + $theCmd + "\"";
+	$collisionCmd = "nxDynExecuteCollisionCommand " + $collisionCmd;
+
+	return $collisionCmd;
+
+}	// nxDynSetCollisionShelfCommand
+
+global proc string nxDynSetCreateFieldShelfCommand(string $theCmd)
+{
+	// This is just setting up the command to drag to the shelf.  
+	// In create mode, the return command is the mel script
+	// that will do the create and connect to items in the selection
+	// list;  in add mode the return command is just the field command, 
+	//	and it will add fields to the selection list.
+	//
+	string $fieldCmd = "\"" + $theCmd + "\"";
+	$fieldCmd = "nxDynExecuteFieldCommands "+ "1 " + $fieldCmd;
+
+	return $fieldCmd;
+
+}	// nxDynSetCreateFieldShelfCommand
+
+
+global proc string nxDynSetEmitterShelfCommand(int $isCreate, string $theCmd)
+{
+	// This is just setting up the command to drag to the shelf.  
+	// The return command is the mel script that will make the
+	// emitter, make the particle to emit into, and connect the particle
+	// to the emitters.
+	//
+	string $emitterCmd = "\"" + $theCmd + "\"";
+	$emitterCmd = 
+		"nxDynExecuteEmitterCommands " + $isCreate + " " + $emitterCmd;
+
+	return $emitterCmd;
+
+}	// nxDynSetEmitterShelfCommand
+
+
+global proc string nxDynSetGoalShelfCommand(string $theCmd)
+{
+	// This is just setting up the command to drag to the shelf.  
+	// The return command is the mel script that will execute
+	// the goal command.
+	//
+	string $goalCmd = "\"" + $theCmd + "\"";
+	$goalCmd = "nxDynExecuteGoalCommand " + $goalCmd;
+
+	return $goalCmd;
+
+}	// nxDynSetGoalShelfCommand
+
+
+//  ================== nxDynSetName ==================
+//
+//  SYNOPSIS
+//		Set the name (-n) command arg, if a name has been specified.
+//
+global proc string nxDynSetName(string $theCmd)
+{
+	string $controlName = $theCmd+"Name";
+	string $name = `optionVar -query $controlName`;
+
+	// GG: strip out beginning spaces
+	$name = match("[^ ].+", $name);
+	if (size($name) > 0)
+		$returnCmd = " -name \""+$name+"#\" ";
+
+	return $returnCmd;
+}
+
+
+//  =============== nxDynSetMaxDist ====================
+//
+//  SYNOPSIS
+//		Set the max distance command arg.  If "Use Max Distance" has not been
+//		set, set it to -1, otherwise set it to the value of the
+//		slider.
+//
+global proc string nxDynSetMaxDist(string $theCmd, string $cmdArgs)
+{
+	string $cBox = $theCmd+"MaxDistCBox";
+	string $fSlider = $theCmd+"MaxDistance";
+	string $returnCmd;
+
+
+	if (`optionVar -query $cBox` == 0)
+		$returnCmd = $cmdArgs + " -mxd -1 ";
+	else
+	{
+		float $maxDist = `optionVar -query $fSlider`;
+		$returnCmd = $cmdArgs + " -mxd "+$maxDist+" ";
+	}
+
+	return $returnCmd;
+
+}	// nxDynSetMaxDist
+
+proc string nxDynSetVolumeFieldCmdString( string $field )
+//
+//  Description:
+//     Returns a string to append to the command string
+//  to take care of the volume field aprameters
+{
+	string $cmd = " ";
+
+	int $typeChoice = `optionVar -query ($field+"VolumeFieldTypesOM")`;
+
+	switch($typeChoice)
+	{
+		case 1: $cmd = $cmd + "-vsh none ";
+			break;
+		case 2: $cmd = $cmd + "-vsh cube ";
+				break;
+		case 3: $cmd = $cmd + "-vsh sphere ";
+				break;
+		case 4: $cmd = $cmd + "-vsh cylinder ";
+				break;
+		case 5: $cmd = $cmd + "-vsh cone ";
+			break;
+		case 6: $cmd = $cmd + "-vsh torus ";
+				break;
+	}
+
+	// volume exclusion doesn't apply to the volume axis field.
+	//
+	if ($field != "volumeAxis")
+	{
+		$cmd = $cmd + "-vex "+`optionVar -query ($field+"VolumeExclusion")`+" ";
+	}
+
+	$cmd = $cmd + "-vof "+`optionVar -query ($field+"VolumeOffsetX")`+" "
+						 +`optionVar -query ($field+"VolumeOffsetY")`+" "
+						 +`optionVar -query ($field+"VolumeOffsetZ")`+" ";
+	$cmd = $cmd + "-vsw "+`optionVar -query ($field+"VolumeSweep")`+" ";
+	$cmd = $cmd + "-tsr "+`optionVar -query ($field+"TorusSectionRadius")`+" ";
+
+	return $cmd;
+}
+
+//  ============== nxSetAirCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the air command.
+//
+global proc string nxSetAirCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "air -pos 0 0 0 ";
+	else
+		$cmd = "air ";
+
+	$cmd = $cmd + nxDynSetName("air");
+	$cmd = $cmd + "-m "+`optionVar -query airMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query airAttenuation`+" ";
+	$cmd = $cmd + "-dx "+`optionVar -query airDirectionX`+" ";
+	$cmd = $cmd + "-dy "+`optionVar -query airDirectionY`+" ";
+	$cmd = $cmd + "-dz "+`optionVar -query airDirectionZ`+" ";
+	$cmd = $cmd + "-s "+`optionVar -query airSpeed`+" ";
+	$cmd = $cmd + "-iv "+`optionVar -query airInheritVelocity`+" ";
+	$cmd = $cmd + "-iro "+`optionVar -query airInheritRotation`+" ";
+	$cmd = $cmd + "-vco "+`optionVar -query airComponent`+" ";
+	//if (!$isCreate)
+	//	$cmd = $cmd + "-pv "+`optionVar -query airPerVertex`+" ";
+
+	int $enableSpread = `optionVar -query airEnableSpread`;
+	$cmd = $cmd + "-es "+$enableSpread +" ";
+	if ($enableSpread)
+		$cmd = $cmd + "-sp "+`optionVar -query airSpread`+" ";
+
+	$cmd = nxDynSetMaxDist("air", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "air" );
+
+	return $cmd;
+}
+
+//  ============== nxSetConstrainCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the constrain command.
+//
+global proc	string	nxSetConstrainCmdString(int $numSelectedItems)
+{
+	string $cmd;
+
+	int $whichConstraint = `optionVar -q constrainTypesOM`;
+	switch($whichConstraint)
+	{
+		case 1: $cmd = "constrain -nail ";
+				break;
+		case 2: $cmd = "constrain -pin ";
+				break;
+		case 3: $cmd = "constrain -hinge ";
+				break;
+		case 4: $cmd = "constrain -spring ";
+				break;
+		case 5: $cmd = "constrain -barrier ";
+				break;
+	}
+
+	$cmd = $cmd + nxDynSetName("constrain");
+
+	if (`optionVar -query constrainPosCBox` == 1)
+	{
+		$cmd = $cmd + "-p "+`optionVar -q constrainPosX`+" "+ `optionVar -q constrainPosY`+" "+ `optionVar -q constrainPosZ`+" ";
+
+	}
+
+	if ( ( $whichConstraint == 3) || ( $whichConstraint == 5) )
+	{
+		$cmd = $cmd + "-o "+`optionVar -q constrainOrientX`+" "+ `optionVar -q constrainOrientY`+" "+ `optionVar -q constrainOrientZ`+" ";
+
+	}
+
+	if($whichConstraint == 4)
+	{
+		$cmd = $cmd + "-st "+`optionVar -q constrainSpringStiffness`+" ";
+		$cmd = $cmd + "-d "+`optionVar -q constrainSpringDamping`+" ";
+		if (`optionVar -query constrainSpringRestLengthCBox` == 1)
+		{
+			$cmd = $cmd + "-rl "+`optionVar -q constrainSpringRestLength`+" ";
+		}
+	}
+
+	// If pin or if either hinge or spring and there are 2 items chosen,
+	// then send the interpenetrate flag.
+	//
+	if (($whichConstraint == 2) ||
+		(($whichConstraint == 3 || $whichConstraint == 4) && 
+		  $numSelectedItems > 1)) 
+	{
+		$cmd = $cmd + "-i "+`optionVar -q constrainInterCB`+" " ;
+	}
+
+	return $cmd;
+}
+
+//  ============== nxSetRigidConstraintCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the rigid constraint command.
+//
+global proc	string	nxSetRigidConstraintCmdString()
+{
+	string $cmd;
+
+//	int $whichConstraint = `optionVar -q rigidConstraintType`;
+//	switch($whichConstraint)
+//	{
+//		case 1: $cmd = "nxRigidConstraint -pin ";
+//				break;
+//		case 2: $cmd = "nxRigidConstraint -nail ";
+//				break;
+//		case 3: $cmd = "nxRigidConstraint -directionalHinge ";
+//				break;
+//		case 4: $cmd = "nxRigidConstraint -hinge ";
+//				break;
+//		case 5: $cmd = "nxRigidConstraint -spring ";
+//				break;
+//		case 6: $cmd = "nxRigidConstraint -barrier ";
+//				break;
+//	}
+	
+	$cmd = "nxRigidConstraint " + nxDynSetName("rigidConstraint");
+
+
+//	if ( ( $whichConstraint == 3) || ( $whichConstraint == 5) )
+//	{
+//		$cmd = $cmd + "-o "+`optionVar -q rigidConstraintOrientX`+" "+ `optionVar -q rigidConstraintOrientY`+" "+ `optionVar -q rigidConstraintOrientZ`+" ";
+//
+//	}
+
+//	if($whichConstraint == 4)
+//	{
+//		$cmd = $cmd + "-st "+`optionVar -q rigidConstraintSpringStiffness`+" ";
+//		$cmd = $cmd + "-d "+`optionVar -q rigidConstraintSpringDamping`+" ";
+//		if (`optionVar -query rigidConstraintSpringRestLengthCBox` == 1)
+//		{
+//			$cmd = $cmd + "-rl "+`optionVar -q rigidConstraintSpringRestLength`+" ";
+//		}
+//	}
+
+	// If pin or if either hinge or spring and there are 2 items chosen,
+	// then send the interpenetrate flag.
+	//
+//	if (($whichConstraint == 2) ||
+//		(($whichConstraint == 3 || $whichConstraint == 4) && 
+//		  $numSelectedItems > 1)) 
+//	{
+//		$cmd = $cmd + "-i "+`optionVar -q rigidConstraintInterCB`+" " ;
+//	}
+
+	$cmd = $cmd + "-interpenetrate "+`optionVar -q rigidConstraintInterCBox`+" " ;
+	//$cmd = $cmd + "-showaxis "+`optionVar -q rigidConstraintShowAxisCBox`+" " ;
+	$cmd = $cmd + "-constrain "+`optionVar -q rigidConstraintConstrainCBox`+" " ;
+	//$cmd = $cmd + "-constrain 1";
+	
+	if(`optionVar -q rigidConstraintInWorldspace`)
+		$cmd = $cmd + "-worldspace ";
+
+	if (`optionVar -q rigidConstraintTransformType` == 2) // user-specified position
+	{
+		$cmd = $cmd + "-position "+ `optionVar -q rigidConstraintPos1X`+ " " 
+				+ `optionVar -q rigidConstraintPos1Y`+ " " 
+				+ `optionVar -q rigidConstraintPos1Z`+ " ";
+	
+		$cmd = $cmd + "-orientation "+ `optionVar -q rigidConstraintOrient1X`+ " " 
+			+ `optionVar -q rigidConstraintOrient1Y`+ " " 
+			+ `optionVar -q rigidConstraintOrient1Z`+ " ";
+	}
+			
+	if(!`optionVar -q rigidConstraintSamePosCBox`)
+		$cmd = $cmd + "-position2 "+ `optionVar -q rigidConstraintPos2X`+ " " 
+			+ `optionVar -q rigidConstraintPos2Y`+ " " 
+			+ `optionVar -q rigidConstraintPos2Z`+ " ";
+
+	if(!`optionVar -q rigidConstraintSameOrientCBox`)
+		$cmd = $cmd + "-orientation2 "+ `optionVar -q rigidConstraintOrient2X`+ " " 
+			+ `optionVar -q rigidConstraintOrient2Y`+ " " 
+			+ `optionVar -q rigidConstraintOrient2Z`+ " ";	
+	
+	//$cmd = $cmd + "-force "+ `optionVar -q rigidConstraintForceX`+ " " 
+	//	+ `optionVar -q rigidConstraintForceY`+ " " 
+	//	+ `optionVar -q rigidConstraintForceZ`+ " ";
+		
+	if(`optionVar -q rigidConstraintBreakableForceCBox`)
+		$cmd = $cmd + "-maxbreakableforce "+ `optionVar -q rigidConstraintMaxForce`+ " ";
+	
+	if(`optionVar -q rigidConstraintBreakableTorqueCBox`)
+		$cmd = $cmd + "-maxbreakabletorque "+ `optionVar -q rigidConstraintMaxTorque`+ " ";	
+		
+	$cmd = $cmd + "-motion "+ (`optionVar -q rigidConstraintMotionX`-1) + " " 
+		+ (`optionVar -q rigidConstraintMotionY`-1) + " " 
+		+ (`optionVar -q rigidConstraintMotionZ`-1) + " ";	
+	
+	if(`optionVar -q rigidConstraintMotionX` > 1 || `optionVar -q rigidConstraintMotionY` > 1 || `optionVar -q rigidConstraintMotionZ` > 1)	
+		$cmd = $cmd + "-linear "+ `optionVar -q rigidConstraintLinearLimitValue`+ " " 
+			+ `optionVar -q rigidConstraintLinearLimitRestitution`+ " " 
+			+ `optionVar -q rigidConstraintLinearLimitSpring`+ " "	
+			+ `optionVar -q rigidConstraintLinearLimitDamping`+ " ";
+		
+	$cmd = $cmd + "-motiontwist "+ (`optionVar -q rigidConstraintMotionTwist`-1)+ " "; 
+
+	if(`optionVar -q rigidConstraintMotionTwist` > 1){
+		$cmd = $cmd + "-twistlow "+ `optionVar -q rigidConstraintTwistLowLimitValue`+ " " 
+			+ `optionVar -q rigidConstraintTwistLowLimitRestitution`+ " " 
+			+ `optionVar -q rigidConstraintTwistLowLimitSpring`+ " "	
+			+ `optionVar -q rigidConstraintTwistLowLimitDamping`+ " ";
+			
+		$cmd = $cmd + "-twisthigh "+ `optionVar -q rigidConstraintTwistHighLimitValue`+ " " 
+			+ `optionVar -q rigidConstraintTwistHighLimitRestitution`+ " " 
+			+ `optionVar -q rigidConstraintTwistHighLimitSpring`+ " "	
+			+ `optionVar -q rigidConstraintTwistHighLimitDamping`+ " ";
+	}
+			
+	$cmd = $cmd + "-motionswing1 "+ (`optionVar -q rigidConstraintMotionSwing1`-1)+ " "; 
+
+	if(`optionVar -q rigidConstraintMotionSwing1` > 1)
+			$cmd = $cmd + "-swing1 "+ `optionVar -q rigidConstraintSwing1LimitValue`+ " " 
+			+ `optionVar -q rigidConstraintSwing1LimitRestitution`+ " " 
+			+ `optionVar -q rigidConstraintSwing1LimitSpring`+ " "	
+			+ `optionVar -q rigidConstraintSwing1LimitDamping`+ " ";
+			
+	$cmd = $cmd + "-motionswing2 "+ (`optionVar -q rigidConstraintMotionSwing2`-1)+ " "; 
+
+	if(`optionVar -q rigidConstraintMotionSwing2` > 1)
+			$cmd = $cmd + "-swing2 "+ `optionVar -q rigidConstraintSwing2LimitValue`+ " " 
+			+ `optionVar -q rigidConstraintSwing2LimitRestitution`+ " " 
+			+ `optionVar -q rigidConstraintSwing2LimitSpring`+ " "	
+			+ `optionVar -q rigidConstraintSwing2LimitDamping`+ " ";
+			
+	
+	return $cmd;
+}
+
+//  ============== nxSetDragGravityCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the drag and
+//		gravity commands.
+//
+global proc string nxSetDragGravityCmdString(string $which, int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = $which + " -pos 0 0 0 ";
+	else
+		$cmd = $which;
+
+	$cmd = $cmd + nxDynSetName($which);
+	$cmd = $cmd + "-m "+`optionVar -query ($which+"Magnitude")`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query ($which+"Attenuation")`+" ";
+	$cmd = $cmd + "-dx "+`optionVar -query ($which+"DirectionX")`+" ";
+	$cmd = $cmd + "-dy "+`optionVar -query ($which+"DirectionY")`+" ";
+	$cmd = $cmd + "-dz "+`optionVar -query ($which+"DirectionZ")`+" ";
+
+	if ($which == "drag")
+		$cmd = $cmd + "-ud "+`optionVar -query ($which+"UseDirection")`+" ";
+
+	//if (!$isCreate)
+	//	$cmd = $cmd + "-pv "+`optionVar -query ($which+"PerVertex")`+" ";
+	$cmd = nxDynSetMaxDist($which, $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( $which );
+
+	return $cmd;
+}
+
+//  ============== nxSetEmitterCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the emitter command.
+//
+global proc string nxSetEmitterCmdString(int $isCreate)
+{
+	string $cmd;
+	
+	if ($isCreate)
+		$cmd = "emitter -pos 0 0 0 ";
+	else 
+		$cmd = "emitter ";
+
+	int $typeChoice = `optionVar -query emitterTypesOM`;
+
+	// In Create, type 3 is volume.
+	//
+	if ($isCreate)
+	{
+		if ($typeChoice == 3)
+			$typeChoice = 5;
+	}
+	// In Create, curve or surface is not valid.
+	// If curve or surface was set, reset to omni.
+	// Also reset the option.
+	//
+	if (($isCreate) && (($typeChoice == 3) || ($typeChoice == 4)))
+	{
+		optionVar -intValue emitterTypesOM 1;
+		$typeChoice = 1;
+	}
+	else
+	// In Add, volume isn't valid
+	//
+	if ((!$isCreate) && ($typeChoice == 5))
+	{
+		optionVar -intValue emitterTypesOM 1;
+		$typeChoice = 1;
+	}
+ 
+	switch($typeChoice)
+	{
+		case 1: $cmd = $cmd + "-type omni ";
+			break;
+		case 2: $cmd = $cmd + "-type direction ";
+				break;
+		case 3: $cmd = $cmd + "-type surface ";
+				break;
+		case 4: $cmd = $cmd + "-type curve ";
+				break;
+		case 5: $cmd = $cmd + "-type volume ";
+				break;
+	}
+
+	$cmd = $cmd + nxDynSetName("emitter");
+
+	$cmd = $cmd + "-r "+`optionVar -query emitterRate`+" ";
+	$cmd = $cmd + "-sro "+`optionVar -query emitterScaleRateByObjectSize`+" ";
+	$cmd = $cmd + "-nuv "+`optionVar -query emitterNeedParentUV`+" ";
+
+	int $cycleOption = `optionVar -query emitterCycleOM`;
+	string $cycleString = "none";
+	switch( $cycleOption )
+	{
+		case 1:
+			$cycleString = "none";
+			break;
+		case 2:
+			$cycleString = "frame";
+			break;
+		//case 3:
+		//	$cycleString = "count";
+		//	break;
+	}
+
+	$cmd = $cmd + "-cye "+ $cycleString + " ";
+	$cmd = $cmd + "-cyi "+`optionVar -query emitterCycleInterval`+" ";
+
+	$cmd = $cmd + "-spd "+`optionVar -query emitterSpeed`+" ";
+	$cmd = $cmd + "-srn "+`optionVar -query emitterSpeedRandomRange`+" ";
+	$cmd = $cmd + "-nsp "+`optionVar -query emitterNormalSpeed`+" ";
+	$cmd = $cmd + "-tsp "+`optionVar -query emitterTangentSpeed`+" ";
+
+	$cmd = $cmd + "-mxd "+`optionVar -query emitterMaxDistance`+" ";
+	$cmd = $cmd + "-mnd "+`optionVar -query emitterMinDistance`+" ";
+	$cmd = $cmd + "-dx "+`optionVar -query emitterDirectionX`+" ";
+	$cmd = $cmd + "-dy "+`optionVar -query emitterDirectionY`+" ";
+	$cmd = $cmd + "-dz "+`optionVar -query emitterDirectionZ`+" ";
+	$cmd = $cmd + "-sp "+`optionVar -query emitterSpread`+" ";
+
+	// Add in the volume parameters only if type is 5 (volume).
+	//
+	if ($typeChoice == 5)
+	{
+		int $volShapeChoice = `optionVar -query emitterVolumeShapeOM`;
+		switch($volShapeChoice)
+		{	
+			case 1: $cmd = $cmd + "-vsh cube ";
+				break;
+			case 2: $cmd = $cmd + "-vsh sphere ";
+				break;
+			case 3: $cmd = $cmd + "-vsh cylinder ";
+				break;
+			case 4: $cmd = $cmd + "-vsh cone ";
+				break;
+			case 5: $cmd = $cmd + "-vsh torus ";
+				break;
+		}
+		$cmd = $cmd + "-vof "+`optionVar -query emitterVolumeOffsetX`+" "
+						 +`optionVar -query emitterVolumeOffsetY`+" "
+						 +`optionVar -query emitterVolumeOffsetZ`+" ";
+		$cmd = $cmd + "-vsw "+`optionVar -query emitterVolumeSweep`+" ";
+		$cmd = $cmd + "-tsr "+`optionVar -query emitterTorusSectionRadius`+" ";
+		$cmd = $cmd + "-afc "+`optionVar -query emitterAwayFromCenter`+" ";
+		$cmd = $cmd + "-afx "+`optionVar -query emitterAwayFromAxis`+" ";
+		$cmd = $cmd + "-arx "+`optionVar -query emitterAroundAxis`+" ";
+		$cmd = $cmd + "-alx "+`optionVar -query emitterAlongAxis`+" ";
+		$cmd = $cmd + "-rnd "+`optionVar -query emitterRandomSpread`+" ";
+		$cmd = $cmd + "-drs "+`optionVar -query emitterDirectionalSpeed`+" ";
+		$cmd = $cmd + "-ssz "+`optionVar -query emitterScaleSpeedBySize`+" ";
+	}
+	return $cmd;
+}
+
+
+//  ============== nxSetRigidCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the rigid command.
+//  [claforte] TODO: Update with PhysX-specific options.
+//
+global proc	string	nxSetRigidCmdString()
+{
+	string $cmd;
+
+	if (`optionVar -q rigidCollisionType` == 1)
+		$cmd = "nxRigidBody -active ";
+	else if (`optionVar -q rigidCollisionType` == 0)
+		$cmd = "nxRigidBody -passive ";
+	else if (`optionVar -q rigidCollisionType` == -1)
+		$cmd = "nxRigidBody -static ";
+
+	$cmd = $cmd + nxDynSetName("rigid");
+	$cmd = $cmd + "-m "+`optionVar -q rigidMass`+" ";
+	$cmd = $cmd + "-den "+`optionVar -q rigidDensity`+" ";
+	$cmd = $cmd + "-omd "+`optionVar -q rigidOverrideMassOrDensity`+" ";
+	$cmd = $cmd + "-adp "+`optionVar -q rigidAngularDamping`+" ";
+    $cmd = $cmd + "-dp "+`optionVar -q rigidDamping`+" ";
+    $cmd = $cmd + "-sf "+`optionVar -q rigidStatFriction`+" ";
+	$cmd = $cmd + "-df "+`optionVar -q rigidDynFriction`+" ";
+	$cmd = $cmd + "-b "+`optionVar -q rigidBounciness`+" ";
+	//$cmd = $cmd + "-l "+`optionVar -q rigidLayer`+" ";
+	//$cmd = $cmd + "-tf "+`optionVar -q rigidTesselation`+" ";
+
+	$cmd = $cmd + "-iv "+`optionVar -q rigidInitVelocityX`+" "+ `optionVar -q rigidInitVelocityY`+" "+ `optionVar -q rigidInitVelocityZ`+" ";
+
+	$cmd = $cmd + "-iav "+`optionVar -q rigidAngVelocityX`+" "+ `optionVar -q rigidAngVelocityY`+" "+ `optionVar -q rigidAngVelocityZ`+" ";
+
+	if (`optionVar -query rigidPosCBox` == 1)
+	{
+		$cmd = $cmd + "-p "+`optionVar -q rigidPosX`+" "+`optionVar -q rigidPosY`+" "+`optionVar -q rigidPosZ`+" ";
+	}
+
+	if (`optionVar -query rigidOrCBox` == 1)
+	{
+		$cmd = $cmd + "-o "+`optionVar -q rigidOrX`+" "+ `optionVar -q rigidOrY`+" "+ `optionVar -q rigidOrZ`+" ";
+	}
+
+	if (`optionVar -query rigidComCBox` == 1)
+	{
+		$cmd = $cmd + "-com "+`optionVar -q rigidComX`+" "+ `optionVar -q rigidComY`+" "+ `optionVar -q rigidComZ`+" ";
+	}
+
+	//$cmd = $cmd + "-c "+`optionVar -q rigidCacheCBox`+" ";
+	//$cmd = $cmd + "-pc "+`optionVar -q rigidCollide`+" ";
+	//$cmd = $cmd + "-i "+`optionVar -q rigidImpulseX`+" "+ `optionVar -q rigidImpulseY`+" "+ `optionVar -q rigidImpulseZ`+" ";
+	//$cmd = $cmd + "-imp "+`optionVar -q rigidImpulsePosX`+" "+ `optionVar -q rigidImpulsePosY`+" "+ `optionVar -q rigidImpulsePosZ`+" ";
+	//$cmd = $cmd + "-si "+`optionVar -q rigidSpinImpulseX`+" "+ `optionVar -q rigidSpinImpulseY`+" "+ `optionVar -q rigidSpinImpulseZ`+" ";
+
+	//int $whichStandIn = `optionVar -q rigidStandInType`;
+	//switch($whichStandIn)
+	//{
+	//	case 1: $cmd = $cmd + "-sio none ";
+	//			break;
+	//	case 2: $cmd = $cmd + "-sio cube ";
+	//			break;
+	//	case 3: $cmd = $cmd + "-sio sphere ";
+	//			break;
+	//}
+
+	return $cmd;
+}
+
+
+
+//  ============== nxSetSpringCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the spring command.
+//
+global proc	string	nxSetSpringCmdString()
+{
+	string $cmd = "spring ";
+
+	$cmd = $cmd + nxDynSetName("spring");
+
+	int $isAdd = `optionVar -q springAdd`;
+
+	if ($isAdd)
+		$cmd = $cmd + "-add ";
+
+	int $isSet = `optionVar -q springNoDuplicate`;
+
+	if ($isSet)
+		$cmd = $cmd + "-noDuplicate true ";
+	else
+		$cmd = $cmd + "-noDuplicate false ";
+
+	$isSet = `optionVar -q springExclusive`;
+
+	if ($isSet)
+		$cmd = $cmd + "-exclusive true ";
+
+	int $springMethod = `optionVar -q springMethodsOM`;
+
+
+	if ($springMethod == 1)
+	{
+		$cmd = $cmd + "-minMax true ";
+		$cmd = $cmd + "-mnd "+`optionVar -q springMinDistance`+" "; 
+		$cmd = $cmd + "-mxd "+`optionVar -q springMaxDistance`+" "; 
+	}
+	else if ($springMethod == 2)
+	{
+		$cmd = $cmd + "-all true ";
+	}
+	else if ($springMethod == 3)
+	{
+		$cmd = $cmd + "-wireframe true ";
+		$cmd = $cmd + "-wl " + `optionVar -q springWireWalkLength` + " ";
+	}
+
+	if (!$isAdd)
+	{
+		int $usePS;
+
+		$usePS = `optionVar -q springUseRestLengthPS`;
+		if ($usePS)
+		{
+			$cmd = $cmd + "-useRestLengthPS true ";
+		}
+		else
+		{
+			$cmd = $cmd + "-useRestLengthPS false ";
+			$cmd = $cmd + "-rl "+`optionVar -q springRestLength`+" "; 
+		}
+
+		$usePS = `optionVar -q springUseStiffnessPS`;
+		if ($usePS)
+			$cmd = $cmd + "-useStiffnessPS true ";
+		else
+			$cmd = $cmd + "-s "+`optionVar -q springStiffness`+" ";
+
+		$usePS = `optionVar -q springUseDampingPS`;
+		if ($usePS)
+			$cmd = $cmd + "-useDampingPS true ";
+		else
+			$cmd = $cmd + "-d "+`optionVar -q springDamp`+" ";
+
+		$cmd = $cmd + "-sfw "+`optionVar -q springStartForceWeight`+" ";
+		$cmd = $cmd + "-efw "+`optionVar -q springEndForceWeight`+" ";
+
+	}
+
+	return $cmd;
+}
+
+
+//  ============== nxSetNewtonCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the newton command.
+//
+global proc string nxSetNewtonCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "newton -pos 0 0 0 ";
+	else
+		$cmd = "newton ";
+
+	$cmd = $cmd + nxDynSetName("newton");
+	$cmd = $cmd + "-m "+`optionVar -query newtonMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query newtonAttenuation`+" ";
+	$cmd = $cmd + "-mnd "+`optionVar -query newtonMinDistance`+" ";
+	//if (!$isCreate)
+	//	$cmd = $cmd + "-pv "+`optionVar -query newtonPerVertex`+" ";
+	$cmd = nxDynSetMaxDist("newton", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "newton" );
+
+	return $cmd;
+}
+
+//  ============== nxSetRadialCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the radial command.
+//
+global proc string nxSetRadialCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "radial -pos 0 0 0 ";
+	else
+		$cmd = "radial ";
+
+	$cmd = $cmd + nxDynSetName("radial");
+	$cmd = $cmd + "-m "+`optionVar -query radialMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query radialAttenuation`+" ";
+	$cmd = $cmd + "-typ "+`optionVar -query radialType`+" ";
+	//if (!$isCreate)
+	//	$cmd = $cmd + "-pv "+`optionVar -query radialPerVertex`+" ";
+	$cmd = nxDynSetMaxDist("radial", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "radial" );
+	return $cmd;
+}
+
+
+//  ============== nxSetTurbulenceCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the turbulence command.
+//
+global proc string nxSetTurbulenceCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "turbulence -pos 0 0 0 ";
+	else
+		$cmd = "turbulence ";
+
+	$cmd = $cmd + nxDynSetName("turbulence");
+	$cmd = $cmd + "-m "+`optionVar -query turbulenceMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query turbulenceAttenuation`+" ";
+	$cmd = $cmd + "-f "+`optionVar -query turbulenceFrequency`+" ";
+	$cmd = $cmd + "-phaseX "+`optionVar -query turbulencePhaseX`+" ";
+	$cmd = $cmd + "-phaseY "+`optionVar -query turbulencePhaseY`+" ";
+	$cmd = $cmd + "-phaseZ "+`optionVar -query turbulencePhaseZ`+" ";
+	$cmd = $cmd + "-noiseLevel "+`optionVar -query turbulenceNoiseLevel`+" ";
+	$cmd = $cmd + "-noiseRatio "+`optionVar -query turbulenceNoiseRatio`+" ";
+	$cmd = nxDynSetMaxDist("turbulence", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "turbulence" );
+
+	return $cmd;
+}
+
+
+//  ============== nxSetUniformCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the uniform command.
+//
+global proc string nxSetUniformCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "uniform -pos 0 0 0 ";
+	else
+		$cmd = "uniform ";
+
+	$cmd = $cmd + nxDynSetName("uniform");
+	$cmd = $cmd + "-m "+`optionVar -query uniformMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query uniformAttenuation`+" ";
+	$cmd = $cmd + "-dx "+`optionVar -query uniformDirectionX`+" ";
+	$cmd = $cmd + "-dy "+`optionVar -query uniformDirectionY`+" ";
+	$cmd = $cmd + "-dz "+`optionVar -query uniformDirectionZ`+" ";
+	//if (!$isCreate)
+	//	$cmd = $cmd + "-pv "+`optionVar -query uniformPerVertex`+" ";
+	$cmd = nxDynSetMaxDist("uniform", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "uniform" );
+
+	return $cmd;
+}
+
+
+//  ============== nxSetVortexCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the vortex command.
+//
+global proc string nxSetVortexCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "vortex -pos 0 0 0 ";
+	else
+		$cmd = "vortex ";
+
+	$cmd = $cmd + nxDynSetName("vortex");
+	$cmd = $cmd + "-m "+`optionVar -query vortexMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query vortexAttenuation`+" ";
+	$cmd = $cmd + "-ax "+`optionVar -query vortexAxisX`+" ";
+	$cmd = $cmd + "-ay "+`optionVar -query vortexAxisY`+" ";
+	$cmd = $cmd + "-az "+`optionVar -query vortexAxisZ`+" ";
+	//if (!$isCreate)
+	//	$cmd = $cmd + "-pv "+`optionVar -query vortexPerVertex`+" ";
+	$cmd = nxDynSetMaxDist("vortex", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "vortex" );
+
+	return $cmd;
+}
+
+//  ============== nxSetVolumeAxisCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for the volume axis command.
+//
+global proc string nxSetVolumeAxisCmdString(int $isCreate)
+{
+	string $cmd;
+
+	if ($isCreate)
+		$cmd = "volumeAxis -pos 0 0 0 ";
+	else
+		$cmd = "volumeAxis ";
+
+	$cmd = $cmd + nxDynSetName("volumeAxis");
+	$cmd = $cmd + "-m "+`optionVar -query volumeAxisMagnitude`+" ";
+	$cmd = $cmd + "-att "+`optionVar -query volumeAxisAttenuation`+" ";
+	$cmd = $cmd + "-ia "+`optionVar -query volumeAxisInvertAttenuation`+" ";
+
+	$cmd = $cmd + "-afc "+`optionVar -query volumeAxisAwayFromCenter`+" ";
+	$cmd = $cmd + "-afx "+`optionVar -query volumeAxisAwayFromAxis`+" ";
+	$cmd = $cmd + "-arx "+`optionVar -query volumeAxisAroundAxis`+" ";
+	$cmd = $cmd + "-alx "+`optionVar -query volumeAxisAlongAxis`+" ";
+	//$cmd = $cmd + "-rnd "+`optionVar -query volumeAxisRandomSpread`+" ";
+	$cmd = $cmd + "-drs "+`optionVar -query volumeAxisDirectionalSpeed`+" ";
+
+	$cmd = $cmd + "-dx "+`optionVar -query volumeAxisDirectionX`+" ";
+	$cmd = $cmd + "-dy "+`optionVar -query volumeAxisDirectionY`+" ";
+	$cmd = $cmd + "-dz "+`optionVar -query volumeAxisDirectionZ`+" ";
+	
+	$cmd = $cmd + "-trb "+`optionVar -query volumeAxisTurbulence`+" ";
+	$cmd = $cmd + "-trs "+`optionVar -query volumeAxisTurbulenceSpeed`+" ";
+	$cmd = $cmd + "-tfx "+`optionVar -query volumeAxisTurbulenceFrequencyX`+" ";
+	$cmd = $cmd + "-tfy "+`optionVar -query volumeAxisTurbulenceFrequencyY`+" ";
+	$cmd = $cmd + "-tfz "+`optionVar -query volumeAxisTurbulenceFrequencyZ`+" ";
+	$cmd = $cmd + "-tox "+`optionVar -query volumeAxisTurbulenceOffsetX`+" ";
+	$cmd = $cmd + "-toy "+`optionVar -query volumeAxisTurbulenceOffsetY`+" ";
+	$cmd = $cmd + "-toz "+`optionVar -query volumeAxisTurbulenceOffsetZ`+" ";
+	$cmd = $cmd + "-dtr "+`optionVar -query volumeAxisDetailTurbulence`+" ";
+
+	$cmd = nxDynSetMaxDist("volumeAxis", $cmd);
+
+	$cmd = $cmd + nxDynSetVolumeFieldCmdString( "volumeAxis" );
+
+	return $cmd;
+}
+
+//  ============== nxSetParticleRenderCacheCmdString ==============
+//
+//  SYNOPSIS
+//		Set the command and command args string for 
+//      creating a particle render cache.
+//      This routine is used when dragging to the shelf
+//      and when executing the menu item without the option box.
+//
+//   $flag has the same meaning as in nxPerformDynamics, whence it is passed.
+//
+global proc	string	nxSetParticleRenderCacheCmdString( int $flag )
+{
+	// Get the string in nxDynGlobals.  If an empty string
+	// is stored there, get the file default.
+	// NOTE	: This gives the wrong result in the case where
+	// the user has intentionally set an empty path.
+	// We will release note this; no way around it.
+	//
+	string $path = "";
+	string $theGlobal;
+	if (!catch ($theGlobal = `nxDynGlobals -q -active`))
+		$path = `getAttr ($theGlobal + ".cacheDirectory")`;
+
+	if (size($path) == 0)
+	{
+		$path = `file -q -rpr`;
+		if ($flag == 0) {
+			warning( "Files will be stored in subdirectory \"" + $path + "\"" );
+		}
+
+		// If this is for execution, see whether user
+		// wants to overwrite an existing cache.
+		//
+		if (($flag == 0) && (!nxDynCheckOverwriteCacheDirectory( $path )))
+		{
+			string $cmdString;
+			return $cmdString;
+		}
+	}
+	else
+	{
+		// If for execution, check whether path is different from scene name,
+		// and if so, ask user to verify
+		//
+		$scene = `file -q -rpr`;
+		if (($flag == 0) && ($path != $scene))
+		{
+			if (!nxDynVerifyPath( $path ))
+			{
+				string $cmdString;
+				return $cmdString;
+			}
+		}
+	}
+
+
+	if ($flag == 0)
+	{
+		// Also check if path is currently "untitled."
+		// If it is, recommend that user save scene first.
+		// 
+		if ($path == "untitled")
+		{
+			// Post dialog to ask the user to confirm
+			//
+			string $msgString = "We recommend you save your scene first. The cache will be saved in the current project with the current scene name.";
+			if ("Cancel" ==` confirmDialog -title "Confirm" -message $msgString -button "Continue" -button "Cancel" -defaultButton "Cancel" -cancelButton "Cancel" -dismissString "Cancel"`)
+			{
+				string $cmdString;
+				return $cmdString;
+			}
+		}
+	}
+
+	// If for execution, clean up the cache directory first
+	//
+	if ($flag == 0)
+	{
+		nxDynCleanCacheDirectory( $path );
+	}
+
+	// Get range of frames for export.
+	//
+	int $minFrame;	
+	int $maxFrame;
+	int $useRenderGlobals = `optionVar -query cacheForRenderGlobalsRange`;
+
+	if (!$useRenderGlobals)
+	{
+		// Get current playback range for export.
+		//
+		$minFrame = `playbackOptions -query -min`;
+		$maxFrame = `playbackOptions -query -max`;
+	}
+	else
+	{
+		// Get frame range from default render globals
+		//
+		$minFrame = `getAttr defaultRenderGlobals.startFrame`;
+		$maxFrame = `getAttr defaultRenderGlobals.endFrame`;
+	}
+
+	// Check whether we have a particle data area.
+	// If not, make one.
+	//
+	string $particleDir = `workspace -fre particles`;
+	if (size($particleDir) == 0)
+	{
+		workspace -fr particles particles;
+	}
+
+	int $onlyUpdateParticles = `optionVar -query onlyUpdateParticles`;
+	int $cacheAllParticleSystems = `optionVar -query cacheAllParticleSystems`;
+
+	// Form the command string
+	//
+	string $cmdString = "nxDynExport -path \""+ $path + 
+							"\" -f cache -mnf " + $minFrame + 
+							" -mxf "+$maxFrame + " -oup " + $onlyUpdateParticles +
+							" -all " + $cacheAllParticleSystems;
+
+	return $cmdString;
+}
+
+//  ============== nxSetParticleInstancerCmdString ==============
+//
+//  SYNOPSIS
+//		Set command and command args string for the particle instancer command.
+//
+global proc	string	nxSetParticleInstancerCmdString()
+{
+	int    $i;
+	int    $count;
+	string $menuString;
+	string $cmd = "particleInstancer ";
+	int $optionBoxExists = 0;
+
+	$cmd = $cmd + nxDynSetName("particleInstancer");
+
+	// If the option box is up, use the objects currently in the selected object
+	// list and particle option menu.
+	// If there is no option box, then use the selection list.  The last object
+	// in the list is the particle to be instanced to.  All other objects in 
+	// the list are instance objects.
+	//
+	string $selectedObjects[];
+	string $particleShape;
+
+    if ( `textScrollList -q -exists PIselectObjectList` == 1 )
+    {
+		$optionBoxExists = 1;
+
+		$particleShape = `optionMenuGrp -q -v PIparticleObjectOM`;
+
+		if (size($particleShape) == 0)
+		{
+			warning("There are no particles in the scene.  A particleInstancer must be created for a selected particle.");
+			return "";
+		}
+		if ($particleShape == "No Particle Shapes Found")
+		{
+			warning("There are no particles in the scene.  A particleInstancer must be created for a selected particle.");
+			return "";
+		}
+
+		$selectedObjects = `textScrollList -q -allItems PIselectObjectList`;
+		
+        $count = size( $selectedObjects);
+	}
+	else
+	{
+		string $selectionList[] = `ls -sl`;
+
+		// First, check that the last object is a particle, and if so, save
+		// it, otherwise issue a warning and return.
+		//
+		int $numSelected = size($selectionList);
+
+		if ($numSelected == 0)
+		{
+			warning("Nothing is selected.  Please first select the object(s) you want to instance, \n   then the particle to which to instance them. Then issue the command again.\n   (If only a particle is selected, an empty particleInstancer will be created.)");
+			return "";
+		}
+
+		$particleShape = nxGetParticleShape($selectionList[$numSelected - 1]);
+		if (size($particleShape) == 0)
+		{
+			warning("The last item in the selection list must be the particle to which to add instances.\n   " + $selectionList[$numSelected - 1] + " is not a particle.  Not creating a particleInstancer node.");
+			return "";
+		}
+
+		// Now check each object in the list except the last an make sure it
+		// is a valid object to be instanced.  Put the valid objects in
+		// $selectedObjects, and issue warningas for invalid objects.
+		//
+		clear($selectedObjects);
+		$count = 0;
+		for ($i = 0; $i < size($selectionList) - 1; $i++)
+		{
+			if (nxIsValidInstancedObject($selectionList[$i]))
+			{
+				$selectedObjects[$count] = $selectionList[$i];
+				$count++;
+			}
+			else
+			{
+				warning($selectionList[$i] + " is not a valid instance object. Skipping it.");
+			}
+		}
+
+	}
+
+	// Add the selected instance objects to the command line.
+	//
+	if ( $count > 0 )
+	{
+		string $objectName[];
+
+		// addObject Flag.
+		//
+		$cmd = $cmd + " -addObject";
+
+		for ( $i = 0; $i < $count; $i++ )
+		{
+			if ($optionBoxExists == 1)
+			{
+				tokenize( $selectedObjects[ $i ], ":", $objectName );
+				if ( size( $objectName ) > 1 ) 
+				{
+					$cmd = $cmd + " -object " + $objectName[1];
+				}
+			}
+			else
+			{
+				$cmd = $cmd + " -object " + $selectedObjects[$i];
+			}
+		}
+	}
+	else
+	{
+		warning("No objects have been selected to be instanced.  Creating empty particleInstancer node.");
+	}
+
+	// Instancer Flags.
+	//
+	$cmd = $cmd + " -cycle " 		  + `optionVar -q PIautoCycleOM`;
+	$cmd = $cmd + " -cycleStep "      + `optionVar -q PIautoCycleStepSize`;
+	$cmd = $cmd + " -cycleStepUnits " + `optionVar  -q PIautoCycleStepUnitsOM`;
+	$cmd = $cmd + " -levelOfDetail "  + `optionVar -q PIlevelOfDetailOM`;
+	$cmd = $cmd + " -rotationUnits "  + `optionVar -q PIrotationUnitsOM`;
+	$cmd = $cmd + " -rotationOrder "  + `optionVar -q PIrotationOrderOM`;
+
+	// Position Flag.
+	//
+	$menuString = `optionVar -q  PositionOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -position " + $menuString;
+	}
+
+	// Rotation Flag.
+	//
+	$menuString = `optionVar -q RotationOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -rotation " + $menuString;
+	}
+
+	// Scale Flag.
+	//
+	$menuString = `optionVar -q ScaleOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -scale " + $menuString;
+	}
+
+	$menuString = `optionVar -q ShearOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -shear " + $menuString;
+	}
+
+	$menuString = `optionVar -q AimDirectionOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -aimDirection " + $menuString;
+	}
+
+	$menuString = `optionVar -q AimPositionOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -aimPosition " + $menuString;
+	}
+
+	$menuString = `optionVar -q AimAxisOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -aimAxis " + $menuString;
+	}
+
+	$menuString = `optionVar -q AimWorldUpOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -aimWorldUp " + $menuString;
+	}
+
+	$menuString = `optionVar -q RotationTypeOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -rotationType " + $menuString;
+	}
+
+	$menuString = `optionVar -q ObjectIndexOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -objectIndex " + $menuString;
+	}
+
+	$menuString = `optionVar -q CycleStartObjectOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -cycleStartObject " + $menuString;
+	}
+
+	$menuString = `optionVar -q AgeOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -age " + $menuString;
+	}
+
+	$menuString = `optionVar -q VisibilityOM`;
+
+	if ( $menuString != "None" )
+	{
+		$cmd = $cmd + " -visibility " + $menuString;
+	}
+
+	// If the option box is up, get the particle object to be instanced
+	// to from the optionVar, which has been updated to the optionMenuGrp.
+	// Otherwise is is in $particleShape.
+	//
+	$cmd = $cmd + " " + $particleShape;
+
+	return $cmd;
+}
+
+//  ========== nxPerformDynamics ==========
+//
+//  SYNOPSIS
+//		Called when a user selects a Dynamics menu item, or selects 
+//		the "Create/Add" button in a Dynamics option box.
+//
+//		Arguments:
+//			$createFlag:	1 = create field/emitter 
+//							0 = add field/emitter/collision/goal
+//							2 = create/add not relevant
+//
+//			$type		command name (with initial Cap)
+//			$flag		0 = execute the command
+//						1 = bring up the option box
+//						2 = dragging to shelf; just return the command string
+//
+global proc string nxPerformDynamics( int $createFlag, string $type, int $flag)
+{	
+	string $selected[];
+	string $cmd;
+
+	if ($flag == 1) 
+	{
+		// Create the options box and set the values of the
+		// controls based on the option vars.
+		//
+		nxCreateDynamicsOptions($type, $createFlag);
+	}
+	else 
+	{	
+		// Create and set the option vars, if they don't exist already.
+		// The second arg means don't reset the values to default if the
+		// option vars already exsit.
+		//
+		nxDynSetOptionVars($type, 0);
+
+		// Get the current selection list.
+		//
+		$selected = `ls -sl`;
+
+		// Create the command args for the selected command, and
+		// issue the command.
+		//
+		switch ($type) 
+		{
+			case "Air":
+
+				$cmd = nxSetAirCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else if ($createFlag)
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;		
+
+			case "Drag":
+
+				$cmd = nxSetDragGravityCmdString("drag", $createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else 
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;		
+
+			case "Gravity":
+
+				$cmd = nxSetDragGravityCmdString("gravity", $createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else 
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;
+
+			case "Newton":
+
+				$cmd = nxSetNewtonCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else if ($createFlag)
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;
+
+			case "Radial":
+
+				$cmd = nxSetRadialCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else if ($createFlag)
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;
+
+			case "Turbulence":
+
+				$cmd = nxSetTurbulenceCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else if ($createFlag)
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;
+
+			case "Uniform":
+
+				$cmd = nxSetUniformCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else if ($createFlag)
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;
+
+			case "Vortex":
+
+				$cmd = nxSetVortexCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+				else if ($createFlag)
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				break;
+
+			case "VolumeAxis":
+
+				$cmd = nxSetVolumeAxisCmdString($createFlag);
+				if ($flag == 0)
+				{
+					nxDynExecuteFieldCommands($createFlag, $cmd);
+					string $sl[] = `ls -sl`;
+					string $timeCmd = ("connectAttr time1.outTime " +$sl[0]+ ".time"); 
+					evalEcho( $timeCmd );
+				}
+				else if ($createFlag)
+				{
+					$cmd = nxDynSetCreateFieldShelfCommand($cmd);
+				}
+				break;
+
+			case "Emitter":
+
+				$cmd = nxSetEmitterCmdString($createFlag);
+				if ($flag == 0)
+					nxDynExecuteEmitterCommands($createFlag, $cmd);
+				else
+					$cmd = nxDynSetEmitterShelfCommand($createFlag, $cmd);
+				break;
+
+			case "Collision":
+
+				$cmd = "collision " + nxDynSetName("collision");
+				$cmd = $cmd + "-r "+`optionVar -query collisionResilience`+" ";
+				$cmd = $cmd + "-f "+`optionVar -query collisionFriction`+" ";
+
+				if ($flag == 0)
+					nxDynExecuteCollisionCommand($cmd);
+				else
+					$cmd = nxDynSetCollisionShelfCommand($cmd);
+					
+				break;
+
+			case "Goal":
+
+				$cmd = "goal -w "+`optionVar -query goalWeight`+" -utr "+ `optionVar -query goalUseTransform`+"  ";
+
+				if ($flag == 0)
+					nxDynExecuteGoalCommand($cmd);
+				else
+					$cmd = nxDynSetGoalShelfCommand($cmd);
+				break;
+
+			case "ActiveRigid":
+			case "PassiveRigid":
+			case "StaticRigid":
+
+				if ($type == "ActiveRigid")
+					optionVar -intValue rigidCollisionType 1;
+				else if ($type == "PassiveRigid")
+					optionVar -intValue rigidCollisionType 0;
+				else if ($type == "StaticRigid")
+					optionVar -intValue rigidCollisionType -1;
+
+				$cmd = nxSetRigidCmdString();
+				
+				print ("==============in nxPerformDynamics, cmd = " + $cmd + "\n");
+				
+				if ($flag == 0)
+				{
+					// execute command only if there are no existing rigidbody
+					if( !`rigidBodyExists` )
+						evalEcho $cmd;
+
+				}
+				break;
+
+			case "RigidConstraint":
+
+				$cmd = nxSetRigidConstraintCmdString();
+				if ($flag == 0)
+					evalEcho $cmd;
+				break;
+				
+			case "Soft":
+
+			    int $hide    = `optionVar -query softHide`;
+				int $history = `optionVar -query softHistory`;
+			    int $goal    = `optionVar -query softGoal`;
+				float $goalWeight = `optionVar -query softWeight`;
+
+				int $whichSoftCreation = `optionVar -q softCreationOption`;
+				if ($whichSoftCreation == 1)  
+				{
+					$cmd = "soft " + nxDynSetName("soft");
+					$cmd = $cmd + "-c ";
+				}
+				else
+				if ($whichSoftCreation == 2)
+				{
+					$cmd = "nxDynCreateSoft " + $hide + " " + $history + " " + $goal + " " + $goalWeight + " 1";
+				}
+				else
+				if ($whichSoftCreation == 3)
+				{
+					$cmd = "nxDynCreateSoft " + $hide + " " + $history + " " + $goal + " " + $goalWeight + " 0";
+				}
+
+				if ($flag == 0)
+					evalEcho $cmd;
+				break;
+
+			case "Constrain":
+
+				$cmd = nxSetConstrainCmdString(size($selected));
+				if ($flag == 0)
+					evalEcho $cmd;
+				break;
+
+			case "Spring":
+
+				$cmd = nxSetSpringCmdString();
+				if ($flag == 0)
+					evalEcho $cmd;
+				break;
+
+			case "ParticleInstancer":
+
+				if ($flag == 2) {
+					$cmd = "evalEcho `nxSetParticleInstancerCmdString`";
+				} else {
+					$cmd = nxSetParticleInstancerCmdString();
+					if (($flag == 0) && (size($cmd) > 0))
+						evalEcho $cmd;
+				}
+				break;
+
+			case "ParticleRenderCache":
+
+				if (`about -evalVersion`) {
+					confirmDialog
+						-m "Creation of a particle disk cache is not supported in Maya PLE."
+						-b "Cancel" -db "Cancel";
+					break;
+				}
+	
+				$cmd = nxSetParticleRenderCacheCmdString( $flag );
+				if (($flag == 0) && (size($cmd) > 0))
+				{
+					// execute the command.
+					//
+					evalEcho $cmd;
+				}
+				break;
+		}	
+	}
+	return $cmd;
+}
+
+// checks if there are existing rigidbodies on the selected transform/shape (individual/group)
+global proc int rigidBodyExists()
+{
+	// Initialise exist status to false
+	int $exists = 0;
+
+	// 1. List selection
+	$selected = `ls -selection -type "transform"`;
+	for( $select in $selected )
+	{
+		// 2. Check if there's existing rigidbodies under current transform
+		$rigidbodies = `listRelatives -fullPath -children -type "nxRigidBody" $select`;
+
+		// if there are none, check if transform is in a group.
+		if( `size $rigidbodies` == 0 )
+		{
+			// 3. if transform part of a group, search for rigid bodies in that group
+			$parent = `listRelatives -fullPath -parent -type "transform" $select`;
+
+			// if a parent transform is found, search for existing rigidbodies
+			if( `size $parent` > 0 )
+			{
+				$rigidbodies = `listRelatives -fullPath -children -type "nxRigidBody" $parent`;
+				
+			}
+		}
+
+		// 4. if there are existing rigigbodies, set exists status to true
+		if( `size $rigidbodies` > 0 )
+		{
+			$exists = 1;
+			print ("There an existing rigid body: " + $rigidbodies[0] + ". Command will not be executed.\n");
+			print ("If mesh is in a group, use rigidbody to add a physics shape. \n");
+		}
+		
+	}
+
+	return $exists;
+}
+
+
+global proc string nxGetParticleShape(string $object)
+{
+	string $particleShape[];
+	string $objectArray[1];
+	$objectArray[0] = $object;
+
+	// First see if $object is itself a particle shape.  If it is return it.
+	//
+	$particleShape = `ls -type particle $objectArray`;
+	if (size($particleShape) > 0)
+	{
+		return $particleShape[0];
+	}
+
+	// If $object is not a particle shape, perhaps it is the transform of
+	// a particle shape.  If so, return it.
+	//
+	string $transforms[];
+	string $children[];
+	$transforms = `ls -type transform $objectArray`;
+	if (size($transforms) > 0)
+	{
+		$children = `listRelatives -fullPath -s $transforms[0]`;
+		$particleShape = `ls -type particle $children`;
+		if (size($particleShape) > 0)
+		{
+			return $particleShape[0];
+		}
+	}
+
+	// If $object is neither a particle shape nor a transform of a particle
+	// shape, then return nothing.
+	//
+	return "";
+}
+
+global proc int nxIsValidInstancedObject( string $objectName )
+{
+	if( size($objectName) == 0 )
+		return 0;
+
+	string $temp[];
+	//
+	// First check to see if the selected object
+	// is a transform.
+	//
+	clear($temp);
+	$temp = `ls -type transform $objectName`;
+	if( size($temp) == 0 )
+		return 0;
+
+	//
+	// Now filter out special types derived from transforms
+	//
+	string $invalidTransformTypes[] = 
+	{
+		"pointEmitter",
+		"field",
+		"ikhandle",
+		"ikEffector",
+		"instancer",
+		"joint"
+	};
+	clear($temp);
+	$temp = `ls
+		-type pointEmitter
+		-type field
+		-type ikHandle
+		-type ikEffector
+		-type joint
+		-type instancer
+		$objectName`;
+	if( size($temp) > 0 )
+		return 0;
+
+	return 1;
+}
+
+
+proc string nxRadialHelp()
+{
+	string $helpString;
+
+	$helpString = "Create Radial Field: (1) select the objects you want to be influenced by the new radial field; (2) select \"Radial\" from the \"Create Fields\" menu or select the \"Create\" button in the option box.\nAdd Radial Field: (1) select the objects you want to be influenced by the new radial field; (2) shift-select the object to add the radial field to; (3) select \"Radial\" from the \"Add To Geometry\" menu or select the \"Add\" button in the option box.";
+
+	return $helpString;
+}

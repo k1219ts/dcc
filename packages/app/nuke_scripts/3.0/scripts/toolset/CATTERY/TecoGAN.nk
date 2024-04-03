@@ -1,0 +1,5074 @@
+#! /opt/Nuke13.2v5/libnuke-13.2.5.so -nx
+version 13.2 v5
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="3840" y="254" w="2560" h="1307" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="2487" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1254"/>
+                <splitter orientation="1">
+                    <split size="1401"/>
+                    <splitter orientation="2">
+                        <split size="528"/>
+                        <dock id="" activePageId="Viewer.1">
+                            <page id="Viewer.2"/>
+                            <page id="Viewer.1"/>
+                        </dock>
+                        <split size="629"/>
+                        <splitter orientation="1">
+                            <split size="699"/>
+                            <dock id="" activePageId="Properties.1">
+                                <page id="Properties.1"/>
+                            </dock>
+                            <split size="698"/>
+                            <dock id="" activePageId="DAG.1">
+                                <page id="DAG.1"/>
+                            </dock>
+                        </splitter>
+                        <split size="89"/>
+                        <splitter orientation="1">
+                            <split size="1158"/>
+                            <dock id="" activePageId="Curve Editor.1">
+                                <page id="DopeSheet.1"/>
+                                <page id="Curve Editor.1"/>
+                            </dock>
+                            <split size="239"/>
+                            <dock id="" activePageId="Toolbar_CompToolbar.1">
+                                <page id="Toolbar_CompToolbar.1"/>
+                            </dock>
+                        </splitter>
+                    </splitter>
+                    <split size="1082"/>
+                    <splitter orientation="2">
+                        <split size="1254"/>
+                        <dock id="" activePageId="uk.co.thefoundry.scripteditor.2">
+                            <page id="com.adrianpueyo.KnobScripterPane"/>
+                            <page id="uk.co.thefoundry.scripteditor.2"/>
+                        </dock>
+                    </splitter>
+                </splitter>
+                <split size="0"/>
+                <dock id=""/>
+            </splitter>
+            <split size="25"/>
+            <dock id=""/>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name "/WORK_DATA/develop/__MY_TA__/일지/-11월-/13에 넣을 캐터리/TecoGAN.nk"
+ format "2048 1318 0 0 2048 1318 1 GOD"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ OCIO_config custom
+ customOCIOConfigPath /opt/Nuke14.0v2/plugins/OCIOConfigs/configs/cg-config-v1.0.0_aces-v1.3_ocio-v2.1.ocio
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+ luts {linear {}
+   sRGB {}
+   rec709 {}
+   Cineon {}
+   Gamma1.8 {}
+   Gamma2.2 {}
+   Gamma2.4 {}
+   Gamma2.6 {}
+   Panalog {}
+   REDLog {}
+   ViperLog {}
+   AlexaV3LogC {}
+   PLogLin {}
+   SLog {}
+   SLog1 {}
+   SLog2 {}
+   SLog3 {}
+   CLog {}
+   Log3G10 {}
+   Log3G12 {}
+   HybridLogGamma {}
+   Protune {}
+   BT1886 {}
+   st2084 {}
+   "Blackmagic Film Generation 5" {}
+   ARRILogC4 {}
+   REDSpace {}
+   cineon2 {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}}
+}
+Group {
+ inputs 0
+ name TecoGAN
+ onCreate "import sys\nthis = nuke.thisNode()\ninference = nuke.toNode(f\"\{this.name()\}.TecoGAN_auto5.Inference27\")\nthis\[\"gpuName\"].setValue(inference\[\"gpuName\"].value())\nthis\[\"channelsIn\"].setValue(\"rgba.red, rgba.green, rgba.blue\")\ninference.forceValidate()\nis_enabled = inference\[\"modelFile\"].enabled()\nif (sys.platform.lower() == \"darwin\") and (not inference\[\"useGPUIfAvailable\"].enabled()): this\[\"useGPUIfAvailable\"].setValue(False), this\[\"useGPUIfAvailable\"].setEnabled(False)\nif not is_enabled:\n    for k in this.knobs(): this\[k].setEnabled(False)"
+ xpos -115
+ ypos -38
+ addUserKnob {20 TecoGAN}
+ addUserKnob {26 localGPU l "Local GPU:" T ""}
+ addUserKnob {26 gpuName l "" -STARTLINE T "Not available"}
+ addUserKnob {6 useGPUIfAvailable l "Use GPU if available" t "Select this to render on the <b>Local GPU</b>, if available.\n\nYou can select this even if no GPU is currently available on your machine. The GPU will then be used whenever the script is opened on a machine which does have a GPU available. You should also select this if you wish to render from the command line with the <b>--gpu</b> option.\n\nIf this node requires full frames from its inputs, and is therefore unable to reduce its memory overhead, it will fall back to the CPU if an attempt to render a frame on the GPU fails due to lack of memory. When this occurs, a warning message will be printed to the console." +STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {26 channelsIn l "Channels In:" t "The channels the model expects as input." T "rgba.red, rgba.green, rgba.blue"}
+ addUserKnob {41 in_colorspace l "Input Colorspace" t "Define the colorspace that the input image is in." T OCIOColorSpace1.in_colorspace}
+ addUserKnob {41 numFrames l "Number of Frames" t "Select how many other frames from the sequence will be used to upscale the current frame. Each of the other frames used will also be upscaled. Maximum number of frames used is 9, We recommend this value be between 2 and 4 for best results." T TecoGAN_auto5.numFrames}
+ addUserKnob {6 useTiling l "Use Tiling" t "Use image tiling to reduce memory consumption when using this model." +STARTLINE}
+ useTiling true
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x8e8e3800
+  label "Split the image into 4 crops.\nEach crop is overlapped slightly.\nThis overlap is convtrolled by NoOp1.TileOverlap"
+  note_font_size 16
+  xpos -1083
+  ypos 98
+  bdwidth 527
+  bdheight 118
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0xaaaaaa00
+  label "Add padding to ensure crops are a multiple of 4.\nThis ensures that when these crops are upscaled\nx4, they will be a multiple of 16. This is the size of\nthe image passed to the model and means\npadding does not have to be handled inside Inference.\nPadding within Inference causes issues for this \nmodel becuase of the way the low res and \nhigh res images are concatenated before being passed to the model forward."
+  note_font_size 16
+  xpos -1086
+  ypos 243
+  bdwidth 571
+  bdheight 210
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x7171c600
+  label "Remove the padding that was added to ensure \ncrops are a multiple of 4."
+  note_font_size 16
+  xpos -1081
+  ypos 540
+  bdwidth 526
+  bdheight 116
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode4
+  tile_color 0x71c6afff
+  label "Remove the overlap that was present in the crops for tiling \npurposes."
+  note_font_size 16
+  xpos -1081
+  ypos 702
+  bdwidth 525
+  bdheight 115
+ }
+ NoOp {
+  inputs 0
+  name NoOp1
+  xpos -414
+  ypos 323
+  addUserKnob {20 User}
+  addUserKnob {3 tileOverlap l "Tile Overlap"}
+  tileOverlap 8
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos -856
+  ypos -121
+ }
+set Na6eb500 [stack 0]
+ Dot {
+  name Dot1
+  xpos -176
+  ypos -118
+ }
+ Assert {
+  expression 0
+  message "The input stream is missing rgb"
+  name Assert1
+  selected true
+  xpos -228
+  ypos 1181
+ }
+push $Na6eb500
+ OCIOColorSpace {
+  in_colorspace "ACES - ACES2065-1"
+  out_colorspace color_picking
+  name OCIOColorSpace1
+  knobChanged "nuke.toNode(\"OCIOColorSpace2\")\[\"out_colorspace\"].setValue(nuke.thisNode()\[\"in_colorspace\"].value())"
+  xpos -856
+  ypos 34
+ }
+set N9806800 [stack 0]
+ Crop {
+  box {{"floor(input.width/2) - NoOp1.tileOverlap"} {"floor(input.height/2) - NoOp1.tileOverlap"} {input.width} {input.height}}
+  reformat true
+  crop false
+  name Crop7
+  xpos -646
+  ypos 178
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {0 {"0 - ( 4 - input.height%4)"} {"( 4 - input.width%4) + input.width"} {input.height}}
+  reformat true
+  crop false
+  name Crop19
+  xpos -646
+  ypos 376
+  disable {{!(this.parent.useTiling)}}
+ }
+ Group {
+  name TecoGAN_auto2
+  xpos -646
+  ypos 500
+  disable {{!(this.parent.useTiling)}}
+  addUserKnob {20 User}
+  addUserKnob {26 "" l "Local GPU:" T ""}
+  addUserKnob {26 gpuName l "" -STARTLINE T "2x Quadro RTX 8000"}
+  addUserKnob {41 useGPUIfAvailable l "Use GPU if available" T Inference27.useGPUIfAvailable}
+  addUserKnob {26 ""}
+  addUserKnob {41 modelFile l "Model File" T Inference27.modelFile}
+  addUserKnob {41 numFrames l "Number of Frames" T NoOp1.numFrames}
+ }
+  BackdropNode {
+   inputs 0
+   name BackdropNode1
+   label "i = 4"
+   note_font_size 16
+   xpos -516
+   ypos 1191
+   bdwidth 194
+   bdheight 408
+  }
+  BackdropNode {
+   inputs 0
+   name BackdropNode2
+   tile_color 0x7171c600
+   label "i = 7"
+   note_font_size 18
+   xpos -1798
+   ypos 548
+   bdwidth 104
+   bdheight 334
+  }
+  Input {
+   inputs 0
+   name Input1
+   xpos -1405
+   ypos -757
+  }
+  Dot {
+   name Dot50
+   xpos -1371
+   ypos -519
+  }
+set Na2ea400 [stack 0]
+  Dot {
+   name Dot51
+   xpos -1764
+   ypos -519
+  }
+set Na51f1a0 [stack 0]
+  Dot {
+   name Dot52
+   xpos -2114
+   ypos -519
+  }
+set Na7b6a80 [stack 0]
+  Dot {
+   name Dot53
+   xpos -2345
+   ypos -519
+  }
+set Na6e7b70 [stack 0]
+  Dot {
+   name Dot54
+   xpos -2712
+   ypos -519
+  }
+set Na493a20 [stack 0]
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames - 1) ? - (NoOp1.numFrames) : - (NoOp1.numFrames - 2) + ((NoOp1.numFrames - 1) - t)*2" x1 0 x9 -4}}
+   time ""
+   name TimeOffset25
+   xpos -2746
+   ypos -239
+  }
+set Na34cdc0 [stack 0]
+  Dot {
+   name Dot5
+   xpos -3192
+   ypos -235
+  }
+  Dot {
+   name Dot22
+   xpos -3192
+   ypos 117
+  }
+  Dot {
+   name Dot25
+   xpos -2944
+   ypos 117
+  }
+  Dot {
+   name Dot46
+   xpos -2944
+   ypos 341
+  }
+set Na5e3960 [stack 0]
+  Dot {
+   name Dot44
+   xpos -2944
+   ypos 556
+  }
+set Na6e69a0 [stack 0]
+  Dot {
+   name Dot49
+   xpos -2944
+   ypos 794
+  }
+set Na5208b0 [stack 0]
+  Dot {
+   name Dot21
+   xpos -2944
+   ypos 982
+  }
+set Na31a990 [stack 0]
+  Dot {
+   name Dot24
+   xpos -2944
+   ypos 1202
+  }
+set Na2d7420 [stack 0]
+  Dot {
+   name Dot23
+   xpos -2944
+   ypos 1446
+  }
+set Na3358d0 [stack 0]
+  Dot {
+   name Dot12
+   xpos -2944
+   ypos 1671
+  }
+set Na376ed0 [stack 0]
+  Dot {
+   name Dot13
+   xpos -2944
+   ypos 1972
+  }
+set Na6cdc20 [stack 0]
+  Dot {
+   name Dot6
+   xpos -2944
+   ypos 2320
+  }
+push $Na2ea400
+  Dot {
+   name Dot31
+   xpos -905
+   ypos -519
+  }
+set Na331280 [stack 0]
+  Dot {
+   name Dot30
+   xpos -439
+   ypos -519
+  }
+set N74ce8c0 [stack 0]
+  Dot {
+   name Dot28
+   xpos -13
+   ypos -519
+  }
+set Na3a0f20 [stack 0]
+  Dot {
+   name Dot29
+   xpos 587
+   ypos -519
+  }
+set Na77d0e0 [stack 0]
+  Dot {
+   name Dot27
+   xpos 995
+   ypos -526
+  }
+  TimeOffset {
+   time ""
+   name TimeOffset21
+   xpos 961
+   ypos -188
+  }
+  Dot {
+   name Dot2
+   xpos 1071
+   ypos -184
+  }
+  Dot {
+   name Dot3
+   xpos 1083
+   ypos 2094
+  }
+set Na315660 [stack 0]
+  Dot {
+   name Dot1
+   xpos 1083
+   ypos 2330
+  }
+push $Na77d0e0
+  TimeOffset {
+   time_offset {{"t > 0 ? -1 : 1"}}
+   time ""
+   name TimeOffset20
+   xpos 553
+   ypos -198
+  }
+  Dot {
+   name Dot7
+   xpos 904
+   ypos -194
+  }
+  Dot {
+   name Dot9
+   xpos 916
+   ypos 1790
+  }
+set Na7a4530 [stack 0]
+  Dot {
+   name Dot8
+   xpos 916
+   ypos 2240
+  }
+push $Na315660
+push $Na6cdc20
+push $Na7a4530
+  Dot {
+   name Dot14
+   xpos 916
+   ypos 1945
+  }
+push $Na3a0f20
+  TimeOffset {
+   time_offset {{"t > 1 ? (-2) : (1 - t)*2"}}
+   time ""
+   name TimeOffset22
+   xpos -47
+   ypos -195
+  }
+  Dot {
+   name Dot10
+   xpos 416
+   ypos -191
+  }
+  Dot {
+   name Dot18
+   xpos 414
+   ypos 1543
+  }
+set Na5eaf40 [stack 0]
+  Dot {
+   name Dot17
+   xpos 414
+   ypos 1661
+  }
+set Na6f7cf0 [stack 0]
+  Dot {
+   name Dot11
+   xpos 414
+   ypos 1869
+  }
+push $Na7a4530
+push $Na376ed0
+push $Na6f7cf0
+push $N74ce8c0
+  TimeOffset {
+   time_offset {{"t > 2 ? -3 : -1 + (2 - t)*2"}}
+   time ""
+   name TimeOffset23
+   xpos -473
+   ypos -191
+  }
+set Na4a7f90 [stack 0]
+  Dot {
+   name Dot15
+   xpos -127
+   ypos -187
+  }
+  Dot {
+   name Dot20
+   xpos -115
+   ypos 1414
+  }
+set Na6bb690 [stack 0]
+  Dot {
+   name Dot16
+   xpos -115
+   ypos 1604
+  }
+push $Na5eaf40
+push $Na3358d0
+push $Na6bb690
+push $Na331280
+  TimeOffset {
+   time_offset {{"t > 3 ? -4 : -2 + (3 - t)*2"}}
+   time ""
+   name TimeOffset27
+   xpos -939
+   ypos -197
+  }
+set Na466460 [stack 0]
+  Dot {
+   name Dot19
+   xpos -508
+   ypos -193
+  }
+  Dot {
+   name Dot32
+   xpos -496
+   ypos 1151
+  }
+set Na474c80 [stack 0]
+  Dot {
+   name Dot26
+   xpos -496
+   ypos 1350
+  }
+push $Na4a7f90
+push $Na2d7420
+push $Na474c80
+push $Na2ea400
+  TimeOffset {
+   time_offset {{"t > 4 ? -5 : -3 + (4 - t)*2"}}
+   time ""
+   name TimeOffset29
+   xpos -1405
+   ypos -189
+  }
+set Na47ebe0 [stack 0]
+  Dot {
+   name Dot34
+   xpos -982
+   ypos -185
+  }
+  Dot {
+   name Dot33
+   xpos -970
+   ypos 934
+  }
+set Na48d440 [stack 0]
+  Dot {
+   name Dot35
+   xpos -970
+   ypos 1092
+  }
+push $Na466460
+push $Na31a990
+push $Na48d440
+push $Na51f1a0
+  TimeOffset {
+   time_offset {{"t > 5 ? -6 : -4 + (5 - t)*2"}}
+   time ""
+   name TimeOffset28
+   xpos -1798
+   ypos -179
+  }
+set Na29c140 [stack 0]
+  Dot {
+   name Dot36
+   xpos -1448
+   ypos -175
+  }
+  Dot {
+   name Dot38
+   xpos -1436
+   ypos 714
+  }
+set Na2aa9a0 [stack 0]
+  Dot {
+   name Dot37
+   xpos -1436
+   ypos 886
+  }
+push $Na47ebe0
+push $Na5208b0
+push $Na2aa9a0
+push $Na7b6a80
+  TimeOffset {
+   time_offset {{"t > 6 ? -7 : -5 + (6 - t)*2"}}
+   time ""
+   name TimeOffset30
+   xpos -2148
+   ypos -174
+  }
+set Na2b4900 [stack 0]
+  Dot {
+   name Dot39
+   xpos -1824
+   ypos -170
+  }
+  Dot {
+   name Dot43
+   xpos -1822
+   ypos 499
+  }
+set Na2c2c20 [stack 0]
+  Dot {
+   name Dot40
+   xpos -1822
+   ypos 667
+  }
+push $Na29c140
+push $Na6e69a0
+push $Na2c2c20
+push $Na6e7b70
+  TimeOffset {
+   time_offset {{"t > 7 ? -8 : -6 + (7 - t)*2" x9 -3}}
+   time ""
+   name TimeOffset24
+   xpos -2379
+   ypos -165
+  }
+set Na1afd10 [stack 0]
+  Dot {
+   name Dot41
+   xpos -2180
+   ypos -161
+  }
+  Dot {
+   name Dot45
+   xpos -2180
+   ypos 269
+  }
+set Na1be630 [stack 0]
+  Dot {
+   name Dot42
+   xpos -2180
+   ypos 455
+  }
+push $Na2b4900
+push $Na5e3960
+push $Na1be630
+push $Na34cdc0
+  Dot {
+   name Dot47
+   xpos -2413
+   ypos -235
+  }
+  Dot {
+   name Dot48
+   xpos -2413
+   ypos 217
+  }
+push $Na1afd10
+push $Na493a20
+  Dot {
+   name Dot55
+   xpos -3016
+   ypos -519
+  }
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames) ? - (NoOp1.numFrames + 1) : - (NoOp1.numFrames - 1) + ((NoOp1.numFrames) - t)*2" x1 0}}
+   time ""
+   name TimeOffset26
+   xpos -3050
+   ypos -264
+  }
+  Dot {
+   name Dot4
+   xpos -3016
+   ypos 66
+  }
+push $Na34cdc0
+  Constant {
+   inputs 0
+   channels rgb
+   name Constant1
+   xpos -2891
+   ypos -182
+  }
+  Crop {
+   box {0 0 {Input1.width} {Input1.height}}
+   reformat true
+   name Crop1
+   xpos -2891
+   ypos -100
+  }
+  Reformat {
+   type scale
+   scale 4
+   name Reformat5
+   xpos -2891
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle43
+   xpos -2746
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle44
+   xpos -2746
+   ypos 62
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x5 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference22
+   selected true
+   xpos -2746
+   ypos 147
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle45
+   xpos -2379
+   ypos 147
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle46
+   xpos -2379
+   ypos 213
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle16
+   xpos -2379
+   ypos 265
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle17
+   xpos -2381
+   ypos 321
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove9
+   xpos -2381
+   ypos 360
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference23
+   xpos -2379
+   ypos 413
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle61
+   xpos -2148
+   ypos 418
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle62
+   xpos -2148
+   ypos 451
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle18
+   xpos -2148
+   ypos 495
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle19
+   xpos -2148
+   ypos 544
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove8
+   xpos -2148
+   ypos 581
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference31
+   xpos -2148
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle57
+   xpos -1784
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle58
+   xpos -1784
+   ypos 663
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle14
+   xpos -1784
+   ypos 718
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle15
+   xpos -1784
+   ypos 755
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove7
+   xpos -1784
+   ypos 800
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference29
+   xpos -1784
+   ypos 846
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle59
+   xpos -1393
+   ypos 838
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle60
+   xpos -1393
+   ypos 882
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle12
+   xpos -1393
+   ypos 930
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle13
+   xpos -1393
+   ypos 964
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove6
+   xpos -1393
+   ypos 1009
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference30
+   xpos -1393
+   ypos 1061
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle55
+   xpos -927
+   ypos 1036
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle56
+   xpos -927
+   ypos 1088
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle10
+   xpos -927
+   ypos 1147
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle11
+   xpos -927
+   ypos 1198
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove5
+   xpos -927
+   ypos 1239
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference28
+   xpos -927
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle47
+   xpos -461
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle48
+   xpos -461
+   ypos 1346
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle8
+   xpos -461
+   ypos 1410
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle9
+   xpos -461
+   ypos 1468
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove4
+   xpos -461
+   ypos 1503
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x9 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference24
+   xpos -461
+   ypos 1541
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle49
+   xpos -35
+   ypos 1539
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle50
+   xpos -35
+   ypos 1600
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle6
+   xpos -35
+   ypos 1657
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle7
+   xpos -35
+   ypos 1716
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove3
+   xpos -36
+   ypos 1743
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference25
+   xpos -35
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle51
+   xpos 553
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle52
+   xpos 553
+   ypos 1865
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle4
+   xpos 553
+   ypos 1941
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle5
+   xpos 553
+   ypos 1995
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove2
+   xpos 552
+   ypos 2033
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference26
+   xpos 553
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2"}}
+   addUserKnob {20 User}
+   addUserKnob {41 modelFile_1 l "Model File" T Inference26.modelFile}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle53
+   xpos 806
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2" x3 0}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle54
+   xpos 806
+   ypos 2236
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle2
+   xpos 806
+   ypos 2326
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle3
+   xpos 806
+   ypos 2382
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove1
+   xpos 806
+   ypos 2438
+   disable {{"NoOp1.numFrames  == 0"}}
+  }
+  Inference {
+   useGPUIfAvailable {{TecoGAN_auto5.useGPUIfAvailable}}
+   modelFile /backstage/dcc/packages/app/nuke_scripts/4.0/scripts/Cattery/TecoGAN/TecoGAN_BI_Vimeo.cat
+   serialiseKnob {}
+   name Inference27
+   xpos 806
+   ypos 2510
+   disable {{"NoOp1.numFrames == 0"}}
+  }
+  Output {
+   name Output1
+   xpos 806
+   ypos 2722
+  }
+  NoOp {
+   inputs 0
+   name NoOp1
+   knobChanged "\nnode = nuke.thisNode()\nif node\[\"numFrames\"].getValue() < 0:\n    node\[\"numFrames\"].setValue(0)\nelif node\[\"numFrames\"].getValue() > 10:\n    node\[\"numFrames\"].setValue(10)\n"
+   xpos 1287
+   ypos 1829
+   addUserKnob {20 User}
+   addUserKnob {3 numFrames l "Number of Frames" t "Select how many other frames from the sequence will be used to upscale the current frame. Each of the other frames used will also be upscaled. Maximum number of frames used is 9, We recommend this value be between 2 and 4 for best results." R 0 10}
+   numFrames {{TecoGAN_auto5.numFrames}}
+  }
+ end_group
+ Crop {
+  box {0 {"(4 - Crop7.height%4)*4"} {"input.width - (4 - Crop7.width%4)*4"} {input.height}}
+  reformat true
+  crop false
+  name Crop20
+  xpos -645
+  ypos 626
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {{NoOp1.tileOverlap*4} {"NoOp1.tileOverlap*4 "} {input.width} {input.height}}
+  reformat true
+  crop false
+  name Crop12
+  xpos -646
+  ypos 786
+  disable {{!(this.parent.useTiling)}}
+ }
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 white -1 -1 rgba.alpha 0 3"
+  name Shuffle4
+  xpos -646
+  ypos 840
+  disable {{!(this.parent.useTiling)}}
+ }
+ Transform {
+  translate {{Crop11.width} {Crop9.height}}
+  center {1024 778}
+  name Transform9
+  xpos -646
+  ypos 1164
+  disable {{!(this.parent.useTiling)}}
+ }
+push $N9806800
+ Crop {
+  box {0 {"floor(input.height/2) - NoOp1.tileOverlap"} {"floor(input.width/2) + NoOp1.tileOverlap"} {input.height}}
+  reformat true
+  crop false
+  name Crop8
+  xpos -778
+  ypos 181
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {0 {"0 - ( 4 - input.height%4)"} {"( 4 - input.width%4) + input.width"} {input.height}}
+  reformat true
+  crop false
+  name Crop17
+  xpos -778
+  ypos 379
+  disable {{!(this.parent.useTiling)}}
+ }
+ Group {
+  name TecoGAN_auto4
+  xpos -778
+  ypos 495
+  disable {{!(this.parent.useTiling)}}
+  addUserKnob {20 User}
+  addUserKnob {26 "" l "Local GPU:" T ""}
+  addUserKnob {26 gpuName l "" -STARTLINE T "2x Quadro RTX 8000"}
+  addUserKnob {41 useGPUIfAvailable l "Use GPU if available" T Inference27.useGPUIfAvailable}
+  addUserKnob {26 ""}
+  addUserKnob {41 modelFile l "Model File" T Inference27.modelFile}
+  addUserKnob {41 numFrames l "Number of Frames" T NoOp1.numFrames}
+ }
+  BackdropNode {
+   inputs 0
+   name BackdropNode1
+   label "i = 4"
+   note_font_size 16
+   xpos -516
+   ypos 1191
+   bdwidth 194
+   bdheight 408
+  }
+  BackdropNode {
+   inputs 0
+   name BackdropNode2
+   tile_color 0x7171c600
+   label "i = 7"
+   note_font_size 18
+   xpos -1798
+   ypos 548
+   bdwidth 104
+   bdheight 334
+  }
+  Input {
+   inputs 0
+   name Input1
+   xpos -1405
+   ypos -757
+  }
+  Dot {
+   name Dot50
+   xpos -1371
+   ypos -519
+  }
+set Nc233b00 [stack 0]
+  Dot {
+   name Dot51
+   xpos -1764
+   ypos -519
+  }
+set Nc238a50 [stack 0]
+  Dot {
+   name Dot52
+   xpos -2114
+   ypos -519
+  }
+set Nc23d970 [stack 0]
+  Dot {
+   name Dot53
+   xpos -2345
+   ypos -519
+  }
+set Nc242910 [stack 0]
+  Dot {
+   name Dot54
+   xpos -2712
+   ypos -519
+  }
+set Nc247860 [stack 0]
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames - 1) ? - (NoOp1.numFrames) : - (NoOp1.numFrames - 2) + ((NoOp1.numFrames - 1) - t)*2" x1 0 x9 -4}}
+   time ""
+   name TimeOffset25
+   xpos -2746
+   ypos -239
+  }
+set Nc24c7b0 [stack 0]
+  Dot {
+   name Dot5
+   xpos -3192
+   ypos -235
+  }
+  Dot {
+   name Dot22
+   xpos -3192
+   ypos 117
+  }
+  Dot {
+   name Dot25
+   xpos -2944
+   ypos 117
+  }
+  Dot {
+   name Dot46
+   xpos -2944
+   ypos 341
+  }
+set Nc264b90 [stack 0]
+  Dot {
+   name Dot44
+   xpos -2944
+   ypos 556
+  }
+set Nc269ae0 [stack 0]
+  Dot {
+   name Dot49
+   xpos -2944
+   ypos 794
+  }
+set Nc26ea30 [stack 0]
+  Dot {
+   name Dot21
+   xpos -2944
+   ypos 982
+  }
+set Nc273980 [stack 0]
+  Dot {
+   name Dot24
+   xpos -2944
+   ypos 1202
+  }
+set Nc2788d0 [stack 0]
+  Dot {
+   name Dot23
+   xpos -2944
+   ypos 1446
+  }
+set Nc27d820 [stack 0]
+  Dot {
+   name Dot12
+   xpos -2944
+   ypos 1671
+  }
+set Nc2827f0 [stack 0]
+  Dot {
+   name Dot13
+   xpos -2944
+   ypos 1972
+  }
+set Nc287740 [stack 0]
+  Dot {
+   name Dot6
+   xpos -2944
+   ypos 2320
+  }
+push $Nc233b00
+  Dot {
+   name Dot31
+   xpos -905
+   ypos -519
+  }
+set Nc2916a0 [stack 0]
+  Dot {
+   name Dot30
+   xpos -439
+   ypos -519
+  }
+set Nc296530 [stack 0]
+  Dot {
+   name Dot28
+   xpos -13
+   ypos -519
+  }
+set Nc29b480 [stack 0]
+  Dot {
+   name Dot29
+   xpos 587
+   ypos -519
+  }
+set Nc2a03d0 [stack 0]
+  Dot {
+   name Dot27
+   xpos 995
+   ypos -526
+  }
+  TimeOffset {
+   time ""
+   name TimeOffset21
+   xpos 961
+   ypos -188
+  }
+  Dot {
+   name Dot2
+   xpos 1071
+   ypos -184
+  }
+  Dot {
+   name Dot3
+   xpos 1083
+   ypos 2094
+  }
+set Nc2b8920 [stack 0]
+  Dot {
+   name Dot1
+   xpos 1083
+   ypos 2330
+  }
+push $Nc2a03d0
+  TimeOffset {
+   time_offset {{"t > 0 ? -1 : 1"}}
+   time ""
+   name TimeOffset20
+   xpos 553
+   ypos -198
+  }
+  Dot {
+   name Dot7
+   xpos 904
+   ypos -194
+  }
+  Dot {
+   name Dot9
+   xpos 916
+   ypos 1790
+  }
+set Nc2d10d0 [stack 0]
+  Dot {
+   name Dot8
+   xpos 916
+   ypos 2240
+  }
+push $Nc2b8920
+push $Nc287740
+push $Nc2d10d0
+  Dot {
+   name Dot14
+   xpos 916
+   ypos 1945
+  }
+push $Nc29b480
+  TimeOffset {
+   time_offset {{"t > 1 ? (-2) : (1 - t)*2"}}
+   time ""
+   name TimeOffset22
+   xpos -47
+   ypos -195
+  }
+  Dot {
+   name Dot10
+   xpos 416
+   ypos -191
+  }
+  Dot {
+   name Dot18
+   xpos 414
+   ypos 1543
+  }
+set Nc2ee9f0 [stack 0]
+  Dot {
+   name Dot17
+   xpos 414
+   ypos 1661
+  }
+set Nc2f3940 [stack 0]
+  Dot {
+   name Dot11
+   xpos 414
+   ypos 1869
+  }
+push $Nc2d10d0
+push $Nc2827f0
+push $Nc2f3940
+push $Nc296530
+  TimeOffset {
+   time_offset {{"t > 2 ? -3 : -1 + (2 - t)*2"}}
+   time ""
+   name TimeOffset23
+   xpos -473
+   ypos -191
+  }
+set Nc2fd8a0 [stack 0]
+  Dot {
+   name Dot15
+   xpos -127
+   ypos -187
+  }
+  Dot {
+   name Dot20
+   xpos -115
+   ypos 1414
+  }
+set Nc30c100 [stack 0]
+  Dot {
+   name Dot16
+   xpos -115
+   ypos 1604
+  }
+push $Nc2ee9f0
+push $Nc27d820
+push $Nc30c100
+push $Nc2916a0
+  TimeOffset {
+   time_offset {{"t > 3 ? -4 : -2 + (3 - t)*2"}}
+   time ""
+   name TimeOffset27
+   xpos -939
+   ypos -197
+  }
+set Nc316060 [stack 0]
+  Dot {
+   name Dot19
+   xpos -508
+   ypos -193
+  }
+  Dot {
+   name Dot32
+   xpos -496
+   ypos 1151
+  }
+set Nc3248c0 [stack 0]
+  Dot {
+   name Dot26
+   xpos -496
+   ypos 1350
+  }
+push $Nc2fd8a0
+push $Nc2788d0
+push $Nc3248c0
+push $Nc233b00
+  TimeOffset {
+   time_offset {{"t > 4 ? -5 : -3 + (4 - t)*2"}}
+   time ""
+   name TimeOffset29
+   xpos -1405
+   ypos -189
+  }
+set Nc32e820 [stack 0]
+  Dot {
+   name Dot34
+   xpos -982
+   ypos -185
+  }
+  Dot {
+   name Dot33
+   xpos -970
+   ypos 934
+  }
+set Nc33d080 [stack 0]
+  Dot {
+   name Dot35
+   xpos -970
+   ypos 1092
+  }
+push $Nc316060
+push $Nc273980
+push $Nc33d080
+push $Nc238a50
+  TimeOffset {
+   time_offset {{"t > 5 ? -6 : -4 + (5 - t)*2"}}
+   time ""
+   name TimeOffset28
+   xpos -1798
+   ypos -179
+  }
+set Nc346fe0 [stack 0]
+  Dot {
+   name Dot36
+   xpos -1448
+   ypos -175
+  }
+  Dot {
+   name Dot38
+   xpos -1436
+   ypos 714
+  }
+set Nc355ba0 [stack 0]
+  Dot {
+   name Dot37
+   xpos -1436
+   ypos 886
+  }
+push $Nc32e820
+push $Nc26ea30
+push $Nc355ba0
+push $Nc23d970
+  TimeOffset {
+   time_offset {{"t > 6 ? -7 : -5 + (6 - t)*2"}}
+   time ""
+   name TimeOffset30
+   xpos -2148
+   ypos -174
+  }
+set Nc35fb00 [stack 0]
+  Dot {
+   name Dot39
+   xpos -1824
+   ypos -170
+  }
+  Dot {
+   name Dot43
+   xpos -1822
+   ypos 499
+  }
+set Nc36de20 [stack 0]
+  Dot {
+   name Dot40
+   xpos -1822
+   ypos 667
+  }
+push $Nc346fe0
+push $Nc269ae0
+push $Nc36de20
+push $Nc242910
+  TimeOffset {
+   time_offset {{"t > 7 ? -8 : -6 + (7 - t)*2" x9 -3}}
+   time ""
+   name TimeOffset24
+   xpos -2379
+   ypos -165
+  }
+set Nc377d80 [stack 0]
+  Dot {
+   name Dot41
+   xpos -2180
+   ypos -161
+  }
+  Dot {
+   name Dot45
+   xpos -2180
+   ypos 269
+  }
+set Nc3866a0 [stack 0]
+  Dot {
+   name Dot42
+   xpos -2180
+   ypos 455
+  }
+push $Nc35fb00
+push $Nc264b90
+push $Nc3866a0
+push $Nc24c7b0
+  Dot {
+   name Dot47
+   xpos -2413
+   ypos -235
+  }
+  Dot {
+   name Dot48
+   xpos -2413
+   ypos 217
+  }
+push $Nc377d80
+push $Nc247860
+  Dot {
+   name Dot55
+   xpos -3016
+   ypos -519
+  }
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames) ? - (NoOp1.numFrames + 1) : - (NoOp1.numFrames - 1) + ((NoOp1.numFrames) - t)*2" x1 0}}
+   time ""
+   name TimeOffset26
+   xpos -3050
+   ypos -264
+  }
+  Dot {
+   name Dot4
+   xpos -3016
+   ypos 66
+  }
+push $Nc24c7b0
+  Constant {
+   inputs 0
+   channels rgb
+   name Constant1
+   xpos -2891
+   ypos -182
+  }
+  Crop {
+   box {0 0 {Input1.width} {Input1.height}}
+   reformat true
+   name Crop1
+   xpos -2891
+   ypos -100
+  }
+  Reformat {
+   type scale
+   scale 4
+   name Reformat5
+   xpos -2891
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle43
+   xpos -2746
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle44
+   xpos -2746
+   ypos 62
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x5 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference22
+   xpos -2746
+   ypos 147
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle45
+   xpos -2379
+   ypos 147
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle46
+   xpos -2379
+   ypos 213
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle16
+   xpos -2379
+   ypos 265
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle17
+   xpos -2381
+   ypos 321
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove9
+   xpos -2381
+   ypos 360
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference23
+   xpos -2379
+   ypos 413
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle61
+   xpos -2148
+   ypos 418
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle62
+   xpos -2148
+   ypos 451
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle18
+   xpos -2148
+   ypos 495
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle19
+   xpos -2148
+   ypos 544
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove8
+   xpos -2148
+   ypos 581
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference31
+   xpos -2148
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle57
+   xpos -1784
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle58
+   xpos -1784
+   ypos 663
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle14
+   xpos -1784
+   ypos 718
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle15
+   xpos -1784
+   ypos 755
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove7
+   xpos -1784
+   ypos 800
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference29
+   xpos -1784
+   ypos 846
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle59
+   xpos -1393
+   ypos 838
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle60
+   xpos -1393
+   ypos 882
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle12
+   xpos -1393
+   ypos 930
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle13
+   xpos -1393
+   ypos 964
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove6
+   xpos -1393
+   ypos 1009
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference30
+   xpos -1393
+   ypos 1061
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle55
+   xpos -927
+   ypos 1036
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle56
+   xpos -927
+   ypos 1088
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle10
+   xpos -927
+   ypos 1147
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle11
+   xpos -927
+   ypos 1198
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove5
+   xpos -927
+   ypos 1239
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference28
+   xpos -927
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle47
+   xpos -461
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle48
+   xpos -461
+   ypos 1346
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle8
+   xpos -461
+   ypos 1410
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle9
+   xpos -461
+   ypos 1468
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove4
+   xpos -461
+   ypos 1503
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x9 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference24
+   xpos -461
+   ypos 1541
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle49
+   xpos -35
+   ypos 1539
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle50
+   xpos -35
+   ypos 1600
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle6
+   xpos -35
+   ypos 1657
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle7
+   xpos -35
+   ypos 1716
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove3
+   xpos -36
+   ypos 1743
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference25
+   xpos -35
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle51
+   xpos 553
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle52
+   xpos 553
+   ypos 1865
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle4
+   xpos 553
+   ypos 1941
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle5
+   xpos 553
+   ypos 1995
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove2
+   xpos 552
+   ypos 2033
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference26
+   xpos 553
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2"}}
+   addUserKnob {20 User}
+   addUserKnob {41 modelFile_1 l "Model File" T Inference26.modelFile}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle53
+   xpos 806
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2" x3 0}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle54
+   xpos 806
+   ypos 2236
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle2
+   xpos 806
+   ypos 2326
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle3
+   xpos 806
+   ypos 2382
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove1
+   xpos 806
+   ypos 2438
+   disable {{"NoOp1.numFrames  == 0"}}
+  }
+  Inference {
+   useGPUIfAvailable {{TecoGAN_auto5.useGPUIfAvailable}}
+   modelFile /backstage/dcc/packages/app/nuke_scripts/4.0/scripts/Cattery/TecoGAN/TecoGAN_BI_Vimeo.cat
+   serialiseKnob {}
+   name Inference27
+   selected true
+   xpos 806
+   ypos 2510
+   disable {{"NoOp1.numFrames == 0"}}
+  }
+  Output {
+   name Output1
+   xpos 806
+   ypos 2722
+  }
+  NoOp {
+   inputs 0
+   name NoOp1
+   knobChanged "\nnode = nuke.thisNode()\nif node\[\"numFrames\"].getValue() < 0:\n    node\[\"numFrames\"].setValue(0)\nelif node\[\"numFrames\"].getValue() > 10:\n    node\[\"numFrames\"].setValue(10)\n"
+   xpos 1287
+   ypos 1829
+   addUserKnob {20 User}
+   addUserKnob {3 numFrames l "Number of Frames" t "Select how many other frames from the sequence will be used to upscale the current frame. Each of the other frames used will also be upscaled. Maximum number of frames used is 9, We recommend this value be between 2 and 4 for best results." R 0 10}
+   numFrames {{TecoGAN_auto5.numFrames}}
+  }
+ end_group
+ Crop {
+  box {0 {"(4 - Crop8.height%4)*4"} {"input.width - (4 - Crop8.width%4)*4"} {input.height}}
+  reformat true
+  crop false
+  name Crop18
+  xpos -777
+  ypos 622
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {0 {"NoOp1.tileOverlap*4 "} {"input.width - (NoOp1.tileOverlap*4)"} {input.height}}
+  reformat true
+  crop false
+  name Crop11
+  xpos -776
+  ypos 787
+  disable {{!(this.parent.useTiling)}}
+ }
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 white -1 -1 rgba.alpha 0 3"
+  name Shuffle3
+  xpos -777
+  ypos 838
+  disable {{!(this.parent.useTiling)}}
+ }
+ Transform {
+  translate {0 {Crop10.height}}
+  center {1024 778}
+  name Transform8
+  xpos -777
+  ypos 1104
+  disable {{!(this.parent.useTiling)}}
+ }
+push $N9806800
+ Crop {
+  box {{"floor(input.width/2) - NoOp1.tileOverlap"} 0 {input.width} {"floor(input.height/2) + NoOp1.tileOverlap"}}
+  reformat true
+  crop false
+  name Crop6
+  xpos -915
+  ypos 184
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {0 {"0 - (4 - input.height%4)"} {"( 4 - input.width%4) + input.width"} {input.height}}
+  reformat true
+  crop false
+  name Crop15
+  xpos -915
+  ypos 378
+  disable {{!(this.parent.useTiling)}}
+ }
+ Group {
+  name TecoGAN_auto1
+  xpos -920
+  ypos 501
+  disable {{!(this.parent.useTiling)}}
+  addUserKnob {20 User}
+  addUserKnob {26 "" l "Local GPU:" T ""}
+  addUserKnob {26 gpuName l "" -STARTLINE T "2x Quadro RTX 8000"}
+  addUserKnob {41 useGPUIfAvailable l "Use GPU if available" T Inference27.useGPUIfAvailable}
+  addUserKnob {26 ""}
+  addUserKnob {41 modelFile l "Model File" T Inference27.modelFile}
+  addUserKnob {41 numFrames l "Number of Frames" T NoOp1.numFrames}
+ }
+  BackdropNode {
+   inputs 0
+   name BackdropNode1
+   label "i = 4"
+   note_font_size 16
+   xpos -516
+   ypos 1191
+   bdwidth 194
+   bdheight 408
+  }
+  BackdropNode {
+   inputs 0
+   name BackdropNode2
+   tile_color 0x7171c600
+   label "i = 7"
+   note_font_size 18
+   xpos -1798
+   ypos 548
+   bdwidth 104
+   bdheight 334
+  }
+  Input {
+   inputs 0
+   name Input1
+   xpos -1405
+   ypos -757
+  }
+  Dot {
+   name Dot50
+   xpos -1371
+   ypos -519
+  }
+set Nc67c130 [stack 0]
+  Dot {
+   name Dot51
+   xpos -1764
+   ypos -519
+  }
+set Nc681080 [stack 0]
+  Dot {
+   name Dot52
+   xpos -2114
+   ypos -519
+  }
+set Nc685fa0 [stack 0]
+  Dot {
+   name Dot53
+   xpos -2345
+   ypos -519
+  }
+set Nc68af40 [stack 0]
+  Dot {
+   name Dot54
+   xpos -2712
+   ypos -519
+  }
+set Nc68fe90 [stack 0]
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames - 1) ? - (NoOp1.numFrames) : - (NoOp1.numFrames - 2) + ((NoOp1.numFrames - 1) - t)*2" x1 0 x9 -4}}
+   time ""
+   name TimeOffset25
+   xpos -2746
+   ypos -239
+  }
+set Nc694de0 [stack 0]
+  Dot {
+   name Dot5
+   xpos -3192
+   ypos -235
+  }
+  Dot {
+   name Dot22
+   xpos -3192
+   ypos 117
+  }
+  Dot {
+   name Dot25
+   xpos -2944
+   ypos 117
+  }
+  Dot {
+   name Dot46
+   xpos -2944
+   ypos 341
+  }
+set Nc6ad510 [stack 0]
+  Dot {
+   name Dot44
+   xpos -2944
+   ypos 556
+  }
+set Nc6b2460 [stack 0]
+  Dot {
+   name Dot49
+   xpos -2944
+   ypos 794
+  }
+set Nc6b73b0 [stack 0]
+  Dot {
+   name Dot21
+   xpos -2944
+   ypos 982
+  }
+set Nc6bc300 [stack 0]
+  Dot {
+   name Dot24
+   xpos -2944
+   ypos 1202
+  }
+set Nc6c1250 [stack 0]
+  Dot {
+   name Dot23
+   xpos -2944
+   ypos 1446
+  }
+set Nc6c61a0 [stack 0]
+  Dot {
+   name Dot12
+   xpos -2944
+   ypos 1671
+  }
+set Nc6cb170 [stack 0]
+  Dot {
+   name Dot13
+   xpos -2944
+   ypos 1972
+  }
+set Nc6d00c0 [stack 0]
+  Dot {
+   name Dot6
+   xpos -2944
+   ypos 2320
+  }
+push $Nc67c130
+  Dot {
+   name Dot31
+   xpos -905
+   ypos -519
+  }
+set Nc6da020 [stack 0]
+  Dot {
+   name Dot30
+   xpos -439
+   ypos -519
+  }
+set Nc6deeb0 [stack 0]
+  Dot {
+   name Dot28
+   xpos -13
+   ypos -519
+  }
+set Nc6e3e00 [stack 0]
+  Dot {
+   name Dot29
+   xpos 587
+   ypos -519
+  }
+set Nc6e8d50 [stack 0]
+  Dot {
+   name Dot27
+   xpos 995
+   ypos -526
+  }
+  TimeOffset {
+   time ""
+   name TimeOffset21
+   xpos 961
+   ypos -188
+  }
+  Dot {
+   name Dot2
+   xpos 1071
+   ypos -184
+  }
+  Dot {
+   name Dot3
+   xpos 1083
+   ypos 2094
+  }
+set Nc7012a0 [stack 0]
+  Dot {
+   name Dot1
+   xpos 1083
+   ypos 2330
+  }
+push $Nc6e8d50
+  TimeOffset {
+   time_offset {{"t > 0 ? -1 : 1"}}
+   time ""
+   name TimeOffset20
+   xpos 553
+   ypos -198
+  }
+  Dot {
+   name Dot7
+   xpos 904
+   ypos -194
+  }
+  Dot {
+   name Dot9
+   xpos 916
+   ypos 1790
+  }
+set Nc719a50 [stack 0]
+  Dot {
+   name Dot8
+   xpos 916
+   ypos 2240
+  }
+push $Nc7012a0
+push $Nc6d00c0
+push $Nc719a50
+  Dot {
+   name Dot14
+   xpos 916
+   ypos 1945
+  }
+push $Nc6e3e00
+  TimeOffset {
+   time_offset {{"t > 1 ? (-2) : (1 - t)*2"}}
+   time ""
+   name TimeOffset22
+   xpos -47
+   ypos -195
+  }
+  Dot {
+   name Dot10
+   xpos 416
+   ypos -191
+  }
+  Dot {
+   name Dot18
+   xpos 414
+   ypos 1543
+  }
+set Nc737370 [stack 0]
+  Dot {
+   name Dot17
+   xpos 414
+   ypos 1661
+  }
+set Nc73c2c0 [stack 0]
+  Dot {
+   name Dot11
+   xpos 414
+   ypos 1869
+  }
+push $Nc719a50
+push $Nc6cb170
+push $Nc73c2c0
+push $Nc6deeb0
+  TimeOffset {
+   time_offset {{"t > 2 ? -3 : -1 + (2 - t)*2"}}
+   time ""
+   name TimeOffset23
+   xpos -473
+   ypos -191
+  }
+set Nc746220 [stack 0]
+  Dot {
+   name Dot15
+   xpos -127
+   ypos -187
+  }
+  Dot {
+   name Dot20
+   xpos -115
+   ypos 1414
+  }
+set Nc754a80 [stack 0]
+  Dot {
+   name Dot16
+   xpos -115
+   ypos 1604
+  }
+push $Nc737370
+push $Nc6c61a0
+push $Nc754a80
+push $Nc6da020
+  TimeOffset {
+   time_offset {{"t > 3 ? -4 : -2 + (3 - t)*2"}}
+   time ""
+   name TimeOffset27
+   xpos -939
+   ypos -197
+  }
+set Nc75e9e0 [stack 0]
+  Dot {
+   name Dot19
+   xpos -508
+   ypos -193
+  }
+  Dot {
+   name Dot32
+   xpos -496
+   ypos 1151
+  }
+set Nc76d240 [stack 0]
+  Dot {
+   name Dot26
+   xpos -496
+   ypos 1350
+  }
+push $Nc746220
+push $Nc6c1250
+push $Nc76d240
+push $Nc67c130
+  TimeOffset {
+   time_offset {{"t > 4 ? -5 : -3 + (4 - t)*2"}}
+   time ""
+   name TimeOffset29
+   xpos -1405
+   ypos -189
+  }
+set Nc7771a0 [stack 0]
+  Dot {
+   name Dot34
+   xpos -982
+   ypos -185
+  }
+  Dot {
+   name Dot33
+   xpos -970
+   ypos 934
+  }
+set Nc785a00 [stack 0]
+  Dot {
+   name Dot35
+   xpos -970
+   ypos 1092
+  }
+push $Nc75e9e0
+push $Nc6bc300
+push $Nc785a00
+push $Nc681080
+  TimeOffset {
+   time_offset {{"t > 5 ? -6 : -4 + (5 - t)*2"}}
+   time ""
+   name TimeOffset28
+   xpos -1798
+   ypos -179
+  }
+set Nc78f960 [stack 0]
+  Dot {
+   name Dot36
+   xpos -1448
+   ypos -175
+  }
+  Dot {
+   name Dot38
+   xpos -1436
+   ypos 714
+  }
+set Nc79e520 [stack 0]
+  Dot {
+   name Dot37
+   xpos -1436
+   ypos 886
+  }
+push $Nc7771a0
+push $Nc6b73b0
+push $Nc79e520
+push $Nc685fa0
+  TimeOffset {
+   time_offset {{"t > 6 ? -7 : -5 + (6 - t)*2"}}
+   time ""
+   name TimeOffset30
+   xpos -2148
+   ypos -174
+  }
+set Nc7a8480 [stack 0]
+  Dot {
+   name Dot39
+   xpos -1824
+   ypos -170
+  }
+  Dot {
+   name Dot43
+   xpos -1822
+   ypos 499
+  }
+set Nc7b67a0 [stack 0]
+  Dot {
+   name Dot40
+   xpos -1822
+   ypos 667
+  }
+push $Nc78f960
+push $Nc6b2460
+push $Nc7b67a0
+push $Nc68af40
+  TimeOffset {
+   time_offset {{"t > 7 ? -8 : -6 + (7 - t)*2" x9 -3}}
+   time ""
+   name TimeOffset24
+   xpos -2379
+   ypos -165
+  }
+set Nc7c0700 [stack 0]
+  Dot {
+   name Dot41
+   xpos -2180
+   ypos -161
+  }
+  Dot {
+   name Dot45
+   xpos -2180
+   ypos 269
+  }
+set Nc7cf020 [stack 0]
+  Dot {
+   name Dot42
+   xpos -2180
+   ypos 455
+  }
+push $Nc7a8480
+push $Nc6ad510
+push $Nc7cf020
+push $Nc694de0
+  Dot {
+   name Dot47
+   xpos -2413
+   ypos -235
+  }
+  Dot {
+   name Dot48
+   xpos -2413
+   ypos 217
+  }
+push $Nc7c0700
+push $Nc68fe90
+  Dot {
+   name Dot55
+   xpos -3016
+   ypos -519
+  }
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames) ? - (NoOp1.numFrames + 1) : - (NoOp1.numFrames - 1) + ((NoOp1.numFrames) - t)*2" x1 0}}
+   time ""
+   name TimeOffset26
+   xpos -3050
+   ypos -264
+  }
+  Dot {
+   name Dot4
+   xpos -3016
+   ypos 66
+  }
+push $Nc694de0
+  Constant {
+   inputs 0
+   channels rgb
+   name Constant1
+   xpos -2891
+   ypos -182
+  }
+  Crop {
+   box {0 0 {Input1.width} {Input1.height}}
+   reformat true
+   name Crop1
+   xpos -2891
+   ypos -100
+  }
+  Reformat {
+   type scale
+   scale 4
+   name Reformat5
+   selected true
+   xpos -2891
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle43
+   xpos -2746
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle44
+   xpos -2746
+   ypos 62
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x5 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference22
+   xpos -2746
+   ypos 147
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle45
+   xpos -2379
+   ypos 147
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle46
+   xpos -2379
+   ypos 213
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle16
+   xpos -2379
+   ypos 265
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle17
+   xpos -2381
+   ypos 321
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove9
+   xpos -2381
+   ypos 360
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference23
+   xpos -2379
+   ypos 413
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle61
+   xpos -2148
+   ypos 418
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle62
+   xpos -2148
+   ypos 451
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle18
+   xpos -2148
+   ypos 495
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle19
+   xpos -2148
+   ypos 544
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove8
+   xpos -2148
+   ypos 581
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference31
+   xpos -2148
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle57
+   xpos -1784
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle58
+   xpos -1784
+   ypos 663
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle14
+   xpos -1784
+   ypos 718
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle15
+   xpos -1784
+   ypos 755
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove7
+   xpos -1784
+   ypos 800
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference29
+   xpos -1784
+   ypos 846
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle59
+   xpos -1393
+   ypos 838
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle60
+   xpos -1393
+   ypos 882
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle12
+   xpos -1393
+   ypos 930
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle13
+   xpos -1393
+   ypos 964
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove6
+   xpos -1393
+   ypos 1009
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference30
+   xpos -1393
+   ypos 1061
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle55
+   xpos -927
+   ypos 1036
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle56
+   xpos -927
+   ypos 1088
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle10
+   xpos -927
+   ypos 1147
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle11
+   xpos -927
+   ypos 1198
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove5
+   xpos -927
+   ypos 1239
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference28
+   xpos -927
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle47
+   xpos -461
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle48
+   xpos -461
+   ypos 1346
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle8
+   xpos -461
+   ypos 1410
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle9
+   xpos -461
+   ypos 1468
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove4
+   xpos -461
+   ypos 1503
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x9 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference24
+   xpos -461
+   ypos 1541
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle49
+   xpos -35
+   ypos 1539
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle50
+   xpos -35
+   ypos 1600
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle6
+   xpos -35
+   ypos 1657
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle7
+   xpos -35
+   ypos 1716
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove3
+   xpos -36
+   ypos 1743
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference25
+   xpos -35
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle51
+   xpos 553
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle52
+   xpos 553
+   ypos 1865
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle4
+   xpos 553
+   ypos 1941
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle5
+   xpos 553
+   ypos 1995
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove2
+   xpos 552
+   ypos 2033
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference26
+   xpos 553
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2"}}
+   addUserKnob {20 User}
+   addUserKnob {41 modelFile_1 l "Model File" T Inference26.modelFile}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle53
+   xpos 806
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2" x3 0}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle54
+   xpos 806
+   ypos 2236
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle2
+   xpos 806
+   ypos 2326
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle3
+   xpos 806
+   ypos 2382
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove1
+   xpos 806
+   ypos 2438
+   disable {{"NoOp1.numFrames  == 0"}}
+  }
+  Inference {
+   useGPUIfAvailable {{TecoGAN_auto5.useGPUIfAvailable}}
+   modelFile /backstage/dcc/packages/app/nuke_scripts/4.0/scripts/Cattery/TecoGAN/TecoGAN_BI_Vimeo.cat
+   serialiseKnob {}
+   name Inference27
+   xpos 806
+   ypos 2510
+   disable {{"NoOp1.numFrames == 0"}}
+  }
+  Output {
+   name Output1
+   xpos 806
+   ypos 2722
+  }
+  NoOp {
+   inputs 0
+   name NoOp1
+   knobChanged "\nnode = nuke.thisNode()\nif node\[\"numFrames\"].getValue() < 0:\n    node\[\"numFrames\"].setValue(0)\nelif node\[\"numFrames\"].getValue() > 10:\n    node\[\"numFrames\"].setValue(10)\n"
+   xpos 1287
+   ypos 1829
+   addUserKnob {20 User}
+   addUserKnob {3 numFrames l "Number of Frames" t "Select how many other frames from the sequence will be used to upscale the current frame. Each of the other frames used will also be upscaled. Maximum number of frames used is 9, We recommend this value be between 2 and 4 for best results." R 0 10}
+   numFrames {{TecoGAN_auto5.numFrames}}
+  }
+ end_group
+ Crop {
+  box {0 {"(4 - Crop6.height%4)*4"} {"input.width - (4 - Crop6.width%4)*4"} {input.height}}
+  reformat true
+  crop false
+  name Crop16
+  xpos -914
+  ypos 620
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {{NoOp1.tileOverlap*4} 0 {input.width} {"input.height - (NoOp1.tileOverlap*4)"}}
+  reformat true
+  crop false
+  name Crop9
+  xpos -913
+  ypos 782
+  disable {{!(this.parent.useTiling)}}
+ }
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 white -1 -1 rgba.alpha 0 3"
+  name Shuffle2
+  xpos -914
+  ypos 841
+  disable {{!(this.parent.useTiling)}}
+ }
+ Transform {
+  translate {{Crop10.width} 0}
+  center {1024 778}
+  name Transform7
+  xpos -914
+  ypos 1018
+  disable {{!(this.parent.useTiling)}}
+ }
+push $N9806800
+ Crop {
+  box {0 0 {"floor(input.width / 2) + NoOp1.tileOverlap"} {"floor(input.height / 2)+ NoOp1.tileOverlap"}}
+  reformat true
+  crop false
+  name Crop5
+  xpos -1073
+  ypos 192
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {0 {"0 - (4 - input.height%4)"} {"(4 - input.width%4) + input.width"} {input.height}}
+  reformat true
+  crop false
+  name Crop13
+  xpos -1073
+  ypos 377
+ }
+ Group {
+  name TecoGAN_auto5
+  xpos -1071
+  ypos 499
+  addUserKnob {20 User}
+  addUserKnob {26 "" l "Local GPU:" T ""}
+  addUserKnob {26 gpuName l "" -STARTLINE T "2x Quadro RTX 8000"}
+  addUserKnob {41 useGPUIfAvailable l "Use GPU if available" T Inference27.useGPUIfAvailable}
+  addUserKnob {26 ""}
+  addUserKnob {26 channelsIn l "Channels In:" T "rgba.red, rgba.green, rgba.blue, forward.u, forward.v, backward.u, disparityL.x, disparityL.y, disparityR.x"}
+  addUserKnob {41 modelFile l "Model File" T Inference27.modelFile}
+  addUserKnob {41 numFrames l "Number of Frames" T NoOp1.numFrames}
+ }
+  BackdropNode {
+   inputs 0
+   name BackdropNode1
+   label "i = 4"
+   note_font_size 16
+   xpos -516
+   ypos 1191
+   bdwidth 194
+   bdheight 408
+  }
+  BackdropNode {
+   inputs 0
+   name BackdropNode2
+   tile_color 0x7171c600
+   label "i = 7"
+   note_font_size 18
+   xpos -1798
+   ypos 548
+   bdwidth 104
+   bdheight 334
+  }
+  Input {
+   inputs 0
+   name Input1
+   xpos -1405
+   ypos -757
+  }
+  Dot {
+   name Dot50
+   xpos -1371
+   ypos -519
+  }
+set Ncac4ca0 [stack 0]
+  Dot {
+   name Dot51
+   xpos -1764
+   ypos -519
+  }
+set Ncac9bf0 [stack 0]
+  Dot {
+   name Dot52
+   xpos -2114
+   ypos -519
+  }
+set Ncaceb10 [stack 0]
+  Dot {
+   name Dot53
+   xpos -2345
+   ypos -519
+  }
+set Ncad3ab0 [stack 0]
+  Dot {
+   name Dot54
+   xpos -2712
+   ypos -519
+  }
+set Ncad8a00 [stack 0]
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames - 1) ? - (NoOp1.numFrames) : - (NoOp1.numFrames - 2) + ((NoOp1.numFrames - 1) - t)*2" x1 0 x9 -4}}
+   time ""
+   name TimeOffset25
+   xpos -2746
+   ypos -239
+  }
+set Ncadd950 [stack 0]
+  Dot {
+   name Dot5
+   xpos -3192
+   ypos -235
+  }
+  Dot {
+   name Dot22
+   xpos -3192
+   ypos 117
+  }
+  Dot {
+   name Dot25
+   xpos -2944
+   ypos 117
+  }
+  Dot {
+   name Dot46
+   xpos -2944
+   ypos 341
+  }
+set Ncaf6080 [stack 0]
+  Dot {
+   name Dot44
+   xpos -2944
+   ypos 556
+  }
+set Ncafafd0 [stack 0]
+  Dot {
+   name Dot49
+   xpos -2944
+   ypos 794
+  }
+set Ncafff20 [stack 0]
+  Dot {
+   name Dot21
+   xpos -2944
+   ypos 982
+  }
+set Ncb04e70 [stack 0]
+  Dot {
+   name Dot24
+   xpos -2944
+   ypos 1202
+  }
+set Ncb09dc0 [stack 0]
+  Dot {
+   name Dot23
+   xpos -2944
+   ypos 1472
+  }
+set Ncb0ed10 [stack 0]
+  Dot {
+   name Dot12
+   xpos -2944
+   ypos 1671
+  }
+set Ncb13bd0 [stack 0]
+  Dot {
+   name Dot13
+   xpos -2944
+   ypos 1972
+  }
+set Ncb18b20 [stack 0]
+  Dot {
+   name Dot6
+   xpos -2944
+   ypos 2320
+  }
+push $Ncac4ca0
+  Dot {
+   name Dot31
+   xpos -905
+   ypos -519
+  }
+set Ncb22a80 [stack 0]
+  Dot {
+   name Dot30
+   xpos -439
+   ypos -519
+  }
+set Ncb27910 [stack 0]
+  Dot {
+   name Dot28
+   xpos -13
+   ypos -519
+  }
+set Ncb2c860 [stack 0]
+  Dot {
+   name Dot29
+   xpos 587
+   ypos -519
+  }
+set Ncb317b0 [stack 0]
+  Dot {
+   name Dot27
+   xpos 995
+   ypos -526
+  }
+  TimeOffset {
+   time ""
+   name TimeOffset21
+   xpos 961
+   ypos -188
+  }
+  Dot {
+   name Dot2
+   xpos 1071
+   ypos -184
+  }
+  Dot {
+   name Dot3
+   xpos 1083
+   ypos 2094
+  }
+set Ncb49d00 [stack 0]
+  Dot {
+   name Dot1
+   xpos 1083
+   ypos 2330
+  }
+push $Ncb317b0
+  TimeOffset {
+   time_offset {{"t > 0 ? -1 : 1"}}
+   time ""
+   name TimeOffset20
+   xpos 553
+   ypos -198
+  }
+  Dot {
+   name Dot7
+   xpos 904
+   ypos -194
+  }
+  Dot {
+   name Dot9
+   xpos 916
+   ypos 1790
+  }
+set Ncb624b0 [stack 0]
+  Dot {
+   name Dot8
+   xpos 916
+   ypos 2240
+  }
+push $Ncb49d00
+push $Ncb18b20
+push $Ncb624b0
+  Dot {
+   name Dot14
+   xpos 916
+   ypos 1945
+  }
+push $Ncb2c860
+  TimeOffset {
+   time_offset {{"t > 1 ? (-2) : (1 - t)*2"}}
+   time ""
+   name TimeOffset22
+   xpos -47
+   ypos -195
+  }
+  Dot {
+   name Dot10
+   xpos 416
+   ypos -191
+  }
+  Dot {
+   name Dot18
+   xpos 414
+   ypos 1543
+  }
+set Ncb7fdd0 [stack 0]
+  Dot {
+   name Dot17
+   xpos 414
+   ypos 1661
+  }
+set Ncb84d20 [stack 0]
+  Dot {
+   name Dot11
+   xpos 414
+   ypos 1869
+  }
+push $Ncb624b0
+push $Ncb13bd0
+push $Ncb84d20
+push $Ncb27910
+  TimeOffset {
+   time_offset {{"t > 2 ? -3 : -1 + (2 - t)*2"}}
+   time ""
+   name TimeOffset23
+   xpos -473
+   ypos -191
+  }
+set Ncb8ec80 [stack 0]
+  Dot {
+   name Dot15
+   xpos -127
+   ypos -187
+  }
+  Dot {
+   name Dot20
+   xpos -115
+   ypos 1414
+  }
+set Ncb9d4e0 [stack 0]
+  Dot {
+   name Dot16
+   xpos -115
+   ypos 1604
+  }
+push $Ncb7fdd0
+push $Ncb0ed10
+push $Ncb9d4e0
+push $Ncb22a80
+  TimeOffset {
+   time_offset {{"t > 3 ? -4 : -2 + (3 - t)*2"}}
+   time ""
+   name TimeOffset27
+   xpos -939
+   ypos -197
+  }
+set Ncba7440 [stack 0]
+  Dot {
+   name Dot19
+   xpos -508
+   ypos -193
+  }
+  Dot {
+   name Dot32
+   xpos -496
+   ypos 1151
+  }
+set Ncbb5ca0 [stack 0]
+  Dot {
+   name Dot26
+   xpos -496
+   ypos 1350
+  }
+push $Ncb8ec80
+push $Ncb09dc0
+push $Ncbb5ca0
+push $Ncac4ca0
+  TimeOffset {
+   time_offset {{"t > 4 ? -5 : -3 + (4 - t)*2"}}
+   time ""
+   name TimeOffset29
+   xpos -1405
+   ypos -189
+  }
+set Ncbbfc00 [stack 0]
+  Dot {
+   name Dot34
+   xpos -982
+   ypos -185
+  }
+  Dot {
+   name Dot33
+   xpos -970
+   ypos 934
+  }
+set Ncbce460 [stack 0]
+  Dot {
+   name Dot35
+   xpos -970
+   ypos 1092
+  }
+push $Ncba7440
+push $Ncb04e70
+push $Ncbce460
+push $Ncac9bf0
+  TimeOffset {
+   time_offset {{"t > 5 ? -6 : -4 + (5 - t)*2"}}
+   time ""
+   name TimeOffset28
+   xpos -1798
+   ypos -179
+  }
+set Ncbd83c0 [stack 0]
+  Dot {
+   name Dot36
+   xpos -1448
+   ypos -175
+  }
+  Dot {
+   name Dot38
+   xpos -1436
+   ypos 714
+  }
+set Ncbe6f80 [stack 0]
+  Dot {
+   name Dot37
+   xpos -1436
+   ypos 886
+  }
+push $Ncbbfc00
+push $Ncafff20
+push $Ncbe6f80
+push $Ncaceb10
+  TimeOffset {
+   time_offset {{"t > 6 ? -7 : -5 + (6 - t)*2"}}
+   time ""
+   name TimeOffset30
+   xpos -2148
+   ypos -174
+  }
+set Ncbf0ee0 [stack 0]
+  Dot {
+   name Dot39
+   xpos -1824
+   ypos -170
+  }
+  Dot {
+   name Dot43
+   xpos -1822
+   ypos 499
+  }
+set Ncbff200 [stack 0]
+  Dot {
+   name Dot40
+   xpos -1822
+   ypos 667
+  }
+push $Ncbd83c0
+push $Ncafafd0
+push $Ncbff200
+push $Ncad3ab0
+  TimeOffset {
+   time_offset {{"t > 7 ? -8 : -6 + (7 - t)*2" x9 -3}}
+   time ""
+   name TimeOffset24
+   xpos -2379
+   ypos -165
+  }
+set Ncc0a170 [stack 0]
+  Dot {
+   name Dot41
+   xpos -2180
+   ypos -161
+  }
+  Dot {
+   name Dot45
+   xpos -2180
+   ypos 269
+  }
+set Ncc18a90 [stack 0]
+  Dot {
+   name Dot42
+   xpos -2180
+   ypos 455
+  }
+push $Ncbf0ee0
+push $Ncaf6080
+push $Ncc18a90
+push $Ncadd950
+  Dot {
+   name Dot47
+   xpos -2413
+   ypos -235
+  }
+  Dot {
+   name Dot48
+   xpos -2413
+   ypos 217
+  }
+push $Ncc0a170
+push $Ncad8a00
+  Dot {
+   name Dot55
+   xpos -3016
+   ypos -519
+  }
+  TimeOffset {
+   time_offset {{"t > (NoOp1.numFrames) ? - (NoOp1.numFrames + 1) : - (NoOp1.numFrames - 1) + ((NoOp1.numFrames) - t)*2" x1 0}}
+   time ""
+   name TimeOffset26
+   xpos -3050
+   ypos -264
+  }
+  Dot {
+   name Dot4
+   xpos -3016
+   ypos 66
+  }
+push $Ncadd950
+  Constant {
+   inputs 0
+   channels rgb
+   name Constant1
+   xpos -2891
+   ypos -182
+  }
+  Crop {
+   box {0 0 {Input1.width} {Input1.height}}
+   reformat true
+   name Crop1
+   xpos -2891
+   ypos -100
+  }
+  Reformat {
+   type scale
+   scale 4
+   name Reformat5
+   xpos -2891
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle43
+   xpos -2746
+   ypos -1
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle44
+   xpos -2746
+   ypos 62
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x5 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference22
+   xpos -2746
+   ypos 147
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle45
+   xpos -2379
+   ypos 147
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle46
+   xpos -2379
+   ypos 213
+   disable {{"NoOp1.numFrames < 10"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle16
+   xpos -2379
+   ypos 265
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle17
+   xpos -2381
+   ypos 321
+   disable {{"NoOp1.numFrames != 9"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove9
+   xpos -2381
+   ypos 360
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference23
+   xpos -2379
+   ypos 413
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle61
+   xpos -2148
+   ypos 418
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle62
+   xpos -2148
+   ypos 451
+   disable {{"NoOp1.numFrames < 9"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle18
+   xpos -2148
+   ypos 495
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle19
+   xpos -2148
+   ypos 544
+   disable {{"NoOp1.numFrames != 8"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove8
+   xpos -2148
+   ypos 581
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference31
+   xpos -2148
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle57
+   xpos -1784
+   ypos 628
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle58
+   xpos -1784
+   ypos 663
+   disable {{"NoOp1.numFrames < 8"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle14
+   xpos -1784
+   ypos 718
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle15
+   xpos -1784
+   ypos 755
+   disable {{"NoOp1.numFrames != 7"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove7
+   xpos -1784
+   ypos 800
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference29
+   xpos -1784
+   ypos 846
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle59
+   xpos -1393
+   ypos 838
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle60
+   xpos -1393
+   ypos 882
+   disable {{"NoOp1.numFrames < 7"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle12
+   xpos -1393
+   ypos 930
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle13
+   xpos -1393
+   ypos 964
+   disable {{"NoOp1.numFrames != 6"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove6
+   xpos -1393
+   ypos 1009
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference30
+   xpos -1393
+   ypos 1061
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle55
+   xpos -927
+   ypos 1036
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle56
+   xpos -927
+   ypos 1088
+   disable {{"NoOp1.numFrames < 6"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle10
+   xpos -927
+   ypos 1147
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle11
+   xpos -927
+   ypos 1198
+   disable {{"NoOp1.numFrames != 5"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove5
+   xpos -927
+   ypos 1239
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference28
+   xpos -927
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle47
+   xpos -461
+   ypos 1284
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle48
+   xpos -461
+   ypos 1346
+   disable {{"NoOp1.numFrames < 5"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle8
+   xpos -461
+   ypos 1410
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle9
+   xpos -461
+   ypos 1468
+   disable {{"NoOp1.numFrames != 4"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove4
+   xpos -461
+   ypos 1503
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]" x9 1}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference24
+   xpos -461
+   ypos 1541
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle49
+   xpos -35
+   ypos 1539
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle50
+   xpos -35
+   ypos 1600
+   disable {{"NoOp1.numFrames < 4"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle6
+   xpos -35
+   ypos 1657
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle7
+   xpos -35
+   ypos 1716
+   disable {{"NoOp1.numFrames != 3"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove3
+   xpos -36
+   ypos 1743
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference25
+   xpos -35
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle51
+   xpos 553
+   ypos 1786
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle52
+   xpos 553
+   ypos 1865
+   disable {{"NoOp1.numFrames < 3"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle4
+   xpos 553
+   ypos 1941
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle5
+   xpos 553
+   ypos 1995
+   disable {{"NoOp1.numFrames != 2"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove2
+   xpos 552
+   ypos 2033
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Inference {
+   useGPUIfAvailable {{"\[value Inference27.useGPUIfAvailable]"}}
+   modelFile "\[value Inference27.modelFile]"
+   serialiseKnob {}
+   name Inference26
+   xpos 553
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2"}}
+   addUserKnob {20 User}
+   addUserKnob {41 modelFile_1 l "Model File" T Inference26.modelFile}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{0} B A}
+   in1 rgb
+   out1 disparity
+   fromInput2 {{1} B A}
+   in2 rgb
+   out2 rgb
+   mappings "7 black -1 -1 disparityR.y 0 3 rgba.red 0 0 disparityL.x 0 0 rgba.green 0 1 disparityL.y 0 1 rgba.blue 0 2 disparityR.x 0 2 rgba.red 1 0 rgba.red 1 0 rgba.green 1 1 rgba.green 1 1 rgba.blue 1 2 rgba.blue 1 2"
+   name Shuffle53
+   xpos 806
+   ypos 2090
+   disable {{"NoOp1.numFrames < 2" x3 0}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle54
+   xpos 806
+   ypos 2236
+   disable {{"NoOp1.numFrames < 2"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   in1 rgb
+   out1 rgb
+   fromInput2 {{0} B A}
+   in2 rgb
+   out2 disparity
+   mappings "7 black -1 -1 disparityR.y 1 3 rgba.red 1 0 disparityL.x 1 0 rgba.green 1 1 disparityL.y 1 1 rgba.blue 1 2 disparityR.x 1 2 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2"
+   name Shuffle2
+   xpos 806
+   ypos 2326
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Shuffle2 {
+   inputs 2
+   fromInput1 {{1} B A}
+   out1 motion
+   fromInput2 {{0} B A}
+   mappings "4 black -1 -1 backward.v 0 3 rgba.red 0 0 forward.u 0 0 rgba.green 0 1 forward.v 0 1 rgba.blue 0 2 backward.u 0 2"
+   name Shuffle3
+   xpos 806
+   ypos 2382
+   disable {{"NoOp1.numFrames != 1"}}
+  }
+  Remove {
+   channels {-disparityR.x -disparityR.y none disparityR.y}
+   channels2 {-backward.u -backward.v none backward.v}
+   name Remove1
+   xpos 806
+   ypos 2438
+   disable {{"NoOp1.numFrames  == 0"}}
+  }
+  Inference {
+   useGPUIfAvailable {{parent.parent.useGPUIfAvailable}}
+   modelFile /backstage/dcc/packages/app/nuke_scripts/4.0/scripts/Cattery/TecoGAN/TecoGAN_BI_Vimeo.cat
+   serialiseKnob {}
+   name Inference27
+   selected true
+   xpos 806
+   ypos 2510
+   disable {{"NoOp1.numFrames == 0"}}
+  }
+  Output {
+   name Output1
+   xpos 806
+   ypos 2722
+  }
+  NoOp {
+   inputs 0
+   name NoOp1
+   knobChanged "\nnode = nuke.thisNode()\nif node\[\"numFrames\"].getValue() < 0:\n    node\[\"numFrames\"].setValue(0)\nelif node\[\"numFrames\"].getValue() > 10:\n    node\[\"numFrames\"].setValue(10)\n"
+   xpos 1287
+   ypos 1829
+   addUserKnob {20 User}
+   addUserKnob {3 numFrames l "Number of Frames" t "Select how many other frames from the sequence will be used to upscale the current frame. Each of the other frames used will also be upscaled. Maximum number of frames used is 9, We recommend this value be between 2 and 4 for best results." R 0 10}
+   numFrames 2
+  }
+ end_group
+ Crop {
+  box {0 {"(4 - Crop5.height%4)*4"} {"input.width - (4 - Crop5.width%4)*4"} {input.height}}
+  reformat true
+  crop false
+  name Crop14
+  xpos -1071
+  ypos 624
+ }
+ Crop {
+  box {0 0 {"input.width - (NoOp1.tileOverlap*4) "} {"input.height - (NoOp1.tileOverlap *4)"}}
+  reformat true
+  crop false
+  name Crop10
+  xpos -1071
+  ypos 782
+  disable {{!(this.parent.useTiling)}}
+ }
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 white -1 -1 rgba.alpha 0 3"
+  name Shuffle1
+  xpos -1071
+  ypos 952
+ }
+ Constant {
+  inputs 0
+  format "5464 2880 0 0 5464 2880 1 test_x4"
+  name Constant2
+  xpos -401
+  ypos 787
+ }
+ Reformat {
+  type "to box"
+  box_width {{(Input1.width)*4}}
+  box_height {{(Input1.height)*4}}
+  box_fixed true
+  resize fill
+  name Reformat1
+  xpos -401
+  ypos 870
+ }
+ Merge2 {
+  inputs 2
+  name Merge3
+  xpos -401
+  ypos 952
+ }
+ Merge2 {
+  inputs 2
+  name Merge6
+  xpos -401
+  ypos 1018
+  disable {{!(this.parent.useTiling)}}
+ }
+ Merge2 {
+  inputs 2
+  name Merge7
+  xpos -401
+  ypos 1104
+  disable {{!(this.parent.useTiling)}}
+ }
+ Merge2 {
+  inputs 2
+  name Merge8
+  xpos -401
+  ypos 1164
+  disable {{!(this.parent.useTiling)}}
+ }
+ Crop {
+  box {0 0 {Input1.width*4} {Input1.height*4}}
+  reformat true
+  crop false
+  name Crop1
+  xpos -401
+  ypos 1190
+ }
+ OCIOColorSpace {
+  in_colorspace color_picking
+  out_colorspace "ACES - ACES2065-1"
+  name OCIOColorSpace2
+  xpos -401
+  ypos 1216
+ }
+ Remove {
+  channels alpha
+  name Remove1
+  xpos -401
+  ypos 1242
+ }
+ Switch {
+  inputs 2
+  which {{"\[python \{len(nuke.toNode('Input1').channels())\}] == 0? 1:0"}}
+  name Switch1
+  xpos -228
+  ypos 1248
+ }
+ Output {
+  name Output1
+  xpos -228
+  ypos 1316
+ }
+end_group

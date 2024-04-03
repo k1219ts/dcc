@@ -1,0 +1,42 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ tile_color 0xa3a3a3ff
+ label -
+ note_font "DejaVu Sans Bold Italic"
+ note_font_size 15
+ addUserKnob {20 User}
+ addUserKnob {41 time T cc.time}
+ addUserKnob {26 ""}
+ addUserKnob {41 value T Multiply10.value}
+ addUserKnob {26 ""}
+ addUserKnob {26 madebyLJW l "made by_LJW"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 468
+  ypos -586
+ }
+ Multiply {
+  channels rgba
+  value {{"int(0+3*random(frame-(parent.cc.time)/2)) >=1"}}
+  name Multiply10
+  tile_color 0x939393ff
+  xpos 463
+  ypos -547
+ }
+ Output {
+  name Output1
+  xpos 463
+  ypos -447
+ }
+ NoOp {
+  inputs 0
+  name cc
+  xpos 361
+  ypos -549
+  addUserKnob {20 User}
+  addUserKnob {7 time t time R 0 11}
+ }
+end_group

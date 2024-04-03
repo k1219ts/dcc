@@ -1,0 +1,34 @@
+#! /usr/local/Nuke9.0v5/libnuke-9.0.5.so -nx
+version 9.0 v5
+Gizmo {
+addUserKnob {20 User}
+addUserKnob {3 startframe}
+startframe 1001
+addUserKnob {22 calculate -STARTLINE T "i =int(nuke.thisNode()\['startframe'].value())\ntc = \[]\ntc.append(str(int(i / 86400)).zfill(2))\ntc.append(str(int(i / 1440) % 60).zfill(2))\ntc.append(str(int(i / 24) % 60).zfill(2))\ntc.append(str(int(i % 24)).zfill(2))\ntcn = ':'.join(tc)\nnuke.thisNode()\['startcode'].setValue(tcn)"}
+addUserKnob {41 startcode l "start code" T AddTimeCode1.startcode}
+}
+Input {
+inputs 0
+name Input1
+xpos 0
+}
+push 0
+Merge2 {
+inputs 2
+name Merge1
+selected true
+xpos 0
+ypos 89
+}
+AddTimeCode {
+startcode 00:00:41:17
+name AddTimeCode1
+xpos 0
+ypos 137
+}
+Output {
+name Output1
+xpos 0
+ypos 300
+}
+end_group

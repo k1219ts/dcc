@@ -1,0 +1,546 @@
+#PointPositionMask v2.0
+#Contact cameron.a.carson@gmail.com with questions
+Gizmo {
+ name PointPositionMask
+ help "Connect the PointPositionPass or WorldPoint to the Point Position Pass input.\n\nThe Centerpoint rgb directly correlates to xyz pixel position.\n\nUnder the 3D Scene tab is Output Scene checkbox which outputs a semi transparent selection object as well as a PointCloud of the scene for easy visualization.\n\nThis is useful in creating localized selection masks from a 3d scene.\n\nAny questions contact cameron.a.carson@gmail.com"
+ knobChanged "
+n = nuke.thisNode()
+k = nuke.thisKnob()
+knobs = ['cPicker']
+if k.name() == 'cPicker':
+    n['translate_1'].setValue(k.value()[0:3])
+'''if k.name() == 'cPicker':
+    n['translate_1'].setValue([
+k.value()[0]/(n['uniform_scale_1'].value()*n['scaling'].value()[0]),
+k.value()[1]/(n['uniform_scale_1'].value()*n['scaling'].value()[1]),
+k.value()[2]/(n['uniform_scale_1'].value()*n['scaling'].value()[2])
+])'''
+"
+ tile_color 0x9c0000ff
+ selected true
+ addUserKnob {20 Main}
+ addUserKnob {4 shape l "Selection Shape" M {Sphere Cube}}
+ addUserKnob {4 up l "Up Axis" t "Choose which direction your 3D software writes as up.\n\nExample:\nMaya = Y up\n3ds Max = Z up" M {"Y  up" "Z  up" ""}}
+ addUserKnob {41 translate_1 l CenterPoint T CenterPoint.translate}
+ addUserKnob {36 cPicker -STARTLINE}
+ cPicker {0 0 0}
+ addUserKnob {41 uniform_scale_1 l Scale T CenterPoint.uniform_scale}
+ addUserKnob {7 fall l Falloff}
+ fall 0.01
+ addUserKnob {6 premultP l "Premult P3" t "Check this for any position passes with a black background." +STARTLINE}
+ addUserKnob {20 transTab l Transform}
+ addUserKnob {41 selectable T CenterPoint.selectable}
+ addUserKnob {41 transform T CenterPoint.transform}
+ addUserKnob {41 xform_order l "transform order" T CenterPoint.xform_order}
+ addUserKnob {41 rot_order l "rotation order" T CenterPoint.rot_order}
+ addUserKnob {41 translate T CenterPoint.translate}
+ addUserKnob {41 rotate T CenterPoint.rotate}
+ addUserKnob {41 scaling l scale T CenterPoint.scaling}
+ addUserKnob {41 uniform_scale l "uniform scale" T CenterPoint.uniform_scale}
+ addUserKnob {41 skew T CenterPoint.skew}
+ addUserKnob {41 pivot T CenterPoint.pivot}
+ addUserKnob {20 sceneTab l "3D Scene"}
+ addUserKnob {6 showScene l "Output Scene" t "Check to display 3D Selection Shape and scene." +STARTLINE}
+ addUserKnob {18 selcolor l "Selection Color" t "Chooses the color of the 3d selection shape"}
+ selcolor {0 0.1381603 0.14}
+} 
+ Input {
+  inputs 0
+  name CenterPointParent
+  xpos 100
+  ypos -930
+  number 2
+ }
+ Axis2 {
+  name CenterPoint
+  xpos 110
+  ypos -750
+ }
+ Input {
+  inputs 0
+  name PointPositionPass
+  xpos -180
+  ypos -930
+ }
+ Shuffle {
+  alpha white
+  name SolidAlpha
+  xpos -180
+  ypos -850
+ }
+ Dot {
+  name Dot25
+  xpos -146
+  ypos -766
+ }
+set Ndf4e000 [stack 0]
+ Dot {
+  name Dot14
+  xpos -566
+  ypos -766
+ }
+set Ndf4f400 [stack 0]
+ Dot {
+  name Dot2
+  xpos -706
+  ypos -766
+ }
+set Ne7d0fc00 [stack 0]
+ Dot {
+  name Dot10
+  xpos -986
+  ypos -766
+ }
+ Dot {
+  name Dot11
+  xpos -986
+  ypos 114
+ }
+ Input {
+  inputs 0
+  name Image
+  xpos -460
+  ypos -930
+  number 1
+ }
+ Dot {
+  name Dot13
+  xpos -426
+  ypos -686
+ }
+set N782ec400 [stack 0]
+ Dot {
+  name Dot8
+  xpos -286
+  ypos -686
+ }
+ Dot {
+  name Dot9
+  xpos -286
+  ypos -446
+ }
+push $Ndf4e000
+ Group {
+  name rgbaMatrix
+  tile_color 0xcc804eff
+  xpos -180
+  ypos -730
+  addUserKnob {20 Main}
+  addUserKnob {9 matrix}
+  matrix {
+      {{parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix}}
+      {{parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix}}
+      {{parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix}}
+      {{parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix} {parent.CenterPoint.world_matrix}}
+    }
+  addUserKnob {26 ""}
+  addUserKnob {6 invert +STARTLINE}
+  invert true
+ }
+  Input {
+   inputs 0
+   name Input
+   xpos 100
+   ypos -209
+  }
+  Dot {
+   name Dot2
+   xpos 134
+   ypos -126
+  }
+set Ndf3e3800 [stack 0]
+  Dot {
+   name Dot1
+   xpos 274
+   ypos -126
+  }
+set Ndf3e3400 [stack 0]
+  Expression {
+   expr0 (r*InverseMatrix.matrix.0)+(g*InverseMatrix.matrix.1)+(b*InverseMatrix.matrix.2)+(a*InverseMatrix.matrix.3)
+   expr1 (r*InverseMatrix.matrix.4)+(g*InverseMatrix.matrix.5)+(b*InverseMatrix.matrix.6)+(a*InverseMatrix.matrix.7)
+   expr2 (r*InverseMatrix.matrix.8)+(g*InverseMatrix.matrix.9)+(b*InverseMatrix.matrix.10)+(a*InverseMatrix.matrix.11)
+   expr3 (r*InverseMatrix.matrix.12)+(g*InverseMatrix.matrix.13)+(b*InverseMatrix.matrix.14)+(a*InverseMatrix.matrix.15)
+   name rgbaMatrixInverted
+   selected true
+   xpos 240
+   ypos -49
+  }
+  Dot {
+   name Dot5
+   xpos 274
+   ypos 34
+  }
+push $Ndf3e3800
+  Expression {
+   expr0 (r*matrix.0)+(g*matrix.1)+(b*matrix.2)+(a*matrix.3)
+   expr1 (r*matrix.4)+(g*matrix.5)+(b*matrix.6)+(a*matrix.7)
+   expr2 (r*matrix.8)+(g*matrix.9)+(b*matrix.10)+(a*matrix.11)
+   expr3 (r*matrix.12)+(g*matrix.13)+(b*matrix.14)+(a*matrix.15)
+   name rgbaMatrix
+   xpos 100
+   ypos -49
+  }
+  Switch {
+   inputs 2
+   which {{parent.invert}}
+   name invertSwitch
+   xpos 100
+   ypos 31
+  }
+  Output {
+   name Output
+   xpos 100
+   ypos 111
+  }
+push $Ndf3e3400
+push 0
+  Viewer {
+   inputs 2
+   input_number 1
+   input_process false
+   name Viewer1
+   xpos 240
+   ypos 111
+  }
+  NoOp {
+   inputs 0
+   name Determinate
+   xpos 380
+   ypos -129
+   addUserKnob {20 Main}
+   addUserKnob {7 Determinate}
+   Determinate {{"parent.matrix.0*MinorMatrix.matrix.0\n-parent.matrix.1*MinorMatrix.matrix.1\n+parent.matrix.2*MinorMatrix.matrix.2\n-parent.matrix.3*MinorMatrix.matrix.3"}}
+  }
+  NoOp {
+   inputs 0
+   name InverseMatrix
+   xpos 520
+   ypos -49
+   addUserKnob {20 Main}
+   addUserKnob {9 matrix}
+   matrix {
+       {{parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)}}
+       {{parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)}}
+       {{parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)}}
+       {{parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)} {parent.AdjugateMatrix.matrix*(1/Determinate.Determinate)}}
+     }
+  }
+  NoOp {
+   inputs 0
+   name MinorMatrix
+   xpos 520
+   ypos -209
+   addUserKnob {20 Main}
+   addUserKnob {9 matrix}
+   matrix {
+       {{"parent.matrix.5*(parent.matrix.10*parent.matrix.15-parent.matrix.11*parent.matrix.14)\n-parent.matrix.6*(parent.matrix.9*parent.matrix.15-parent.matrix.11*parent.matrix.13)\n+parent.matrix.7*(parent.matrix.9*parent.matrix.14-parent.matrix.10*parent.matrix.13)"} {"parent.matrix.4*(parent.matrix.10*parent.matrix.15-parent.matrix.11*parent.matrix.14)\n-parent.matrix.6*(parent.matrix.8*parent.matrix.15-parent.matrix.11*parent.matrix.12)\n+parent.matrix.7*(parent.matrix.8*parent.matrix.14-parent.matrix.10*parent.matrix.12)"} {"parent.matrix.4*(parent.matrix.9*parent.matrix.15-parent.matrix.11*parent.matrix.13)\n-parent.matrix.5*(parent.matrix.8*parent.matrix.15-parent.matrix.11*parent.matrix.12)\n+parent.matrix.7*(parent.matrix.8*parent.matrix.13-parent.matrix.9*parent.matrix.12)"} {"parent.matrix.4*(parent.matrix.9*parent.matrix.14-parent.matrix.10*parent.matrix.13)\n-parent.matrix.5*(parent.matrix.8*parent.matrix.14-parent.matrix.10*parent.matrix.12)\n+parent.matrix.6*(parent.matrix.8*parent.matrix.13-parent.matrix.9*parent.matrix.12)"}}
+       {{"parent.matrix.1*(parent.matrix.10*parent.matrix.15-parent.matrix.11*parent.matrix.14)\n-parent.matrix.2*(parent.matrix.9*parent.matrix.15-parent.matrix.11*parent.matrix.13)\n+parent.matrix.3*(parent.matrix.9*parent.matrix.14-parent.matrix.10*parent.matrix.13)"} {"parent.matrix.0*(parent.matrix.10*parent.matrix.15-parent.matrix.11*parent.matrix.14)\n-parent.matrix.2*(parent.matrix.8*parent.matrix.15-parent.matrix.11*parent.matrix.12)\n+parent.matrix.3*(parent.matrix.8*parent.matrix.14-parent.matrix.10*parent.matrix.12)"} {"parent.matrix.0*(parent.matrix.9*parent.matrix.15-parent.matrix.11*parent.matrix.13)\n-parent.matrix.1*(parent.matrix.8*parent.matrix.15-parent.matrix.11*parent.matrix.12)\n+parent.matrix.3*(parent.matrix.8*parent.matrix.13-parent.matrix.9*parent.matrix.12)"} {"parent.matrix.0*(parent.matrix.9*parent.matrix.14-parent.matrix.10*parent.matrix.13)\n-parent.matrix.1*(parent.matrix.8*parent.matrix.14-parent.matrix.10*parent.matrix.12)\n+parent.matrix.2*(parent.matrix.8*parent.matrix.13-parent.matrix.9*parent.matrix.12)"}}
+       {{"parent.matrix.1*(parent.matrix.6*parent.matrix.15-parent.matrix.7*parent.matrix.14)\n-parent.matrix.2*(parent.matrix.5*parent.matrix.15-parent.matrix.7*parent.matrix.13)\n+parent.matrix.3*(parent.matrix.5*parent.matrix.14-parent.matrix.6*parent.matrix.13)"} {"parent.matrix.0*(parent.matrix.6*parent.matrix.15-parent.matrix.7*parent.matrix.14)\n-parent.matrix.2*(parent.matrix.4*parent.matrix.15-parent.matrix.7*parent.matrix.12)\n+parent.matrix.3*(parent.matrix.4*parent.matrix.14-parent.matrix.6*parent.matrix.12)"} {"parent.matrix.0*(parent.matrix.5*parent.matrix.15-parent.matrix.7*parent.matrix.13)\n-parent.matrix.1*(parent.matrix.4*parent.matrix.15-parent.matrix.7*parent.matrix.12)\n+parent.matrix.3*(parent.matrix.4*parent.matrix.13-parent.matrix.5*parent.matrix.12)"} {"parent.matrix.0*(parent.matrix.5*parent.matrix.14-parent.matrix.6*parent.matrix.13)\n-parent.matrix.1*(parent.matrix.4*parent.matrix.14-parent.matrix.6*parent.matrix.12)\n+parent.matrix.2*(parent.matrix.4*parent.matrix.13-parent.matrix.5*parent.matrix.12)"}}
+       {{"parent.matrix.1*(parent.matrix.6*parent.matrix.11-parent.matrix.7*parent.matrix.10)\n-parent.matrix.2*(parent.matrix.5*parent.matrix.11-parent.matrix.7*parent.matrix.9)\n+parent.matrix.3*(parent.matrix.5*parent.matrix.10-parent.matrix.6*parent.matrix.9)"} {"parent.matrix.0*(parent.matrix.6*parent.matrix.11-parent.matrix.7*parent.matrix.10)\n-parent.matrix.2*(parent.matrix.4*parent.matrix.11-parent.matrix.7*parent.matrix.8)\n+parent.matrix.3*(parent.matrix.4*parent.matrix.10-parent.matrix.6*parent.matrix.8)"} {"parent.matrix.0*(parent.matrix.5*parent.matrix.11-parent.matrix.7*parent.matrix.9)\n-parent.matrix.1*(parent.matrix.4*parent.matrix.11-parent.matrix.7*parent.matrix.8)\n+parent.matrix.3*(parent.matrix.4*parent.matrix.9-parent.matrix.5*parent.matrix.8)"} {"parent.matrix.0*(parent.matrix.5*parent.matrix.10-parent.matrix.6*parent.matrix.9)\n-parent.matrix.1*(parent.matrix.4*parent.matrix.10-parent.matrix.6*parent.matrix.8)\n+parent.matrix.2*(parent.matrix.4*parent.matrix.9-parent.matrix.5*parent.matrix.8)"}}
+     }
+  }
+  NoOp {
+   name CofactorMatrix
+   xpos 660
+   ypos -169
+   addUserKnob {20 Main}
+   addUserKnob {9 matrix}
+   matrix {
+       {{parent.MinorMatrix.matrix} {-parent.MinorMatrix.matrix} {parent.MinorMatrix.matrix} {-parent.MinorMatrix.matrix}}
+       {{-parent.MinorMatrix.matrix} {parent.MinorMatrix.matrix} {-parent.MinorMatrix.matrix} {parent.MinorMatrix.matrix}}
+       {{parent.MinorMatrix.matrix} {-parent.MinorMatrix.matrix} {parent.MinorMatrix.matrix} {-parent.MinorMatrix.matrix}}
+       {{-parent.MinorMatrix.matrix} {parent.MinorMatrix.matrix} {-parent.MinorMatrix.matrix} {parent.MinorMatrix.matrix}}
+     }
+  }
+  NoOp {
+   name AdjugateMatrix
+   xpos 660
+   ypos -129
+   addUserKnob {20 Main}
+   addUserKnob {9 matrix}
+   matrix {
+       {{parent.CofactorMatrix.matrix} {parent.CofactorMatrix.matrix.4} {parent.CofactorMatrix.matrix.8} {parent.CofactorMatrix.matrix.12}}
+       {{parent.CofactorMatrix.matrix.1} {parent.CofactorMatrix.matrix} {parent.CofactorMatrix.matrix.9} {parent.CofactorMatrix.matrix.13}}
+       {{parent.CofactorMatrix.matrix.2} {parent.CofactorMatrix.matrix.6} {parent.CofactorMatrix.matrix} {parent.CofactorMatrix.matrix.14}}
+       {{parent.CofactorMatrix.matrix.3} {parent.CofactorMatrix.matrix.7} {parent.CofactorMatrix.matrix.11} {parent.CofactorMatrix.matrix}}
+     }
+  }
+ end_group
+ Dot {
+  name Dot1
+  xpos -146
+  ypos -686
+ }
+set Nfb9c8000 [stack 0]
+ Dot {
+  name Dot6
+  xpos -6
+  ypos -686
+ }
+ Expression {
+  expr3 smoothstep(0,fall,1-abs(r))*smoothstep(0,fall,1-abs(g))*smoothstep(0,fall,1-abs(b))
+  name PositionKeySquare
+  xpos -40
+  ypos -610
+ }
+ Dot {
+  name Dot7
+  xpos -6
+  ypos -526
+ }
+push $Nfb9c8000
+ Expression {
+  temp_name0 len
+  temp_expr0 sqrt((r*r)+(g*g)+(b*b))
+  expr3 smoothstep(0,fall,1-len)
+  name PositionKeySphere
+  xpos -180
+  ypos -610
+ }
+ Switch {
+  inputs 2
+  which {{parent.shape}}
+  name CubeSwitch
+  xpos -180
+  ypos -530
+ }
+ set Cf84bfc00 [stack 0]
+ Merge2 {
+  inputs 2
+  operation multiply
+  output {-rgba.red -rgba.green -rgba.blue rgba.alpha}
+  name PreMultiplyP3
+  xpos -180
+  ypos -456
+  disable {{!parent.premultP}}
+ }
+ Dot {
+  name Dot23
+  xpos -146
+  ypos -366
+ }
+set Nf84bf400 [stack 0]
+ Dot {
+  name Dot3
+  xpos -146
+  ypos -126
+ }
+set Nf84bf000 [stack 0]
+ Dot {
+  name Dot12
+  xpos -146
+  ypos 34
+ }
+ Ramp {
+  inputs 0
+  p0 {960 1112}
+  p1 {960 -100}
+  color {0 0 0 1}
+  name Ramp1
+  xpos -740
+  ypos -450
+ }
+ Constant {
+  inputs 0
+  color {{selcolor.r} {selcolor.g} {selcolor.b} {curve}}
+  name Constant2
+  xpos -880
+  ypos -553
+ }
+ Merge2 {
+  inputs 2
+  name Merge2
+  xpos -880
+  ypos -450
+ }
+ Dot {
+  name Dot18
+  xpos -846
+  ypos -366
+ }
+set N9ff11c00 [stack 0]
+ Dot {
+  name Dot17
+  xpos -706
+  ypos -366
+ }
+ Cube {
+  selectable false
+  render_mode off
+  cast_shadow false
+  receive_shadow false
+  cube {-1 -1 -1 1 1 1}
+  translate {{parent.CenterPoint.translate} {parent.CenterPoint.translate} {parent.CenterPoint.translate}}
+  rotate {{parent.CenterPoint.rotate} {parent.CenterPoint.rotate} {parent.CenterPoint.rotate}}
+  scaling {{parent.CenterPoint.scaling} {parent.CenterPoint.scaling} {parent.CenterPoint.scaling}}
+  uniform_scale {{parent.CenterPoint.uniform_scale}}
+  name Cube1
+  xpos -740
+  ypos -290
+ }
+ Dot {
+  name Dot21
+  xpos -706
+  ypos -206
+ }
+push $N9ff11c00
+ Sphere {
+  selectable false
+  render_mode off
+  cast_shadow false
+  receive_shadow false
+  translate {{parent.CenterPoint.translate} {parent.CenterPoint.translate} {parent.CenterPoint.translate}}
+  rotate {{parent.CenterPoint.rotate} {parent.CenterPoint.rotate} {parent.CenterPoint.rotate}}
+  scaling {{parent.CenterPoint.scaling} {parent.CenterPoint.scaling} {parent.CenterPoint.scaling}}
+  uniform_scale {{parent.CenterPoint.uniform_scale}}
+  name Sphere
+  xpos -880
+  ypos -290
+ }
+clone $Cf84bfc00 {
+  inputs 2
+  xpos -880
+  ypos -210
+  selected false
+ }
+ Dot {
+  name Dot20
+  xpos -846
+  ypos -126
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{parent.showScene}}
+  name ShowScene1
+  xpos -740
+  ypos -130
+ }
+push $Ne7d0fc00
+ ColorMatrix {
+  matrix {
+      {1 0 0}
+      {0 0 1}
+      {0 -1 0}
+    }
+  name ZUp
+  xpos -740
+  ypos -690
+ }
+ Dot {
+  name Dot15
+  xpos -706
+  ypos -606
+ }
+push $Ndf4f400
+ Switch {
+  inputs 2
+  which {{parent.up i}}
+  name upAxis
+  xpos -600
+  ypos -610
+ }
+push $Nf84bf400
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle2
+  xpos -320
+  ypos -370
+ }
+push $N782ec400
+ Merge2 {
+  inputs 2
+  name Merge3
+  xpos -460
+  ypos -370
+ }
+ Dot {
+  name Dot16
+  xpos -426
+  ypos -286
+ }
+ PositionToPoints2 {
+  inputs 2
+  selectable false
+  render_mode off
+  cast_shadow false
+  receive_shadow false
+  name PositionToPoints
+  xpos -600
+  ypos -290
+ }
+push 0
+ Switch {
+  inputs 2
+  which {{parent.showScene}}
+  name ShowScene2
+  xpos -600
+  ypos -210
+ }
+ Scene {
+  inputs 2
+  name Scene3
+  xpos -590
+  ypos -150
+ }
+ Dot {
+  name Dot19
+  xpos -566
+  ypos -46
+ }
+push $Nf84bf000
+ Dot {
+  name Dot5
+  xpos -286
+  ypos -126
+ }
+set N5729cc00 [stack 0]
+ Dot {
+  name Dot4
+  xpos -426
+  ypos -126
+ }
+ ScanlineRender {
+  inputs 2
+  transparency false
+  ztest_enabled false
+  motion_vectors_type off
+  name ScanlineRender1
+  xpos -460
+  ypos -50
+ }
+push $N5729cc00
+ Switch {
+  inputs 2
+  which {{parent.showScene}}
+  name ShowScene
+  xpos -320
+  ypos -50
+ }
+ Merge2 {
+  inputs 2
+  bbox intersection
+  metainput A
+  Bchannels none
+  name Merge1
+  xpos -320
+  ypos 30
+ }
+ ShuffleCopy {
+  inputs 2
+  red red
+  green green
+  blue blue
+  alpha alpha2
+  name OgRGB
+  xpos -320
+  ypos 110
+ }
+ Output {
+  name Output
+  xpos -320
+  ypos 190
+ }
+end_group

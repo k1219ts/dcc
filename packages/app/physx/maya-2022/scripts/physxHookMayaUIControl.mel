@@ -1,0 +1,80 @@
+// Copyright (c) 2005 - 2012 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+/*
+    Copyright (C) 2007 Feeling Software Inc. ("Feeling")    All rights reserved.
+    
+	These coded instructions, statements and computer programs (collectively
+	the "Data") contain unpublished information proprietary to Feeling Software
+	which is protected by Canadian and US federal copyright law and by
+	international treaties. The data may not be disclosed to third parties
+	or copied or duplicated, in whole or in part, without prior written consent
+	of Feeling.
+*/
+
+
+// physxHookMayaUIControl.mel
+//
+// Author: Gary Li
+// This mel file is used for hooking Maya UI control
+
+global string $MayaPlayButtonGoToEndSymbolButton = "";
+proc physxHookMayaPlayButtonGoToEnd()
+{
+	string $array[] = `lsUI -type control`;
+	for($i = 0; $i < size($array); $i++)
+	{
+		// exclude "mainChannelBox" as when we invoke objectTypeUI with it, there is a mel error
+		if($array[$i] != "mainChannelBox" && `objectTypeUI -isType symbolButton $array[$i]`)
+		{
+			string $command = `symbolButton -q -command $array[$i]`;
+			if($command == "playButtonEnd")
+			{
+				global string $MayaPlayButtonGoToEndSymbolButton;
+				$MayaPlayButtonGoToEndSymbolButton = $array[$i];
+				// Hook "go to end of playback" button
+				symbolButton -edit -command physxMayaPlayButtonGoToEnd $MayaPlayButtonGoToEndSymbolButton;
+			}
+		}
+	}
+}
+
+proc physxRevertMayaPlayButtonGoToEnd()
+{
+	global string $MayaPlayButtonGoToEndSymbolButton;
+	// Revert "go to end of playback" button
+	if($MayaPlayButtonGoToEndSymbolButton != "")
+		symbolButton -edit -command playButtonEnd $MayaPlayButtonGoToEndSymbolButton;
+}
+
+global proc physxMayaPlayButtonGoToEnd()
+{
+    string $rigidNode[] = `ls -exactType nxRigidSolver`;
+    string $attr;
+    if(size($rigidNode) > 0) 
+    {
+        $attr = $rigidNode[0] + ".goToEndOfPlaybackRange";
+        setAttr $attr 1;
+    }
+	playButtonEnd;
+    if(size($rigidNode) > 0) 
+    {
+        setAttr $attr 0;
+    }
+}
+
+global proc physxHookMayaUIControl(int $hook)
+{
+	if($hook)
+	{
+		physxHookMayaPlayButtonGoToEnd;
+	}
+	else
+	{
+		physxRevertMayaPlayButtonGoToEnd;
+	}
+}

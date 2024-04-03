@@ -1,0 +1,1144 @@
+#! /opt/Nuke12.2v4/libnuke-12.2.4.so -nx
+version 12.2 v4
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="41" w="3840" h="1467" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="0"/>
+            <dock id="" hideTitles="1"/>
+            <split size="3832" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1241"/>
+                <dock id="" activePageId="Viewer.2">
+                    <page id="Viewer.2"/>
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="169"/>
+                <dock id="" activePageId="DopeSheet.1">
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+                <split size="0"/>
+                <dock id=""/>
+            </splitter>
+            <split size="0"/>
+            <dock id=""/>
+        </splitter>
+    </window>
+    <window x="3927" y="550" w="3673" h="2056" screen="1">
+        <splitter orientation="1">
+            <split size="3669"/>
+            <splitter orientation="2">
+                <split size="97"/>
+                <splitter orientation="1">
+                    <split size="633"/>
+                    <dock id=""/>
+                    <split size="257"/>
+                    <splitter orientation="2">
+                        <split size="97"/>
+                        <dock id="" activePageId="Toolbar_CompToolbar.1">
+                            <page id="Toolbar_CompToolbar.1"/>
+                        </dock>
+                    </splitter>
+                    <split size="2771"/>
+                    <dock id="" activePageId="Toolbar.1">
+                        <page id="Toolbar.1"/>
+                    </dock>
+                </splitter>
+                <split size="1951"/>
+                <splitter orientation="1">
+                    <split size="1057"/>
+                    <dock id="" activePageId="Properties.1">
+                        <page id="uk.co.thefoundry.scripteditor.1"/>
+                        <page id="W_scaleTree.widget"/>
+                        <page id="Properties.1"/>
+                    </dock>
+                    <split size="2608"/>
+                    <dock id="" activePageId="DAG.1">
+                        <page id="DAG.1"/>
+                        <page id="DAG.2"/>
+                    </dock>
+                </splitter>
+                <split size="0"/>
+                <dock id=""/>
+            </splitter>
+            <split size="0"/>
+            <dock id=""/>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /WORK_DATA/develop/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/QC_Netflix.nk
+ frame 1091
+ first_frame 1001
+ last_frame 1091
+ lock_range true
+ fps 23.976
+ format "4096 2304 0 0 4096 2304 1 "
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement OCIO
+ OCIO_config custom
+ customOCIOConfigPath /others/backstage/dcc/packages/ext/ocio_configs/1.2/config.ocio
+ defaultViewerLUT "OCIO LUTs"
+ workingSpaceLUT scene_linear
+ monitorLut ACES/Rec.709
+ int8Lut matte_paint
+ int16Lut texture_paint
+ logLut compositing_log
+ floatLut scene_linear
+ luts {linear {}
+   sRGB {}
+   rec709 {}
+   Cineon {}
+   Gamma1.8 {}
+   Gamma2.2 {}
+   Gamma2.4 {}
+   Gamma2.6 {}
+   Panalog {}
+   REDLog {}
+   ViperLog {}
+   AlexaV3LogC {}
+   PLogLin {}
+   SLog {}
+   SLog1 {}
+   SLog2 {}
+   SLog3 {}
+   CLog {}
+   Log3G10 {}
+   Log3G12 {}
+   HybridLogGamma {}
+   Protune {}
+   BT1886 {}
+   st2084 {}
+   REDSpace {}
+   "Blackmagic Film Generation 5" {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}
+   ARRILogC4 {}
+   cineon2 {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}}
+}
+Group {
+ inputs 0
+ name QC_Netflix
+ tile_color 0x5b0e0eff
+ label TechCheck
+ note_font "DejaVu Sans"
+ note_font_size 15
+ xpos 348
+ ypos -27
+ addUserKnob {20 User}
+ addUserKnob {26 Check_dark_areas -STARTLINE T ""}
+ addUserKnob {41 gamma T CC_Dark_1.gamma}
+ addUserKnob {26 line1 l "" +STARTLINE}
+ addUserKnob {26 Check_bright_areas -STARTLINE T ""}
+ addUserKnob {41 gain T CC_High_2.gain}
+ addUserKnob {26 ""}
+ addUserKnob {26 Grain_mv -STARTLINE T ""}
+ addUserKnob {41 translate T Transform_mv1.translate}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x353528ff
+  label "QC check"
+  note_font "Bitstream Vera Sans Bold"
+  note_font_size 100
+  xpos 1145
+  ypos -1056
+  bdwidth 4592
+  bdheight 4390
+  z_order -2
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode10
+  tile_color 0xaaaaaa00
+  label "scan check exr read"
+  note_font_size 42
+  xpos 1647
+  ypos -848
+  bdwidth 450
+  bdheight 715
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode11
+  tile_color 0xaaaaaaff
+  label "comp exr read"
+  note_font_size 42
+  xpos 3222
+  ypos -885
+  bdwidth 419
+  bdheight 747
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x5b4f5bff
+  label "Layout in quad screen"
+  note_font_size 42
+  xpos 1664
+  ypos 1399
+  bdwidth 1080
+  bdheight 788
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode4
+  tile_color 0x536653ff
+  label "Output quard view images for Tech Check.\nIn the file naming method, \[Department] is set to \[_techcheck_]."
+  note_font_size 24
+  xpos 1363
+  ypos 2520
+  bdwidth 476
+  bdheight 711
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode5
+  tile_color 0x595959ff
+  label "Grain check"
+  note_font_size 42
+  xpos 3148
+  ypos 98
+  bdwidth 1775
+  bdheight 1424
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode6
+  tile_color 0x848484ff
+  label "Color Correct"
+  note_font_size 42
+  xpos 2247
+  ypos 240
+  bdwidth 572
+  bdheight 445
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode7
+  tile_color 0x388e8e00
+  label "Scan, Comp difference"
+  note_font_size 42
+  xpos 1741
+  ypos 239
+  bdwidth 492
+  bdheight 447
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode8
+  tile_color 0xaaaaaa00
+  label "pixel error check\nNan,  Inf"
+  note_font_size 42
+  xpos 5150
+  ypos 250
+  bdwidth 410
+  bdheight 1204
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode9
+  tile_color 0x4a604aff
+  label "Pixel error indication\nInf => Red,  Nan => Green"
+  note_font_size 42
+  xpos 3033
+  ypos 1964
+  bdwidth 843
+  bdheight 670
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode12
+  tile_color 0x51514fff
+  label "Check bright areas\ngain / 4"
+  note_font_size 24
+  xpos 2262
+  ypos 396
+  bdwidth 247
+  bdheight 170
+  z_order 1
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode13
+  tile_color 0x51514fff
+  label "Check dark areas\ngamma x 3"
+  note_font_size 24
+  xpos 2532
+  ypos 396
+  bdwidth 250
+  bdheight 169
+  z_order 1
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode14
+  tile_color 0x7171c600
+  label "expression : Find the pixels whose color value is Nan or Inf, \nwhere Nan is G set to 1 and Inf is R set to 1.\n"
+  note_font_size 24
+  xpos 5176
+  ypos 383
+  bdwidth 330
+  bdheight 272
+  z_order 1
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode15
+  tile_color 0x388e8e00
+  label "In each frame, if there is more than 1 pixel of R and G values, \nwhich are the inf and nan marks, the entire screen is set to 1 for R and G.\n"
+  note_font_size 24
+  xpos 5179
+  ypos 668
+  bdwidth 325
+  bdheight 613
+  z_order 1
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode32
+  tile_color 0xa8a686ff
+  label COMP
+  note_font_size 42
+  xpos 3268
+  ypos 326
+  bdwidth 483
+  bdheight 1063
+  z_order 1
+ }
+ Input {
+  inputs 0
+  name comp_fin
+  xpos 3381
+  ypos -772
+ }
+ Dot {
+  name Dot15
+  label comp_fin
+  note_font "DejaVu Sans Bold"
+  note_font_size 50
+  xpos 3400
+  ypos -661
+ }
+ NoOp {
+  name NoOp1
+  label "COMP\n"
+  xpos 3381
+  ypos -500
+ }
+ NoOp {
+  name NoOp2
+  xpos 3381
+  ypos -401
+ }
+ Dot {
+  name Dot2
+  xpos 3401
+  ypos -66
+ }
+set Ne0151d00 [stack 0]
+ NoOp {
+  name NoOp7
+  xpos 3400
+  ypos 165
+ }
+ NoOp {
+  name NoOp8
+  xpos 3400
+  ypos 350
+ }
+ Crop {
+  box {-2 -2 3842 1922}
+  reformat true
+  crop false
+  name Crop10
+  xpos 3400
+  ypos 431
+ }
+ NoOp {
+  name NoOp60
+  xpos 3415
+  ypos 470
+ }
+set Ne0223900 [stack 0]
+ Transform {
+  translate {0.5 0.5}
+  center {1920 960}
+  name Transform_mv1
+  xpos 3545
+  ypos 438
+ }
+push $Ne0151d00
+ Dot {
+  name Dot20
+  xpos 5320
+  ypos -66
+ }
+ NoOp {
+  name NoOp28
+  xpos 5302
+  ypos 177
+ }
+ NoOp {
+  name NoOp29
+  xpos 5302
+  ypos 491
+ }
+ Expression {
+  temp_name0 IS_NAN
+  temp_expr0 "(isnan(r) || isnan(g) || isnan(b))"
+  temp_name1 IS_INF
+  temp_expr1 "(isinf(r) || isinf(g) || isinf(b))"
+  expr0 IS_INF
+  expr1 IS_NAN
+  expr2 0
+  name Expression_Inf_R___Nan_G_2
+  xpos 5300
+  ypos 541
+ }
+ NoOp {
+  name NoOp30
+  xpos 5300
+  ypos 587
+ }
+ NoOp {
+  name NoOp31
+  xpos 5300
+  ypos 897
+ }
+ Multiply {
+  value 7000000
+  name Multiply_pixcels2
+  xpos 5300
+  ypos 948
+ }
+ Blur {
+  size 3840
+  name Blur4
+  xpos 5300
+  ypos 1001
+ }
+ Clamp {
+  maximum 0.01
+  MinClampTo_enable true
+  MaxClampTo_enable true
+  name Clamp3
+  xpos 5300
+  ypos 1047
+ }
+ NoOp {
+  name NoOp32
+  xpos 5300
+  ypos 1133
+ }
+ Dot {
+  name Dot21
+  xpos 5319
+  ypos 2192
+ }
+ NoOp {
+  name NoOp33
+  xpos 3707
+  ypos 2206
+ }
+set Ne02e6400 [stack 0]
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.alpha 0 3 rgba.red 0 0 rgba.red 0 0 rgba.red 0 0 rgba.blue 0 2 rgba.red 0 0 rgba.green 0 1"
+  name Shuffle1
+  xpos 3707
+  ypos 2272
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "3840 2160 0 0 3840 2160 1 UHD_4K"
+  name Constant4
+  xpos 3268
+  ypos 2064
+ }
+ NoOp {
+  name NoOp34
+  xpos 3268
+  ypos 2174
+ }
+set Ne02e4800 [stack 0]
+ Rectangle {
+  area {1920 1060 2120 1100}
+  color {1 0 0 1}
+  name Rectangle3
+  xpos 3399
+  ypos 2174
+ }
+set Ne02e4100 [stack 0]
+ Merge2 {
+  inputs 2
+  operation multiply
+  name Merge12
+  xpos 3707
+  ypos 2379
+ }
+push $Ne02e4100
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy3
+  xpos 3399
+  ypos 2372
+ }
+ Premult {
+  name Premult3
+  xpos 3399
+  ypos 2428
+ }
+ Dot {
+  name Dot22
+  xpos 3433
+  ypos 2478
+ }
+push $Ne02e6400
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.green 0 1 rgba.blue 0 2 rgba.green 0 1 rgba.green 0 1 rgba.green 0 1 rgba.alpha 0 3 rgba.green 0 1 rgba.red 0 0"
+  name Shuffle3
+  xpos 3581
+  ypos 2272
+ }
+push $Ne02e4800
+ Rectangle {
+  area {1720 1060 1920 1100}
+  color {0 1 0 1}
+  name Rectangle4
+  xpos 3119
+  ypos 2174
+ }
+set Ne02c4800 [stack 0]
+ Merge2 {
+  inputs 2
+  operation multiply
+  name Merge13
+  xpos 3266
+  ypos 2379
+ }
+push $Ne02c4800
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy4
+  xpos 3119
+  ypos 2372
+ }
+ Premult {
+  name Premult4
+  xpos 3119
+  ypos 2429
+ }
+ Merge2 {
+  inputs 2
+  name Merge14
+  xpos 3119
+  ypos 2492
+ }
+ Dot {
+  name Dot23
+  xpos 3138
+  ypos 2633
+ }
+push $Ne0151d00
+ Dot {
+  name Dot4
+  xpos 2476
+  ypos -66
+ }
+set Ne02a4f00 [stack 0]
+ NoOp {
+  name NoOp6
+  xpos 2457
+  ypos 326
+ }
+set Ne02a4800 [stack 0]
+ ColorCorrect {
+  gamma 3
+  name CC_Dark_1
+  label "gamma x 3"
+  xpos 2560
+  ypos 493
+ }
+ NoOp {
+  name NoOp9
+  xpos 2560
+  ypos 1969
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  black_outside true
+  name Reformat1
+  xpos 2560
+  ypos 2001
+ }
+ Crop {
+  box {0 0 1920 1080}
+  reformat true
+  crop false
+  name Crop3
+  xpos 2560
+  ypos 2043
+ }
+ NoOp {
+  name NoOp10
+  xpos 2560
+  ypos 2072
+ }
+ Transform {
+  translate {1920 0}
+  center {960 540}
+  name Transform1
+  xpos 2560
+  ypos 2118
+ }
+push $Ne02a4800
+ ColorCorrect {
+  gain 0.25
+  name CC_High_2
+  label "gain / 4"
+  xpos 2330
+  ypos 495
+ }
+ NoOp {
+  name NoOp11
+  xpos 2330
+  ypos 1867
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  black_outside true
+  name Reformat2
+  xpos 2330
+  ypos 1905
+ }
+ Crop {
+  box {0 0 1920 1080}
+  reformat true
+  crop false
+  name Crop4
+  xpos 2330
+  ypos 1954
+ }
+ NoOp {
+  name NoOp16
+  xpos 2330
+  ypos 1982
+ }
+ Transform {
+  center {960 540}
+  name Transform2
+  xpos 2330
+  ypos 2018
+ }
+push $Ne0223900
+push $Ne0223900
+ NoOp {
+  name NoOp39
+  xpos 3390
+  ypos 524
+ }
+set Ne0223200 [stack 0]
+ Transform {
+  translate {0 {-parent.Transform_mv1.translate.y}}
+  center {1920 960}
+  name TransformD3
+  xpos 3345
+  ypos 650
+ }
+push $Ne0223200
+ Transform {
+  translate {0 {parent.Transform_mv1.translate.y}}
+  center {1920 960}
+  name TransformU3
+  xpos 3345
+  ypos 563
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus17
+  xpos 3398
+  ypos 707
+ }
+push $Ne0223200
+ Transform {
+  translate {{parent.Transform_mv1.translate.x} 0}
+  center {1920 960}
+  name TransformR3
+  xpos 3426
+  ypos 606
+ }
+push $Ne0223200
+ Transform {
+  translate {{-parent.Transform_mv1.translate.x} 0}
+  center {1920 960}
+  name TransformL3
+  xpos 3280
+  ypos 602
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus18
+  xpos 3280
+  ypos 709
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus19
+  xpos 3346
+  ypos 766
+ }
+ Multiply {
+  value 0.25
+  name Multiply9
+  xpos 3346
+  ypos 808
+ }
+push $Ne0223900
+ NoOp {
+  name NoOp51
+  xpos 3593
+  ypos 520
+ }
+set Nb01c6b00 [stack 0]
+ Transform {
+  translate {{"parent.Transform_mv1.translate.x * cos( radians(45) )"} {"-parent.Transform_mv1.translate.y * sin( radians(45) )"}}
+  center {1920 960}
+  name TransformDR3
+  xpos 3624
+  ypos 655
+ }
+push $Nb01c6b00
+ Transform {
+  translate {{"-parent.Transform_mv1.translate.x * cos( radians(45) )"} {"parent.Transform_mv1.translate.y * sin( radians(45) )"}}
+  center {1920 960}
+  name TransformUL3
+  xpos 3555
+  ypos 563
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus20
+  xpos 3645
+  ypos 712
+ }
+push $Nb01c6b00
+ Transform {
+  translate {{"parent.Transform_mv1.translate.x * cos( radians(45) )"} {"parent.Transform_mv1.translate.y * sin( radians(45) )"}}
+  center {1920 960}
+  name TransformUR3
+  xpos 3663
+  ypos 578
+ }
+push $Nb01c6b00
+ Transform {
+  translate {{"-parent.Transform_mv1.translate.x * cos( radians(45) )"} {"-parent.Transform_mv1.translate.y * sin( radians(45) )"}}
+  center {1920 960}
+  name TransformDL3
+  xpos 3528
+  ypos 639
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus21
+  xpos 3528
+  ypos 714
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus22
+  xpos 3594
+  ypos 771
+ }
+ Multiply {
+  value 0.25
+  name Multiply10
+  xpos 3594
+  ypos 809
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus23
+  xpos 3473
+  ypos 847
+ }
+ Multiply {
+  value 0.5
+  name Multiply11
+  xpos 3473
+  ypos 889
+ }
+ Merge2 {
+  inputs 2
+  operation minus
+  name Merge11
+  xpos 3400
+  ypos 938
+ }
+set Nb018cf00 [stack 0]
+ Multiply {
+  value -1
+  name Multiply12
+  xpos 3490
+  ypos 978
+ }
+ Clamp {
+  maximum 0.02
+  name Clamp4
+  xpos 3490
+  ypos 1042
+ }
+ set Cb015f900 [stack 0]
+push $Nb018cf00
+clone $Cb015f900 {
+  xpos 3368
+  ypos 1024
+  selected false
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Plus24
+  xpos 3400
+  ypos 1104
+ }
+ NoOp {
+  name NoOp52
+  xpos 3400
+  ypos 1161
+ }
+ Grade {
+  multiply 30
+  name Grade2
+  xpos 3400
+  ypos 1201
+ }
+ NoOp {
+  name NoOp53
+  xpos 3400
+  ypos 1243
+ }
+ Transform {
+  translate {{parent.Crop10.box.x} {parent.Crop10.box.y}}
+  center {1922 962}
+  name Transform13
+  xpos 3237
+  ypos 1264
+ }
+ Reformat {
+  format "3840 1920 0 0 3840 1920 1 3840x1920"
+  resize none
+  center false
+  black_outside true
+  name Reformat6
+  xpos 3400
+  ypos 1312
+ }
+ Crop {
+  box {0 0 3840 1920}
+  name Crop14
+  xpos 3400
+  ypos 1361
+ }
+ NoOp {
+  name NoOp54
+  xpos 3400
+  ypos 1445
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  black_outside true
+  name Reformat11
+  xpos 3400
+  ypos 1483
+ }
+ NoOp {
+  name NoOp47
+  xpos 3406
+  ypos 1584
+ }
+ Transform {
+  translate {1920 1080}
+  center {960 540}
+  name Transform14
+  xpos 3406
+  ypos 1632
+ }
+push $Ne02a4f00
+ Dot {
+  name Dot14
+  xpos 2060
+  ypos -66
+ }
+set Nb0117200 [stack 0]
+ Input {
+  inputs 0
+  name plate
+  xpos 1822
+  ypos -746
+  number 1
+ }
+ Dot {
+  name Dot1
+  label plate
+  note_font "DejaVu Sans Bold"
+  note_font_size 50
+  xpos 1841
+  ypos -661
+ }
+ NoOp {
+  name NoOp23
+  label "SCAN\n\n"
+  xpos 1822
+  ypos -500
+ }
+ Dot {
+  name Dot17
+  xpos 1842
+  ypos -66
+ }
+set Nb0115600 [stack 0]
+ Merge2 {
+  inputs 2
+  operation minus
+  name Merge2
+  xpos 2041
+  ypos 357
+ }
+ Clamp {
+  maximum_enable false
+  name Clamp1
+  xpos 2041
+  ypos 493
+ }
+push $Nb0115600
+push $Nb0117200
+ Merge2 {
+  inputs 2
+  operation minus
+  name Merge3
+  xpos 1824
+  ypos 356
+ }
+ Clamp {
+  maximum_enable false
+  name Clamp2
+  xpos 1824
+  ypos 426
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge4
+  xpos 1824
+  ypos 500
+ }
+ NoOp {
+  name NoOp24
+  xpos 1824
+  ypos 568
+ }
+ NoOp {
+  name NoOp25
+  xpos 1824
+  ypos 1581
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  black_outside true
+  name Reformat9
+  xpos 1824
+  ypos 1619
+ }
+ Crop {
+  box {0 0 1920 1080}
+  reformat true
+  crop false
+  name Crop7
+  xpos 1824
+  ypos 1661
+ }
+ NoOp {
+  name NoOp26
+  xpos 1824
+  ypos 1699
+ }
+ Transform {
+  translate {0 1080}
+  center {960 540}
+  name Transform5
+  xpos 1824
+  ypos 1753
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "3840 2160 0 0 3840 2160 1 UHD_4K"
+  name Constant2
+  xpos 1542
+  ypos 1498
+ }
+ Reformat {
+  format "3840 2160 0 0 3840 2160 1 UHD_4K"
+  resize none
+  center false
+  name Reformat10
+  xpos 1542
+  ypos 1640
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge5
+  xpos 1542
+  ypos 1753
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge6
+  xpos 1542
+  ypos 1831
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge7
+  xpos 1542
+  ypos 2018
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge9
+  xpos 1542
+  ypos 2118
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge15
+  xpos 1542
+  ypos 2647
+ }
+ Dot {
+  name Dot16
+  xpos 1562
+  ypos 2745
+ }
+ Shuffle2 {
+  fromInput1 {{0} B}
+  fromInput2 {{0} B}
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 white -1 -1 rgba.alpha 0 3"
+  name Shuffle2
+  xpos 1542
+  ypos 2866
+ }
+ Text {
+  message "\[format \"%06d\" \[expr \[frame]]]\n"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  yjustify center
+  Transform 1
+  box {3653.899902 -12.30000019 3840.5 24.69999981}
+  center {2048 1152}
+  name Text_frame
+  xpos 1542
+  ypos 2894
+ }
+ Text {
+  message "Difference\n"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 45
+  yjustify center
+  Transform 1
+  box {3590.199951 -12.30000019 3840.5 24.69999981}
+  translate {-2757 1074.5}
+  center {3786 -2}
+  name Text_LU
+  xpos 1542
+  ypos 2922
+ }
+ Text {
+  message "Grain check\n"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 45
+  yjustify center
+  Transform 1
+  box {3600.199951 -12.30000019 3908.800049 24.69999981}
+  translate {-840 1074.5}
+  center {3786 -2}
+  name Text_RU
+  xpos 1542
+  ypos 2950
+ }
+ Text {
+  message "Check bright areas (gain x 1/4)"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 45
+  yjustify center
+  Transform 1
+  box {3600.199951 -30.20000076 4381.600098 24.69999981}
+  translate {-2889 34.5}
+  center {3786 -2}
+  name Text_LD
+  xpos 1542
+  ypos 2978
+ }
+ Text {
+  message "Check dark areas (gamma x 3)\n"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 45
+  yjustify center
+  Transform 1
+  box {3600.199951 -30.20000076 4381.600098 -24.69999981}
+  translate {-929 34.5}
+  center {3786 -2}
+  name Text_RD
+  xpos 1542
+  ypos 3006
+ }
+ NoOp {
+  name NoOp59
+  xpos 1542
+  ypos 3034
+ }
+ Crop {
+  box {0 0 3840 2160}
+  reformat true
+  crop false
+  name Crop15
+  xpos 1652
+  ypos 3062
+ }
+ Crop {
+  box {0 0 3840 2160}
+  reformat true
+  crop false
+  name Crop9
+  xpos 1542
+  ypos 3075
+ }
+ Output {
+  name Output1
+  xpos 1743
+  ypos 3263
+ }
+end_group

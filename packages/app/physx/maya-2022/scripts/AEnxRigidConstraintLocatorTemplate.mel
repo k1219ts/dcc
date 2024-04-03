@@ -1,0 +1,43 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+// AEnxRigidConstraintTemplate
+
+global proc AEnxRigidConstraintLocatorTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;	
+		// include/call base class/node attributes
+		AEdynBaseTemplate $nodeName;
+		AEdynObjectCommon $nodeName;
+		AEdynObjectInclude $nodeName;
+		// Maya LT does not support the dynamics tools. use the following
+		// editorTemplate -suppress "dynamicsWeight";
+		// editorTemplate -suppress "goalGeometry";
+		editorTemplate -callCustom "AEnxRigidConstraintLocator_New" "AEnxRigidConstraintLocator_Replace" "";
+		editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}
+
+global proc AEnxRigidConstraintLocator_New( string $nodeName )//, string $arg )
+{
+	string $buffer[];
+	tokenize($nodeName, ".", $buffer);
+	string $node = $buffer[0];
+	string $parent = firstParentOf($node);
+	//print("AEnxRigidConstraintLocator_New: " + $parent + "\n");
+	//evalDeferred ("nxShowEditorExact " + $parent);
+}
+
+global proc AEnxRigidConstraintLocator_Replace( string $nodeName )//, string $arg )
+{
+	string $buffer[];
+	tokenize($nodeName, ".", $buffer);
+	string $node = $buffer[0];
+	string $parent = firstParentOf($node);
+	//print("AEnxRigidConstraintLocator_Replace: " + $parent + "\n");
+	//evalDeferred ("nxShowEditorExact " + $parent);
+}

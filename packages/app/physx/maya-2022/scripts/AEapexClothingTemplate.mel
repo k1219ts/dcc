@@ -1,0 +1,4103 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+source "nxPhysicalMaterialSetLayout.mel";
+
+global string $AEapexClothing_LODGraphicalMeshList = "AEapexClothinggraphicalMeshList";
+global string $AEapexClothing_LODGraphicalMeshPickButton = "AEapexClothinggraphicalMeshPickButton";
+global string $AEapexClothing_LODGraphicalMeshRemoveButton = "AEapexClothinggraphicalMeshRemoveButton";
+global string $AEapexClothing_LODGraphicalMeshUpButton = "AEapexClothinggraphicalMeshUpButton";
+global string $AEapexClothing_LODGraphicalMeshDownButton = "AEapexClothinggraphicalMeshDownButton";
+global string $AEapexClothing_LODGraphicalMeshShowAllLODMeshesCheckBox = "AEapexClothinggraphicalMeshhowAllLODMeshesCheckBox";
+//global string $AEapexClothing_LODGraphicalMeshLodMin = "AEapexClothinggraphicalMeshLodMinFloatGrp";
+//global string $AEapexClothing_LODGraphicalMeshLodMax = "AEapexClothinggraphicalMeshLodMaxFloatGrp";
+//global string $AEapexClothing_LODGraphicalMeshLodSplit = "AEapexClothinggraphicalMeshLodSplitTextGrp";
+//global string $AEapexClothing_LODGraphicalMeshLodBudget = "AEapexClothinggraphicalMeshLodBudgetFloatGrp";
+
+global string $AEapexClothing_MeshAttrPhysMeshType = "AEapexClothinggraphicalMeshAttrPhysMeshTypeOptionMenuGrp";
+//global string $AEapexClothing_MeshAttrPhysMeshStyle = "AEapexClothinggraphicalMeshAttrPhysMeshStyleOptionMenuGrp";
+
+global string $AEapexClothing_PhysMeshTypeOptionMenuGrpColumnLayout = "AEapexClothing_PhysMeshTypeOptionMenuGrpColumnLayout";
+//global string $AEapexClothing_PhysMeshStyleOptionMenuGrpColumnLayout = "AEapexClothing_PhysMeshStyleOptionMenuGrpColumnLayout";
+global string $AEapexClothing_ShareWithColumnLayout = "AEapexClothing_ShareWithColumnLayout";
+global string $AEapexClothing_FromGraphicalColumnLayout = "AEapexClothing_FromGraphicalColumnLayout";
+global string $AEapexClothing_CustomColumnLayout = "AEapexClothing_CustomColumnLayout";
+
+global string $AEapexClothing_GraphicalMeshAttribute1 = "AEapexClothinggraphicalMeshAttrChkBox1";
+global string $AEapexClothing_GraphicalMeshAttribute2 = "AEapexClothinggraphicalMeshAttrChkBox2";
+//global string $AEapexClothing_MeshAttrMergeVertices = "AEapexClothinggraphicalMeshAttrMergeVerticesChkBox";
+//global string $AEapexClothing_MeshAttrCloseHoles = "AEapexClothinggraphicalMeshAttrCloseHolesChkBox";
+//global string $AEapexClothing_MeshAttrUseBindPose = "AEapexClothinggraphicalMeshAttrUseBindPoseChkBox";
+
+global string $AEapexClothing_MeshAttrPhysMeshType_GRAPHICS_name = "From Graphical";
+global string $AEapexClothing_MeshAttrPhysMeshType_SHARE_name = "Share with...";
+global string $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_name = "Custom";
+global int $AEapexClothing_MeshAttrPhysMeshType_GRAPHICS_value = 0;
+global int $AEapexClothing_MeshAttrPhysMeshType_SHARE_value = 1;
+global int $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value = 2;
+
+global string $AEapexClothing_LODRelatedNodesList = "AEapexClothinggraphicalNodeList";
+global string $AEapexClothing_LODRelatedNodeNames[] = {};
+
+global string $gOutlinerWindowForRootTranslation = "AEapexClothingOutlinerWindowForRootTranslation";
+global string $gOutlinerWindowForAddGraphicalLodMesh = "AEapexClothingOutlinerWindowForAddGraphicalLodMesh";
+
+global string $AEapexClothing_ClothingNodeName;
+
+global proc AEapexClothingTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;
+	editorTemplate -beginLayout "General" -collapse false;
+
+	global string $AEapexClothing_ClothingNodeName;
+
+	$AEapexClothing_ClothingNodeName = $nodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	
+	columnLayout -columnAttach "both" 5 -rowSpacing 10 -columnWidth 250;
+	
+		editorTemplate -callCustom "AEapexClothing_RebuildButtonNew"
+			"AEapexClothing_RebuildButtonReplace"
+			"rebuildTrigger";	
+
+		// ADD UI FOR CHANGING LOD HERE!!!
+
+		AEapexClothing_AddSeparator( );	
+		
+		editorTemplate -beginNoOptimize;	
+		//editorTemplate -label "Enable Automatic Rebuild" -addControl "rebuildAuto";
+		editorTemplate -label "Enable Simulation In Playback"  -addControl "enableSimulation";
+		editorTemplate -callCustom "AEapexClothing_LODUseGravityNew" "AEapexClothing_LODUseGravityReplace" "lodUseGravity";
+
+		editorTemplate -beginLayout "Root Translation" -collapse false;
+		editorTemplate -callCustom "AEapexClothing_RootTranslationNew"
+			"AEapexClothing_RootTranslationReplace"
+			"rootJointName";	
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Display" -collapse false;
+			editorTemplate -addControl "showPhysicalMeshSolid";
+			editorTemplate -addControl "showPhysicalMeshWire";
+		editorTemplate -endLayout;
+
+		editorTemplate -endNoOptimize;	
+		
+		//AEapexClothing_AddSeparator( );			
+		//editorTemplate -beginNoOptimize;	
+		//editorTemplate -addControl "showGraphicalMesh";
+		//editorTemplate -addControl "showPhysicalMeshSolid";
+		//editorTemplate -addControl "showPhysicalMeshWire";
+		//editorTemplate -endNoOptimize;	
+
+		
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Cloth Materials" -collapse false;
+
+		editorTemplate -callCustom "AEapexClothing_physicalMaterialSetNew"
+				"AEapexClothing_physicalMaterialSetReplace"
+				$nodeName;
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Physical Material" -collapse false;
+
+			
+		editorTemplate -callCustom "AEapexClothing_paintNew"
+				"AEapexClothing_paintReplace"
+				$nodeName
+				"unified";
+
+// 		editorTemplate -callCustom "AEapexClothing_presetNew"
+// 			"AEapexClothing_presetReplace"
+// 			$nodeName;
+
+		AEapexClothing_AddSeparator( );	
+
+		editorTemplate -callCustom "AEapexClothing_LODGravityScaleNew" "AEapexClothing_LODGravityScaleReplace" "lodGravityScale";
+		editorTemplate -callCustom "AEapexClothing_LODFrictionNew" "AEapexClothing_LODFrictionReplace" "lodFriction";
+		editorTemplate -callCustom "AEapexClothing_BendinessNew" "AEapexClothing_BendinessReplace" "bendiness";
+		editorTemplate -callCustom "AEapexClothing_StiffnessShearinessNew" "AEapexClothing_StiffnessShearinessReplace" "lodStiffnessSheariness";
+		editorTemplate -callCustom "AEapexClothing_StretchLimitNew" "AEapexClothing_StretchLimitReplace" "lodStretchLimit";
+		editorTemplate -callCustom "AEapexClothing_TetherStiffnessRelaxNew" "AEapexClothing_TetherStiffnessRelaxReplace" "lodTetherStiffnessRelax";
+		editorTemplate -callCustom "AEapexClothing_DampingNew" "AEapexClothing_DampingReplace" "lodDampingCoefficient";
+		editorTemplate -callCustom "AEapexClothing_DragNew" "AEapexClothing_DragReplace" "lodDrag";
+		editorTemplate -callCustom "AEapexClothing_InertiaBlendNew" "AEapexClothing_InertiaBlendReplace" "lodInertiaBlend";
+
+		AEapexClothing_AddSeparator( );	
+								
+		editorTemplate -beginLayout "Fiber Limits" -collapse false;
+			editorTemplate -callCustom "AEapexClothing_FiberCompressionNew" "AEapexClothing_FiberCompressionReplace" "lodFiberCompression";
+			editorTemplate -callCustom "AEapexClothing_FiberExpansionNew" "AEapexClothing_FiberExpansionReplace" "lodFiberExpansion";
+			editorTemplate -callCustom "AEapexClothing_FiberResistanceNew" "AEapexClothing_FiberResistanceReplace" "lodFiberResistance";
+		editorTemplate -endLayout;
+
+				
+	editorTemplate -endLayout;	
+
+	editorTemplate -beginLayout "Advanced Material" -collapse false;
+		editorTemplate -beginLayout "Advanced Fiber Limits" -collapse false;
+			editorTemplate -callCustom "AEapexClothing_OverrideFiberNew" "AEapexClothing_OverrideFiberReplace" "lodOverrideFiber";
+
+			editorTemplate -addSeparator;	
+			editorTemplate -callCustom "AEapexClothing_LengthFiberCompressionNew" "AEapexClothing_LengthFiberCompressionReplace" "lodLengthFiberCompression";
+			editorTemplate -callCustom "AEapexClothing_LengthFiberExpansionNew" "AEapexClothing_LengthFiberExpansionReplace" "lodLengthExpansionCompression";
+			editorTemplate -callCustom "AEapexClothing_LengthFiberResistanceNew" "AEapexClothing_LengthFiberResistanceReplace" "lodLengthFiberResistance";
+			editorTemplate -addSeparator;	
+			editorTemplate -callCustom "AEapexClothing_CrossSectionFiberCompressionNew" "AEapexClothing_CrossSectionFiberCompressionReplace" "lodCrossSectionFiberCompression";
+			editorTemplate -callCustom "AEapexClothing_CrossSectionFiberExpansionNew" "AEapexClothing_CrossSectionFiberExpansionReplace" "lodCrossSectionExpansionCompression";
+			editorTemplate -callCustom "AEapexClothing_CrossSectionFiberResistanceNew" "AEapexClothing_CrossSectionFiberResistanceReplace" "lodCrossSectionFiberResistance";
+			editorTemplate -addSeparator;	
+			editorTemplate -callCustom "AEapexClothing_BendingFiberCompressionNew" "AEapexClothing_BendingFiberCompressionReplace" "lodBendingFiberCompression";
+			editorTemplate -callCustom "AEapexClothing_BendingFiberExpansionNew" "AEapexClothing_BendingFiberExpansionReplace" "lodBendingExpansionCompression";
+			editorTemplate -callCustom "AEapexClothing_BendingFiberResistanceNew" "AEapexClothing_BendingFiberResistanceReplace" "lodBendingFiberResistance";
+			editorTemplate -addSeparator;	
+			editorTemplate -callCustom "AEapexClothing_ShearingFiberCompressionNew" "AEapexClothing_ShearingFiberCompressionReplace" "lodShearingFiberCompression";
+			editorTemplate -callCustom "AEapexClothing_ShearingFiberExpansionNew" "AEapexClothing_ShearingFiberExpansionReplace" "lodShearingExpansionCompression";
+			editorTemplate -callCustom "AEapexClothing_ShearingFiberResistanceNew" "AEapexClothing_ShearingFiberResistanceReplace" "lodShearingFiberResistance";
+
+
+
+		editorTemplate -endLayout;	
+	editorTemplate -endLayout;	
+
+	editorTemplate -beginNoOptimize;
+	editorTemplate -beginLayout "Simulation" -collapse false;
+		editorTemplate -beginLayout "Collision" -collapse false;
+			editorTemplate -callCustom "AEapexClothing_CollisionThicknessNew" "AEapexClothing_CollisionThicknessReplace" "lodThickness";
+			editorTemplate -callCustom "AEapexClothing_LODSelfCollisionEnable3xNew" "AEapexClothing_LODSelfCollisionEnable3xReplace" "lodSelfCollisionEnable";
+			editorTemplate -callCustom "AEapexClothing_MassScaleNew" "AEapexClothing_MassScaleReplace" "lodMassScale";
+			editorTemplate -callCustom "AEapexClothing_VirtualParticleDensityNew" "AEapexClothing_VirtualParticleDensityReplace" "lodVirtualParticleDensity";
+			editorTemplate -callCustom "AEapexClothing_CCDNew" "AEapexClothing_CCDReplace" "lodDisableCCD";
+		editorTemplate -endLayout;	
+
+		editorTemplate -callCustom "AEapexClothing_RestLengthScaleNew" "AEapexClothing_RestLengthScaleReplace" "lodRestLengthScale";
+		editorTemplate -callCustom "AEapexClothing_SolverFrequencyNew" "AEapexClothing_SolverFrequencyReplace" "lodSolverFrequency";
+				
+		editorTemplate -callCustom "AEapexClothing_LODSlowStartNew" "AEapexClothing_LODSlowStartReplace" "lodSlowStart";
+		editorTemplate -callCustom "AEapexClothing_LODRecomputeNormalsNew" "AEapexClothing_LODRecomputeNormalsReplace" "lodRecomputeNormals";
+
+	editorTemplate -endLayout;	
+	editorTemplate -endNoOptimize;
+			
+	//** Legacy
+	//editorTemplate -beginLayout "Authoring Visualizer" -collapse false;
+
+	//	editorTemplate -label "Channel" -addControl "showHelper";
+	//	editorTemplate -label "Scale" -addControl "drawingScaled";
+
+	//	//AEapexClothing_AddSeparator( );	
+
+	//	//editorTemplate -label "Shape" -addControl "drawingShape";
+	//	
+	//	//editorTemplate -beginNoOptimize;	
+	//	//editorTemplate -endNoOptimize;	
+	//	
+	//	//editorTemplate -label "Size" -addControl "drawingSize";
+
+	//	//editorTemplate -label "Min Color" -addControl "minColor";
+	//	//editorTemplate -label "Max Color" -addControl "maxColor";
+
+	//	//editorTemplate -callCustom "AEapexClothing_vertexSelectionNew"
+	//	//		"AEapexClothing_vertexSelectionChanged"
+	//	//		$nodeName
+	//	//		"Vertex selection";
+	//editorTemplate -endLayout;
+
+
+	//editorTemplate -beginLayout "Simulation Visualizer" -collapse false;
+	//	editorTemplate -beginNoOptimize;	
+	//	editorTemplate -addControl "showSkeleton";
+	//	editorTemplate -addControl "showSkinnedPosition";
+	//	editorTemplate -addControl "showGraphicalVertexBones";
+	//	editorTemplate -addControl "showPhysicalVertexBones";
+	//	editorTemplate -addControl "showRenderNormals";
+	//	editorTemplate -addControl "showMaxDistanceIn";
+	//	editorTemplate -addControl "showMaxDistanceOut";
+	//	editorTemplate -addControl "showSphereCollision";
+	//	editorTemplate -endNoOptimize;
+	//editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Physical Mesh" -collapse true;
+
+		editorTemplate -callCustom "AEapexClothing_LODMeshAttributeNew"
+				"AEapexClothing_LODMeshAttributeReplace"
+				$nodeName; // 1 attribute to be passed, which is the node name prefixed by the node name (default)
+		editorTemplate -endNoOptimize;
+
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Level of Detail" -collapse false;
+
+		editorTemplate -callCustom "AEapexClothing_LODnew"
+				"AEapexClothing_LODreplace"
+				"lodMeshes"; // this should be the long name for the lod meshes attribute array
+
+		AEapexClothing_AddSeparator( );
+
+		//editorTemplate -label "deprecated LOD Clamp Min" -addControl "deprecated_lodClampMin" "AEapexClothing_dimLodClamps";
+		//editorTemplate -label "deprecated LOD Clamp Max" -addControl "deprecated_lodClampMax" "AEapexClothing_dimLodClamps";
+		//editorTemplate -label "deprecated LOD Splits" -addControl "deprecated_lodSplits";
+		//editorTemplate -label "deprecated LOD Budget" -addControl "deprecated_lodBudget";
+
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "LOD Overrides" -collapse false;
+
+	setUITemplate -pst attributeEditorTemplate;
+		editorTemplate -callCustom "AEapexClothing_LODPatintOverrideNew"
+			"AEapexClothing_LODPatintOverrideReplace";
+		editorTemplate -callCustom "AEapexClothing_LODPhysicalMaterialOverrideNew"
+			"AEapexClothing_LODPhysicalMaterialOverrideReplace";
+		editorTemplate -callCustom "AEapexClothing_LODAdvancedMaterialOverrideNew"
+			"AEapexClothing_LODAdvancedMaterialOverrideReplace";
+		editorTemplate -callCustom "AEapexClothing_LODSimulationOverrideNew"
+			"AEapexClothing_LODSimulationOverrideReplace";
+		editorTemplate -callCustom "AEapexClothing_LODPhysicalLODOverrideNew"
+			"AEapexClothing_LODPhysicalLODOverrideReplace";
+		editorTemplate -callCustom "AEapexClothing_LODResetOverrideNew" "AEapexClothing_LODResetOverrideReplace";
+			
+	setUITemplate -ppt;
+	editorTemplate -endLayout;
+
+// 	editorTemplate -beginLayout "Physical LOD" -collapse false;
+// 		editorTemplate -callCustom "AEnxAPEXClothingPhysicalLODNew" "AEnxAPEXClothingPhysicalLODReplace";
+// 	editorTemplate -endLayout;
+
+//	editorTemplate -beginLayout "Contact Layers" -collapse false;
+//		editorTemplate -callCustom "AEnxAPEXClothingContactLayersNew" "AEnxAPEXClothingContactLayersReplace" "contactLayers";
+//	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Simulation Sets" -collapse true;
+		editorTemplate -callCustom "AEnxAPEXClothingSimulationSetsNew" "AEnxAPEXClothingSimulationSetsReplace" "SimulationSetsBitArray";
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Advanced Attributes" -collapse true;
+
+		editorTemplate -callCustom "AEapexClothing_LODWindDirectionNew" "AEapexClothing_LODWindDirectionReplace" "lodWindDirection";
+		editorTemplate -callCustom "AEapexClothing_LODWindElevationNew" "AEapexClothing_LODWindElevationReplace" "lodWindElevation";
+		editorTemplate -callCustom "AEapexClothing_LODWindVelocityNew" "AEapexClothing_LODWindVelocityReplace" "lodWindVelocity";
+
+		//editorTemplate -addControl "meshSize"; //affects thickness
+
+		//editorTemplate -label "Physics Parallel Skin" -addControl "parallelPhysicsMeshSkinning";
+		//editorTemplate -label "Graphics Parallel Skin" -addControl "parallelMeshMeshSkinning";
+		//editorTemplate -label "CPU Parallel Skin" -addControl "parallelCpuSkinning";
+
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Related Nodes" -collapse false;
+		editorTemplate -callCustom "AEnxAPEXClothingRelatedNodesNew" "AEnxAPEXClothingRelatedNodesReplace";
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Statistics" -collapse false;
+		editorTemplate -callCustom "AEnxAPEXClothingStatisticsNew" "AEnxAPEXClothingStatisticsReplace";
+	editorTemplate -endLayout;
+
+	if( getApplicationVersionAsFloat() > 2013 )
+	{
+	editorTemplate -beginLayout "Bake Clothing" -collapse false;
+	editorTemplate -addControl "useBakeData";
+	editorTemplate -callCustom "AEnxAPEXClothingBakeClothingNew" "AEnxAPEXClothingBakeClothingReplace";
+	editorTemplate -endLayout;
+	}
+
+		// Suppress all deprecated attributes
+		editorTemplate -suppress "meshSize";
+		editorTemplate -suppress "parallelPhysicsMeshSkinning";
+		editorTemplate -suppress "parallelMeshMeshSkinning";
+		editorTemplate -suppress "parallelCpuSkinning";
+		editorTemplate -suppress "deprecated_visualizer";
+		editorTemplate -suppress "deprecated_outClothing";
+		editorTemplate -suppress "deprecated_collisionFactor";
+		editorTemplate -suppress "deprecated_usedForPhysics";
+		editorTemplate -suppress "deprecated_stretchStiffness";
+		editorTemplate -suppress "deprecated_bendingStiffness";
+		editorTemplate -suppress "deprecated_noEffectLabel";
+		editorTemplate -suppress "deprecated_maxDistances";
+		editorTemplate -suppress "deprecated_backStopOffset";
+		editorTemplate -suppress "deprecated_backStopRadius";
+		editorTemplate -suppress "deprecated_latchToNearest";
+		editorTemplate -suppress "deprecated_vertexSelection";
+		editorTemplate -suppress "deprecated_subdivisionEnable";
+		editorTemplate -suppress "deprecated_subdivisionSize";
+		editorTemplate -suppress "deprecated_simplificationEnable";
+		editorTemplate -suppress "deprecated_simplification";
+		editorTemplate -suppress "deprecated_tetrafication";
+		editorTemplate -suppress "deprecated_mergeVertices";
+		editorTemplate -suppress "deprecated_closeHoles";
+		editorTemplate -suppress "deprecated_useBindPose";
+		editorTemplate -suppress "deprecated_lodClampMin";
+		editorTemplate -suppress "deprecated_lodClampMax";
+		editorTemplate -suppress "deprecated_lodSplits";
+		editorTemplate -suppress "deprecated_lodSplits2";
+		editorTemplate -suppress "deprecated_lodBudget";
+		editorTemplate -suppress "deprecated_manualPhysicalMeshIn";
+
+		editorTemplate -suppress "caching";
+		editorTemplate -suppress "nodeState";
+		editorTemplate -suppress "input";
+		editorTemplate -suppress "weightList";
+		editorTemplate -suppress "envelope";
+		editorTemplate -suppress "map64BitIndices";
+		editorTemplate -suppress "paintMesh";
+		editorTemplate -suppress "maskOutOverriddenVertices";
+		editorTemplate -suppress "backStopDisplacement";
+		editorTemplate -suppress "showVertexVisualization";
+		editorTemplate -suppress "showGraphicalMesh";
+		editorTemplate -suppress "paintChannel";
+		editorTemplate -suppress "paintRangeLower";
+		editorTemplate -suppress "paintRangeUpper";
+		editorTemplate -suppress "showHelper";
+		editorTemplate -suppress "drawingShape";
+		editorTemplate -suppress "drawingSize";
+		editorTemplate -suppress "drawingScaled";
+		editorTemplate -suppress "drawingHidden";
+		editorTemplate -suppress "minColor";
+		editorTemplate -suppress "maxColor";
+		editorTemplate -suppress "rebuildAuto";
+		editorTemplate -suppress "exportClothingCollisionShape";
+		editorTemplate -suppress "exportClothingVisibleOnly";
+		editorTemplate -suppress "exportClothingReverseWind";
+		editorTemplate -suppress "solverIterations";
+		editorTemplate -suppress "hierarchicalSolverIterations";
+		editorTemplate -suppress "hierarchicalLevels";
+		editorTemplate -suppress "thickness";
+		editorTemplate -suppress "gravityScale";
+		editorTemplate -suppress "maxDistanceBias";
+		editorTemplate -suppress "stretchiness";
+		editorTemplate -suppress "stiffnessSheariness";
+		editorTemplate -suppress "stretchLimit";
+		editorTemplate -suppress "inertiaBlend";
+		editorTemplate -suppress "fiberRange";
+		editorTemplate -suppress "fiberResistance";
+		editorTemplate -suppress "massScale";
+		editorTemplate -suppress "virtualParticleDensity";
+		editorTemplate -suppress "restLengthScale";
+		editorTemplate -suppress "solverFrequency";
+		editorTemplate -suppress "lengthRange";
+		editorTemplate -suppress "lengthResistance";
+		editorTemplate -suppress "crossSectionLength";
+		editorTemplate -suppress "crossSectionResistance";
+		editorTemplate -suppress "drag";
+		editorTemplate -suppress "overrideFiber";
+		editorTemplate -suppress "compressionLimit";
+		editorTemplate -suppress "compressionStiffness";
+		editorTemplate -suppress "dampingCoefficient";
+		editorTemplate -suppress "friction";
+		editorTemplate -suppress "sleepLinearVelocity";
+		editorTemplate -suppress "useGravity";
+		editorTemplate -suppress "orthoBending";
+		editorTemplate -suppress "centerOfMassDamping";
+		editorTemplate -suppress "disableCCD";
+		editorTemplate -suppress "selfCollisionEnable";
+		editorTemplate -suppress "selfCollisionThickness";
+		editorTemplate -suppress "displayInViewport";
+		editorTemplate -suppress "antiStretchingEnabled";
+		editorTemplate -suppress "antiStretchingFactor";
+		editorTemplate -suppress "twoWay";
+		editorTemplate -suppress "untangle";
+		editorTemplate -suppress "maxDistanceBlendTime";
+		editorTemplate -suppress "recomputeNormals";
+		editorTemplate -suppress "slowStart";
+		editorTemplate -suppress "windDirection";
+		editorTemplate -suppress "windElevation";
+		editorTemplate -suppress "windVelocity";
+		editorTemplate -suppress "updateGfxMesh";
+		editorTemplate -suppress "updatePhysMesh";
+		editorTemplate -suppress "updateAssetAuthoring";
+		editorTemplate -suppress "updateAsset";
+		editorTemplate -suppress "updateActor";
+		editorTemplate -suppress "updateActorParams";
+		editorTemplate -suppress "updateMatrices";
+		editorTemplate -suppress "updateCurrentLod";
+		editorTemplate -suppress "initializeMode";
+		editorTemplate -suppress "updateLodIndexMaps";
+		editorTemplate -suppress "paintState";
+		editorTemplate -suppress "deprecated_physicalMeshStyle";
+		editorTemplate -suppress "sortedLogicalIndex";
+		editorTemplate -suppress "lodCompoundAttributes";
+		editorTemplate -suppress "currentGraphicalLOD";
+		editorTemplate -suppress "deprecated_normalsFromBones";
+		editorTemplate -suppress "defaultPhysicalMaterialSet";
+		editorTemplate -suppress "selectedPhysicalMaterialSet";
+		editorTemplate -suppress "physicalMaterialSets";
+		editorTemplate -suppress "contactLayers";
+		editorTemplate -suppress "physicalMaterialTable";
+		editorTemplate -suppress "physicalMaterialExport";
+		editorTemplate -suppress "relativeDisplayNode";
+		if( getApplicationVersionAsFloat() < 2014 )
+		{
+			editorTemplate -suppress "useBakeData";
+		}
+		editorTemplate -suppress "bakeDataArray";
+		editorTemplate -suppress "bakeDataVertices";
+		
+	editorTemplate -addExtraControls;
+	
+	editorTemplate -endScrollLayout;
+}
+
+global proc AEapexClothing_LODPatintOverrideNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Paint" -changeCommand "AEapexClothing_LODPatintOverrideUpdate" "AEapexClothing_LODPaintOverrideCheckBox";
+	AEapexClothing_LODPatintOverrideReplace();
+	setParent..;
+}
+
+global proc AEapexClothing_LODPatintOverrideReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPaintOverride");
+	int $value = `getAttr $plug`;
+	if(`checkBox -q -exists "AEapexClothing_LODPaintOverrideCheckBox"`)
+		checkBox -e -value $value "AEapexClothing_LODPaintOverrideCheckBox";
+}
+
+global proc string AEapexClothing_getPlug(string $lodAttributeName, string $pmAttributeName)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_IsPhysicalMaterialSetMode;
+
+	string $plug;
+	if( $AEapexClothing_IsPhysicalMaterialSetMode == 0 ) 
+	{
+ 		$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+ $lodAttributeName);
+	}
+	else
+	{
+		int $curPhysicalMaterialIndex = `getAttr ($AEapexClothing_ClothingNodeName+".selectedPhysicalMaterialSet")`;
+		$plug = ($AEapexClothing_ClothingNodeName+".physicalMaterialSets["+$curPhysicalMaterialIndex+"]."+$pmAttributeName);
+	}
+	return $plug;
+}
+
+global proc AEapexClothing_PhysicalMaterialReplaceTemplate(string $plugName, string $lodAttributeName, string $pmAttributeName, string $controlName )
+{
+	global int $AEapexClothing_PhysicalMaterialControlEnabled;
+
+	string $plug = AEapexClothing_getPlug($lodAttributeName,  $pmAttributeName);
+ 	attrFieldSliderGrp -e -at $plug -enable $AEapexClothing_PhysicalMaterialControlEnabled 
+		-changeCommand ("nxSetPhysicalMaterialCommand(\"#1\",\"" + $plug + "\",\"" + $lodAttributeName +"\")") $controlName;
+}
+
+global proc AEapexClothing_HideFiledForPhysX2(string $controlName)
+{
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		attrFieldSliderGrp -e -visible false  $controlName;
+	}
+	else
+	{
+		attrFieldSliderGrp -e -visible true $controlName;
+	}
+}
+
+global proc AEapexClothing_LODPatintOverrideUpdate()
+{
+	int $value = `checkBox -q -value "AEapexClothing_LODPaintOverrideCheckBox"`;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPaintOverride");
+	setAttr $plug $value;
+	global int $apexClothingPaint2_On;
+
+	// update paint visualizer
+	apexClothingPaintRange($AEapexClothing_ClothingNodeName);
+	refresh();
+}
+
+global proc AEapexClothing_LODPhysicalMaterialOverrideNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Physical Material" -changeCommand "AEapexClothing_LODPhysicalMaterialOverrideUpdate" "AEapexClothing_LODPhysicalMaterialCheckBox";
+	AEapexClothing_LODPhysicalMaterialOverrideReplace();
+	setParent..;
+}
+
+global proc AEapexClothing_LODPhysicalMaterialOverrideReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalMaterialOverride");
+	int $value = `getAttr $plug`;
+	if(`checkBox -q -exists "AEapexClothing_LODPhysicalMaterialCheckBox"`)
+		checkBox -e -value $value "AEapexClothing_LODPhysicalMaterialCheckBox";
+}
+
+global proc AEapexClothing_LODPhysicalMaterialOverrideUpdate()
+{
+	int $value = `checkBox -q -value "AEapexClothing_LODPhysicalMaterialCheckBox"`;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalMaterialOverride");
+	evalEcho ("setAttr " +  $plug + " " + $value);
+	AEapexClothing_UpdateUIWhenCurLodChanged(1);
+	string $physicalMaterialList = "AEapexClothing_PhysicalMaterialList";
+	AEnxRecreatePhysicalMaterialUIControl($AEapexClothing_ClothingNodeName, $physicalMaterialList);
+}
+
+global proc AEapexClothing_LODAdvancedMaterialOverrideNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Advanced Material" -changeCommand "AEapexClothing_LODAdvancedMaterialOverrideUpdate" "AEapexClothing_LODAdvancedMaterialCheckBox";
+	AEapexClothing_LODAdvancedMaterialOverrideReplace();
+	setParent..;
+}
+
+global proc AEapexClothing_LODAdvancedMaterialOverrideReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodAdvancedMaterialOverride");
+	int $value = `getAttr $plug`;
+	if(`checkBox -q -exists "AEapexClothing_LODAdvancedMaterialCheckBox"`)
+		checkBox -e -value $value "AEapexClothing_LODAdvancedMaterialCheckBox";
+}
+
+global proc AEapexClothing_LODAdvancedMaterialOverrideUpdate()
+{
+	int $value = `checkBox -q -value "AEapexClothing_LODAdvancedMaterialCheckBox"`;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodAdvancedMaterialOverride");
+	evalEcho ("setAttr " +  $plug + " " + $value);
+	AEapexClothing_UpdateUIWhenCurLodChanged(1);
+}
+
+global proc AEapexClothing_LODSimulationOverrideNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Simulation" -changeCommand "AEapexClothing_LODSimulationOverrideUpdate" "AEapexClothing_LODSimulationCheckBox";
+	AEapexClothing_LODSimulationOverrideReplace();
+	setParent..;
+}
+
+global proc AEapexClothing_LODSimulationOverrideReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodSimulationOverride");
+	int $value = `getAttr $plug`;
+	if(`checkBox -q -exists "AEapexClothing_LODSimulationCheckBox"`)
+		checkBox -e -value $value "AEapexClothing_LODSimulationCheckBox";
+}
+
+global proc AEapexClothing_LODSimulationOverrideUpdate()
+{
+	int $value = `checkBox -q -value "AEapexClothing_LODSimulationCheckBox"`;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodSimulationOverride");
+	evalEcho ("setAttr " +  $plug + " " + $value);
+	AEapexClothing_UpdateUIWhenCurLodChanged(1);
+}
+
+global proc AEapexClothing_LODPhysicalLODOverrideNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Physical Level Of Detail" -changeCommand "AEapexClothing_LODPhysicalLODOverrideUpdate" "AEapexClothing_LODPhysicalLODCheckBox";
+	AEapexClothing_LODPhysicalLODOverrideReplace();
+	setParent..;
+}
+
+global proc AEapexClothing_LODPhysicalLODOverrideReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalLODOverride");
+	int $value = `getAttr $plug`;
+	if(`checkBox -q -exists "AEapexClothing_LODPhysicalLODCheckBox"`)
+		checkBox -e -value $value "AEapexClothing_LODPhysicalLODCheckBox";
+}
+
+global proc AEapexClothing_LODPhysicalLODOverrideUpdate()
+{
+	int $value = `checkBox -q -value "AEapexClothing_LODPhysicalLODCheckBox"`;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalLODOverride");
+	evalEcho ("setAttr " +  $plug + " " + $value);
+	AEapexClothing_UpdateUIWhenCurLodChanged(1);
+}
+
+global proc AEapexClothing_LODResetOverrideNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	button -label "Reset" -c  "AEapexClothing_LODResetOverrideUpdate()";
+	setParent..;
+}
+
+global proc AEapexClothing_LODResetOverrideReplace()
+{
+	
+}
+
+global proc int AEapexClothing_GetUpperLOD(string $clothingNode, int $currGraphicsLodIndex)
+{
+	// seek out upper level of current lod
+	string $existingMeshes[] = `deformer -q -geometry $clothingNode`; 
+	int $numLod = `size $existingMeshes`;
+	int $i, $currentPhysicalLod;
+	$currentPhysicalLod = -1;
+	for($i = 0; $i < $numLod; $i++)
+	{
+		int $sortedLogicalIndex = `getAttr ($clothingNode + ".sortedLogicalIndex[" + $i + "]")`;
+		if($sortedLogicalIndex == $currGraphicsLodIndex)
+		{
+			$currentPhysicalLod = $i;
+			break;
+		}
+	}
+	if($currentPhysicalLod == 0 || $currentPhysicalLod == -1) return -1; // root
+	$currentPhysicalLod = $currentPhysicalLod - 1;
+	int $upperLevel = `getAttr ($clothingNode + ".sortedLogicalIndex[" + $currentPhysicalLod + "]")`;
+	return $upperLevel;
+}
+
+global proc AEapexClothing_LODResetOverrideUpdateCmd()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	int $upperLevel = AEapexClothing_GetUpperLOD($AEapexClothing_ClothingNodeName, $currGraphicsLodIndex);
+	if($upperLevel == -1) return;
+	string $compoundAttrPlug = $AEapexClothing_ClothingNodeName + ".lodCompoundAttributes["+$upperLevel+"].";
+	string $nodeSrc = $AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$upperLevel+"]";
+	string $nodeDes = $AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]";
+
+	// physical material
+	string $plug = $nodeDes+"."+"lodPhysicalMaterialOverride";
+	if(`getAttr $plug` == 1)
+	{
+		string $physicamMaterialAttributes[] = {"lodUseGravity", "lodFriction", "lodGravityScale", "lodBendiness", "lodDampingCoefficient", 
+								"lodStiffnessSheariness", "lodStretchLimit", "lodTetherStiffnessRelax", "lodDrag", "lodInertiaBlend"};
+		nxCopyAttributes($nodeSrc, $physicamMaterialAttributes, $nodeDes, $physicamMaterialAttributes);
+	}
+
+	// Advanced material
+	$plug = $nodeDes+"."+"lodAdvancedMaterialOverride";
+	if(`getAttr $plug` == 1)
+	{
+		string $advancedMaterialAttributes[] = {"lodOverrideFiber", 
+										 "lodWindVelocity", "lodWindDirection", "lodWindElevation", "lodLengthFiberCompression", "lodLengthFiberExpansion", 
+										"lodLengthFiberResistance", "lodCrossSectionFiberCompression", "lodCrossSectionFiberExpansion", "lodCrossSectionFiberResistance",
+		                                "lodBendingFiberCompression", "lodBendingFiberExpansion", "lodBendingFiberResistance", "lodShearingFiberCompression", 
+										"lodShearingFiberExpansion", "lodShearingFiberResistance"};
+		nxCopyAttributes($nodeSrc, $advancedMaterialAttributes, $nodeDes, $advancedMaterialAttributes);
+	}
+
+	// Simulation
+	$plug = $nodeDes+"."+"lodSimulationOverride";
+	if(`getAttr $plug` == 1)
+	{
+		string $asimulationAttributes[] = {"lodThickness", "lodDisableCCD", "lodMassScale","lodSelfCollisionEnable", "lodSelfCollisionThickness", "lodSelfCollisionStiffness",
+											 "lodVirtualParticleDensity", "lodRestLengthScale", "lodSolverFrequency", "lodRecomputeNormals","lodSlowStart"};
+		nxCopyAttributes($nodeSrc, $asimulationAttributes, $nodeDes, $asimulationAttributes);
+	}
+
+	// Physical LOD
+	$plug = $nodeDes+"."+"lodPhysicalLODOverride";
+	if(`getAttr $plug` == 1)
+	{
+		string $physicalLODAttributes[] = {"lodSplitEnable[0]", "lodSplitPercent[0]", "lodSplitEnable[1]", "lodSplitPercent[1]",
+												"lodSplitEnable[2]", "lodSplitPercent[2]", "lodSplitEnable[3]", "lodSplitPercent[3]","lodSplitPreview"};
+		nxCopyAttributes($nodeSrc, $physicalLODAttributes, $nodeDes, $physicalLODAttributes);
+	}
+
+	// Paint
+	$plug = $nodeDes+"."+"lodPaintOverride";
+	if(`getAttr $plug` == 1)
+	{
+		global string $AEapexClothing_LODGraphicalMeshList;
+		string $selectedArray[] = `textScrollList -q -si $AEapexClothing_LODGraphicalMeshList`;
+		int $size[] = `polyEvaluate -vertex $selectedArray[0]`;
+
+		string $inheritanceMapArray = $nodeDes + "." + "lodInheritanceMap";
+		string $paintAttributes[] = {"maxDistances", "latchToNearest", "lodLatchToNearestGroup", "backStopOffset", "backStopRadius", "vertexSelection"};
+		int $i;
+		for($i = 0; $i < $size[0]; $i++)
+		{
+			$inheritanceMapPlug = $inheritanceMapArray + "[" + $i + "]";
+			int $mappedIndex = `getAttr $inheritanceMapPlug`;
+			apexClothingCopyPaintAttributes($nodeSrc, $mappedIndex, $nodeDes, $i, $paintAttributes);
+		}
+	}
+	setAttr ($AEapexClothing_ClothingNodeName + ".initializeMode") 0;
+}
+
+global proc AEapexClothing_LODResetOverrideUpdate()
+{
+	AEapexClothing_LODResetOverrideUpdateCmd();
+	AEapexClothing_UpdateUIWhenCurLodChanged(1);
+}
+
+global proc AEapexClothing_AdvancedAttributeDimout(string $nodeName)
+{
+	int $dimOut = 1;
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		$dimOut = 0;
+	}
+	editorTemplate -dimControl $nodeName "meshSize" $dimOut;
+	editorTemplate -dimControl $nodeName "parallelPhysicsMeshSkinning" $dimOut;
+	editorTemplate -dimControl $nodeName "parallelMeshMeshSkinning" $dimOut;
+	editorTemplate -dimControl $nodeName "parallelCpuSkinning" $dimOut;
+}
+
+global proc AEapexClothing_RootTranslationNew(string $plug)
+{
+	string $pickButtonName = "AEapexClothing_RootButton";
+	string $wrenchButtonName = "AEapexClothing_WrenchButton";
+	string $initialLabelName = "Root";
+	AEnxSelectObject_ByPickingOrWrenchNew($pickButtonName, $wrenchButtonName, $initialLabelName);
+	AEapexClothing_RootTranslationReplace($plug);
+}
+
+
+
+global proc AEapexClothing_RootTranslationReplace(string $plug)
+{
+	string $pickButtonName = "AEapexClothing_RootButton";
+	string $wrenchButtonName = "AEapexClothing_WrenchButton";
+
+	string $hint = "Please select a joint.";
+	string $label = "Please select joints to set as root translation";
+	string $filter = "joint";
+	string $commandAfterSelect = "AEapexClothing_SelectJoint";
+
+	global string $gOutlinerWindowForRootTranslation;
+	// set up button callback command
+	nxSelectObject_ByPickingOrWrench($plug, $hint, $pickButtonName, $wrenchButtonName, $label, $gOutlinerWindowForRootTranslation, $filter, $commandAfterSelect);
+
+	// update button label
+	string $plugValue = AEapexClothing_RootTranslationUpdate($plug);
+	if( getApplicationVersionAsFloat() > 2013 )
+	{
+		$plugValue = stringRemovePrefix( $plugValue, "|" );
+	}
+	button -e -label $plugValue $pickButtonName;
+}
+
+global proc string AEapexClothing_RootTranslationUpdate(string $plug)
+{
+	string $plugValue = `getAttr $plug`;
+	if($plugValue == "")
+	{
+		$plugValue = AEapexClothing_GetBindedTopJoint($plug);
+		if($plugValue == "")
+			$plugValue = "Root";
+		else
+		{
+			string $cmd = "setAttr " + $plug + " -type \"string\" " +  $plugValue;
+			evalEcho $cmd;
+		}
+	}
+	return $plugValue;
+}
+
+
+global proc string AEapexClothing_GetBindedTopJoint(string $plug)
+{	
+	string $buff[];
+	tokenize($plug, ".", $buff);
+	string $node = $buff[0];
+
+	string $history[] = `listHistory $node`;
+	string $obj = "";
+	for($iter in $history)
+	{
+		$type = `nodeType $iter`;
+		if($type == "joint")
+		{
+			$obj = $iter;
+			break;
+		}
+	}
+	if($obj != "")
+	{
+		string $parents[] = {} ;  
+		$parents = `listRelatives -fullPath -p $obj` ;  
+		while(size($parents) > 0) {  
+			$obj = $parents[0];
+			$parents = `listRelatives -fullPath -p $obj` ;  
+		}
+	}
+	return $obj;
+}
+
+global proc AEapexClothing_SelectJoint(string $selected, string $plug)
+{
+    // Skip if selected is a joint
+	if( (`nodeType $selected` == "joint") )
+	{
+		string $cmd = "setAttr " + $plug + " -type \"string\" " +  $selected;
+		evalEcho $cmd;
+	}
+	else
+	{
+		warning ($selected + " is not a joint\n");
+	}
+}
+
+
+global proc AEapexClothing_BendinessNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_BendinessFloatSlider";
+	attrFieldSliderGrp -label "Bendiness" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_BendinessReplace($plug);
+}
+
+global proc AEapexClothing_BendinessReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_BendinessFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodBendiness", "pmBendiness", $controlName);
+	
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		attrFieldSliderGrp -e -label "Bendiness"  $controlName;
+	}
+	else
+	{
+		attrFieldSliderGrp -e -label "Bending Resistance" $controlName;
+	}
+}
+
+global proc AEapexClothing_StiffnessShearinessNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_StiffnessShearinessFloatSlider";
+	attrFieldSliderGrp -label "Shear Resistance" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_StiffnessShearinessReplace($plug);
+}
+
+global proc AEapexClothing_StiffnessShearinessReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_StiffnessShearinessFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodStiffnessSheariness", "pmStiffnessSheariness", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+
+global proc AEapexClothing_StretchLimitNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_StretchLimitFloatSlider";
+	attrFieldSliderGrp -label "Stretch Limit" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_StretchLimitReplace($plug);
+}
+
+
+global proc AEapexClothing_StretchLimitReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_StretchLimitFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodStretchLimit", "pmStretchLimit", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_TetherStiffnessRelaxNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_TetherStiffnessRelaxFloatSlider";
+	attrFieldSliderGrp -label "Relax" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_TetherStiffnessRelaxReplace($plug);
+}
+
+
+global proc AEapexClothing_TetherStiffnessRelaxReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_TetherStiffnessRelaxFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodTetherStiffnessRelax", "pmTetherStiffnessRelax", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+
+global proc AEapexClothing_InertiaBlendNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_InertiaBlendFloatSlider";
+	attrFieldSliderGrp -label "Inertia Blend" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_InertiaBlendReplace($plug);
+}
+
+
+global proc AEapexClothing_InertiaBlendReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_InertiaBlendFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodInertiaBlend", "pmInertiaBlend", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_DampingNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_DampingFloatSlider";
+	attrFieldSliderGrp -label "Damping" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_DampingReplace($plug);
+}
+
+
+global proc AEapexClothing_DampingReplace(string $plugIn)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_PhysicalMaterialControlEnabled;
+	global int $AEapexClothing_IsPhysicalMaterialSetMode;
+	string $plug;
+
+	if( $AEapexClothing_IsPhysicalMaterialSetMode == 0 ) 
+	{
+ 		$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+ "lodDampingCoefficient");
+	}
+	else
+	{
+		int $curPhysicalMaterialIndex = `getAttr ($AEapexClothing_ClothingNodeName+".selectedPhysicalMaterialSet")`;
+		$plug = ($AEapexClothing_ClothingNodeName+".physicalMaterialSets["+$curPhysicalMaterialIndex+"]."+"pmDampingCoefficient");
+	}
+
+	attrFieldSliderGrp -e -at $plug -enable $AEapexClothing_PhysicalMaterialControlEnabled 
+		-changeCommand ("AEapexClothing_DampingChangeCommand(\"" + $plug + "\")")  "AEapexClothing_DampingFloatSlider";
+}
+
+
+global proc AEapexClothing_DampingChangeCommand(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+	$lodPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+ "lodDampingCoefficient");
+	float $oldValue = `getAttr $lodPlug`;
+	float $newValue = `getAttr $plug`;
+
+	string $buff[];
+	tokenize($plug, ".", $buff);
+	string $node = $buff[0];
+	if($newValue < $oldValue)
+	{
+		float $dragOldValue = `getAttr ($node + ".drag")`;
+		float $dragNewValue = $dragOldValue + ($newValue - $oldValue);
+		if($dragNewValue < 0.0) $dragNewValue = 0.0;		
+		//floatSliderGrp -e -value $dragNewValue "AEapexClothing_DragFloatSlider";
+		$cmd = "setAttr " +  ($node + ".drag") + " " + $dragNewValue;
+		evalEcho $cmd;
+		
+		string $dragPlug = AEapexClothing_getPlug("lodDrag",  "pmDrag");
+		string $saveDragCmd = "setAttr " +  $dragPlug + " " + $dragNewValue;
+		evalEcho $saveDragCmd;
+		
+	}
+	nxSetPhysicalMaterialCommand($newValue, $plug,"lodDampingCoefficient");
+	attrFieldSliderGrp -e -maxValue $newValue -fieldMaxValue $newValue  "AEapexClothing_DragFloatSlider";
+}
+
+global proc AEapexClothing_DragNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $buff[];
+	tokenize($plug, ".", $buff);
+	string $node = $buff[0];
+	float $dampValue = `getAttr ($node + ".dampingCoefficient")`;
+
+	string $controlName = "AEapexClothing_DragFloatSlider";
+	attrFieldSliderGrp -label "Drag" 
+		-minValue -0.0 -maxValue $dampValue
+		-fieldMinValue -0.0 -fieldMaxValue $dampValue
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_DragReplace($plug);
+}
+
+
+global proc AEapexClothing_DragReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_DragFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodDrag", "pmDrag", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_FiberCompressionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 2 -cw 1 10 -cw 2 150;
+	text "";
+	text -label "Fiber Limits" -font "boldLabelFont";
+	setParent..;
+
+	string $controlName = "AEapexClothing_FiberCompressionFloatSlider";
+	attrFieldSliderGrp -label "Compression" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_FiberCompressionReplace($plug);
+}
+
+
+global proc AEapexClothing_FiberCompressionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_FiberCompressionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodFiberCompression", "pmFiberCompression", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_FiberExpansionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_FiberExpansionFloatSlider";
+	attrFieldSliderGrp -label "Expansion" 
+		-minValue 1.0 -maxValue 2.0
+		-fieldMinValue 1.0 -fieldMaxValue 2.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_FiberExpansionReplace($plug);
+}
+
+global proc AEapexClothing_FiberExpansionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_FiberExpansionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodFiberExpansion", "pmFiberExpansion", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_FiberResistanceNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_FiberResistanceFloatSlider";
+	attrFieldSliderGrp -label "Resistance" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_FiberResistanceReplace($plug);
+}
+
+global proc AEapexClothing_FiberResistanceReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_FiberResistanceFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodFiberResistance", "pmFiberResistance", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_CollisionThicknessNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	floatSliderGrp -label "Collision Thickness" -field true
+		-minValue 0.001 -maxValue 10.0
+		-fieldMinValue 0.001 -fieldMaxValue 10.0
+		-value 1.0 "AEapexClothing_CollisionThicknessFloatSlider";
+
+	setUITemplate -ppt;
+	AEapexClothing_CollisionThicknessReplace($plug);
+}
+
+global proc AEapexClothing_CollisionThicknessReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	AEapexClothing_UpdateDisplayedSimulationLogicalIndex();
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodThickness");
+	float $value = `getAttr $plug`;
+	floatSliderGrp -e -value $value -enable $AEapexClothing_SimulationControlEnabled
+		-changeCommand ("AEapexClothing_CollisionThicknessChangeCommand(\"" + $plug + "\")" )
+		"AEapexClothing_CollisionThicknessFloatSlider";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		floatSliderGrp -e -visible false "AEapexClothing_CollisionThicknessFloatSlider";
+	}
+	else
+	{
+		floatSliderGrp -e -visible true "AEapexClothing_CollisionThicknessFloatSlider";
+	}
+}
+
+global proc AEapexClothing_CollisionThicknessChangeCommand(string $plug )
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_CollisionThicknessFloatSlider"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_LODSelfCollisionEnable3xNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	int $width = 500;
+	rowLayout -numberOfColumns 2 -cw 1 147 -cw 2 ($width) -cat 1 "right" 0 -cat 2 "left" 0;
+	checkBox -label "Self Collision" "AEapexClothing_LODSelfCollisionEnable3xCheckBox";
+	AEapexClothing_LODSelfCollisionThickness3xNew("");
+	setParent..;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+	AEapexClothing_LODSelfCollisionStiffness3xNew("");
+	setUITemplate -ppt;
+
+	AEapexClothing_LODSelfCollisionEnable3xReplace($plug);
+}
+
+global proc AEapexClothing_LODSelfCollisionEnable3xReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodSelfCollisionEnable");
+	float $value = `getAttr $plug`;
+	checkBox -e -value $value -editable $AEapexClothing_SimulationControlEnabled
+		-changeCommand ("AEapexClothing_LODSelfCollisionEnable3xChangeCommand(\"" + $plug + "\")" )
+		"AEapexClothing_LODSelfCollisionEnable3xCheckBox";
+	AEapexClothing_LODSelfCollisionThickness3xReplace("");
+	AEapexClothing_LODSelfCollisionStiffness3xReplace("");
+	int $enable = $value && $AEapexClothing_SimulationControlEnabled;
+	floatField -e -enable $enable "AEapexClothing_SelfCollisionThickness3xFloatField";
+	floatSliderGrp -e -enable $enable "AEapexClothing_SelfCollisionStiffness3xFloatField";
+}
+
+global proc AEapexClothing_LODSelfCollisionEnable3xChangeCommand(string $plug)
+{
+	int $value = `checkBox -q -value "AEapexClothing_LODSelfCollisionEnable3xCheckBox"`;
+	global int $AEapexClothing_SimulationControlEnabled;
+	int $enable = $value && $AEapexClothing_SimulationControlEnabled;
+	floatField -e -enable $enable "AEapexClothing_SelfCollisionThickness3xFloatField";
+	floatSliderGrp -e -enable $enable "AEapexClothing_SelfCollisionStiffness3xFloatField";
+
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_LODSelfCollisionThickness3xNew(string $plug)
+{
+ 	floatField -minValue 0.0 "AEapexClothing_SelfCollisionThickness3xFloatField";
+}
+
+global proc AEapexClothing_LODSelfCollisionThickness3xReplace(string $plugIn)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+ 	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+"lodSelfCollisionThickness");
+ 	floatField -e -value `getAttr $plug` -changeCommand ("AEapexClothing_LODSelfCollisionThickness3xChangeCommand(\"" + $plug + "\")" ) "AEapexClothing_SelfCollisionThickness3xFloatField";
+}
+
+global proc AEapexClothing_LODSelfCollisionThickness3xChangeCommand(string $plug)
+{
+	float $value = `floatField -q -value "AEapexClothing_SelfCollisionThickness3xFloatField"`;
+	string $cmd = "setAttr " + $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_LODSelfCollisionStiffness3xNew(string $plug)
+{
+	floatSliderGrp -label "Self Collision Stiff." -field true
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		-value 1.0 "AEapexClothing_SelfCollisionStiffness3xFloatField";
+}
+
+global proc AEapexClothing_LODSelfCollisionStiffness3xReplace(string $plugIn)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+ 	string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+"lodSelfCollisionStiffness");
+ 	floatSliderGrp -e -value `getAttr $plug` -changeCommand ("AEapexClothing_LODSelfCollisionStiffness3xChangeCommand(\"" + $plug + "\")" ) "AEapexClothing_SelfCollisionStiffness3xFloatField";
+}
+
+global proc AEapexClothing_LODSelfCollisionStiffness3xChangeCommand(string $plug)
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_SelfCollisionStiffness3xFloatField"`;
+	string $cmd = "setAttr " + $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_MassScaleNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	floatSliderGrp -label "Motion Adaptation" -field true
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		-value 1.0 "AEapexClothing_MassScaleFloatSlider";
+
+	setUITemplate -ppt;
+	AEapexClothing_MassScaleReplace($plug);
+}
+
+global proc AEapexClothing_MassScaleReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodMassScale");
+	float $value = `getAttr $plug`;
+	floatSliderGrp -e -value $value -enable $AEapexClothing_SimulationControlEnabled
+		-changeCommand ("AEapexClothing_MassScaleChangeCommand(\"" + $plug + "\")" )
+		"AEapexClothing_MassScaleFloatSlider";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		floatSliderGrp -e -visible false "AEapexClothing_MassScaleFloatSlider";
+	}
+	else
+	{
+		floatSliderGrp -e -visible true "AEapexClothing_MassScaleFloatSlider";
+	}
+}
+
+global proc AEapexClothing_MassScaleChangeCommand(string $plug )
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_MassScaleFloatSlider"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_VirtualParticleDensityNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	floatSliderGrp -label "Virtual Collision" -field true
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		-value 1.0 "AEapexClothing_VirtualParticleDensityFloatSlider";
+
+	setUITemplate -ppt;
+	AEapexClothing_VirtualParticleDensityReplace($plug);
+}
+
+global proc AEapexClothing_VirtualParticleDensityReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodVirtualParticleDensity");
+	float $value = `getAttr $plug`;
+	floatSliderGrp -e -value $value -enable $AEapexClothing_SimulationControlEnabled
+		-changeCommand ("AEapexClothing_VirtualParticleDensityChangeCommand(\"" + $plug + "\")" )
+		"AEapexClothing_VirtualParticleDensityFloatSlider";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		floatSliderGrp -e -visible false "AEapexClothing_VirtualParticleDensityFloatSlider";
+	}
+	else
+	{
+		floatSliderGrp -e -visible true "AEapexClothing_VirtualParticleDensityFloatSlider";
+	}
+}
+
+global proc  AEapexClothing_CCDNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Disable CCD" "AEapexClothing_CCDEnableCheckBox";
+	setParent..;
+	setUITemplate -ppt;
+	AEapexClothing_CCDReplace($plug);
+}
+
+global proc  AEapexClothing_CCDReplace(string $node)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodDisableCCD");
+	float $value = `getAttr $plug`;
+	checkBox -e -cc ("AEapexClothing_CCDEnableCommand(\"" + $plug + "\")" ) -enable $AEapexClothing_SimulationControlEnabled
+		"AEapexClothing_CCDEnableCheckBox";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		checkBox -e -label "Disable CCD" "AEapexClothing_CCDEnableCheckBox";
+		checkBox -e -value $value "AEapexClothing_CCDEnableCheckBox";
+	}
+	else
+	{
+		checkBox -e -label "Enable CCD" "AEapexClothing_CCDEnableCheckBox";
+		checkBox -e -value (1 - $value) "AEapexClothing_CCDEnableCheckBox";
+	}
+}
+
+global proc AEapexClothing_CCDEnableCommand(string $plug)
+{
+	int $value = `checkBox -q -value "AEapexClothing_CCDEnableCheckBox"`;
+	if( `NvSolverGetPhysXVersion` >= 300 ) 
+		$value = 1 - $value;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_VirtualParticleDensityChangeCommand(string $plug )
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_VirtualParticleDensityFloatSlider"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_RestLengthScaleNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	floatSliderGrp -label "Rest Length Scale" -field true
+		-minValue -0.99 -maxValue 1.0
+		-fieldMinValue -0.99 -fieldMaxValue 1.0
+		-value 0.0 "AEapexClothing_RestLengthScaleFloatSlider";
+
+	setUITemplate -ppt;
+	AEapexClothing_RestLengthScaleReplace($plug);
+}
+
+global proc AEapexClothing_RestLengthScaleReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodRestLengthScale");
+	float $value = `getAttr $plug`;
+	floatSliderGrp -e -value $value -enable $AEapexClothing_SimulationControlEnabled
+		-changeCommand ("AEapexClothing_RestLengthScaleChangeCommand(\"" + $plug + "\")" )
+		"AEapexClothing_RestLengthScaleFloatSlider";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		floatSliderGrp -e -visible false "AEapexClothing_RestLengthScaleFloatSlider";
+	}
+	else
+	{
+		floatSliderGrp -e -visible true "AEapexClothing_RestLengthScaleFloatSlider";
+	}
+}
+
+global proc AEapexClothing_RestLengthScaleChangeCommand(string $plug )
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_RestLengthScaleFloatSlider"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_SolverFrequencyNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	floatSliderGrp -label "Solver Frequency" -field true
+		-minValue -0.0 -maxValue 1000.0
+		-fieldMinValue -0.0 -fieldMaxValue 1000.0
+		-value 250.0 "AEapexClothing_SolverFrequencyFloatSlider";
+
+	setUITemplate -ppt;
+	AEapexClothing_SolverFrequencyReplace($plug);
+}
+
+global proc AEapexClothing_SolverFrequencyReplace(string $plug)
+{	
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodSolverFrequency");
+	float $value = `getAttr $plug`;
+	floatSliderGrp -e -value $value -enable $AEapexClothing_SimulationControlEnabled
+		-changeCommand ("AEapexClothing_SolverFrequencyChangeCommand(\"" + $plug + "\")" )
+		"AEapexClothing_SolverFrequencyFloatSlider";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		floatSliderGrp -e -visible false "AEapexClothing_SolverFrequencyFloatSlider";
+	}
+	else
+	{
+		floatSliderGrp -e -visible true "AEapexClothing_SolverFrequencyFloatSlider";
+	}
+}
+
+global proc AEapexClothing_SolverFrequencyChangeCommand(string $plug )
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_SolverFrequencyFloatSlider"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc int NvIsSolverGetPhysXVersionLess300()
+{
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+		return 1;
+	return 0;
+}
+
+global proc AEapexClothing_LODSlowStartNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $lodPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodSlowStart");
+	attrControlGrp -label "Slow Start" -attribute $lodPlug "AEapexClothing_LODSlowStartCheckBox";
+	setUITemplate -ppt;
+	AEapexClothing_LODSlowStartReplace($plug);
+}
+
+global proc AEapexClothing_LODSlowStartReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodSlowStart");
+	attrControlGrp -e -attribute $plug -enable $AEapexClothing_SimulationControlEnabled "AEapexClothing_LODSlowStartCheckBox";
+}
+
+global proc AEapexClothing_LODRecomputeNormalsNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $lodPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodRecomputeNormals");
+	attrControlGrp -label "Recompute Normals" -attribute $lodPlug "AEapexClothing_LODRecomputeNormalsCheckBox";
+	setUITemplate -ppt;
+	AEapexClothing_LODRecomputeNormalsReplace($plug);
+}
+
+global proc AEapexClothing_LODRecomputeNormalsReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_SimulationDisplayedLogicalIndex+"]."+"lodRecomputeNormals");
+	attrControlGrp -e -attribute $plug -enable $AEapexClothing_SimulationControlEnabled "AEapexClothing_LODRecomputeNormalsCheckBox";
+}
+
+global proc AEapexClothing_LODWindDirectionNew(string $plug)
+{
+ 	setUITemplate -pst attributeEditorTemplate;
+ 	attrFieldSliderGrp -label "Wind Direction" "AEapexClothing_WindDirectionFloatSlider";
+ 	setUITemplate -ppt;
+ 	AEapexClothing_LODWindDirectionReplace($plug);
+}
+
+global proc AEapexClothing_LODWindDirectionReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_AdvancedMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_AdvancedMaterialControlEnabled;
+	string $windDirectionPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_AdvancedMaterialDisplayedLogicalIndex+"]."+"lodWindDirection");
+	attrFieldSliderGrp -e -at $windDirectionPlug "AEapexClothing_WindDirectionFloatSlider";
+	int $enable = $AEapexClothing_AdvancedMaterialControlEnabled;
+	attrFieldSliderGrp -e -enable $enable "AEapexClothing_WindDirectionFloatSlider";
+}
+
+global proc AEapexClothing_LODWindElevationNew(string $plug)
+{
+ 	setUITemplate -pst attributeEditorTemplate;
+ 	attrFieldSliderGrp -label "Wind Elevation" "AEapexClothing_WindElevationFloatSlider";
+ 	setUITemplate -ppt;
+ 	AEapexClothing_LODWindElevationReplace($plug);
+}
+
+global proc AEapexClothing_LODWindElevationReplace(string $plug)
+{
+ 	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_AdvancedMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_AdvancedMaterialControlEnabled;
+ 	string $windElevationPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_AdvancedMaterialDisplayedLogicalIndex+"]."+"lodWindElevation");
+ 	attrFieldSliderGrp -e -at $windElevationPlug "AEapexClothing_WindElevationFloatSlider";
+	int $enable = $AEapexClothing_AdvancedMaterialControlEnabled;
+	attrFieldSliderGrp -e -enable $enable "AEapexClothing_WindElevationFloatSlider";
+}
+
+global proc AEapexClothing_LODWindVelocityNew(string $plug)
+{
+ 	setUITemplate -pst attributeEditorTemplate;
+ 	attrFieldSliderGrp -label "Wind Velocity" "AEapexClothing_WindVelocityFloatSlider";
+ 	setUITemplate -ppt;
+ 	AEapexClothing_LODWindVelocityReplace($plug);
+}
+
+global proc AEapexClothing_LODWindVelocityReplace(string $plug)
+{
+ 	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_AdvancedMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_AdvancedMaterialControlEnabled;
+ 	string $windVelocityPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_AdvancedMaterialDisplayedLogicalIndex+"]."+"lodWindVelocity");
+ 	attrFieldSliderGrp -e -at $windVelocityPlug "AEapexClothing_WindVelocityFloatSlider";
+	int $enable = $AEapexClothing_AdvancedMaterialControlEnabled;
+	attrFieldSliderGrp -e -enable $enable "AEapexClothing_WindVelocityFloatSlider";
+}
+
+// global proc AEapexClothing_LODThicknessNew(string $plug)
+// {
+//  	setUITemplate -pst attributeEditorTemplate;
+//  	attrFieldSliderGrp -label "Surface Thickness" "AEapexClothing_CollisionThicknessFloatSlider";
+//  	setUITemplate -ppt;
+//  	AEapexClothing_LODThicknessReplace($plug);
+// }
+// 
+// global proc AEapexClothing_LODThicknessReplace(string $plug)
+// {
+//  	global string $AEapexClothing_ClothingNodeName;
+// 	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+// 	global int $AEapexClothing_PhysicalMaterialControlEnabled;
+//  	string $ThicknessPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+"lodThickness");
+//  	attrFieldSliderGrp -e -at $ThicknessPlug "AEapexClothing_CollisionThicknessFloatSlider";
+// 	int $enable = (NvIsSolverGetPhysXVersionLess300() && $AEapexClothing_PhysicalMaterialControlEnabled);
+// 	attrFieldSliderGrp -e -enable $enable "AEapexClothing_CollisionThicknessFloatSlider";
+// }
+
+global proc AEapexClothing_LODFrictionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	string $controlName = "AEapexClothing_FrictionFloatSlider";
+	attrFieldSliderGrp -label "Friction" 
+		$controlName;
+	setUITemplate -ppt;
+
+	AEapexClothing_LODFrictionReplace($plug);
+}
+
+global proc AEapexClothing_LODFrictionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_FrictionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodFriction", "pmFriction", $controlName);
+}
+
+global proc AEapexClothing_LODUseGravityNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $lodPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodUseGravity");
+	attrControlGrp -label "Enable Gravity" -attribute $lodPlug "AEapexClothing_LODUseGravityCheckBox";
+	setUITemplate -ppt;
+	AEapexClothing_LODUseGravityReplace($plug);
+}
+
+global proc AEapexClothing_LODUseGravityReplace(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	if($plug != "")
+	{
+		string $buffer[];
+		tokenize($plug, ".|", $buffer);
+		$AEapexClothing_ClothingNodeName = $buffer[0];
+	}
+	AEapexClothing_UpdateDisplayedPhysicalMaterialLogicalIndex();
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_PhysicalMaterialControlEnabled;
+	string $lodPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+"lodUseGravity");
+	attrControlGrp -e -attribute $lodPlug -enable $AEapexClothing_PhysicalMaterialControlEnabled "AEapexClothing_LODUseGravityCheckBox";
+}
+
+global proc AEapexClothing_UpdateDisplayedPhysicalMaterialSetMode()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $AEapexClothing_IsPhysicalMaterialSetMode;
+	$AEapexClothing_IsPhysicalMaterialSetMode = 1;//nxUpdateDisplayedPhysicalMaterialSetMode($AEapexClothing_ClothingNodeName);
+}
+
+global proc AEapexClothing_LODGravityScaleNew(string $plug)
+{
+ 	setUITemplate -pst attributeEditorTemplate;
+ 	attrFieldSliderGrp -label "Gravity Scale" "AEapexClothing_GravityScaleFloatSlider";
+ 	setUITemplate -ppt;
+ 	AEapexClothing_LODGravityScaleReplace($plug);
+}
+
+global proc AEapexClothing_LODGravityScaleReplace(string $plug)
+{
+	AEapexClothing_UpdateDisplayedPhysicalMaterialLogicalIndex();
+	AEapexClothing_UpdateDisplayedPhysicalMaterialSetMode();
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodGravityScale","pmGravityScale", "AEapexClothing_GravityScaleFloatSlider");
+}
+
+global proc AEapexClothing_UpdateDisplayedPhysicalMaterialLogicalIndex()
+{
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_PhysicalMaterialControlEnabled;
+	string $lodOverridePlug = "lodPhysicalMaterialOverride";
+	string $logicalIndexPlug = "displayedPhysicalMaterialIndex";
+	int $output[];
+	AEapexClothing_UpdateDisplayedLogicalIndex($output, $lodOverridePlug, $logicalIndexPlug);
+	$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex = $output[0];
+	$AEapexClothing_PhysicalMaterialControlEnabled = $output[1];
+}
+
+global proc AEapexClothing_UpdateDisplayedAdvancedMaterialLogicalIndex()
+{
+	global int $AEapexClothing_AdvancedMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_AdvancedMaterialControlEnabled;
+	string $lodOverridePlug = "lodAdvancedMaterialOverride";
+	string $logicalIndexPlug = "displayedAdvancedMaterialIndex";
+	int $output[];
+	AEapexClothing_UpdateDisplayedLogicalIndex($output, $lodOverridePlug, $logicalIndexPlug);
+	$AEapexClothing_AdvancedMaterialDisplayedLogicalIndex = $output[0];
+	$AEapexClothing_AdvancedMaterialControlEnabled = $output[1];
+}
+
+global proc AEapexClothing_UpdateDisplayedSimulationLogicalIndex()
+{
+	global int $AEapexClothing_SimulationDisplayedLogicalIndex;
+	global int $AEapexClothing_SimulationControlEnabled;
+	string $lodOverridePlug = "lodSimulationOverride";
+	string $logicalIndexPlug = "displayedSimulationIndex";
+	int $output[];
+	AEapexClothing_UpdateDisplayedLogicalIndex($output, $lodOverridePlug, $logicalIndexPlug);
+	$AEapexClothing_SimulationDisplayedLogicalIndex = $output[0];
+	$AEapexClothing_SimulationControlEnabled = $output[1];
+}
+
+global proc AEapexClothing_UpdateDisplayedPhysicalLODLogicalIndex()
+{
+	global int $AEapexClothing_PhysicalLODDisplayedLogicalIndex;
+	global int $AEapexClothing_PhysicalLODControlEnabled;
+	string $lodOverridePlug = "lodPhysicalLODOverride";
+	string $logicalIndexPlug = "displayedPhysicalLODIndex";
+	int $output[];
+	AEapexClothing_UpdateDisplayedLogicalIndex($output, $lodOverridePlug, $logicalIndexPlug);
+	$AEapexClothing_PhysicalLODDisplayedLogicalIndex = $output[0];
+	$AEapexClothing_PhysicalLODControlEnabled = $output[1];
+}
+
+global proc AEapexClothing_UpdateDisplayedLogicalIndex(int $output[], string $lodOverridePlug, string $logicalIndexPlug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	if($currGraphicsLodIndex < 0)
+		$currGraphicsLodIndex = 0;
+
+	string $overridePlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]." + $lodOverridePlug);
+	int $overrideValue = `getAttr $overridePlug`;
+
+	if($currGraphicsLodIndex == 0 || $overrideValue == 1) $output[1] = 1;
+	else $output[1] = 0;
+
+	string $diaplayedLogicalIndexPlug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+ $logicalIndexPlug);
+	$output[0] = `getAttr $diaplayedLogicalIndexPlug`;
+}
+
+global proc AEapexClothing_OverrideFiberNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Enable" "AEapexClothing_OverrideFiberCheckBox";
+	setParent..;
+	setUITemplate -ppt;
+	AEapexClothing_OverrideFiberReplace($plug);
+}
+
+global proc AEapexClothing_OverrideFiberReplace(string $plugIn)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	AEapexClothing_UpdateDisplayedAdvancedMaterialLogicalIndex();
+	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_AdvancedMaterialDisplayedLogicalIndex;
+	global int $AEapexClothing_AdvancedMaterialControlEnabled;
+	global int $AEapexClothing_IsPhysicalMaterialSetMode;
+	string $plug;
+
+	if( $AEapexClothing_IsPhysicalMaterialSetMode == 0 ) 
+	{
+ 		$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+ "lodOverrideFiber");
+	}
+	else
+	{
+		int $curPhysicalMaterialIndex = `getAttr ($AEapexClothing_ClothingNodeName+".selectedPhysicalMaterialSet")`;
+		$plug = ($AEapexClothing_ClothingNodeName+".physicalMaterialSets["+$curPhysicalMaterialIndex+"]."+"pmOverrideFiber");
+	}
+	float $value = `getAttr $plug`;
+
+	checkBox -e -value $value -cc ("AEapexClothing_OverrideFiberCommand " + $plug) -enable $AEapexClothing_AdvancedMaterialControlEnabled
+		"AEapexClothing_OverrideFiberCheckBox";
+	if( `NvSolverGetPhysXVersion` < 300 ) 
+	{
+		checkBox -e -visible false "AEapexClothing_OverrideFiberCheckBox";
+	}
+	else
+	{
+		checkBox -e -visible true "AEapexClothing_OverrideFiberCheckBox";
+	}
+	AEapexClothing_OverrideFiberUpdate();
+}
+
+global proc AEapexClothing_OverrideFiberCommand(string $plug)
+{
+	int $value = `checkBox -q -value "AEapexClothing_OverrideFiberCheckBox"`;
+
+	global int $AEapexClothing_IsPhysicalMaterialSetMode;
+	//Save the value in both material set and lod 
+	if( $AEapexClothing_IsPhysicalMaterialSetMode != 0 ) 
+	{
+ 		string $cmd = "setAttr " + $plug + " " + $value;
+		evalEcho $cmd;
+	}
+
+	nxSetPhysicalMaterialCommand($value, $plug, "lodOverrideFiber");	
+	AEapexClothing_OverrideFiberUpdate();
+
+}
+
+
+global proc AEapexClothing_OverrideFiberUpdate()
+{
+	int $value = `checkBox -q -value "AEapexClothing_OverrideFiberCheckBox"`;
+	//print("AEapexClothing_OverrideFiberUpdate checkbox value = " + $value + "\n");
+	global int $AEapexClothing_PhysicalMaterialControlEnabled;
+	int $physicalValue = (!$value) && $AEapexClothing_PhysicalMaterialControlEnabled;
+	attrFieldSliderGrp -e -enable $physicalValue "AEapexClothing_FiberCompressionFloatSlider";
+	attrFieldSliderGrp -e -enable $physicalValue "AEapexClothing_FiberExpansionFloatSlider";
+	attrFieldSliderGrp -e -enable $physicalValue "AEapexClothing_FiberResistanceFloatSlider";
+
+	if(`attrFieldSliderGrp -q -exists "AEapexClothing_LengthFiberCompressionFloatSlider"` == 1)
+	{
+		int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_LengthFiberCompressionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_LengthFiberExpansionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_LengthFiberResistanceFloatSlider";
+
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_CrossSectionFiberCompressionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_CrossSectionFiberExpansionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_CrossSectionFiberResistanceFloatSlider";
+
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_BendingFiberCompressionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_BendingFiberExpansionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_BendingFiberResistanceFloatSlider";
+
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_ShearingFiberCompressionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_ShearingFiberExpansionFloatSlider";
+		attrFieldSliderGrp -e -enable $advancedValue "AEapexClothing_ShearingFiberResistanceFloatSlider";
+	}
+}
+
+global proc int AEapexClothing_IsAdvanceMaterialEnabled()
+{
+	int $value = `checkBox -q -value "AEapexClothing_OverrideFiberCheckBox"`;
+	global int $AEapexClothing_AdvancedMaterialControlEnabled;
+	int $advancedValue = $value && $AEapexClothing_AdvancedMaterialControlEnabled;
+	return $advancedValue;
+}
+
+global proc AEapexClothing_LengthFiberCompressionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 2 -cw 1 10 -cw 2 150;
+	text "";
+	text -label "Length Fiber" -font "boldLabelFont";
+	setParent..;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	print("AEapexClothing_LengthFiberCompressionNew advance enable = " + $advancedValue + "\n");
+	string $controlName = "AEapexClothing_LengthFiberCompressionFloatSlider";
+	attrFieldSliderGrp -label "Compression" 
+		-minValue -0.0 -maxValue 1.0
+		-fieldMinValue -0.0 -fieldMaxValue 1.0
+		$controlName;
+	
+	AEapexClothing_LengthFiberCompressionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setParent..;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_LengthFiberCompressionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_LengthFiberCompressionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodLengthFiberCompression", "pmLengthFiberCompression", $controlName);
+	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_LengthFiberExpansionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_LengthFiberExpansionFloatSlider";
+	attrFieldSliderGrp -label "Expansion" 
+		-minValue 1.0 -maxValue 2.0
+		-fieldMinValue 1.0 -fieldMaxValue 2.0
+		$controlName;	
+
+	AEapexClothing_LengthFiberExpansionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_LengthFiberExpansionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_LengthFiberExpansionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodLengthFiberExpansion", "pmLengthFiberExpansion", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_LengthFiberResistanceNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_LengthFiberResistanceFloatSlider";
+	attrFieldSliderGrp -label "Resistance" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_LengthFiberResistanceReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_LengthFiberResistanceReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_LengthFiberResistanceFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodLengthFiberResistance", "pmLengthFiberResistance", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_CrossSectionFiberCompressionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 2 -cw 1 10 -cw 2 150;
+	text "";
+	text -label "Cross Section Fiber" -font "boldLabelFont";
+	setParent..;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_CrossSectionFiberCompressionFloatSlider";
+	attrFieldSliderGrp -label "Compression" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_CrossSectionFiberCompressionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_CrossSectionFiberCompressionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_CrossSectionFiberCompressionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodCrossSectionFiberCompression", "pmCrossSectionFiberCompression", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_CrossSectionFiberExpansionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_CrossSectionFiberExpansionFloatSlider";
+	attrFieldSliderGrp -label "Expansion" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_CrossSectionFiberExpansionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_CrossSectionFiberExpansionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_CrossSectionFiberExpansionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodCrossSectionFiberExpansion", "pmCrossSectionFiberExpansion", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_CrossSectionFiberResistanceNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_CrossSectionFiberResistanceFloatSlider";
+	attrFieldSliderGrp -label "Resistance" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_CrossSectionFiberResistanceReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_CrossSectionFiberResistanceReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_CrossSectionFiberResistanceFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodCrossSectionFiberResistance", "pmCrossSectionFiberResistance", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_BendingFiberCompressionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 2 -cw 1 10 -cw 2 150;
+	text "";
+	text -label "Bending Fiber" -font "boldLabelFont";
+	setParent..;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_BendingFiberCompressionFloatSlider";
+	attrFieldSliderGrp -label "Compression" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_BendingFiberCompressionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_BendingFiberCompressionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_BendingFiberCompressionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodBendingFiberCompression", "pmBendingFiberCompression", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_BendingFiberExpansionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_BendingFiberExpansionFloatSlider";
+	attrFieldSliderGrp -label "Expansion" 
+		-minValue 1.0 -maxValue 2.0
+		-fieldMinValue 1.0 -fieldMaxValue 2.0
+		$controlName;	
+
+	AEapexClothing_BendingFiberExpansionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_BendingFiberExpansionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_BendingFiberExpansionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodBendingFiberExpansion", "pmBendingFiberExpansion", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_BendingFiberResistanceNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_BendingFiberResistanceFloatSlider";
+	attrFieldSliderGrp -label "Resistance" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_BendingFiberResistanceReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_BendingFiberResistanceReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_BendingFiberResistanceFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodBendingFiberResistance", "pmBendingFiberResistance", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+//
+//global proc AEapexClothing_PhysicalMaterialReplaceTemplate(string $plug, string $lodAttribute, string $pmAttribute, string $floatSliderName)
+//{
+//	global string $AEapexClothing_ClothingNodeName;
+//	global int $AEapexClothing_PhysicalMaterialDisplayedLogicalIndex;
+//	//global int $AEapexClothing_PhysicalMaterialControlEnabled;
+//	global int $AEapexClothing_IsPhysicalMaterialSetMode;
+//	string $plug;
+//
+//	if( $AEapexClothing_IsPhysicalMaterialSetMode == 0 ) 
+//	{
+// 		$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$AEapexClothing_PhysicalMaterialDisplayedLogicalIndex+"]."+ $lodAttribute);
+//	}
+//	else
+//	{
+//		int $curPhysicalMaterialIndex = `getAttr ($AEapexClothing_ClothingNodeName+".selectedPhysicalMaterialSet")`;
+//		$plug = ($AEapexClothing_ClothingNodeName+".physicalMaterialSets["+$curPhysicalMaterialIndex+"]."+ $pmAttribute);
+//	}
+//	float $value = `getAttr $plug`;
+//	floatSliderGrp -e -value $value
+//		-changeCommand ("nxSetPhysicalMaterialCommand(#1, \"" + $plug + "\",\""+ $lodAttribute + "\")" )
+//		$floatSliderName;
+//	if( `NvSolverGetPhysXVersion` < 300 ) 
+//	{
+//		floatSliderGrp -e -visible false  $floatSliderName;
+//	}
+//	else
+//	{
+//		floatSliderGrp -e -visible true $floatSliderName;
+//	}
+//}
+
+global proc AEapexClothing_SetAdvancedPhysicalMaterialCommand(float $value, string $plug)
+{
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_ShearingFiberCompressionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 2 -cw 1 10 -cw 2 150;
+	text "";
+	text -label "Shearing Fiber" -font "boldLabelFont";
+	setParent..;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_ShearingFiberCompressionFloatSlider";
+	attrFieldSliderGrp -label "Compression" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_ShearingFiberCompressionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_ShearingFiberCompressionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_ShearingFiberCompressionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodShearingFiberCompression", "pmShearingFiberCompression", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_ShearingFiberExpansionNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_ShearingFiberExpansionFloatSlider";
+	attrFieldSliderGrp -label "Expansion" 
+		-minValue 1.0 -maxValue 2.0
+		-fieldMinValue 1.0 -fieldMaxValue 2.0
+		$controlName;	
+
+	AEapexClothing_ShearingFiberExpansionReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_ShearingFiberExpansionReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_ShearingFiberExpansionFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodShearingFiberExpansion", "pmShearingFiberExpansion", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+global proc AEapexClothing_ShearingFiberResistanceNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	int $advancedValue = AEapexClothing_IsAdvanceMaterialEnabled();
+	string $controlName = "AEapexClothing_ShearingFiberResistanceFloatSlider";
+	attrFieldSliderGrp -label "Resistance" 
+		-minValue 0.0 -maxValue 1.0
+		-fieldMinValue 0.0 -fieldMaxValue 1.0
+		$controlName;	
+
+	AEapexClothing_ShearingFiberResistanceReplace($plug);
+	attrFieldSliderGrp -e -enable $advancedValue $controlName;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_ShearingFiberResistanceReplace(string $plug)
+{
+	string $controlName = "AEapexClothing_ShearingFiberResistanceFloatSlider";
+	AEapexClothing_PhysicalMaterialReplaceTemplate($plug, "lodShearingFiberResistance", "pmShearingFiberResistance", $controlName);	
+	AEapexClothing_HideFiledForPhysX2($controlName);
+}
+
+
+global proc AEapexClothing_CrossSectionResistanceChangeCommand(string $plug )
+{
+	float $value = `floatSliderGrp -q -value "AEapexClothing_CrossSectionResistanceFloatSlider"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_SetLodCompoundAttributesIntBool( string $attr, int $value  ) // use for int/bool
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+
+	setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) $value;
+}
+
+// global proc AEapexClothing_SetLodCompoundAttributesFloat( string $attr, float $value  ) // use for float
+// {
+// 	global string $AEapexClothing_ClothingNodeName;
+// 	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+// 
+// 	setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) $value;
+// }
+
+// global proc AEapexClothing_SetLodCompoundAttributesText( string $attr, string $txt ) // use for strings
+// {
+// 	global string $AEapexClothing_ClothingNodeName;
+// 	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+// 
+// 	setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) -type "string" $txt;
+// }
+
+//global proc AEapexClothing_PhysicalMeshStyleChanged()
+//{
+//	global string $AEapexClothing_ClothingNodeName;
+//	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+//	
+//	string $attr = "lodPhysicalMeshStyle";
+//	string $newStyle = `optionMenuGrp -q -v "AEapexClothing_PhysicalMeshStyleMenu"`;
+//
+//	if ( $newStyle == "Immediate" )
+//	{
+//		setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) 0;
+//	}
+//	else if ( $newStyle == "SingleLayer" )
+//	{
+//		setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) 1;
+//	}
+//	else if ( $newStyle == "MultiLayer" )
+//	{
+//		setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) 2;
+//	}
+//	else if ( $newStyle == "Tetrahedral" )
+//	{
+//		setAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$attr) 3;
+//	}
+//}
+
+global proc AEapexClothing_PhysicalMeshTypeChanged()
+{
+	apexClothingStopPainting();
+
+	global string $AEapexClothing_ClothingNodeName;
+	global string $AEapexClothing_MeshAttrPhysMeshType;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	
+	int $newStyle = `optionMenuGrp -q -select $AEapexClothing_MeshAttrPhysMeshType`;
+
+	setAttr ($AEapexClothing_ClothingNodeName + ".lodCompoundAttributes[" + $currGraphicsLodIndex + "].lodPhysicalMeshStyle") ($newStyle-1);
+
+	updateAE $AEapexClothing_ClothingNodeName;
+}
+
+global proc AEapexClothing_ChangeSharedPhysicalLodMesh()
+{
+	apexClothingStopPainting();
+
+	//print( "AEapexClothing_ChangeSharedPhysicalLodMesh()\n" );
+
+	global string $AEapexClothing_ClothingNodeName;
+
+	int $currGraphicsLodIdx = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+
+	string $selectName = `optionMenuGrp -q -value "SharedPhysicalLodMeshOptionMenuGrp"`;
+	int $selectIndex = apexClothing_GetGraphicalLodMeshIndexByName($AEapexClothing_ClothingNodeName, $selectName);
+	
+	
+	//if same as the current graphics index internally make this as -1;
+	if($currGraphicsLodIdx == $selectIndex)
+		$selectIndex = -1;
+	
+	setAttr ($AEapexClothing_ClothingNodeName + ".lodCompoundAttributes[" + $currGraphicsLodIdx + "].lodSharePhysicalIndex") $selectIndex;
+}
+
+global proc AEapexClothing_LODMeshAttributeNew( string $arg1 )
+{
+	string $buff[];
+	tokenize($arg1, ".", $buff);
+	string $node = $buff[0];
+	//string $attr = $buff[1];
+
+	global string $AEapexClothing_MeshAttrPhysMeshStyle;
+
+	global string $AEapexClothing_GraphicalMeshAttribute1;
+	global string $AEapexClothing_GraphicalMeshAttribute2;
+	
+	global string $AEapexClothing_MeshAttrPhysMeshType;
+
+
+	separator -h 10 -style "none";
+	
+	//separator -h 5 -style "in";
+	//rowColumnLayout -numberOfColumns 1 -cw 1 149;
+	//	text -font "boldLabelFont" -align "left" -label "Physical Mesh Setting";
+	//setParent ..;
+	//separator -h 20 -style "none";
+
+	AEapexClothing_LODMeshAttributeReplace( $node );
+}
+
+global proc AEapexClothing_CustomMeshPaintableChangeCommand(string $plug)
+{
+	apexClothingStopPainting();
+
+	int $value = `checkBox -q -value "AEapexClothing_customPhysicalMeshPaintable"`;
+	string $cmd = "setAttr " +  $plug + " " + $value;
+	evalEcho $cmd;
+}
+
+global proc AEapexClothing_LODMeshAttributeReplace( string $arg1 )
+{
+	string $buff[];
+	tokenize($arg1, ".", $buff);
+	string $node = $buff[0];
+
+	global string $AEapexClothing_MeshAttrPhysMeshStyle;
+
+	global string $AEapexClothing_GraphicalMeshAttribute1;
+	global string $AEapexClothing_GraphicalMeshAttribute2;
+	
+	global string $AEapexClothing_MeshAttrPhysMeshType;
+	global string $AEapexClothing_ShareWithColumnLayout;
+	global string $AEapexClothing_FromGraphicalColumnLayout;
+	global string $AEapexClothing_CustomColumnLayout;
+	global string $AEapexClothing_PhysMeshTypeOptionMenuGrpColumnLayout;
+	global string $AEapexClothing_PhysMeshStyleOptionMenuGrpColumnLayout;
+
+	global string $AEapexClothing_ClothingNodeName;
+
+	$AEapexClothing_ClothingNodeName = $node;
+	int $currGraphicsLodIndex = `getAttr ($node + ".currentGraphicalLOD")`;
+
+	// add custom UI here
+	int $bufferSize = 148;
+	int $width = 350;
+	setUITemplate -pst attributeEditorTemplate;
+
+		//if ( !`columnLayout -exists $AEapexClothing_PhysMeshStyleOptionMenuGrpColumnLayout` )
+		//{
+			//// removed from UI, to be added in later
+			//// must match those declared in ApexClothingNode.cpp for lodPhysicalMeshStyle
+			//columnLayout $AEapexClothing_PhysMeshStyleOptionMenuGrpColumnLayout;
+			//	optionMenuGrp -label "Physical Mesh Style"
+			//		-cc "AEapexClothing_PhysicalMeshStyleChanged();"
+			//		"AEapexClothing_PhysicalMeshStyleMenu"
+			//       $AEapexClothing_MeshAttrPhysMeshStyle;
+			//	//menuItem -label "Immediate";
+			//	menuItem -label "SingleLayer";
+			//	//menuItem -label "MultiLayer";
+			//	menuItem -label "Tetrahedral";
+			//
+			//setParent ..;
+		//}
+
+		// create only if it does not exist
+		if ( !`columnLayout -exists $AEapexClothing_PhysMeshTypeOptionMenuGrpColumnLayout` )
+		{
+			global string $AEapexClothing_MeshAttrPhysMeshType_GRAPHICS_name;
+			global string $AEapexClothing_MeshAttrPhysMeshType_SHARE_name;
+			global string $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_name;
+
+		
+			columnLayout $AEapexClothing_PhysMeshTypeOptionMenuGrpColumnLayout;
+				optionMenuGrp -label "Physical Mesh Type"
+					-cc "AEapexClothing_PhysicalMeshTypeChanged();"
+					$AEapexClothing_MeshAttrPhysMeshType;
+				menuItem -label $AEapexClothing_MeshAttrPhysMeshType_GRAPHICS_name;
+				menuItem -label $AEapexClothing_MeshAttrPhysMeshType_SHARE_name;
+				menuItem -label $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_name;
+			setParent ..;
+		}
+
+		int $style = `getAttr ($AEapexClothing_ClothingNodeName + ".lodCompoundAttributes[" + $currGraphicsLodIndex + "].lodPhysicalMeshStyle")`;
+		optionMenuGrp -e -select ($style + 1) $AEapexClothing_MeshAttrPhysMeshType;
+
+		// delete UI controls for all before rebuilding again
+		if ( `columnLayout -exists $AEapexClothing_ShareWithColumnLayout` )
+			deleteUI $AEapexClothing_ShareWithColumnLayout;
+
+		if ( `columnLayout -exists $AEapexClothing_FromGraphicalColumnLayout` )
+			deleteUI $AEapexClothing_FromGraphicalColumnLayout;
+
+		if ( `columnLayout -exists $AEapexClothing_CustomColumnLayout` )
+			deleteUI $AEapexClothing_CustomColumnLayout;
+
+
+		global int $AEapexClothing_MeshAttrPhysMeshType_GRAPHICS_value;
+		global int $AEapexClothing_MeshAttrPhysMeshType_SHARE_value;
+		global int $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value;
+		if ( $style == $AEapexClothing_MeshAttrPhysMeshType_SHARE_value )
+		{
+			//print( "AEapexClothing_LODMeshAttributeReplace style is [Share With]\n" );
+			columnLayout $AEapexClothing_ShareWithColumnLayout;
+
+				optionMenuGrp -label "Physical Mesh"
+					-cc "AEapexClothing_ChangeSharedPhysicalLodMesh()"
+					"SharedPhysicalLodMeshOptionMenuGrp";
+
+				// fill in with available LOD meshes
+				string $meshes[] = `deformer -q -geometry $AEapexClothing_ClothingNodeName`; 
+				int $count = 0;
+				for ( $mesh in $meshes )
+				{
+					$type = `nodeType $mesh`;
+					if ( $type == "mesh" )
+					{
+						menuItem -label $mesh;
+						$count++;
+					}
+				}
+
+				// make sure the currently selected index is selected
+				int $currentSharePhysicalIndex = `getAttr ($node + ".lodCompoundAttributes[" + $currGraphicsLodIndex + "].lodSharePhysicalIndex")`;
+				if ( $currentSharePhysicalIndex == -1 ) // haven't changed, so default to itself
+				{
+					optionMenuGrp -e -select ($currGraphicsLodIndex + 1) "SharedPhysicalLodMeshOptionMenuGrp";
+				}
+				else
+				{
+					int $idxSelect = $currentSharePhysicalIndex + 1;
+					if($idxSelect > $count)
+					{
+						$idxSelect = ($currGraphicsLodIndex + 1);
+					}
+					optionMenuGrp -e -select ($idxSelect) "SharedPhysicalLodMeshOptionMenuGrp";
+				}
+					
+			setParent..;
+		}
+		else if ( $style == $AEapexClothing_MeshAttrPhysMeshType_GRAPHICS_value )
+		{
+			//print( "AEapexClothing_LODMeshAttributeReplace style is [From Graphical]\n" );
+			columnLayout $AEapexClothing_FromGraphicalColumnLayout;
+
+				checkBoxGrp -label "" -numberOfCheckBoxes 1 -columnWidth1 75
+						 -label1 "Merge Vertices"
+						 -onCommand1 "AEapexClothing_SetLodCompoundAttributesIntBool( \"lodMergeVertices\", true );" 
+						 -offCommand1 "AEapexClothing_SetLodCompoundAttributesIntBool( \"lodMergeVertices\", false );" 
+						 -value1 `getAttr ($node+".lodCompoundAttributes["+$currGraphicsLodIndex+"].lodMergeVertices")`
+						 $AEapexClothing_GraphicalMeshAttribute1;
+
+				checkBoxGrp -label "" -numberOfCheckBoxes 1 -columnWidth1 75
+						 -label1 "Normal from Bones"
+						 -onCommand1 "AEapexClothing_SetLodCompoundAttributesIntBool( \"lodNormalsFromBones\", true );" 
+						 -offCommand1 "AEapexClothing_SetLodCompoundAttributesIntBool( \"lodNormalsFromBones\", false );" 
+						 -value1 `getAttr ($node+".lodCompoundAttributes["+$currGraphicsLodIndex+"].lodNormalsFromBones")`
+						 $AEapexClothing_GraphicalMeshAttribute2;
+
+			setParent ..;
+		}
+		else if ( $style == $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value )
+		{
+			//print( "AEapexClothing_LODMeshAttributeReplace style is [Custom]\n" );
+			string $customPhysicalMeshes[] = `listConnections -source true -shapes true ($node + ".lodCompoundAttributes[" + $currGraphicsLodIndex + "].lodManualPhysicalMeshIn")`;
+			columnLayout $AEapexClothing_CustomColumnLayout;
+
+				string $customMeshText = "None";
+				int $shouldEnable = 0;
+				if ( size( $customPhysicalMeshes ) > 0 )
+				{
+					$customMeshText = $customPhysicalMeshes[0];
+					$shouldEnable = 1;
+				}
+
+				global string $AEapexClothing_SelectCustomPhysicalMeshButton;
+
+				rowLayout -numberOfColumns 3 -cw3 $bufferSize ($width - $bufferSize - 10) 10;
+					text - l "Custom Physical Mesh";
+					button -label $customMeshText -align "center" -c "AEapexClothing_PickCustomPhysicalLodMesh()";
+					button -label "..." -align "center" -c "AEapexClothing_SelectCustomPhysicalLodMeshViaOutliner()" $AEapexClothing_SelectCustomPhysicalMeshButton;
+				setParent ..;
+
+				rowLayout -numberOfColumns 4 
+						  -cw 1 $bufferSize -cw 2 (($width - $bufferSize)/3) 
+						  -cw 3 (($width - $bufferSize)/3) -cw 4 (($width - $bufferSize)/3);
+
+					text -label "";
+					button -label "Focus" -enable $shouldEnable -align "center" -c "AEapexClothing_FocusCustomPhysicalLodMesh()";
+					button -label "Update" -enable $shouldEnable -align "center" -c "AEapexClothing_UpdateCustomPhysicalLodMesh()";
+					button -label "Remove" -enable $shouldEnable -width (($width - $bufferSize)/3) -align "center" -c "apexClothingUnbindManualPhysicalMesh()";
+
+				setParent..;
+
+				rowLayout -numberOfColumns 2 -cw 1 $bufferSize -cw 2 ($width - $bufferSize);
+					text - l "";
+					checkBox -label "Make Paintable" "AEapexClothing_customPhysicalMeshPaintable";
+				setParent ..;
+
+			setParent..;
+
+			$plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodCustomMeshPaintable");
+			float $value = `getAttr $plug`;
+			checkBox -e -value $value -changeCommand ("AEapexClothing_CustomMeshPaintableChangeCommand(\"" + $plug + "\")" )  "AEapexClothing_customPhysicalMeshPaintable";
+		}
+
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_PickCustomPhysicalLodMesh()
+{
+	apexClothingStopPainting();
+
+	print( "AEapexClothing_PickCustomPhysicalLodMesh()\n" );
+
+	// there's no need to unbind because apexClothingBindManualPhysicalMesh will unbind automatically first 
+	// if there is already a custom mesh attached
+	NvExecuteOnSelection -hint "Click on an object in the viewport to select as the custom mesh." -cmd "AEapexClothingChooseCustomPhysicalMeshAfterSelect()";
+}
+
+global proc AEapexClothing_SelectCustomPhysicalLodMeshViaOutliner()
+{
+	apexClothingStopPainting();
+
+	global string $gOutlinerWindowForSelectCustomPhysicalMesh = "AEapexClothingOutlinerWindowForSelectCustomPhysicalMesh";
+	string $label = "Please select mesh to set as a Custom Physical Mesh";
+	nxOutlinerEditor("", $gOutlinerWindowForSelectCustomPhysicalMesh, "mesh", "AEapexClothing_SelectCustomPhysicalMesh", $label);
+}
+
+global proc AEapexClothingChooseCustomPhysicalMeshAfterSelect()
+{
+	print( "AEapexClothingChooseCustomPhysicalMeshAfterSelect()\n" );
+
+ 	string $apexNode = apexClothingGetSelected();
+	string $selectedNode[] = `NvExecuteOnSelection -q`;
+
+	string $args[] = {$apexNode, $selectedNode[0]};
+
+	apexClothingBindManualPhysicalMeshFromStringArray($args);
+}
+
+global proc AEapexClothing_SelectCustomPhysicalMesh(string $selected, string $plug)
+{
+	apexClothingStopPainting();
+
+	global string $AEapexClothing_ClothingNodeName;
+	string $apexNode = $AEapexClothing_ClothingNodeName;
+	print ("[AEapexClothing_SelectCustomPhysicalMesh] apexNode = " + $apexNode + "; selected=" + $selected + "; plug=" + $plug + "\n");
+
+	string $args[] = {$apexNode, $selected};
+	apexClothingBindManualPhysicalMeshFromStringArray($args);
+}
+
+global proc AEapexClothing_FocusCustomPhysicalLodMesh()
+{
+	print( "AEapexClothing_FocusCustomPhysicalLodMesh()\n" );
+
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+
+	// this button makes no sense, the physical mesh is hidden, selecting it when binded to the clothing won't do anything
+	string $customPhysicalMeshes[] = `listConnections -source true -shapes true ($AEapexClothing_ClothingNodeName + ".lodCompoundAttributes[" + $currGraphicsLodIndex + "].lodManualPhysicalMeshIn")`;
+	if ( size( $customPhysicalMeshes ) > 0 )
+	{
+		select $customPhysicalMeshes[0];
+	}
+	else
+	{
+		warning( "No manual physical mesh found\n" );
+	}
+}
+
+global proc AEapexClothing_UpdateCustomPhysicalLodMesh()
+{
+	apexClothingStopPainting();
+
+	global string $AEapexClothing_ClothingNodeName;
+	setAttr ($AEapexClothing_ClothingNodeName + ".updatePhysMesh") 1; // update the physical mesh
+}
+
+global proc AEapexClothing_LODnew( string $arg1 )
+{
+	string $buff[];
+	tokenize($arg1, ".", $buff);
+	string $node = $buff[0];
+	//string $attr = $buff[1];
+
+	global string $AEapexClothing_LODGraphicalMeshPickButton;
+	global string $AEapexClothing_LODGraphicalMeshAddButton;
+	global string $AEapexClothing_LODGraphicalMeshRemoveButton;
+	global string $AEapexClothing_LODGraphicalMeshUpButton;
+	global string $AEapexClothing_LODGraphicalMeshDownButton;
+	global string $AEapexClothing_LODGraphicalMeshShowAllLODMeshesCheckBox;
+	//global string $AEapexClothing_LODGraphicalMeshLodMin;
+	//global string $AEapexClothing_LODGraphicalMeshLodMax;
+//	global string $AEapexClothing_LODGraphicalMeshLodSplit;
+//	global string $AEapexClothing_LODGraphicalMeshLodBudget;
+
+	global string $AEapexClothing_ClothingNodeName;
+	global string $AEapexClothing_LODGraphicalMeshList;	
+	int $buffer = 148;
+	int $width = 350;
+
+
+	$AEapexClothing_ClothingNodeName = $node;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+
+	//AEapexClothing_LODreplace( $node );
+	
+	setUITemplate -pst attributeEditorTemplate;
+
+		//separator -h 5 -style "in";
+		rowColumnLayout -numberOfColumns 1 -cw 1 $buffer;
+			text -font "boldLabelFont" -align "left" -label "Graphical Mesh";
+		setParent ..;
+		//separator -h 5 -style "in";
+		//separator -h 10 -style "none";
+
+		rowColumnLayout -numberOfColumns 3 -cw 1 ($width/3) -cw 2 ($width/3) -cw 3 ($width/3);
+			button -label "Pick" -align "center" -command "AEapexClothing_PickGraphicalLodMesh()" $AEapexClothing_LODGraphicalMeshPickButton;
+
+			button -label "Add" -align "center" -command "AEapexClothing_AddGraphicalMeshViaOutliner()" $AEapexClothing_LODGraphicalMeshAddButton;
+			button -label "Remove" -align "center" -command "AEapexClothing_RemoveSelectedGraphicalMesh()" $AEapexClothing_LODGraphicalMeshRemoveButton;
+		setParent ..;
+
+		textScrollList -selectCommand "AEapexClothing_GraphicalLodSelected(0)"
+			-allowMultiSelection 0
+			-height 60	
+			$AEapexClothing_LODGraphicalMeshList;
+
+		AEapexClothing_DisplayInViewportNew();
+
+		////////////////////Graphical LOD Setting///////////////////////
+		separator -h 10 -style "none";
+
+	
+		// filling in the various lod meshes name
+		AEapexClothing_UpdateGraphicalMeshList();
+
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_LODreplace( string $arg1 )
+{
+	string $buff[];
+	tokenize($arg1, ".", $buff);
+	string $node = $buff[0];
+
+	global string $AEapexClothing_ClothingNodeName;
+
+	$AEapexClothing_ClothingNodeName = $node;
+	int $currGraphicsLodIndex = `getAttr ($node + ".currentGraphicalLOD")`;
+	
+	// update the scroll list
+	AEapexClothing_UpdateGraphicalMeshList();
+
+	// update display in viewport check box;
+	AEapexClothing_DisplayInViewportReplace();
+
+	// enable preset
+	AEapexClothing_presetEnable();
+}
+
+global proc AEnxAPEXClothingPhysicalLODNew()
+{
+	setUITemplate -pst attributeEditorTemplate;
+	rowLayout -numberOfColumns 1 -cal 1 "left"
+		-cat 1 "both" 0;
+		text -font "boldLabelFont" -align "left" -label "Max Distance LOD";
+	setParent ..;
+	separator -h 5 -style "in";
+
+	int $width = 50;
+	rowLayout -numberOfColumns 3 -cw 2 $width -cw 3 $width -cat 1 "right" 0;
+		text -label "";
+		text -label "%";
+		text -label "Value";
+	setParent ..;
+
+	global int $AEnxAPEXClothingPhysicalLODNum = 4;
+	int $i;
+	for($i = 0; $i < $AEnxAPEXClothingPhysicalLODNum; $i++)
+	{
+		rowLayout -numberOfColumns 3 -cw 2 $width -cw 3 $width -cat 1 "right" 0;
+			checkBox -label "" -changeCommand ("AEnxAPEXClothingPhysicalLODUpdate("+$i+")") ("AEnxAPEXClothingPhysicalLODCheckBox"+$i);
+			floatField -minValue 0.0 -maxValue 1.0 -enable false -precision 2 -changeCommand ("AEnxAPEXClothingPhysicalLODUpdate("+$i+")") ("AEnxAPEXClothingPhysicalLODFloatFieldL"+$i);
+			floatField -editable false -precision 2 ("AEnxAPEXClothingPhysicalLODFloatFieldR"+$i);
+		setParent ..;
+	}
+
+	intSliderGrp -label "Preview" -field true 
+		-minValue 0 -maxValue $AEnxAPEXClothingPhysicalLODNum
+		-fieldMinValue 0 -fieldMaxValue $AEnxAPEXClothingPhysicalLODNum 
+		-value 0
+		-changeCommand "AEnxAPEXClothingPhysicalLODPreviewUpdate 1"
+		"AEnxAPEXClothingPhysicalLODPreviewSlider";
+
+	setUITemplate -ppt;
+
+	AEnxAPEXClothingPhysicalLODReplace();
+}
+
+global proc AEnxAPEXClothingPhysicalLODReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	AEapexClothing_UpdateDisplayedPhysicalLODLogicalIndex();
+	global int $AEapexClothing_PhysicalLODDisplayedLogicalIndex;
+	global int $AEapexClothing_PhysicalLODControlEnabled;
+	string $compoundAttrPlug = $AEapexClothing_ClothingNodeName + ".lodCompoundAttributes["+$AEapexClothing_PhysicalLODDisplayedLogicalIndex+"].";
+	string $plug = ($compoundAttrPlug + "maxMaxDistance");
+	float $maxMaxDistance = `getAttr $plug`;
+
+	global int $AEnxAPEXClothingPhysicalLODNum;
+	int $i;
+	for($i = 0; $i < $AEnxAPEXClothingPhysicalLODNum; $i++)
+	{
+		int $isOn = `getAttr ($compoundAttrPlug + "lodSplitEnable["+$i +"]")`;
+		checkBox -e -value $isOn -enable $AEapexClothing_PhysicalLODControlEnabled ("AEnxAPEXClothingPhysicalLODCheckBox"+$i);
+
+		float $percent = `getAttr ($compoundAttrPlug + "lodSplitPercent["+$i +"]")`;
+		floatField -e -value $percent -enable $AEapexClothing_PhysicalLODControlEnabled ("AEnxAPEXClothingPhysicalLODFloatFieldL"+$i);
+
+		floatField -e -value ($maxMaxDistance * $percent) ("AEnxAPEXClothingPhysicalLODFloatFieldR"+$i);
+	}
+
+	int $previewValue = `getAttr ($compoundAttrPlug + "lodSplitPreview")`;
+	intSliderGrp -e -value $previewValue -enable $AEapexClothing_PhysicalLODControlEnabled "AEnxAPEXClothingPhysicalLODPreviewSlider";
+
+	AEnxAPEXClothingPhysicalLODUpdate(-1);
+}
+
+global proc AEnxAPEXClothingPhysicalLODPreviewUpdate(int $updateAttribute)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $previewValue = `intSliderGrp -q -value "AEnxAPEXClothingPhysicalLODPreviewSlider"`;
+
+	int $i;
+	int $numLod = 0;
+	global int $AEnxAPEXClothingPhysicalLODNum;
+	for($i = 0; $i < $AEnxAPEXClothingPhysicalLODNum; $i++)
+	{
+		if(`checkBox -q -value  ("AEnxAPEXClothingPhysicalLODCheckBox"+$i)` == 0)
+			break;
+		else
+			$numLod++;
+	}
+	if($numLod == 0) $numLod = 1;
+	if($previewValue > $numLod)
+	{
+		intSliderGrp -e -value $numLod "AEnxAPEXClothingPhysicalLODPreviewSlider";
+		$preview = $numLod;
+	}
+
+	if($updateAttribute == 1)
+	{
+		global int $AEapexClothing_PhysicalLODDisplayedLogicalIndex;
+		string $compoundAttrPlug = $AEapexClothing_ClothingNodeName + ".lodCompoundAttributes["+$AEapexClothing_PhysicalLODDisplayedLogicalIndex+"].";
+		setAttr ($compoundAttrPlug + "lodSplitPreview") $previewValue;
+	}
+}
+
+global proc AEnxAPEXClothingPhysicalLOD_UpdateFieldValue(int $currentIndex, float $maxIndex)
+{
+	if($currentIndex == -1) return;
+	string $field = "AEnxAPEXClothingPhysicalLODFloatFieldL";
+	string $checkBox = "AEnxAPEXClothingPhysicalLODCheckBox";
+	float $fieldValueArray[];
+	float $checkBoxValueArray[];
+	int $i;
+	for($i = 0; $i < $maxIndex; $i++)
+	{
+		float $fieldValue = `floatField -q -value ($field + $i)`;
+		$fieldValueArray[$i] = $fieldValue;
+		int $checkBoxValue = `checkBox -q -value ($checkBox + $i)`;
+		$checkBoxValueArray[$i] = $checkBoxValue;
+	}
+
+	for($i = 1; $i < $maxIndex; $i++)
+	{
+		if($fieldValueArray[$i] >= $fieldValueArray[$i-1])
+		{
+			if($i == $currentIndex)
+			{
+				$fieldValueArray[$i] = $fieldValueArray[$i-1]-0.01;
+			}
+			else if($i > $currentIndex)
+			{
+				if($checkBoxValueArray[$i] == 0)
+				{
+					$fieldValueArray[$i] = $fieldValueArray[$i-1]-0.01;
+				}
+				else
+				{
+					$fieldValueArray[$i-1] = $fieldValueArray[$i] + 0.01;
+				}
+			}
+			if($fieldValueArray[$i] < 0.0)
+				$fieldValueArray[$i] = 0.0;
+		}
+	}
+
+	for($i = 0; $i < $maxIndex; $i++)
+	{
+		floatField -e -value $fieldValueArray[$i] ($field + $i);
+		checkBox -e -value $checkBoxValueArray[$i] ($checkBox + $i);
+	}
+}
+
+global proc AEnxAPEXClothingPhysicalLODUpdate(int $index)
+{
+	global string $AEapexClothing_ClothingNodeName;
+ 	global int $AEapexClothing_PhysicalLODDisplayedLogicalIndex;
+	string $compoundAttrPlug = $AEapexClothing_ClothingNodeName + ".lodCompoundAttributes["+$AEapexClothing_PhysicalLODDisplayedLogicalIndex+"].";
+	string $plug = ($compoundAttrPlug + "maxMaxDistance");
+	float $maxMaxDistance = `getAttr $plug`;
+
+	global int $AEnxAPEXClothingPhysicalLODNum;
+	AEnxAPEXClothingPhysicalLOD_UpdateFieldValue($index, $AEnxAPEXClothingPhysicalLODNum);
+	global int $AEapexClothing_PhysicalLODControlEnabled;
+	int $i;
+	int $updateAttribute = 1;
+	if($index == -1)
+		$updateAttribute = 0;
+	for($i = 0; $i < $AEnxAPEXClothingPhysicalLODNum; $i++)
+	{
+		int $enable = `checkBox -q -value ("AEnxAPEXClothingPhysicalLODCheckBox"+$i) `;
+		if( $updateAttribute == 1)
+			setAttr ($compoundAttrPlug+"lodSplitEnable["+$i+"]") $enable;
+		if($enable == 1)
+		{
+			floatField -e -enable $AEapexClothing_PhysicalLODControlEnabled ("AEnxAPEXClothingPhysicalLODFloatFieldL"+$i);
+			float $percent = `floatField -q -value ("AEnxAPEXClothingPhysicalLODFloatFieldL"+$i)`;
+			if( $updateAttribute == 1)
+				setAttr ($compoundAttrPlug + "lodSplitPercent["+$i+"]") $percent;
+			floatField -e -value ($percent * $maxMaxDistance) ("AEnxAPEXClothingPhysicalLODFloatFieldR"+$i);
+			if($i < $AEnxAPEXClothingPhysicalLODNum - 1)
+				checkBox -e -enable $AEapexClothing_PhysicalLODControlEnabled ("AEnxAPEXClothingPhysicalLODCheckBox" + ($i+1));
+		}
+		else
+		{
+			floatField -e -enable false ("AEnxAPEXClothingPhysicalLODFloatFieldL"+$i);
+			if($i < $AEnxAPEXClothingPhysicalLODNum - 1)
+				checkBox -e -enable false -value false ("AEnxAPEXClothingPhysicalLODCheckBox" + ($i+1));
+		}
+	}
+	AEnxAPEXClothingPhysicalLODPreviewUpdate($updateAttribute);
+}
+
+// $direction == 1 for Up
+// $direction == 0 for Down
+//global proc AEapexClothingMoveButtonOnClick( int $direction )
+//{
+//	global string $AEapexClothing_LODGraphicalMeshList;
+//
+//	print( "Up\n" );
+//	int $numberOfSelectedItems = `textScrollList -q -numberOfSelectedItems $AEapexClothing_LODGraphicalMeshList`;
+//	if ( $numberOfSelectedItems < 1 )
+//	{
+//		print( "Nothing selected to move\n" );
+//		return;
+//	}
+//
+//	int $numLods = `textScrollList -q -numberOfItems $AEapexClothing_LODGraphicalMeshList`;
+//	int $selectedIndex[] = `textScrollList -q -selectIndexedItem $AEapexClothing_LODGraphicalMeshList`;
+//	// stop if there's only 1 lod remaining 
+//	// or the selectedIndex to delete refers to the very first lod which is created when the clothing is created
+//	if ( $numLods < 2 )
+//	{
+//		print( "Only 1 LOD mesh remaining. Cancelling move\n" );
+//		return;
+//	}
+//
+//	int $selectedIndices[] = `textScrollList -q -sii $AEapexClothing_LODGraphicalMeshList`;
+//	int $selectedIndex = $selectedIndices[0];
+//	string $selectedMeshes[] = `textScrollList -q -selectItem $AEapexClothing_LODGraphicalMeshList`;
+//
+//	if ( $direction == 1 ) // Up
+//	{
+//		if ( $selectedIndex == 1 )
+//		{
+//			print( "First item selected, no way to move up\n" );
+//			return;
+//		}
+//
+//		print( "moving " + $selectedMeshes[$selectedIndex - 1] + "up\n" );
+//	}
+//	else if ( $direction == 0 ) // down
+//	{
+//		if ( $selectedIndex == $numLods )
+//		{
+//			print( "Last item selected, no way to move down\n" );
+//			return;
+//		}
+//
+//		print( "moving " + $selectedMeshes[$selectedIndex - 1] + "down\n" );
+//	}
+//}
+
+
+global proc AEapexClothingChangeShowGraphicalMeshConnection( string $nextCurrMesh )
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $showNonCurrentMeshes;
+
+	string $oldCurrMesh[] = `listConnections -source false -destination true -shapes true ($AEapexClothing_ClothingNodeName + ".showGraphicalMesh")`;
+	
+	//disconnectAttr ($AEapexClothing_ClothingNodeName + ".showGraphicalMesh") ($oldCurrMesh[0] + ".visibility");
+	//setAttr ($oldCurrMesh[0] + ".visibility") false;
+	//connectAttr ($AEapexClothing_ClothingNodeName + ".showGraphicalMesh") ($nextCurrMesh + ".visibility");
+	int $countConnections=`size $oldCurrMesh`;
+	if($countConnections>0)
+	{
+		disconnectAttr ($AEapexClothing_ClothingNodeName + ".showGraphicalMesh") ($oldCurrMesh[0] + ".visibility");
+	}
+	connectAttr ($AEapexClothing_ClothingNodeName + ".showGraphicalMesh") ($nextCurrMesh + ".visibility");
+
+	int $displayInViewport = `getAttr ($AEapexClothing_ClothingNodeName + ".displayInViewport")`;
+	if($displayInViewport == 1)
+	{
+		setAttr ($oldCurrMesh[0] + ".intermediateObject") true;	// hide if we're not showing
+	}
+	setAttr ($nextCurrMesh + ".intermediateObject") false;
+	string $ps[] = `listRelatives -parent $nextCurrMesh`;
+	if(`size $ps` > 0)
+	{
+		setAttr ($ps[0] + ".intermediateObject") false;
+	}
+}
+
+
+// index start from 1
+global proc AEapexClothing_SelectGraphicalLodByName( string $selectMesh, int $newIndex )
+{
+	global string $AEapexClothing_ClothingNodeName;
+		
+	setAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD") $newIndex;
+
+	int $array[];
+	getCurrentLODPhysicalMaterialIndices($AEapexClothing_ClothingNodeName, $array);
+	if(size($array) > 0)
+	{
+		int $mindex = $array[0];
+		setAttr ($AEapexClothing_ClothingNodeName+".selectedPhysicalMaterialSet") ($mindex);
+	}
+		
+	// disconnect the showGraphical mesh attribute, and show/hide the respectively meshes
+	AEapexClothingChangeShowGraphicalMeshConnection( $selectMesh );
+
+	// update the attribute viewer ui.
+	updateAE($AEapexClothing_ClothingNodeName);
+}
+
+global proc AEapexClothing_UpdateUIWhenCurLodChanged(int $forceUpdate)
+{
+	AEapexClothing_LODGravityScaleReplace("");
+	AEapexClothing_OverrideFiberReplace("");
+	// If the frame layout is collapse, its control will not be created.
+	if(`attrFieldSliderGrp -q -exists "AEapexClothing_WindDirectionFloatSlider"`)
+	{
+		AEapexClothing_LODWindVelocityReplace("");
+		AEapexClothing_LODWindDirectionReplace("");
+		AEapexClothing_LODWindElevationReplace("");
+	}
+	// we put this before all other simulation attributes as we need to update global displayed index map
+	AEapexClothing_CollisionThicknessReplace("");
+	AEapexClothing_LODSlowStartReplace("");
+	AEapexClothing_LODRecomputeNormalsReplace("");
+	AEapexClothing_LODSelfCollisionEnable3xReplace("");
+	AEapexClothing_LODSelfCollisionThickness3xReplace("");
+	AEapexClothing_LODSelfCollisionStiffness3xReplace("");
+	AEapexClothing_CCDReplace("");
+	AEapexClothing_DragReplace("");
+	AEapexClothing_BendinessReplace("");
+	AEapexClothing_DampingReplace("");
+	AEapexClothing_LODFrictionReplace("");
+	AEapexClothing_LODUseGravityReplace("");
+
+	AEapexClothing_StiffnessShearinessReplace("");
+	AEapexClothing_StretchLimitReplace("");
+	AEapexClothing_TetherStiffnessRelaxReplace("");
+	AEapexClothing_InertiaBlendReplace("");
+	AEapexClothing_FiberCompressionReplace("");
+	AEapexClothing_FiberResistanceReplace("");
+	AEapexClothing_FiberExpansionReplace("");
+	AEapexClothing_MassScaleReplace("");
+	AEapexClothing_VirtualParticleDensityReplace("");
+	AEapexClothing_RestLengthScaleReplace("");
+	AEapexClothing_SolverFrequencyReplace("");
+	AEapexClothing_LODPatintOverrideReplace();
+	//AEnxAPEXClothingPhysicalLODReplace();
+
+	AEapexClothingAdvancedPhysicalMaterialReplace();
+
+
+	if($forceUpdate == 0)
+	{
+		AEapexClothing_LODPhysicalMaterialOverrideReplace();
+		AEapexClothing_LODAdvancedMaterialOverrideReplace();
+		AEapexClothing_LODSimulationOverrideReplace();
+		AEapexClothing_LODPhysicalLODOverrideReplace();
+	}
+	AEapexClothing_presetEnable();
+
+	AEapexClothing_EnableSkinClusterNode() ;
+	AEnxAPEXClothingUpdateRelatedNodesList();
+
+	// When we switch different mesh lod, Maya inside has a callback and will update the tool window
+	// when we are in paint mode and change current lod, we will let Maya do update work
+	if(`currentCtx` == "artUserPaintContext")
+	{
+		// We hook up Maya UI and Maya will update UI when 
+		global string $AEapexClothing_ClothingNodeName;
+		apexClothingPaint2_OnOff($AEapexClothing_ClothingNodeName); // This will shut down the tool window. 
+		apexClothingPaint2_OnOff($AEapexClothing_ClothingNodeName); // This will open the tool window again
+	}
+}
+
+global proc AEapexClothing_GraphicalLodSelected(int $forceUpdate)
+{
+	global string $AEapexClothing_LODGraphicalMeshList;
+	global string $AEapexClothing_ClothingNodeName;
+
+	if(`textScrollList -q -exists $AEapexClothing_LODGraphicalMeshList` == 0) return;
+	string $selectedArray[] = `textScrollList -q -si $AEapexClothing_LODGraphicalMeshList`;
+	string $selected = $selectedArray[0];
+	int $newIndex = apexClothing_GetGraphicalLodMeshIndexByName( $AEapexClothing_ClothingNodeName, $selected);
+	int $oldIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	int $isUpdate = ($newIndex != -1  || $forceUpdate == 1);
+	if($isUpdate == 0) return;
+	AEapexClothing_SelectGraphicalLodByName( $selected, $newIndex );
+	AEapexClothing_UpdateUIWhenCurLodChanged($forceUpdate);
+}
+
+global proc AEapexClothing_DisplayInViewportNew()
+{
+	rowLayout -numberOfColumns 2;
+	text "";
+	checkBox -label "Display in Viewport" "AEapexClothing_DisplayInViewportCheckBox";
+	setParent..;
+}
+
+global proc AEapexClothing_DisplayInViewportReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	string $plug = $AEapexClothing_ClothingNodeName + ".displayInViewport";
+	int $value = `getAttr $plug`;
+	checkBox -e -changeCommand ("AEapexClothing_DisplayInViewportUpdate " + $plug) -value $value "AEapexClothing_DisplayInViewportCheckBox";
+}
+
+global proc AEapexClothing_DisplayInViewportUpdate(string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $value = `checkBox -q -value "AEapexClothing_DisplayInViewportCheckBox"`;
+	string $cmd = "setAttr " + $plug + " " + $value;
+	evalEcho $cmd;
+	$value = 1 - $value;
+	apexClothing_ShowAllLodMeshes( $AEapexClothing_ClothingNodeName, $value );
+}
+
+global proc AEapexClothing_EnableSkinClusterNode()
+{
+ 	global string $AEapexClothing_ClothingNodeName;
+ 	setAttr ($AEapexClothing_ClothingNodeName + ".updateCurrentLod") 1;
+
+	string $nodes[] = `ls -type skinCluster`;
+	for($node in $nodes)
+		setAttr ($node + ".nodeState") 0;
+}
+
+global proc AEapexClothing_PickGraphicalLodMesh()
+{
+	apexClothingStopPainting();
+	print( "AEapexClothing_PickGraphicalLodMesh()\n" );
+	NvExecuteOnSelection -hint "Please select input mesh to connect." -cmd "AEapexClothing_PickGraphicalLodMeshAfterSelect();";
+}
+
+global proc AEapexClothing_PickGraphicalLodMeshAfterSelect()
+{
+	// check whether currently selected mesh has clothing or is already added to this clothing
+	string $selectionList[] = `NvExecuteOnSelection -q`;
+	int $selectionListLen = size($selectionList);
+	
+	// get the last on the list
+	// because the delay execute command adds in the currently selected item too
+	// and the item we select will be the last item in that list
+	string $selected = $selectionList[$selectionListLen - 1]; // selected is the transform name
+
+	AEapexClothing_AddGraphicalLodMesh($selected, "");
+	global string $AEapexClothing_ClothingNodeName;
+	nxShowEditorExact( $AEapexClothing_ClothingNodeName );
+}
+
+/*~
+~name AEapexClothing_AddGraphicalLodMeshCmd
+~desc Add graphical lod for a clothing node. The sequence of LOD is sorted by vertex number.
+~returnValue 1: success; 0: failure
+
+~longFlag $clothingNode
+~type string
+~flagDesc Clothing node name
+
+~longFlag $transform
+~type string
+~flagDesc Transform node of mesh which will be added as Lod
+
+~example 
+	AEapexClothing_AddGraphicalLodMeshCmd("Flag_MediumClothing", "pPlane1");
+
+*/
+global proc int AEapexClothing_AddGraphicalLodMeshCmd(string $clothingNode, string $transform)
+{
+	nxShowEditorExact( $clothingNode );
+	string $selectedShape[] = `listRelatives -fullPath -children -shapes -noIntermediate $transform`; // get the shape name
+	if(size($selectedShape) == 0)
+	{
+		warning( "Clothing already exists on " + $transform + ". Skipping Add\n" );
+		return 0;
+	}
+	string $meshShape = $selectedShape[0];
+
+	// bake the mesh first to prevent bugs like GWDCC-344
+	bakePartialHistory $meshShape;
+
+	print ("[AEapexClothing_AddGraphicalLodMeshCmd] $meshShape = " + $meshShape + "; clothingNode=" + $clothingNode + "\n");
+
+	string $existingMeshes[] = `deformer -q -geometry $clothingNode`; 
+
+	// see if selected mesh has clothing
+	if ( "" != getApexClothingFromMesh( $meshShape ) )
+	{
+		warning( "Clothing already exists on " + $meshShape + ". Skipping Add\n" );
+		return 0;
+	}
+
+	// see if selected mesh is already in the list
+	for ( $mesh in $existingMeshes )
+	{
+		if ( $meshShape == $mesh )
+		{
+			warning( $meshShape + " is already one of the Graphical LOD mesh for " + $clothingNode + ". Skipping Add\n" );
+			return 0;
+		}
+	}
+
+
+	// see if selected mesh is skinned
+	string $newLODSkinCluster = `findRelatedSkinCluster $transform`;
+	if ( $newLODSkinCluster == "" )
+	{
+		warning( $meshShape + " does not have a skinning deformer. Skipping Add\n" );
+		return 0;
+	}
+
+	// see if selected mesh's joint is a subset of original clothing object
+	//if ( 0 == apexClothingEnsureMeshJointIsSubset( $selected, $AEapexClothing_ClothingNodeName ) )
+	if ( 0 == apexClothingIsSameSetofBones( $transform, $clothingNode ) )
+	{
+		warning( "The custom physical mesh must be skinned to the same set of bones as the original clothing object" );
+		return 0;
+	}
+
+	if($existingMeshes[0] != "")
+	{
+		int $maxVertexNum[] = `polyEvaluate -vertex $existingMeshes[0]`;
+		int $selectedVertexNum[] = `polyEvaluate -vertex $meshShape`;
+		if($selectedVertexNum[0] > $maxVertexNum[0])
+		{
+			warning( "The selected mesh has more than vertex than the first lod mesh" );
+			return 0;
+		}
+	}
+
+	//Add deformer to the other LODs
+	deformer -e -geometry $meshShape $clothingNode;
+	//string $meshesLods[] = `deformer -q -geometry $clothingNode`;
+	//print ("**** meshShape=" + $meshShape + "; clothingNode=" + $clothingNode + "; meshesLods = \n");
+	//print ($meshesLods);
+	//print ("****************\n");
+	setAttr ($clothingNode + ".initializeMode") 1;
+	setAttr ($clothingNode + ".updateLodIndexMaps") 1;
+	// we need to get paint data from content core. The flag means we should update graphcial mesh in content core
+	setAttr ($clothingNode + ".updateGfxMesh") 1;
+
+	// hide none current lod meshes because we didn't change selection when we added it.
+	apexClothing_ShowAllLodMeshes( $clothingNode, false );
+
+	// switch into the new lod
+	int $newIndex = apexClothing_GetGraphicalLodMeshIndexByName( $clothingNode, $meshShape);
+	AEapexClothing_SelectGraphicalLodByName($meshShape, $newIndex);
+
+	// copy the attributes from parent lod which has been overrided.
+	// we use evalDeffered as we are waiting for lodInheritanceMap updated by draw call
+	evalDeferred "AEapexClothing_LODResetOverrideUpdate()";
+
+	print ("[AEapexClothing_AddGraphicalLodMeshCmd] New lod index is " + $newIndex + "\n");
+
+	return 1;
+
+}
+
+global proc AEapexClothing_AddGraphicalLodMesh(string $selected, string $plug)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	print ("[AEapexClothing_AddGraphicalLodMesh] selected = " + $selected + "\n");
+
+	int $result = AEapexClothing_AddGraphicalLodMeshCmd($AEapexClothing_ClothingNodeName, $selected);
+	if($result == 0) return;
+
+	AEapexClothing_UpdateGraphicalMeshList();
+	nxShowEditorExact( $AEapexClothing_ClothingNodeName );
+}
+
+/*~
+~name AEapexClothing_RemoveGraphicalMeshWithSortedPhysicalIndex
+~desc Remove a LOD from a clothing node.
+~returnValue None
+
+~longFlag $clothingNode
+~type string
+~flagDesc Clothing node name
+
+~longFlag $graphicalLodToDelete_PhysicalIndex
+~type int
+~flagDesc The sequence index of sorted LOD by vertex number.0 based
+
+~example 
+	// Remove the second LOD
+	AEapexClothing_RemoveGraphicalMeshWithSortedPhysicalIndex("Flag_MediumClothing", 1);
+
+*/
+global proc AEapexClothing_RemoveGraphicalMeshWithSortedPhysicalIndex(string $clothingNode, int $graphicalLodToDelete_PhysicalIndex)
+{
+	if( `objExists $clothingNode` == 0) 
+	{
+		warning ("The clothing node " + $clothingNode + " doesn't exist");
+		return;
+	}
+	int $sortedIndex = `getAttr ($clothingNode + ".sortedLogicalIndex[" + $graphicalLodToDelete_PhysicalIndex + "]")`;
+	AEapexClothing_RemoveGraphicalMesh($clothingNode, $sortedIndex);
+}
+
+global proc int AEapexClothing_CheckGeometryIndexForClothing(string $clothingNode, int $graphicalLodToDelete_PhysicalIndex)
+{
+	int $array[] = `deformer -q -geometryIndices $clothingNode`;
+	int $result = intArrayFind($graphicalLodToDelete_PhysicalIndex, 0, $array);
+	if($result == -1) return 0;
+	return 1;
+}
+
+/*~
+~name AEapexClothing_RemoveGraphicalMesh
+~desc Remove a LOD from a clothing node.
+~returnValue None
+
+~longFlag $clothingNode
+~type string
+~flagDesc Clothing node name
+
+~longFlag $graphicalLodToDelete_SparseIndex
+~type int
+~flagDesc The logical index connected to clothing node
+
+~example 
+	AEapexClothing_RemoveGraphicalMesh("Flag_MediumClothing", 1);
+
+*/
+global proc AEapexClothing_RemoveGraphicalMesh(string $clothingNode, int $graphicalLodToDelete_SparseIndex)
+{
+	if( `objExists $clothingNode` == 0) 
+	{
+		warning ("The clothing node " + $clothingNode + " doesn't exist");
+		return;
+	}
+    
+
+	int $isExisted = AEapexClothing_CheckGeometryIndexForClothing($clothingNode, $graphicalLodToDelete_SparseIndex);
+	if($isExisted == 0)
+	{
+		warning ("The specified index doesn't exist");
+		return;
+	}
+	
+	nxShowEditorExact( $clothingNode );
+ 	int $upperLevel = AEapexClothing_GetUpperLOD($clothingNode, $graphicalLodToDelete_SparseIndex);
+	if($upperLevel < 0) 
+	{
+		warning ("Only 1 LOD mesh remaining or the original LOD mesh is about to be deleted. Cancelling removal");
+		return;
+	}
+	string $newLodMesh = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $clothingNode, $upperLevel );
+ 	AEapexClothing_SelectGraphicalLodByName($newLodMesh, $upperLevel);
+
+	string $mesh = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $clothingNode, $graphicalLodToDelete_SparseIndex );
+
+	select $clothingNode;
+	apexClothingUnbindManualPhysicalMesh();
+
+	// remove intermediateObject attr firstly or remove geometry will fail
+	setAttr ($mesh + ".intermediateObject") false;
+	string $ps[] = `listRelatives -parent $mesh`;
+	if(`size $ps` > 0)
+	{
+		setAttr ($ps[0] + ".intermediateObject") false;
+	}
+	deformer -e -remove -geometry $mesh $clothingNode;
+
+	// need to disconnect/delete from clothing node, then join the outgeom from skincluster to inMesh of the shape
+	// but there may be groupParts nodes and colorset nodes in between, so just query the plugs to join together
+	string $sourceInput[] = `listConnections -source true -destination false -plugs true ($clothingNode + ".input[" + $graphicalLodToDelete_SparseIndex + "].inputGeometry")`;
+	string $destOutput[] = `listConnections -source false -destination true -plugs true ($clothingNode + ".outputGeometry[" + $graphicalLodToDelete_SparseIndex + "]")`;
+	disconnectAttr $sourceInput[0] ($clothingNode + ".input[" + $graphicalLodToDelete_SparseIndex + "].inputGeometry");
+	disconnectAttr ($clothingNode + ".outputGeometry[" + $graphicalLodToDelete_SparseIndex + "]") $destOutput[0];
+	connectAttr $sourceInput[0] $destOutput[0];
+	removeMultiInstance -b true ($clothingNode + ".input[" + $graphicalLodToDelete_SparseIndex + "]");
+	removeMultiInstance -b true ($clothingNode + ".outputGeometry[" + $graphicalLodToDelete_SparseIndex + "]");
+
+	// delete the attributes from the clothing node
+	removeMultiInstance -b true ($clothingNode + ".lodCompoundAttributes[" + $graphicalLodToDelete_SparseIndex + "]");
+	// see bug 6854: Removing lod will make Maya crash. When we are deleting lod, updatePhysMeshPlug is dirty but geometry is not ready yet. We force recreating graphical mesh(geometry)
+	setAttr ($clothingNode + ".updateGfxMesh") 1;
+	setAttr ($clothingNode + ".updateLodIndexMaps") 1;
+}
+
+global proc AEapexClothing_AddGraphicalMeshViaOutliner()
+{
+	apexClothingStopPainting();	
+
+	global string $gOutlinerWindowForAddGraphicalLodMesh;
+	string $label = "Please select mesh to set as a LOD";
+	nxOutlinerEditor("", $gOutlinerWindowForAddGraphicalLodMesh, "mesh", "AEapexClothing_AddGraphicalLodMesh", $label);
+}
+
+global proc AEapexClothing_RemoveSelectedGraphicalMesh()
+{
+	print( "AEapexClothing_RemoveSelectedGraphicalMesh()\n" );
+	global string $AEapexClothing_ClothingNodeName;
+
+	apexClothingStopPainting();	
+
+	int $graphicalLodToDelete_SparseIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	AEapexClothing_RemoveGraphicalMesh($AEapexClothing_ClothingNodeName, $graphicalLodToDelete_SparseIndex);
+	AEapexClothing_UpdateUIWhenCurLodChanged(0);
+	AEapexClothing_UpdateGraphicalMeshList();
+	refreshAE;
+}
+
+
+global proc AEapexClothing_swapString(string $array[], int $low, int $high)
+{
+	string $temp = $array[$high];
+	$array[$high] = $array[$low];
+	$array[$low] = $temp;
+}
+
+global proc AEapexClothing_swapInt(int $array[], int $low, int $high)
+{
+	int $temp = $array[$high];
+	$array[$high] = $array[$low];
+	$array[$low] = $temp;
+}
+
+//global proc int AEapexClothing_SortParition(string $array[], int $value[], int $low, int $high)
+//{
+//	int $pivot = $value[$low];
+//	while($low < $high)
+//	{
+//		while($low < $high && $value[$high] >= $pivot) $high = $high - 1;
+//		AEapexClothing_swapString($array, $low, $high);
+//		AEapexClothing_swapInt($value, $low, $high);
+//
+//		while($low < $high && $value[$low] <= $pivot) $low = $low + 1;
+//		AEapexClothing_swapString($array, $low, $high);
+//		AEapexClothing_swapInt($value, $low, $high);
+//	}
+//	return $low;
+//}
+//
+//global proc AEapexClothing_quickSort(string $array[], int $value[], int $low, int $high)
+//{
+//	if($low < $high)
+//	{
+//		int $n = AEapexClothing_SortParition($array, $value, $low, $high);
+//		AEapexClothing_quickSort($array, $value, $low, $n);
+//		AEapexClothing_quickSort($array, $value, $n + 1, $high);
+//	}
+//}
+
+global proc AEapexClothing_UpdateGraphicalMeshList()
+{
+	global string $AEapexClothing_LODGraphicalMeshList;
+	global string $AEapexClothing_ClothingNodeName;
+
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $currGraphicsLodName = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $AEapexClothing_ClothingNodeName, $currGraphicsLodIndex );
+
+	textScrollList -edit -removeAll $AEapexClothing_LODGraphicalMeshList; // remove existing elements in the list
+	
+	//string $oldMenus[] = `optionMenu -q -itemListLong $AEapexClothing_LODGraphicalMeshList`;
+	//for ( $oldMenu in $oldMenus )
+	//	deleteUI $oldMenu;
+
+
+	int $selected = -1;
+	
+	// filling in the various lod meshes name
+	// querying from the deformer itself gives the meshes in the correct physical index order, regardless of whether
+	// meshes are hidden/intermediate or not
+	string $meshes[] = `deformer -q -geometry $AEapexClothing_ClothingNodeName`; //`listHistory -f true ($AEapexClothing_ClothingNodeName+".outputGeometry")`;
+    int $meshLogicalIndexArray[] = `deformer -q -geometryIndices $AEapexClothing_ClothingNodeName`;
+	string $sortedMeshes[];
+	clear $sortedMeshes;
+	for ( $i=0; $i < size($meshes); $i++ )
+	{
+		int $sortedIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".sortedLogicalIndex[" + $i + "]")`;
+		int $physicalIndex = apexClothing_ConvertToPhysicalIndex($meshLogicalIndexArray, $sortedIndex);
+		$sortedMeshes[$i] = $meshes[$physicalIndex];
+	}
+
+	for ( $i=0; $i < size($meshes); $i++ )
+	{
+		$meshes[$i] = $sortedMeshes[$i];
+	}
+
+	for ( $i=0; $i < size($meshes); $i++ )
+	{
+		string $mesh = $meshes[$i];
+		
+		$type = `nodeType $mesh`;
+		if ( $type == "mesh" )
+		{
+			// menuItem -label $mesh -parent ($AEapexClothing_LODGraphicalMeshList); //if it is a optionMenuGrp then  + "|OptionMenu"
+			textScrollList -e -append $mesh $AEapexClothing_LODGraphicalMeshList;
+
+			//print( "#### Adding " + $mesh + " to list\n" );
+			
+			if($mesh == $currGraphicsLodName)
+				$selected = $i;
+		}
+	}
+	
+	if($selected >= 0)
+	{
+		//we found it!
+		//optionMenu -e -select ($selected+1) $AEapexClothing_LODGraphicalMeshList;
+		textScrollList -e -selectIndexedItem ($selected+1) $AEapexClothing_LODGraphicalMeshList;
+
+	}
+	else //we didn't find the entry
+	{
+		setAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD") 0;
+		//optionMenu -e -select 1 $AEapexClothing_LODGraphicalMeshList;
+		textScrollList -e -selectIndexedItem 1 $AEapexClothing_LODGraphicalMeshList;
+	}
+}
+
+// global proc AEapexClothing_dimLodClamps( string $node )
+// {
+// 	//editorTemplate -dimControl $node "deprecated_lodClampMin" true;
+// 	//editorTemplate -dimControl $node "deprecated_lodClampMax" true;
+// 	
+// 	global string $AEapexClothing_LODGraphicalMeshLodMin;
+// 	global string $AEapexClothing_LODGraphicalMeshLodMax;
+// 
+// 	floatFieldGrp -e -enable false $AEapexClothing_LODGraphicalMeshLodMin;
+// 	floatFieldGrp -e -enable false $AEapexClothing_LODGraphicalMeshLodMax;
+// }
+
+global proc AEapexClothing_vertexSelectionNew( string $node, string $arg )
+{
+	string $buffer[];
+	tokenize($arg, ".", $buffer);
+	string $nodeName = $buffer[0];
+	string $attr = $buffer[1];
+
+	setUITemplate -pst attributeEditorTemplate;
+	
+	rowLayout -numberOfColumns 5
+	-columnWidth 1 150
+	-columnWidth 2 100
+	-columnWidth 3 100
+	-columnWidth 4 50
+	-columnWidth 5 50
+	-columnAlign5 "right" "center" "center" "center" "center";
+
+	text  -align "right" -l $attr;
+	string $saveCmd = "apexClothingSaveVertexSelection(\"" + $nodeName + "\")";
+	string $restoreCmd = "apexClothingRestoreVertexSelection(\"" + $nodeName+ "\")";
+	button -label "Capture" -align "center" -command $saveCmd btnApexClothingVertexSave;
+	button -label "Restore" -align "center" -command $restoreCmd btnApexClothingVertexRestore;
+		
+	setParent ..;
+
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_vertexSelectionChanged( string $node, string $arg)
+{
+	string $buffer[];
+	tokenize($arg, ".", $buffer);
+	string $nodeName = $buffer[0];
+	//string $attr = $buffer[1];
+
+	string $saveCmd = "apexClothingSaveVertexSelection(\"" + $nodeName + "\")";
+	string $restoreCmd = "apexClothingRestoreVertexSelection(\"" + $nodeName + "\")";
+	button -e -command $saveCmd btnApexClothingVertexSave;
+	button -e -command $restoreCmd btnApexClothingVertexRestore;
+
+}
+
+//global proc AEapexClothing_physicalMeshStyle(string $node)
+//{
+//	//refreshAE;
+//
+//	//Error checking to prevent the case where a new scene is created
+//	//while animation is being performed
+//	if(!objExists($node))
+//	{
+//		return;
+//	}
+//	
+//	int  $type = `getAttr ($node + ".deprecated_physicalMeshStyle")`;
+//	
+//	if($type == 3) //tetra
+//	{
+//		editorTemplate -dimControl $node "subdivisionEnable" true;
+//		editorTemplate -dimControl $node "tetrafication" false;
+//	}
+//	else 
+//	{
+//		editorTemplate -dimControl $node "subdivisionEnable" false;
+//		editorTemplate -dimControl $node "tetrafication" true;
+//	}
+//}
+
+
+global proc AEapexClothing_AddSeparator( )
+{
+	editorTemplate -callCustom "AEapexClothing_separatorNew" "AEapexClothing_separatorReplace";	
+}
+
+global proc AEapexClothing_separatorNew( )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	columnLayout;
+
+	separator -h 10 -style "none";
+
+	setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc AEapexClothing_separatorReplace( )
+{}
+
+global proc AEapexClothing_RebuildButtonNew ( string $arg )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	
+	rowLayout -numberOfColumns 2;
+	text - l "Rebuild and Simulate";//label
+	button -label "Rebuild" -align "center" rebuilder;
+	setParent ..;
+
+	setUITemplate -ppt;
+    
+    AEapexClothing_RebuildButtonReplace( $arg );
+}
+
+
+global proc int AEapexClothing_RebuildButtonReplace ( string $arg )
+{
+	string $buffer[];
+	tokenize($arg, ".", $buffer);
+	string $node = $buffer[0];
+
+	button -e -c ("apexClothingRebuild( \"" + $node + "\" )") rebuilder;
+    return true;
+}
+
+
+
+global proc AEapexClothing_paintNew ( string $node, string $arg)
+{
+	string $buffer[];
+	tokenize($arg, ".", $buffer);
+	string $nodeName = $buffer[0];
+	//string $attr = $buffer[1];
+
+	global string $AEapexClothing_ClothingNodeName;
+	$AEapexClothing_ClothingNodeName = $nodeName;
+
+	setUITemplate -pst attributeEditorTemplate;
+	
+	rowLayout -numberOfColumns 2;
+	text - l "Vertex Behaviors";
+	button -label "Paint" -align "center" -c "global string $AEapexClothing_ClothingNodeName; apexClothingPaint2_OnOff( $AEapexClothing_ClothingNodeName )";
+	setParent ..;
+
+	setUITemplate -ppt;
+    
+    AEapexClothing_paintReplace( $nodeName, $arg );
+}
+
+
+global proc int AEapexClothing_paintReplace ( string $node, string $arg )
+{
+	global string $AEapexClothing_ClothingNodeName;
+
+	string $buffer[];
+	tokenize($arg, ".", $buffer);
+	//string $node1 = $buffer[0];
+	//string $attr = $buffer[1];
+
+	//NOTHING TO REPLACE
+	//print( "AEapexClothing_paintReplace: " + $buffer[0] + "\n" );
+
+	// this is here to update the node name when we load a new clothing scene or select a different node
+	$AEapexClothing_ClothingNodeName = $buffer[0];
+
+    return true;
+}
+
+global proc AEapexClothing_presetNew ( string $arg)
+{
+	string $buffer[];
+	tokenize($arg, ".", $buffer);
+	string $node = $buffer[0];
+	//string $attr = $buffer[1];
+
+
+	setUITemplate -pst attributeEditorTemplate;
+
+ 	rowLayout -numberOfColumns 3 -columnWidth3 145 70 70 
+ 		-columnAlign  1 "right"
+ 		-columnAlign  2 "left"
+ 		-columnAlign  3 "center"
+ 		"AEapexClothing_presetNew2x";
+ 	text - l "Presets";//label
+ 	button -label "Save" -width 70 -c ("apexClothingMaterialPresetSave -node " + $node) "preset_Save";
+ 	button -label "Load" -width 70 -c ("apexClothingMaterialPresetLoad") "preset_Load";
+ 	setParent ..;
+
+	setUITemplate -ppt;
+    
+    AEapexClothing_presetReplace( $arg );
+	//AEapexClothing_paintReplace( $node, $arg );
+}
+
+global proc int AEapexClothing_presetReplace ( string $arg )
+{
+	int $visible = 0;
+	if(`NvSolverGetPhysXVersion` < 300)
+		$visible = 1;
+	rowLayout -e -visible $visible "AEapexClothing_presetNew2x";
+
+    return true;
+}
+
+global proc AEapexClothing_physicalMaterialSetNew(string $plug)
+{
+	string $physicalMaterialEditButtonLayout = "AEapexClothing_PhysicalMaterialEditButtonLayout";
+	string $physicalMaterialMoveUpButton = "AEapexClothing_PhysicalMaterialMoveUpButton";
+	string $physicalMaterialMoveDownButton = "AEapexClothing_PhysicalMaterialMoveDownButton";
+	string $physicalMaterialDeleteButton = "AEapexClothing_PhysicalMaterialDeleteButton";
+	string $physicalMaterialList = "AEapexClothing_PhysicalMaterialList";
+
+	// this is function name
+	string $textScrollListSelectChanged = "AEapexClothingPhysicalMaterialSelectChanged";
+
+	string $createMenu = "AEapexClothingCreatePresetMenu"; 
+	string $renameMenu = "AEapexClothingRenamePresetMenu"; 
+	string $loadMenu = "AEapexClothingLoadPresetMenu";
+	string $saveMenu = "AEapexClothingSavePresetMenu";
+	string $exportMenu = "AEapexClothingExportPresetMenu";
+	string $notexportMenu = "AEapexClothingNotExportPresetMenu";
+
+	nxphysicalMaterialSetLayoutNew( $plug, $physicalMaterialEditButtonLayout, 
+		$physicalMaterialMoveUpButton, $physicalMaterialMoveDownButton, $physicalMaterialDeleteButton,
+		$physicalMaterialList, $textScrollListSelectChanged,
+		$createMenu, $renameMenu, $loadMenu, $saveMenu, $exportMenu, $notexportMenu);
+
+	AEapexClothing_physicalMaterialSetReplace($plug);
+}
+
+global proc int AEapexClothing_physicalMaterialSetReplace(string $plug)
+{
+	string $buff[];
+	clear $buff;
+	tokenize($plug, ".", $buff);
+	string $nodeName = $buff[0];
+	
+	string $physicalMaterialEditButtonLayout = "AEapexClothing_PhysicalMaterialEditButtonLayout";
+	string $physicalMaterialMoveUpButton = "AEapexClothing_PhysicalMaterialMoveUpButton";
+	string $physicalMaterialMoveDownButton = "AEapexClothing_PhysicalMaterialMoveDownButton";
+	string $physicalMaterialDeleteButton = "AEapexClothing_PhysicalMaterialDeleteButton";
+	string $physicalMaterialList = "AEapexClothing_PhysicalMaterialList";
+
+	// this is function name
+	string $textScrollListSelectChanged = "AEapexClothingPhysicalMaterialSelectChanged";
+
+	string $createMenu = "AEapexClothingCreatePresetMenu"; 
+	string $renameMenu = "AEapexClothingRenamePresetMenu"; 
+	string $loadMenu = "AEapexClothingLoadPresetMenu";
+	string $saveMenu = "AEapexClothingSavePresetMenu";
+	string $exportMenu = "AEapexClothingExportPresetMenu";
+	string $notexportMenu = "AEapexClothingNotExportPresetMenu";
+	string $presetLoadCommand = "apexClothingMaterialPresetLoad"; 
+	string $presetSaveCommand = "apexClothingMaterialPresetSave -node " + $nodeName;
+
+	nxphysicalMaterialSetLayoutReplace($plug, $physicalMaterialEditButtonLayout, 
+		$physicalMaterialMoveUpButton, $physicalMaterialMoveDownButton, $physicalMaterialDeleteButton,
+		$physicalMaterialList, $textScrollListSelectChanged,
+		$createMenu, $renameMenu, $loadMenu, $saveMenu, $exportMenu, $notexportMenu, 
+		$nodeName, $presetLoadCommand, $presetSaveCommand);
+
+	AEnxRecreatePhysicalMaterialUIControl($nodeName, $physicalMaterialList);
+    return true;
+}
+
+global proc AEapexClothing_presetEnable ( )
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	int $override = `getAttr ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalMaterialOverride")`;
+	
+	int $enable = 0;
+	if($override || $currGraphicsLodIndex == 0)
+		$enable = 1;
+	
+	string $physicalMaterialEditButtonLayout = "AEapexClothing_PhysicalMaterialEditButtonLayout";
+	string $physicalMaterialMoveUpButton = "AEapexClothing_PhysicalMaterialMoveUpButton";
+	string $physicalMaterialMoveDownButton = "AEapexClothing_PhysicalMaterialMoveDownButton";
+	string $physicalMaterialDeleteButton = "AEapexClothing_PhysicalMaterialDeleteButton";
+	string $physicalMaterialList = "AEapexClothing_PhysicalMaterialList";
+	
+	rowLayout -e -enable $enable $physicalMaterialEditButtonLayout;
+	iconTextButton -e -enable $enable $physicalMaterialMoveUpButton;
+	iconTextButton -e -enable $enable $physicalMaterialMoveDownButton;
+	iconTextButton -e -enable $enable $physicalMaterialDeleteButton;
+	textScrollList -e -enable $enable $physicalMaterialList;
+
+	if(!$enable)
+	{
+		global string $AEapexClothing_ClothingNodeName;
+		int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+		string $plug = ($AEapexClothing_ClothingNodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalMaterialOverride");
+		int $overMat = `getAttr $plug`;
+		if($currGraphicsLodIndex>0 && $overMat > 1)
+		{
+	   		textScrollList -e -selectItem "" $physicalMaterialList;
+	   	}
+	}
+}
+
+global proc AEapexDefaultClothingPhysicalMaterialChanged(string $selectedItem, string $nodeName)
+{
+	global string $AEapexClothing_ClothingNodeName;
+	int $index = nxGetSelectLogicalIndexWithSelected($AEapexClothing_ClothingNodeName, $selectedItem);
+	if($index == -1) return;
+	string $cmd = "setAttr " + $AEapexClothing_ClothingNodeName+".defaultPhysicalMaterialSet " + $index;
+	evalEcho $cmd;
+
+	string $nodeSrc = $AEapexClothing_ClothingNodeName+".physicalMaterialSets["+$index+"]";
+	string $nodeDes = $AEapexClothing_ClothingNodeName+".lodCompoundAttributes[0]";
+	string $physicamMaterialAttributesSrc[] = {"pmGravityScale", "pmFriction",  "pmBendiness", "pmStiffnessSheariness",
+						"pmStretchLimit","pmTetherStiffnessRelax","pmDampingCoefficient", "pmDrag", "pmInertiaBlend", 
+						"pmOverrideFiber", "pmLengthFiberCompression", "pmLengthFiberExpansion", "pmLengthFiberResistance", "pmCrossSectionFiberCompression", 
+						"pmCrossSectionFiberExpansion", "pmCrossSectionFiberResistance", "pmBendingFiberCompression", "pmBendingFiberExpansion", "pmBendingFiberResistance", "pmShearingFiberCompression", 
+										"pmShearingFiberExpansion", "pmShearingFiberResistance" };
+	string $physicamMaterialAttributesDes[] = {"lodGravityScale", "lodFriction",  "lodBendiness", "lodStiffnessSheariness",
+						"lodStretchLimit","lodTetherStiffnessRelax","lodDampingCoefficient", "lodDrag", "lodInertiaBlend", 
+						"lodOverrideFiber","lodLengthFiberCompression", "lodLengthFiberExpansion", "lodLengthFiberResistance", "lodCrossSectionFiberCompression", 
+						"lodCrossSectionFiberExpansion", "lodCrossSectionFiberResistance", "lodBendingFiberCompression", "lodBendingFiberExpansion", "lodBendingFiberResistance", "lodShearingFiberCompression", 
+										"lodShearingFiberExpansion", "lodShearingFiberResistance" };
+	nxCopyAttributes($nodeSrc, $physicamMaterialAttributesSrc, $nodeDes, $physicamMaterialAttributesDes);
+}
+
+
+global proc AEapexClothingPhysicalMaterialSelectChanged(string $physicalMaterialList, string $nodeName)
+{
+	string $selectedItem[] = `textScrollList -q -selectItem $physicalMaterialList`;
+	int $index = nxGetSelectLogicalIndexWithSelected($nodeName, $selectedItem[0]);
+	if($index == -1) return;
+	string $cmd = "setAttr " + $nodeName +".selectedPhysicalMaterialSet " + $index;
+	evalEcho $cmd;
+	AEapexClothing_LODGravityScaleReplace("");
+	AEapexClothing_LODFrictionReplace("");
+	AEapexClothing_BendinessReplace("");
+	AEapexClothing_StiffnessShearinessReplace("");
+	AEapexClothing_StretchLimitReplace("");
+	AEapexClothing_TetherStiffnessRelaxReplace("");
+	AEapexClothing_DampingReplace("");
+	AEapexClothing_DragReplace("");
+	AEapexClothing_InertiaBlendReplace("");
+	AEapexClothingAdvancedPhysicalMaterialReplace();
+}
+
+global proc AEapexClothingAdvancedPhysicalMaterialReplace()
+{
+	AEapexClothing_OverrideFiberReplace("");
+
+	AEapexClothing_FiberCompressionReplace("");
+	AEapexClothing_FiberExpansionReplace("");
+	AEapexClothing_FiberResistanceReplace("");
+
+	AEapexClothing_LengthFiberCompressionReplace("");
+	AEapexClothing_LengthFiberExpansionReplace("");
+	AEapexClothing_LengthFiberResistanceReplace("");
+
+	AEapexClothing_CrossSectionFiberCompressionReplace("");
+	AEapexClothing_CrossSectionFiberExpansionReplace("");
+	AEapexClothing_CrossSectionFiberResistanceReplace("");
+
+	AEapexClothing_BendingFiberCompressionReplace("");
+	AEapexClothing_BendingFiberExpansionReplace("");
+	AEapexClothing_BendingFiberResistanceReplace("");
+	
+	AEapexClothing_ShearingFiberCompressionReplace("");
+	AEapexClothing_ShearingFiberExpansionReplace("");
+	AEapexClothing_ShearingFiberResistanceReplace("");
+}
+
+// ------------ APEX CLOTHING CONTACT LAYERS COMMANDS [START] ------------ //
+/*global proc AEnxAPEXClothingContactLayersNew( string $plug )
+{
+    global string $AEapexClothing_ClothingNodeName;
+
+	// Obtain the list of layers that clothing belongs to.
+	string $contactLayers = GetContactLayersList( $AEapexClothing_ClothingNodeName, off, 0 );
+
+	// Create the textFieldGrp
+	setUITemplate -pst attributeEditorTemplate;
+		rowColumnLayout -numberOfColumns 2 -cw 1 144 -cw 2 250 -columnAlign 1 "right" -columnOffset 1 "right" 3;
+		
+			text -align "right" -label "In Contact Layers";
+			scrollField 
+				-wordWrap true
+				-height 60
+				-editable false
+				-text $contactLayers
+				"APEXClothingContactLayersList";
+
+			global int $turnOnAlsoContactsWith;
+			if( $turnOnAlsoContactsWith )
+			{
+				// Obtain the list of layers that clothing is colliding with.
+				$contactLayers = GetContactLayersList( $AEapexClothing_ClothingNodeName, on, 0 );
+				text -align "right" -label "Also Contacts With";
+				scrollField 
+					-wordWrap true
+					-height 60
+					-editable false
+					-text $contactLayers
+					"APEXClothingContactLayersInteractList";
+			}
+		
+			text -label "";
+			button -label "Setup Contact Layers" -command ("ContactLayersDialog( \"physxobject\", \""+$AEapexClothing_ClothingNodeName+"\")") "APEXClothingContactLayersBtn";
+
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	// if contact layers membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersMember;
+	$contactLayersMember = $AEapexClothing_ClothingNodeName;
+	updateConLayMembershipDialogIfExist();
+}
+
+global proc AEnxAPEXClothingContactLayersReplace( string $plug )
+{
+    global string $AEapexClothing_ClothingNodeName;
+    if(`scrollField -q -exists "APEXClothingContactLayersList"`)
+	{
+		string $contactLayers = GetContactLayersList( $AEapexClothing_ClothingNodeName, off, 0 );
+		scrollField -e -text $contactLayers "APEXClothingContactLayersList";
+
+		global int $turnOnAlsoContactsWith;
+		if( $turnOnAlsoContactsWith )
+		{
+			$contactLayers = GetContactLayersList( $AEapexClothing_ClothingNodeName, on, 0 );
+			scrollField -e -text $contactLayers "APEXClothingContactLayersInteractList";
+		}
+
+		button -e -command ("ContactLayersDialog( \"physxobject\", \""+$AEapexClothing_ClothingNodeName+"\")") "APEXClothingContactLayersBtn";
+	}
+
+	// if contact layers membership dialog is opened, refresh to reflect the current selection
+	global string $contactLayersMember;
+	if( $contactLayersMember != $AEapexClothing_ClothingNodeName )
+	{
+		$contactLayersMember = $AEapexClothing_ClothingNodeName;
+		updateConLayMembershipDialogIfExist();
+	}
+}
+*/
+global proc AEnxAPEXClothingDBClickRelatedNodes()
+{
+	global string $AEapexClothing_LODRelatedNodesList;
+	global string $AEapexClothing_LODRelatedNodeNames[];
+	int $nodeSize = size($AEapexClothing_LODRelatedNodeNames);
+	int $sel[] = `textScrollList -q -selectIndexedItem $AEapexClothing_LODRelatedNodesList`;
+	if (($sel[0] <= $nodeSize) && ($sel[0] >= 1))
+	{
+		string $node = $AEapexClothing_LODRelatedNodeNames[$sel[0] - 1];
+		select -r $node;
+	}
+}
+
+global proc AEnxAPEXClothingUpdateRelatedNodesList()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global string $AEapexClothing_LODRelatedNodesList;
+	global string $AEapexClothing_LODRelatedNodeNames[];
+
+	int $currGraphicsLodIndex = `getAttr ($AEapexClothing_ClothingNodeName + ".currentGraphicalLOD")`;
+	string $currGraphicsLodName = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $AEapexClothing_ClothingNodeName, $currGraphicsLodIndex );
+	
+	// clean list
+	textScrollList -e -removeAll $AEapexClothing_LODRelatedNodesList;
+
+	string $meshes[] = `deformer -q -geometry $AEapexClothing_ClothingNodeName`;
+	int $i;
+	int $count = 0;		
+	int $sel = 0;
+	for ( $i=0; $i < size($meshes); $i++ )
+	{
+		string $mesh = $meshes[$i];
+		$type = `nodeType $mesh`;
+		if ( $type == "mesh" )
+		{
+			string $parentNode[] = `listRelatives -fullPath -parent $mesh`;
+			string $transformNode = $mesh;
+			int $parentSize = size($parentNode);
+			if ($parentSize > 0)
+			{
+				$transformNode = $parentNode[0];
+				$AEapexClothing_LODRelatedNodeNames[$count] = $parentNode[0];
+			}
+			if($mesh == $currGraphicsLodName)
+			{
+				$transformNode = $transformNode + "*";
+				$sel = $count + 1;
+			}
+			textScrollList -e -append $transformNode $AEapexClothing_LODRelatedNodesList;
+			$count++;
+		}
+	}
+	textScrollList -e -selectIndexedItem $sel $AEapexClothing_LODRelatedNodesList;
+}
+
+global proc AEnxAPEXClothingRelatedNodesNew()
+{
+	global string $AEapexClothing_LODRelatedNodesList;
+
+	setUITemplate -pst attributeEditorTemplate;
+		textScrollList -doubleClickCommand "AEnxAPEXClothingDBClickRelatedNodes()" 
+						-height 60	
+						$AEapexClothing_LODRelatedNodesList;
+		AEnxAPEXClothingRelatedNodesReplace();
+	setUITemplate -ppt;
+}
+
+global proc AEnxAPEXClothingRelatedNodesReplace()
+{
+	AEnxAPEXClothingUpdateRelatedNodesList();
+}
+
+global proc AEnxAPEXClothingStatisticsNew()
+{
+	setUITemplate -pst attributeEditorTemplate;
+	
+	global string $AEapexClothing_ClothingNodeName;
+
+	string $attrName = ($AEapexClothing_ClothingNodeName + ".infoSimVerts");
+	attrControlGrp -label "Simulated Vertices" -attribute $attrName "statsUIClothing01";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoMaxDist");
+	attrControlGrp -label "Avg. Max Distance" -attribute $attrName "statsUIClothing02";
+	
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoAvgOffset");
+	attrControlGrp -label "Avg. Backstop Offset" -attribute $attrName "statsUIClothing03";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoAvgRadius");
+	attrControlGrp -label "Avg. Backstop Radius" -attribute $attrName "statsUIClothing04";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoNearest");
+	attrControlGrp -label "Latch to Nearest" -attribute $attrName "statsUIClothing05";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoSelVerts");
+	attrControlGrp -label "Vertices Selected" -attribute $attrName "statsUIClothing06";
+
+	setUITemplate -ppt;
+}
+
+global proc AEnxAPEXClothingStatisticsReplace()
+{
+	global string $AEapexClothing_ClothingNodeName;
+
+	string $attrName = ($AEapexClothing_ClothingNodeName + ".infoSimVerts");
+	attrControlGrp -e -attribute $attrName "statsUIClothing01";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoMaxDist");
+	attrControlGrp -e -attribute $attrName "statsUIClothing02";
+	
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoAvgOffset");
+	attrControlGrp -e -attribute $attrName "statsUIClothing03";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoAvgRadius");
+	attrControlGrp -e -attribute $attrName "statsUIClothing04";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoNearest");
+	attrControlGrp -e -attribute $attrName "statsUIClothing05";
+
+	$attrName = ($AEapexClothing_ClothingNodeName + ".infoSelVerts");
+	attrControlGrp -e -attribute $attrName "statsUIClothing06";
+}
+
+global proc AEnxAPEXClothingBakeClothing_Bake_command()
+{
+//	print ("AEnxAPEXClothingBakeClothing_Bake_command\n");
+
+	print "APEXClothing Bake Begin...\n";
+
+	AEnxAPEXClothingBakeClothing_Clear_command;
+
+	currentTime -edit 0;
+
+	int $oldValue = `optionVar -q  nxNativeTimeControl`;
+	optionVar -iv nxNativeTimeControl 1;
+	
+	float $minTime = `playbackOptions -q -minTime`;
+    float $maxTime = `playbackOptions -q -maxTime`;
+	for ($time = $minTime; $time <= $maxTime; $time++)
+    {
+        currentTime -edit $time;
+    }
+	
+	optionVar -iv nxNativeTimeControl $oldValue;
+	physxShelf_ResetSimulationCommand();
+	
+	print "APEXClothing Bake End\n";
+}
+
+global proc AEnxAPEXClothingBakeClothing_Clear_command()
+{
+//	print ("AEnxAPEXClothingBakeClothing_Clear_command\n");
+
+	global string $AEapexClothing_ClothingNodeName;		
+	int $bakeDataArrayLength = `getAttr -size ($AEapexClothing_ClothingNodeName+".bakeDataArray")`;
+	int $i;
+	for($i = 0; $i < $bakeDataArrayLength; $i++)
+	{
+	    removeMultiInstance -b true ($AEapexClothing_ClothingNodeName + ".bakeDataArray[" + $i + "]");
+    }
+}
+
+global proc AEnxAPEXClothingBakeClothingNew()
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 2;
+	text - l "";
+	button -label "Bake" -align "center" -command "AEnxAPEXClothingBakeClothing_Bake_command";
+	setParent ..;
+	rowLayout -numberOfColumns 2;
+	text - l "";
+	button -label "Clear" -align "center" -command "AEnxAPEXClothingBakeClothing_Clear_command";
+	setParent ..;
+
+	setUITemplate -ppt;
+}
+
+global proc AEnxAPEXClothingBakeClothingReplace()
+{
+}
+
+// ------------ APEX CLOTHING CONTACT LAYERS COMMANDS [END] ------------ //
+
+// ------------ APEX CLOTHING SIMULATION SETS COMMANDS [START] ------------ //
+global proc AEnxAPEXClothingSimulationSetsNew( string $plug )
+{
+	global string $AEapexClothing_ClothingNodeName;
+
+	source "SimulationSetWindowUI.mel";
+
+	// Create the textFieldGrp
+	setUITemplate -pst attributeEditorTemplate;
+		rowColumnLayout -numberOfColumns 1  -h 120;
+				
+			textScrollList 
+				-numberOfRows 3 -h 100
+				-allowMultiSelection false 
+				"AEClothingSimulationSetList";
+						
+			button -label "Setup Simulation Sets" -command ("createSimulationSetManagerWindow(\""+$AEapexClothing_ClothingNodeName+"\")");					
+
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	AEnxAPEXClothingSimulationSetsReplace($plug);
+}
+
+global proc AEnxAPEXClothingSimulationSetsReplace( string $plug )
+{
+    global string $AEapexClothing_ClothingNodeName;
+
+	if(`textScrollList -q -exists "AEClothingSimulationSetList"`)
+	{
+		textScrollList -edit -removeAll "AEClothingSimulationSetList";
+
+		string $sets[] = `simulationSets -ls $AEapexClothing_ClothingNodeName`;
+
+		int $i = 0;
+		for($set in $sets)
+		{
+			if($set != "")
+			{
+				textScrollList -edit -append $set "AEClothingSimulationSetList";
+				$i++;
+			}
+		}		
+	}
+}
+
+// ------------ APEX CLOTHING SIMULATION SETS COMMANDS [END] ------------ //

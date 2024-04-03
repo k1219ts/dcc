@@ -1,0 +1,192 @@
+#! C:/Program Files/Nuke11.0v2/nuke-11.0.2.dll -nx
+version 10.0 v4
+Gizmo {
+ inputs 2
+ tile_color 0x7fff
+ note_font_color 0xff0000ff
+ addUserKnob {20 User l Hard_Glow}
+ addUserKnob {41 size l Amount T Main.size}
+ addUserKnob {41 mix T Screen.mix}
+ addUserKnob {26 ""}
+ addUserKnob {41 range T Keyer1.range}
+}
+ Input {
+  inputs 0
+  name Mask
+  xpos 680
+  ypos -82
+  number 1
+ }
+ Invert {
+  name Invert1
+  xpos 683
+  ypos 59
+ }
+ Dot {
+  name Dot4
+  xpos 714
+  ypos 532
+ }
+ Input {
+  inputs 0
+  name Source
+  xpos -388
+  ypos -206
+ }
+ Dot {
+  name Dot3
+  xpos -354
+  ypos -41
+ }
+set Ndb42f880 [stack 0]
+ Dot {
+  name Dot2
+  xpos 316
+  ypos -41
+ }
+set Ndb37bc00 [stack 0]
+ Dot {
+  name Dot5
+  xpos 520
+  ypos -41
+ }
+push $Ndb42f880
+ Dot {
+  name Dot1
+  xpos -584
+  ypos -41
+ }
+ Keyer {
+  operation "luminance key"
+  range {0.9454874877 1 1 1}
+  name Keyer1
+  xpos -618
+  ypos 17
+ }
+ Blur {
+  size 2.3
+  name Blur1
+  xpos -618
+  ypos 63
+ }
+push $Ndb42f880
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy1
+  xpos -388
+  ypos 63
+ }
+ Premult {
+  name Premult1
+  xpos -388
+  ypos 101
+ }
+ Dot {
+  name Dot7
+  xpos -354
+  ypos 130
+ }
+set Nd4e40700 [stack 0]
+ Blur {
+  size 4.6
+  mix 0
+  name Main
+  xpos 190
+  ypos 321
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*512}}
+  mix 0.995
+  name Blur16
+  xpos 27
+  ypos 319
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*268}}
+  name Blur15
+  xpos -83
+  ypos 319
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*4}}
+  mix 0.825
+  name Blur9
+  xpos -852
+  ypos 345
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*8}}
+  name Blur10
+  xpos -743
+  ypos 319
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*16}}
+  name Blur11
+  xpos -633
+  ypos 319
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*32}}
+  name Blur12
+  xpos -523
+  ypos 319
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*64}}
+  name Blur13
+  xpos -413
+  ypos 319
+ }
+push 0
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*128}}
+  name Blur14
+  xpos -193
+  ypos 319
+ }
+push $Nd4e40700
+ Blur {
+  size {{parent.Main.size*2}}
+  name Blur7
+  xpos -303
+  ypos 319
+ }
+ Merge2 {
+  inputs 10+1
+  operation screen
+  name Merge11
+  xpos -397
+  ypos 550
+ }
+push $Ndb37bc00
+ Merge2 {
+  inputs 2
+  operation screen
+  name Screen
+  xpos 282
+  ypos 528
+ }
+ Keymix {
+  inputs 3
+  name Keymix1
+  selected true
+  xpos 486
+  ypos 522
+ }
+ Output {
+  name Output1
+  xpos 486
+  ypos 691
+ }
+end_group

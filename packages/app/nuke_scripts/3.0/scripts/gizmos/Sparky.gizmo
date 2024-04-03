@@ -1,0 +1,470 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ inputs 2
+ tile_color 0xbd4600ff
+ label "\[if \{\[value ROrP]==false\} \{return \"Render Mode\"\} \{return \"!! PARTICLE MODE !! \\nENABLED\"\}]"
+ note_font "Bitstream Vera Sans Bold Bold Bold Bold Bold Bold"
+ addUserKnob {20 SparkTab l "Sparky Settings"}
+ addUserKnob {41 start_frame l "Initial Frame" T SparkEmit.start_frame}
+ addUserKnob {7 EmissionRate l "Emission Amount" R 0 100}
+ EmissionRate 15
+ addUserKnob {22 Refresh l "Refresh Sim" T "import random\n\ni = int(nuke.expression('random()')*1000)\nn = nuke.thisNode()\nhs = n\['HiddenSeed'].value()\n\nif hs == i:\n    n\['HiddenSeed'].setValue(hs+1)\nelse :\n    n\['HiddenSeed'].setValue(i)" +STARTLINE}
+ addUserKnob {26 text l "" +STARTLINE T "\t\tClick Refresh if modifying values doesn't show any changes."}
+ addUserKnob {3 HiddenSeed +INVISIBLE}
+ HiddenSeed 816
+ addUserKnob {26 ""}
+ addUserKnob {26 emittertext l "" +STARTLINE T "Emitter Settings"}
+ addUserKnob {13 Direction t "Set the initial velocity applied to the particles. This will orient the sparks in 3D space."}
+ Direction {-60 -30 3}
+ addUserKnob {7 MaxLife l "Particle Life" t "Maximum amount of frames the particles will live for." R 10 100}
+ MaxLife 60
+ addUserKnob {7 LifeRange l "Life Range" t "Randomizes the Life Range of the particles." R 0 2}
+ LifeRange 0.75
+ addUserKnob {3 seed l "Particle  Seed" t "Randomizes the simulation."}
+ seed 123
+ addUserKnob {26 ""}
+ addUserKnob {7 ParticleSize l "Particle Size" t "Change Particle Size" R 1 5}
+ ParticleSize 2
+ addUserKnob {7 Explosivity t "Changes how much influence the initial force has on the particles." R 0 100}
+ Explosivity 45
+ addUserKnob {7 Scatter t "Adds some randomness between particles." R 0 100}
+ Scatter 100
+ addUserKnob {41 Softness l "Particle Softness" T CustomKnobs.Softness}
+ addUserKnob {26 ""}
+ addUserKnob {4 ROption l "Render Options" t "Multi Scanline: Output is a ScanlineRender with motionblur enabled. Can be DeepMerged\nVectorBlur: 2D motionblur added post-render. Can get rid of sample issues, but is not Deep compatible." M {"Multi Scanline" VectorBlur "" ""}}
+ addUserKnob {41 format l Format T RootFormatSetup.format}
+ addUserKnob {14 Overscan R 0 100}
+ Overscan 100
+ addUserKnob {6 ROrP l "Output As Particles" t "Check this to output Particles instead of a 2D render.\nIt can then be plugged into a 3D scene." +STARTLINE}
+ addUserKnob {6 OutputDeep l "Output Deep" t "Warning: Will output in Multi-Scanlinde mode only. Doesn't have any effect if \"Output As Particles is selected\"." -STARTLINE}
+ addUserKnob {20 Presets}
+ addUserKnob {4 AnimPreset l "Animation Presets" t "None: This wont do anything. Serves as safety to not enable a preset accidentally\nSingle Hit Heavy: Heavy hit with a double pop.\nSingle Hit Light : Light pop of sparks.\nWelding : Expression that will mimic a natural welding feeling.\nWavy : Constant sim with some strong variation in birth rate.\nConstant : Softer variation than the Wavy preset.\nLoopy : Loops the same pop of Sparks." M {None "Single Hit Heavy" "Single Hit Light" Welding Wavy Constant Loopy "" "" "" "" ""}}
+ addUserKnob {22 Apply l "Apply Preset" t "    " T "def checkPreset():\n    preset = int(nuke.thisNode()\['AnimPreset'].getValue())\n    print preset\n    if preset ==0:\n        return False\n    else:\n        return preset\n\ndef checkFrame():\n    InitFrame = nuke.getInput(\"Enter Initial Frame\", '1001')\n    if InitFrame:\n        try:\n            InitFrame = int(InitFrame)\n            return InitFrame\n        except ValueError:\n            nuke.message(\"Not a valid frame number\")\n            return False\n\n\nif checkPreset() == False:\n    nuke.ask(\"No preset selected\")\nelse:\n    n=nuke.thisNode()\['EmissionRate']\n    s=int(nuke.thisNode()\['AnimPreset'].getValue())\n    cf=checkFrame()\n    if cf!=False and cf!=None:\n        if s == 1:        \n            print \"Initial frame is x\" + str(cf)\n            nuke.thisNode()\['start_frame'].setValue(cf)\n            n.clearAnimated()\n            n.setAnimated()\n            sCurve = '\{curve K x%v1 0 S 400 x%v2 0 12 x%v3 175 x%v4 20 0\}'\n            sCurve=sCurve.replace(\"%v1\",str(cf))\n            sCurve=sCurve.replace(\"%v2\",str(cf+3))\n            sCurve=sCurve.replace(\"%v3\",str(cf+6))\n            sCurve=sCurve.replace(\"%v4\",str(cf+12))\n            n.fromScript(sCurve)\n            nuke.message(\"Applied Single Hit Heavy Preset\")\n        elif s == 2:\n            print \"Initial frame is x\" + str(cf)\n            nuke.thisNode()\['start_frame'].setValue(cf)\n            n.clearAnimated()\n            n.setAnimated()\n            sCurve = '\{curve K x%v1 0 S 140 x%v2 0\}'\n            sCurve=sCurve.replace(\"%v1\",str(cf))\n            sCurve=sCurve.replace(\"%v2\",str(cf+3))\n            n.fromScript(sCurve)\n            nuke.message(\"Applied Single Hit Light Preset\")\n        elif s == 3:\n            print \"Initial frame is x\" + str(cf)\n            nuke.thisNode()\['start_frame'].setValue(cf)\n            n.clearAnimated()\n            n.setExpression(\"max(0,(random(frame+seed)*120*((sin(frame+seed)+1)*0.5)-12))*3\")\n            nuke.message(\"Applied Welding Preset\")\n        elif s == 4:\n            print \"Initial frame is x\" + str(cf)\n            nuke.thisNode()\['start_frame'].setValue(cf)\n            n.clearAnimated()\n            n.setExpression(\"random(frame+seed)*120*((sin(frame+seed)+1)*0.5)\")\n            nuke.message(\"Applied Wavy Preset\")\n        elif s == 5:\n            print \"Initial frame is x\" + str(cf)\n            nuke.thisNode()\['start_frame'].setValue(cf)\n            n.clearAnimated()\n            n.setExpression(\"random(frame/5+seed)*100+60\")\n            nuke.message(\"Applied Constant Preset\")\n        else:\n            print \"Initial frame is x\" + str(cf)\n            nuke.thisNode()\['start_frame'].setValue(cf)\n            n.clearAnimated()\n            n.setAnimated()\n            sCurve = '\{curve(((frame-%v1)%(%v6-%v1+1))+%v1) K x%v1 0 S 400 x%v2 0 x%v3 12 175 x%v4 20 x%v5 0 x%v6 0\}'\n            sCurve=sCurve.replace(\"%v1\",str(cf))\n            sCurve=sCurve.replace(\"%v2\",str(cf+3))\n            sCurve=sCurve.replace(\"%v3\",str(cf+4))\n            sCurve=sCurve.replace(\"%v4\",str(cf+7))\n            sCurve=sCurve.replace(\"%v5\",str(cf+11))\n            sCurve=sCurve.replace(\"%v6\",str(cf+14))\n            n.fromScript(sCurve)\n            nuke.message(\"Applied Loopy Preset\")\n\n" +STARTLINE}
+ addUserKnob {20 Advanced l "Advanced Settings"}
+ addUserKnob {7 TVelocity l "Transfer Velocity"}
+ TVelocity 0.5
+ addUserKnob {7 TWindow l "Transfer window" R 0 5}
+ TWindow 2
+ addUserKnob {7 Spread l "Emission Spread"}
+ Spread 0.1
+ addUserKnob {26 ""}
+ addUserKnob {41 samples l "Scanline Samples" T MultiSampleRender.samples}
+ addUserKnob {7 Shutter}
+ Shutter 0.5
+ addUserKnob {41 shutteroffset l "Shutter Offset" T MultiSampleRender.shutteroffset}
+ addUserKnob {41 shuttercustomoffset l "" -STARTLINE T MultiSampleRender.shuttercustomoffset}
+ addUserKnob {20 Instructions}
+ addUserKnob {26 info l "" +STARTLINE T "Sparky v1.2\n\nEasy to use particle setup for Sparks.\n\nOutputs an image by default, but can be configured to be rendered through a specific Camera or\nto output as particles, which allows you to plug Sparky into a 3D scene.\n\nIf you wish to use the 3D version of this Gizmo, simply plug your Camera and plug an Axis to \nmove and place the sparks where you need them.\n\nFor more information about presets and changelogs, head to the Nukepedia page!"}
+}
+ Input {
+  inputs 0
+  name Axis
+  xpos -380
+  ypos -541
+  number 1
+ }
+ Dot {
+  name Dot7
+  xpos -350
+  ypos -476
+ }
+ ColorWheel {
+  inputs 0
+  format "256 256 0 0 256 256 1 square_256"
+  gamma 0.45
+  name ColorWheel1
+  xpos -1150
+  ypos -546
+ }
+ Saturation {
+  saturation 0
+  mode Maximum
+  name Saturation1
+  xpos -1150
+  ypos -421
+ }
+ FilterErode {
+  channels all
+  size {{abs(parent.CustomKnobs.Softness)}}
+  filter gaussian
+  name ErodeSoft
+  xpos -1150
+  ypos -378
+ }
+ Reformat {
+  type scale
+  scale 0.125
+  resize distort
+  black_outside true
+  name Reformat2
+  xpos -1150
+  ypos -325
+ }
+ Grade {
+  white {0.9 0.35 0.085 1}
+  name Grade1
+  xpos -1150
+  ypos -277
+ }
+ BlendMat {
+  operation max
+  surfaceblend modulate
+  name BlendMat1
+  xpos -930
+  ypos -277
+ }
+ Noise {
+  inputs 0
+  size 750
+  zoffset {{frame/5+CustomKnobs.time_offset}}
+  octaves 6
+  lacunarity 1.45
+  gain 0.6
+  center {1440 810}
+  name Noise6
+  xpos -710
+  ypos -565
+ }
+set Nb977f90 [stack 0]
+ Sphere {
+  name Sphere1
+  xpos -820
+  ypos -469
+ }
+push $Nb977f90
+ Sphere {
+  translate {{parent.input1.translate} {parent.input1.translate} {parent.input1.translate}}
+  rotate {{parent.input1.rotate} {parent.input1.rotate} {parent.input1.rotate}}
+  scaling {{parent.input1.scaling} {parent.input1.scaling} {parent.input1.scaling}}
+  name Sphere2
+  xpos -600
+  ypos -469
+ }
+ Switch {
+  inputs 2
+  which {{"!\[exists parent.input1]"}}
+  name Switch3
+  xpos -710
+  ypos -349
+ }
+push 0
+ ParticleEmitter {
+  inputs 3
+  start_frame 1001
+  emit_from faces
+  randomize_type "randomized direction"
+  rate {{parent.EmissionRate}}
+  rate_variation 0.5
+  rate_channel rgba.red
+  lifetime {{parent.MaxLife}}
+  lifetime_variation {{parent.LifeRange}}
+  halflife {{lifetime/2.5}}
+  velocity {{"!\[exists parent.input1]?7.5+(10*Explosivity/100):7.5+(10*Explosivity/100)*((parent.input1.uniform_scale-1)*0.25+1)"}}
+  velocity_variation {{0.125+abs((min(100,parent.Scatter)*0.035))}}
+  size {{"!\[exists parent.input1]?max(0.1,parent.ParticleSize):max(0.01,parent.ParticleSize)*((parent.input1.uniform_scale-1)*0.25+1)"}}
+  size_variation 1.6
+  mass {{"!\[exists parent.input1]?0.5+(1-(clamp(parent.Explosivity,0,100))/100)*3.5:(0.5+((1-(clamp(parent.Explosivity,0,100))/100)*3.5))*(((parent.input1.uniform_scale-1)*0.25)+1)"}}
+  mass_variation {{1.5*(clamp(parent.Scatter,0,100))/100}}
+  transfer_velocity {{parent.TVelocity}}
+  transfer_window {{parent.TWindow}}
+  spread {{parent.Spread}}
+  color {0.9 0.35 0.085 1}
+  seed {{CustomKnobs.time_offset}}
+  name SparkEmit
+  selected true
+  xpos -710
+  ypos -277
+ }
+ ParticleDirectionalForce {
+  strength {{"parent.Direction*(\[exists parent.input1]?1+(parent.input1.uniform_scale-1)*0.85:1)"} {"parent.Direction*(\[exists parent.input1]?1+(parent.input1.uniform_scale-1)*0.85:1)"} {"parent.Direction*(\[exists parent.input1]?1+(parent.input1.uniform_scale-1)*0.85:1)"}}
+  max_age {{1/(max(1,parent.SparkEmit.lifetime*1.25))}}
+  name ParticleDirectionalForce
+  xpos -710
+  ypos -114
+ }
+ ParticleDrag {
+  drag 0.6
+  name ParticleDrag
+  xpos -710
+  ypos -39
+ }
+ ParticleTurbulence {
+  strength {2 0.85 4}
+  scale {5 10 20}
+  name ParticleTurbulence
+  xpos -710
+  ypos 30
+ }
+ ParticleDrag {
+  drag 0.1
+  name ParticleDrag2
+  xpos -710
+  ypos 78
+ }
+ ParticleGravity {
+  to {0 {"!\[exists parent.input1]?-3:-1-(2*(parent.input1.uniform_scale))"} 0}
+  min_age 0.1
+  name ParticleGravity
+  xpos -710
+  ypos 150
+ }
+ ParticleCurve {
+  curves {r {curve L x0.04740819708 1 S l x0.4987964034 0.7955223322 x1 0}
+    g {curve L x0.04740819708 1 S l x0.4987964034 0.7955223322 x1 0}
+    b {curve L x0.04740819708 1 S l x1 0}
+    a {curve L x0.04740819708 1 S l x0.4939824343 0.7353233099 x1 0}
+    size {}
+    mass {}}
+  seed {{HiddenSeed}}
+  name FadeOut
+  xpos -710
+  ypos 198
+ }
+ ParticleSettings {
+  name ParticleSettings1
+  xpos -710
+  ypos 275
+ }
+set Nb8cce20 [stack 0]
+ Dot {
+  name Dot2
+  xpos -900
+  ypos 700
+ }
+ Dot {
+  name Dot1
+  xpos -900
+  ypos 820
+ }
+ Input {
+  inputs 0
+  name Camera
+  xpos -1480
+  ypos 323
+ }
+ Dot {
+  name Dot3
+  xpos -1450
+  ypos 556
+ }
+ Camera2 {
+  inputs 0
+  translate {0 -100 1200}
+  focal 20
+  haperture 24
+  vaperture 13.5
+  near 1
+  far 1000000
+  name Default2DCam
+  xpos -1247
+  ypos 202
+ }
+ Switch {
+  inputs 2
+  which {{"\[exists parent.input0]"}}
+  name Switch1
+  xpos -1260
+  ypos 539
+ }
+set Nb91dfa0 [stack 0]
+push $Nb8cce20
+ Dot {
+  name Dot6
+  xpos -680
+  ypos 508
+ }
+set Nb8e7700 [stack 0]
+ Constant {
+  inputs 0
+  name Constant1
+  xpos -160
+  ypos 318
+ }
+ Reformat {
+  resize none
+  name RootFormatSetup
+  xpos -160
+  ypos 395
+  addUserKnob {20 User}
+  addUserKnob {14 Overscan R 0 100}
+  Overscan {{parent.Overscan}}
+ }
+ Dot {
+  name Dot4
+  xpos -130
+  ypos 556
+ }
+set N84beaf0 [stack 0]
+ ScanlineRender {
+  inputs 3
+  conservative_shader_sampling false
+  antialiasing high
+  overscan {{parent.RootFormatSetup.Overscan}}
+  spatial_jitter 0.1
+  motion_vectors_type velocity
+  name NO_Motionblur
+  xpos -490
+  ypos 539
+ }
+ VectorBlur2 {
+  channels rgba
+  uv forward
+  alpha -rgba.alpha
+  scale 0.5
+  motion_falloff 0.65
+  offset 0
+  grow_bbox 40
+  normalize false
+  name MBlur
+  xpos -490
+  ypos 702
+ }
+push $Nb91dfa0
+ Dot {
+  name Dot48
+  xpos -1230
+  ypos 652
+ }
+push $Nb8e7700
+push $N84beaf0
+ Dot {
+  name Dot5
+  xpos -130
+  ypos 652
+ }
+ ScanlineRender {
+  inputs 3
+  conservative_shader_sampling false
+  antialiasing high
+  ambient {{parent.RootFormatSetup.Overscan}}
+  samples 30
+  shutter {{parent.Shutter}}
+  spatial_jitter 0.025
+  motion_vectors_type velocity
+  name MultiSampleRender
+  xpos -710
+  ypos 659
+ }
+ Switch {
+  inputs 2
+  which {{OutputDeep==1?0:ROption}}
+  name Switch2
+  xpos -710
+  ypos 707
+ }
+ Switch {
+  inputs 2
+  which {{parent.ROrP}}
+  name RorP
+  xpos -710
+  ypos 827
+ }
+ Output {
+  name Output
+  xpos -710
+  ypos 1019
+ }
+set Nbc19570 [stack 0]
+ ColorCorrect {
+  saturation 1.32
+  contrast 2
+  gain 2.04
+  name ColorCorrect1
+  xpos -820
+  ypos 1043
+ }
+ stamp_default {
+  inputs 0
+  name stamp_default1
+  label Project_Stamp
+  note_font "DejaVu Sans"
+  xpos -630
+  ypos 1153
+  Note ""
+  Shotname S07_0830
+  Project_name SRH
+  Artist_name jinhee.leec
+  LetterBox fullgate
+ }
+
+push $Nbc19570
+ Dot {
+  name Dot8
+  xpos -680
+  ypos 1276
+ }
+set Nc0a78c0 [stack 0]
+ Write {
+  file /show/srh/shot/S07/S07_0830/comp/comp/render/jpg/particle_01/particle_01.%04d.jpg
+  colorspace "Input - ARRI - Linear - ARRI Wide Gamut"
+  file_type jpeg
+  _jpeg_quality 1
+  checkHashOnRead false
+  in_colorspace "ACES - ACEScg"
+  out_colorspace "ACES - ACEScg"
+  name Write9
+  xpos -710
+  ypos 1416
+ }
+ Read {
+  inputs 0
+  file /show/srh/shot/S07/S07_0830/comp/comp/src/precomp/paritcle_1_v001/paritcle_1_v001.%04d.exr
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  first 1020
+  last 1050
+  origfirst 1020
+  origlast 1050
+  origset true
+  colorspace "ACES - ACES2065-1"
+  in_colorspace "ACES - ACEScg"
+  out_colorspace "ACES - ACEScg"
+  name Read1
+  label "\[value first]-\[value last]"
+  xpos -78
+  ypos 1214
+ }
+
+push $Nc0a78c0
+ FrameRange {
+  first_frame 1020
+  last_frame 1050
+  time ""
+  name FrameRange1
+  label "\[knob first_frame]-\[knob last_frame](\[expr \[knob last_frame]-\[knob first_frame]+1])"
+  xpos -380
+  ypos 1302
+ }
+ Write {
+  channels rgba
+  file /show/srh/shot/S07/S07_0830/comp/comp/src/precomp/paritcle_1_v001/paritcle_1_v001.%04d.exr
+  file_type exr
+  autocrop true
+  version 2
+  in_colorspace "ACES - ACEScg"
+  out_colorspace "ACES - ACEScg"
+  name Write1
+  xpos -380
+  ypos 1407
+ }
+ ParticleDirectionalForce {
+  inputs 0
+  strength {{"parent.Direction*(\[exists parent.input1]?1+(parent.input1.uniform_scale-1)*0.85:1)"} {"parent.Direction*(\[exists parent.input1]?1+(parent.input1.uniform_scale-1)*0.85:1)"} {"parent.Direction*(\[exists parent.input1]?1+(parent.input1.uniform_scale-1)*0.85:1)"}}
+  max_age {{1/(max(1,parent.SparkEmit.lifetime*1.25))}}
+  name ParticleDirectionalForce1
+  xpos -480
+  ypos -116
+ }
+ NoOp {
+  inputs 0
+  name CustomKnobs
+  tile_color 0xff9fff
+  xpos -160
+  ypos -469
+  addUserKnob {20 User}
+  addUserKnob {7 Softness R 0 100}
+  Softness 10
+  addUserKnob {3 time_offset l Seed}
+  time_offset {{parent.integer}}
+ }
+end_group

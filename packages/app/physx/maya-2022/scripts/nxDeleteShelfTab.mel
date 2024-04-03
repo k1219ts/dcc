@@ -1,0 +1,109 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+// copied from Autodesk's version edited to remove the confirmation dialog for removing a shelf tab
+
+global proc int nxDeleteShelfTab(string $shelfName) 
+{
+	int $returnStatus = 0;
+	
+	global string $gShelfForm;
+	global string $gShelfTopLevel;
+
+	setParent $gShelfTopLevel;
+	string $shelves[] = `tabLayout -q -ca $gShelfTopLevel`;	
+	int $numShelves = size($shelves);
+
+	int $indexArr[];
+	int $index = 0;
+	int $nItems = 0;
+
+	// Bail if there is something really weird going on
+	if ($numShelves <= 0) return $returnStatus;
+	
+	// Check for the last shelf
+	string $ok		= (uiRes("m_deleteShelfTab.kOK"));
+	if (1 == $numShelves) {
+		confirmDialog -title (uiRes("m_deleteShelfTab.kAlert"))  
+			-button $ok 
+			-defaultButton $ok 
+			-message (uiRes("m_deleteShelfTab.kCannotDelete")) ;
+		return $returnStatus;
+	}
+
+	// Confirm the delete
+	if(!`exists shelfLabel_melToUI` ){
+		source "shelfLabel.mel";
+	}
+	
+	//string $msg        = (uiRes("m_deleteShelfTab.kDeletionConfirmMsg"));
+	//string $shelfLabel = `shelfLabel_melToUI $shelfName`;
+	//string $dlgMsg     = `format -s $shelfLabel $msg`;  
+	//string $cancel     = (uiRes("m_deleteShelfTab.kCancel"));
+	
+	//if ($cancel == `confirmDialog -title (uiRes("m_deleteShelfTab.kConfirm")) 
+	//	-message $dlgMsg	-button $ok  -button $cancel -defaultButton $ok
+	//	-cancelButton $cancel  -dismissString $cancel `) 
+	//{
+	//	return $returnStatus;
+	//}
+
+	// Okay, now we can delete the shelf tab
+	
+	int $i = 0;
+	int $nShelves = 0;
+	int $shelfNum = 0;
+
+	deleteUI -layout ($gShelfTopLevel + "|" + $shelfName);
+	
+	//  update the preferences.
+	//
+	$nShelves = `optionVar -q numShelves`;
+	for ($shelfNum = 1; $shelfNum <= $nShelves; $shelfNum++) {
+		if ($shelfName == `optionVar -q ("shelfName" + $shelfNum)`) {
+			break;
+		}
+	}
+	for ($i = $shelfNum; $i <= $nShelves; $i++) {
+		optionVar 
+			-iv ("shelfLoad" + $i) `optionVar -q ("shelfLoad" + ($i+1))`
+			-sv ("shelfName" + $i) `optionVar -q ("shelfName" + ($i+1))`
+			-sv ("shelfFile" + $i) `optionVar -q ("shelfFile" + ($i+1))`;
+	}
+	optionVar -remove ("shelfLoad" + $nShelves)
+		-remove ("shelfName" + $nShelves)
+		-remove ("shelfFile" + $nShelves);
+	$nShelves--;
+	optionVar -iv numShelves $nShelves;
+
+	string $shelfDirs = `internalVar -userShelfDir`;
+	string $shelfArray[];
+	string $PATH_SEPARATOR = `about -win`? ";" : ":";
+	tokenize($shelfDirs, $PATH_SEPARATOR, $shelfArray);
+	for( $i = 0; $i < size($shelfArray); $i++ ) {
+		$fileName = ($shelfArray[$i] + "shelf_" + $shelfName + ".mel");
+		string $deletedFileName = $fileName + ".deleted";
+
+		//	Fix for bug #125494.  Remove the .deleted file if it already exists.
+		//
+		if (`filetest -r $deletedFileName`) {
+			sysFile -delete $deletedFileName;
+		}
+	
+		if (`file -q -exists $fileName`) {
+			sysFile -rename $deletedFileName $fileName;
+			break;
+		}
+	}
+	
+	//  Make sure the new active shelf tab has buttons.
+	shelfTabChange();
+				
+	$returnStatus = 1;
+	
+	return $returnStatus;
+}

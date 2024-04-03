@@ -1,0 +1,46 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ tile_color 0x232323ff
+ label -
+ note_font "DejaVu Sans Bold Italic"
+ note_font_size 20
+ addUserKnob {20 User}
+ addUserKnob {41 sp T rdp.sp}
+ addUserKnob {41 sc T rdp.sc}
+ addUserKnob {26 LJWsystem l "made by_LJWsystem"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 806
+  ypos -611
+ }
+ Multiply {
+  value {{parent.rdp.sc+(0.9-parent.rdp.sc)*random(frame/parent.rdp.sp)}}
+  name Multiply1
+  xpos 806
+  ypos -503
+ }
+ Output {
+  name Output1
+  xpos 809
+  ypos -403
+ }
+ NoOp {
+  inputs 0
+  name rdp
+  tile_color 0x5b5b5bff
+  note_font "Verdana Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic Bold\nItalic Bold Italic Bold Italic Bold Italic Bold Italic"
+  selected true
+  xpos 698
+  ypos -495
+  addUserKnob {20 User}
+  addUserKnob {7 sc}
+  addUserKnob {7 sp R 0 4}
+  sp 0.05
+  addUserKnob {26 ""}
+  addUserKnob {26 ""}
+  addUserKnob {26 LJWsystem}
+ }
+end_group

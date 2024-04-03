@@ -1,0 +1,834 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ inputs 2
+ help "daniel.norlund@fido.se\n\n"
+ addUserKnob {20 User}
+ addUserKnob {14 glowSize t "The size of the first blur step. Following steps are controlled with the 'steps' and 'exponential' settings." R 0 100}
+ glowSize 0.3
+ addUserKnob {7 glowTreshold t "Use the treshold to isolate glow to brighter parts of the image"}
+ glowTreshold 0.83
+ addUserKnob {4 tresholdMode l thresholdMode t "Blackpoint just alters the source image's blackpoint. Colorful result.\n\nMult luma takes a desaturated source image applies the black point and multiplies the result with the source image. Muted result." M {blackpoint "multLuma\t\t"}}
+ addUserKnob {68 blendingMode M {plus screen}}
+ blendingMode screen
+ addUserKnob {3 steps t "How many steps the blurring is done, to create the exponential look.\nAllows values between 1 and 13."}
+ steps 13
+ addUserKnob {7 exponential t "Sets the 'exponentialness' \nEssentially the value the previous blur step is multiplied to create the next blur step... " R 0.01 3}
+ exponential 1.6
+ addUserKnob {19 tint}
+ tint 1
+ addUserKnob {6 tint_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 enableTint -STARTLINE}
+ enableTint true
+ addUserKnob {7 saturation R 0 2}
+ saturation 0.8
+ addUserKnob {6 enableSat -STARTLINE}
+ enableSat true
+ addUserKnob {6 mergeWithSource t "Obeys the blending mode setting" +STARTLINE}
+ addUserKnob {6 preserveAlpha t "Does not add glow effect to alpha channel." +STARTLINE}
+ preserveAlpha true
+ addUserKnob {26 ""}
+ addUserKnob {6 multWithNoise +STARTLINE}
+ addUserKnob {41 type T NoiseAnim5.type}
+ addUserKnob {14 xysize l x/ysize R 0 100}
+ xysize 200
+ addUserKnob {7 zseed l z R 0 100}
+ zseed 40.5
+ addUserKnob {7 animSpeed}
+ addUserKnob {3 octaves}
+ octaves 10
+ addUserKnob {6 clipatnyquistlimit l "clip at Nyquist limit" -STARTLINE}
+ addUserKnob {7 lacunarity R 1 10}
+ lacunarity 2
+ addUserKnob {7 gain}
+ gain 0.5
+ addUserKnob {7 gamma}
+ gamma 0.5
+ addUserKnob {7 noisemix l noiseMix}
+ noisemix 1
+ addUserKnob {26 ""}
+ addUserKnob {7 mixAmount l mix}
+ mixAmount 1
+ addUserKnob {6 crop l cropToFormat +STARTLINE}
+ crop true
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 799
+  ypos 328
+ }
+set N9572c30 [stack 0]
+ Dot {
+  name Dot3
+  xpos -391
+  ypos 332
+ }
+ Dot {
+  name Dot2
+  xpos -391
+  ypos 1470
+ }
+set N9559a20 [stack 0]
+ Dot {
+  name Dot4
+  xpos -391
+  ypos 1903
+ }
+push $N9572c30
+ Saturation {
+  saturation 0
+  name Saturation1
+  xpos 1182
+  ypos 381
+ }
+ Grade {
+  blackpoint {{glowTreshold}}
+  name Grade2
+  xpos 1182
+  ypos 407
+ }
+push $N9572c30
+ Merge2 {
+  inputs 2
+  operation multiply
+  name Merge3
+  xpos 1074
+  ypos 417
+ }
+push $N9572c30
+ Grade {
+  blackpoint {{glowTreshold}}
+  name Grade1
+  xpos 799
+  ypos 367
+ }
+ Switch {
+  inputs 2
+  which {{tresholdMode}}
+  name Switch15
+  xpos 799
+  ypos 401
+ }
+set N15a70400 [stack 0]
+ Remove {
+  name Remove1
+  xpos 659
+  ypos 452
+ }
+set N9524ca0 [stack 0]
+ Dot {
+  name Dot1
+  xpos -36
+  ypos 462
+ }
+ Dot {
+  name Dot10
+  xpos -38
+  ypos 945
+ }
+set N9560250 [stack 0]
+ Dot {
+  name Dot9
+  xpos -213
+  ypos 1000
+ }
+ Multiply {
+  value 0
+  name Multiply2
+  xpos -241
+  ypos 1053
+ }
+ Noise {
+  size {{parent.xysize}}
+  zoffset {{((frame*linspeed/100)+linrandseed)+(noise((frame*noiseSpeed/100)+noiserandseed)*noiseAmp)}}
+  octaves {{parent.octaves}}
+  lacunarity {{parent.lacunarity}}
+  gain {{parent.gain}}
+  gamma {{parent.gamma}}
+  center {3508 2480.5}
+  name NoiseAnim5
+  xpos -241
+  ypos 1125
+  addUserKnob {20 User}
+  addUserKnob {7 linspeed R 0 5}
+  linspeed {{parent.animSpeed}}
+  addUserKnob {7 noiseSpeed R 0 5}
+  addUserKnob {7 noiseAmp}
+  addUserKnob {22 randomizeSeed T "import random\nn = nuke.thisNode()\nn\['linrandseed'].setValue(random.randint(1,2000))" +STARTLINE}
+  addUserKnob {7 linrandseed -STARTLINE}
+  linrandseed {{parent.zseed}}
+  addUserKnob {22 randomizenoise T "import random\nn = nuke.thisNode()\nn\['noiserandseed'].setValue(random.randint(1,2000))" +STARTLINE}
+  addUserKnob {7 noiserandseed -STARTLINE}
+  noiserandseed 527
+ }
+ Input {
+  inputs 0
+  name Mask
+  xpos 1339
+  ypos 1069
+  number 1
+ }
+set N953fb20 [stack 0]
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N953fb20
+push $N15a70400
+ Remove {
+  operation keep
+  channels rgb
+  name Remove2
+  xpos 799
+  ypos 451
+ }
+ Dot {
+  name Dot77
+  xpos 833
+  ypos 512
+ }
+ Blur {
+  inputs 1+1
+  size {{glowSize.w} {glowSize.h x1125 2}}
+  crop false
+  name Blur21
+  xpos 799
+  ypos 577
+ }
+set N9536110 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur21.size*exponential} {parent.Blur21.size*exponential}}
+  crop false
+  mix 0.79
+  name Blur22
+  xpos 799
+  ypos 643
+ }
+set N16b48210 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur22.size*exponential} {parent.Blur22.size*exponential}}
+  crop false
+  name Blur27
+  xpos 799
+  ypos 717
+ }
+set N959dc80 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur27.size*exponential} {parent.Blur27.size*exponential}}
+  name Blur28
+  xpos 799
+  ypos 778
+ }
+set N16b24a10 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur28.size*exponential} {parent.Blur28.size*exponential}}
+  crop false
+  name Blur29
+  xpos 799
+  ypos 849
+ }
+set N16b32340 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur29.size*exponential} {parent.Blur29.size*exponential}}
+  crop false
+  name Blur30
+  xpos 799
+  ypos 923
+ }
+set N1635d210 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur30.size*exponential} {parent.Blur30.size*exponential}}
+  crop false
+  name Blur31
+  xpos 799
+  ypos 985
+ }
+set N1636aa30 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur31.size*exponential} {parent.Blur31.size*exponential}}
+  crop false
+  name Blur32
+  xpos 799
+  ypos 1063
+ }
+set N17388a10 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur32.size*exponential} {parent.Blur32.size*exponential}}
+  crop false
+  name Blur33
+  xpos 799
+  ypos 1129
+ }
+set N17396360 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur33.size*exponential} {parent.Blur33.size*exponential}}
+  crop false
+  name Blur34
+  xpos 799
+  ypos 1197
+ }
+set N173aae40 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur34.size*exponential} {parent.Blur34.size*exponential}}
+  crop false
+  name Blur35
+  xpos 799
+  ypos 1281
+ }
+set N173b88f0 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur35.size*exponential} {parent.Blur35.size*exponential}}
+  crop false
+  name Blur36
+  xpos 799
+  ypos 1370
+ }
+set N173c6240 [stack 0]
+ Blur {
+  inputs 1+1
+  size {{parent.Blur36.size*exponential} {parent.Blur36.size*exponential}}
+  crop false
+  name Blur37
+  xpos 799
+  ypos 1465
+ }
+set N948ccf0 [stack 0]
+push $N173c6240
+push $N173b88f0
+push $N173aae40
+push $N17396360
+push $N17388a10
+push $N1636aa30
+push $N1635d210
+push $N16b32340
+push $N16b24a10
+push $N959dc80
+push $N16b48210
+push $N9536110
+push $N9524ca0
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge2
+  xpos 1020
+  ypos 583
+ }
+set N949a540 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge109
+  xpos 1020
+  ypos 649
+ }
+set N94aa0b0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge110
+  xpos 1020
+  ypos 717
+ }
+set N94b9a10 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge111
+  xpos 1020
+  ypos 784
+ }
+set N94c9150 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge112
+  xpos 1020
+  ypos 849
+ }
+set N90d8770 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge113
+  xpos 1020
+  ypos 923
+ }
+set N90e7ec0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge114
+  xpos 1020
+  ypos 991
+ }
+set N90f7490 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge115
+  xpos 1020
+  ypos 1063
+ }
+set N91078b0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge116
+  xpos 1020
+  ypos 1135
+ }
+set N9117100 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge117
+  xpos 1020
+  ypos 1203
+ }
+set N9126850 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge119
+  xpos 1020
+  ypos 1281
+ }
+set N91361c0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge121
+  xpos 1022
+  ypos 1370
+ }
+set N9145910 [stack 0]
+ Merge2 {
+  inputs 2
+  operation screen
+  mix {{mixAmount}}
+  name Merge123
+  xpos 1022
+  ypos 1465
+ }
+push $N948ccf0
+push $N173c6240
+push $N173b88f0
+push $N173aae40
+push $N17396360
+push $N17388a10
+push $N1636aa30
+push $N1635d210
+push $N16b32340
+push $N16b24a10
+push $N959dc80
+push $N16b48210
+push $N9536110
+push $N9524ca0
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge1
+  xpos 659
+  ypos 583
+ }
+set N9164b30 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge75
+  xpos 659
+  ypos 649
+ }
+set N9174220 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge101
+  xpos 659
+  ypos 717
+ }
+set N9183ba0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge102
+  xpos 659
+  ypos 784
+ }
+set N91933f0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge103
+  xpos 659
+  ypos 849
+ }
+set N91a2c40 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge104
+  xpos 659
+  ypos 923
+ }
+set N91b2390 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge105
+  xpos 659
+  ypos 991
+ }
+set N91c1d00 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge106
+  xpos 659
+  ypos 1063
+ }
+set N91d1450 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge107
+  xpos 659
+  ypos 1135
+ }
+set N91e0920 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge108
+  xpos 659
+  ypos 1203
+ }
+set N91f05e0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge120
+  xpos 659
+  ypos 1281
+ }
+set N91ffd30 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge122
+  xpos 659
+  ypos 1370
+ }
+set N920f1d0 [stack 0]
+ Merge2 {
+  inputs 2
+  operation plus
+  mix {{mixAmount}}
+  name Merge124
+  xpos 659
+  ypos 1465
+ }
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch13
+  xpos 509
+  ypos 1512
+ }
+push $N9145910
+push $N920f1d0
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch12
+  xpos 505
+  ypos 1424
+ }
+push $N91361c0
+push $N91ffd30
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch11
+  xpos 504
+  ypos 1325
+ }
+push $N9126850
+push $N91f05e0
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch10
+  xpos 495
+  ypos 1241
+ }
+push $N9117100
+push $N91e0920
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch9
+  xpos 494
+  ypos 1177
+ }
+push $N91078b0
+push $N91d1450
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch8
+  xpos 496
+  ypos 1107
+ }
+push $N90f7490
+push $N91c1d00
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch7
+  xpos 496
+  ypos 1038
+ }
+push $N90e7ec0
+push $N91b2390
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch6
+  xpos 490
+  ypos 970
+ }
+push $N90d8770
+push $N91a2c40
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch5
+  xpos 490
+  ypos 903
+ }
+push $N94c9150
+push $N91933f0
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch4
+  xpos 486
+  ypos 839
+ }
+push $N94b9a10
+push $N9183ba0
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch2
+  xpos 492
+  ypos 764
+ }
+push $N94aa0b0
+push $N9174220
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch1
+  xpos 488
+  ypos 704
+ }
+push $N949a540
+push $N9164b30
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch14
+  xpos 485
+  ypos 634
+ }
+push $N9560250
+ Switch {
+  inputs 14
+  which {{steps}}
+  name Switch3
+  xpos -70
+  ypos 1107
+ }
+set N9297120 [stack 0]
+ Merge2 {
+  inputs 2
+  operation multiply
+  mix {{parent.noisemix}}
+  name Merge6
+  xpos -182
+  ypos 1197
+ }
+push $N9297120
+ Switch {
+  inputs 2
+  which {{parent.multWithNoise}}
+  name Switch21
+  xpos -70
+  ypos 1255
+ }
+set N92af410 [stack 0]
+ Saturation {
+  saturation {{parent.saturation}}
+  name Saturation2
+  xpos -201
+  ypos 1283
+ }
+push $N92af410
+ Switch {
+  inputs 2
+  which {{parent.enableSat}}
+  name Switch20
+  xpos -66
+  ypos 1301
+ }
+ Dot {
+  name Dot8
+  xpos -38
+  ypos 1344
+ }
+set N92cb520 [stack 0]
+ Multiply {
+  value {{parent.tint.r} {parent.tint.g} {parent.tint.b} {parent.tint.a}}
+  name Multiply1
+  xpos -197
+  ypos 1388
+ }
+push $N92cb520
+ Switch {
+  inputs 2
+  which {{parent.enableTint}}
+  name Switch19
+  xpos -66
+  ypos 1441
+ }
+set N92dc390 [stack 0]
+ Crop {
+  box {0 0 {width} {height}}
+  name Crop1
+  xpos -5
+  ypos 1500
+ }
+push $N92dc390
+ Switch {
+  inputs 2
+  which {{parent.crop}}
+  name Switch22
+  xpos -66
+  ypos 1532
+ }
+set N92dbea0 [stack 0]
+push $N9559a20
+ Merge2 {
+  inputs 2
+  operation screen
+  name Merge4
+  xpos -162
+  ypos 1663
+ }
+push $N92dbea0
+push $N9559a20
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge5
+  xpos -342
+  ypos 1655
+ }
+ Switch {
+  inputs 2
+  which {{blendingMode}}
+  name Switch17
+  xpos -265
+  ypos 1765
+ }
+push $N92dbea0
+ Switch {
+  inputs 2
+  which {{mergeWithSource}}
+  name Switch16
+  xpos -66
+  ypos 1781
+ }
+set N931dad0 [stack 0]
+ Dot {
+  name Dot5
+  xpos -32
+  ypos 1827
+ }
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy1
+  xpos -66
+  ypos 1893
+ }
+push $N931dad0
+ Dot {
+  name Dot6
+  xpos 90
+  ypos 1824
+ }
+ Dot {
+  name Dot7
+  xpos 90
+  ypos 1929
+ }
+ Switch {
+  inputs 2
+  which {{parent.preserveAlpha}}
+  name Switch18
+  xpos -66
+  ypos 1952
+ }
+ Output {
+  name Output1
+  xpos -66
+  ypos 2043
+ }
+end_group

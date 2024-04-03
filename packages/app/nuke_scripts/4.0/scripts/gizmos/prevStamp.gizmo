@@ -1,0 +1,388 @@
+#! /usr/local/Nuke7.0v5/Nuke7.0 -nx
+version 7.0 v5
+Gizmo {
+ tile_color 0xffff0000
+ label "Stamp Prev"
+ note_font "Liberation Sans"
+ note_font_size 15
+ mapsize {0.15 0.15}
+ addUserKnob {20 Stamp l ProjectStamp}
+ addUserKnob {26 "" l "Project Info"}
+ addUserKnob {1 Project_name l Project: t "Project Name"}
+ Project_name ProjectName
+ addUserKnob {1 Artist_name l Artist: t "Enter artist name"}
+ Artist_name ArtistName
+ addUserKnob {26 null l "" +STARTLINE T "  "}
+ addUserKnob {26 prev_hud l "HUD Info"}
+ addUserKnob {1 MayaScene l MayaScene: t "The name of maya scene file."}
+ MayaScene maya_scene
+ addUserKnob {1 RenderCam l RenderCam:}
+ RenderCam camera_name
+ addUserKnob {1 FocalLength l FocalLength:}
+ FocalLength focal_length
+ addUserKnob {26 null2 l "" +STARTLINE T "    "}
+ addUserKnob {26 resolution l Resolution}
+ addUserKnob {41 format l "output format" T Reformat1.format}
+ addUserKnob {26 description l "" +STARTLINE T "  \n"}
+ addUserKnob {26 "" l About}
+ addUserKnob {26 About l "" -STARTLINE T "Prev Stamp v1.0\nfor DEXTER  PREV"}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x388e8e00
+  label "TOP info"
+  note_font_size 30
+  xpos 581
+  ypos 135
+  bdwidth 382
+  bdheight 445
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x8e3766ff
+  label "BOTTOM info"
+  note_font_size 30
+  xpos -103
+  ypos 41
+  bdwidth 560
+  bdheight 445
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[knob FocalLength]"
+  font /netapp/dexter/production/inhouse/fonts/VeraSe.ttf
+  size 20
+  Transform 1
+  box {-3 0 -3 0}
+  translate {1741 1180}
+  color 0.7
+  name focalLength
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  selected true
+  xpos 741
+  ypos 315
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[knob RenderCam]"
+  font /netapp/dexter/production/inhouse/fonts/VeraSe.ttf
+  size 22
+  xjustify center
+  Transform 1
+  translate {955 1180}
+  color 0.7
+  name cameraName
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 615
+  ypos 385
+ }
+ Merge2 {
+  inputs 2
+  name Merge4
+  note_font "Bitstream Vera Sans"
+  xpos 741
+  ypos 385
+ }
+ Dot {
+  name Dot3
+  xpos 775
+  ypos 557
+ }
+ Text {
+  inputs 0
+  cliptype none
+  inject true
+  message "Artist :"
+  font /netapp/dexter/production/inhouse/fonts/Ubuntu-R.ttf
+  size 14
+  Transform 1
+  translate {1285 -18}
+  color 0.5
+  name ARTIST1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 75
+  ypos 116
+ }
+ Text {
+  cliptype none
+  inject true
+  message "\[knob Artist_name]"
+  font /netapp/dexter/production/inhouse/fonts/Vera.ttf
+  size 17
+  Transform 1
+  translate {1335 -18}
+  color {0.55 0.55 0.1 1}
+  name A_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 75
+  ypos 140
+ }
+ Transform {
+  translate {-1028 26}
+  center {1386 -12}
+  name Transform18
+  xpos 75
+  ypos 164
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "Project :"
+  font /netapp/dexter/production/inhouse/fonts/Ubuntu-R.ttf
+  size 14
+  Transform 1
+  box {247 0 247 0}
+  translate {110.5 -18}
+  color 0.5
+  name PROJECT3
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -26
+  ypos 114
+ }
+ Text {
+  cliptype none
+  message "\[knob Project_name]"
+  font /netapp/dexter/production/inhouse/fonts/VeraBd.ttf
+  size 18
+  Transform 1
+  box {247 0 247 0}
+  translate {168 -18}
+  color {0.55 0.55 0.1 1}
+  name P_INPUT4
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos -26
+  ypos 138
+ }
+ Transform {
+  translate {-326 26}
+  center {442 -12}
+  name Transform17
+  xpos -26
+  ypos 164
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[knob MayaScene]"
+  font /netapp/dexter/production/inhouse/fonts/VeraSe.ttf
+  size 22
+  xjustify center
+  Transform 1
+  translate {960 7}
+  color 0.7
+  name mayaScene
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos -56
+  ypos 331
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "Duration :"
+  font /netapp/dexter/production/inhouse/fonts/Ubuntu-R.ttf
+  size 14
+  Transform 1
+  translate {120 1}
+  color 0.5
+  name Duration1
+  note_font "Bitstream Vera Sans"
+  xpos 323
+  ypos 175
+ }
+ Text {
+  cliptype none
+  message "\[knob root.first_frame] - \[knob root.last_frame] (\[expr \[knob root.last_frame] - \[knob root.first_frame] + 1])\n"
+  font /netapp/dexter/production/inhouse/fonts/Vera.ttf
+  size 16
+  Transform 1
+  box {-3 0 -3 0}
+  translate {190 0}
+  color {0.55 0.55 0.1 1}
+  name Dr_INPUT1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 323
+  ypos 199
+ }
+ Transform {
+  translate {1300 8}
+  center {199 7}
+  name Transform8
+  xpos 323
+  ypos 225
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message "Date :"
+  font /netapp/dexter/production/inhouse/fonts/Ubuntu-R.ttf
+  size 14
+  Transform 1
+  translate {137 2}
+  color 0.5
+  name DATE1
+  note_font "Bitstream Vera Sans"
+  xpos 224
+  ypos 175
+ }
+ Text {
+  cliptype none
+  message "\[clock format \[clock seconds] -format \{%d/%m/%y\}]"
+  font /netapp/dexter/production/inhouse/fonts/Vera.ttf
+  size 16
+  Transform 1
+  translate {183 1}
+  color {0.55 0.55 0.1 1}
+  name D_INPUT1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 224
+  ypos 199
+ }
+ Transform {
+  translate {1620 8}
+  center {193 7}
+  name Transform14
+  xpos 224
+  ypos 223
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "Frame :"
+  font /netapp/dexter/production/inhouse/fonts/Ubuntu-R.ttf
+  size 14
+  Transform 1
+  translate {-47 0}
+  color 0.5
+  name FRAMES1
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 323
+  ypos 283
+ }
+ Text {
+  cliptype none
+  message "\[format %04d \[frame]]"
+  font /netapp/dexter/production/inhouse/fonts/Vera.ttf
+  size 16
+  Transform 1
+  translate {10 0}
+  color {0.55 0.55 0.1 1}
+  name F_INPUT1
+  tile_color 0xff0000ff
+  label "\n"
+  note_font "Bitstream Vera Sans"
+  xpos 323
+  ypos 307
+ }
+ Transform {
+  translate {1665 9}
+  center {4 6}
+  name Transform16
+  xpos 323
+  ypos 331
+ }
+ Merge2 {
+  inputs 6+1
+  name Merge6
+  note_font "Bitstream Vera Sans"
+  xpos 75
+  ypos 331
+ }
+ Merge2 {
+  inputs 2
+  name Merge3
+  note_font "Bitstream Vera Sans"
+  xpos 75
+  ypos 554
+ }
+ Transform {
+  scale {{"Reformat1.format.width / 1920"} {"Reformat1.format.height / 1140"}}
+  name Transform6
+  xpos 75
+  ypos 739
+ }
+ Input {
+  inputs 0
+  name final
+  label final_image
+  note_font "Bitstream Vera Sans"
+  xpos -244
+  ypos 628
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD"
+  black_outside true
+  name Reformat1
+  xpos -244
+  ypos 849
+ }
+ Reformat {
+  type "to box"
+  format {{{root.format}}}
+  box_width {{Reformat1.format.width}}
+  box_height {{Reformat1.format.height*1.055556}}
+  box_fixed true
+  black_outside true
+  name Reformat_stamp
+  xpos -244
+  ypos 905
+ }
+ Shuffle {
+  alpha white
+  name Shuffle1
+  xpos -244
+  ypos 966
+ }
+ Merge2 {
+  inputs 2
+  name Merge5
+  xpos 75
+  ypos 966
+ }
+ Reformat {
+  type "to box"
+  format {{{root.format}}}
+  box_width {{Reformat1.format.width}}
+  box_height {{Reformat1.format.height*1.05556}}
+  box_fixed true
+  black_outside true
+  name Reformat_stamp1
+  xpos 75
+  ypos 1058
+ }
+ Output {
+  name Output
+  label "Output Stamp"
+  note_font "Bitstream Vera Sans"
+  xpos 75
+  ypos 1311
+ }
+push 0
+push 0
+ Viewer {
+  inputs 3
+  input_number 2
+  input_process_node prat_ip1
+  input_process false
+  name Viewer1
+  xpos -1589
+  ypos 1706
+ }
+end_group

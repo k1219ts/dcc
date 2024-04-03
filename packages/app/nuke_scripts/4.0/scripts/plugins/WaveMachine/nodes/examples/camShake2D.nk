@@ -1,0 +1,725 @@
+#! C:/Program Files/Nuke12.1v1/nuke-12.1.1.dll -nx
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="-1" y="-8" w="2558" h="1378" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="1949" stretch="1"/>
+            <splitter orientation="1">
+                <split size="887"/>
+                <splitter orientation="2">
+                    <split size="769"/>
+                    <dock id="" activePageId="Viewer.1">
+                        <page id="com.adrianpueyo.KnobScripterPane"/>
+                        <page id="Python.Editor"/>
+                        <page id="Viewer.1"/>
+                    </dock>
+                    <split size="571"/>
+                    <dock id="" activePageId="Error Console.1">
+                        <page id="uk.co.thefoundry.scripteditor.1"/>
+                        <page id="Error Console.1"/>
+                    </dock>
+                </splitter>
+                <split size="41"/>
+                <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                    <page id="Toolbar.1"/>
+                </dock>
+                <split size="1013"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="605"/>
+            <splitter orientation="2">
+                <split size="1344"/>
+                <dock id="" activePageId="Properties.1">
+                    <page id="Properties.1"/>
+                </dock>
+            </splitter>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name C:/Users/fynn/Documents/Development/gitLab/nuke-group/waveMaker/pub/WaveMachine_v1.0/nodes/examples/camShake2D.nk
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode1
+ knobChanged "try:\n    listenedKnobs = \['text', 'position', 'name']\n    node = nuke.thisNode()\n    name = node.knob('name').value()\n    text = node.knob('text').value()\n    position = node.knob('position').value()\n    position = \"<\" + position + \">\"\n    label = node.knob('label').value()\n    \n    if nuke.thisKnob().name() in listenedKnobs:\n        if text == \"\":\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue()\n            else:\n                node.knob('label').setValue(position + name)\n        else:\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue(text)\n            else:\n                node.knob('label').setValue(position + text)\n                \n    elif nuke.thisKnob().name() == 'font_size':\n        fontSize = node.knob('font_size').value()\n        node.knob('note_font_size').setValue(fontSize)\nexcept:\n    pass"
+ tile_color 0x3c4639ff
+ label "<Left>camShake - simple 2D setup"
+ note_font Verdana
+ note_font_size 50
+ xpos -620
+ ypos -584
+ bdwidth 801
+ bdheight 735
+ addUserKnob {20 F_VFX l BackdropNode}
+ addUserKnob {43 text l Text}
+ text "camShake - simple 2D setup"
+ addUserKnob {7 font_size l "Font Size" R 10 100}
+ font_size 50
+ addUserKnob {4 position l "" -STARTLINE M {Left Center}}
+ addUserKnob {26 S01 l " " T " "}
+ addUserKnob {22 grow l " <img src=\"F_scalep.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef grow(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()-step)\n            n\['ypos'].setValue(n\['ypos'].getValue()-step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()+step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()+step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\ngrow(n,50)"}
+ addUserKnob {22 shrink l " <img src=\"F_scalem.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef shrink(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()+step)\n            n\['ypos'].setValue(n\['ypos'].getValue()+step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()-step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()-step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\nshrink(n,50)"}
+ addUserKnob {22 colorandom l " <img src=\"ColorBars.png\">" -STARTLINE T "import colorsys, random\nn=nuke.thisNode()\nR,G,B= colorsys.hsv_to_rgb(random.random(),.1+random.random()*.15,.15+random.random()*.15)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ) )"}
+ addUserKnob {22 red l " <img src=\"F_r.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.0, 0.77, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 orange l " <img src=\"F_o.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.1, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 yellow l " <img src=\"F_y.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.16, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 green l " <img src=\"F_g.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.33, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 cyan l " <img src=\"F_c.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.46, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 blue l " <img src=\"F_b.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.6, 0.7, 0.76]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 darkblue l " <img src=\"F_db.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.67, 0.74, 0.6]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 magenta l " <img src=\"F_m.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.8, 0.74, 0.65]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 pink l " <img src=\"F_p.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.92, 0.74, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {26 S02 l " " T " "}
+ addUserKnob {26 Ftools l "" +STARTLINE T "<font color=\"#1C1C1C\"> Franklin VFX - 2018"}
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode2
+ knobChanged "try:\n    listenedKnobs = \['text', 'position', 'name']\n    node = nuke.thisNode()\n    name = node.knob('name').value()\n    text = node.knob('text').value()\n    position = node.knob('position').value()\n    position = \"<\" + position + \">\"\n    label = node.knob('label').value()\n    \n    if nuke.thisKnob().name() in listenedKnobs:\n        if text == \"\":\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue()\n            else:\n                node.knob('label').setValue(position + name)\n        else:\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue(text)\n            else:\n                node.knob('label').setValue(position + text)\n                \n    elif nuke.thisKnob().name() == 'font_size':\n        fontSize = node.knob('font_size').value()\n        node.knob('note_font_size').setValue(fontSize)\nexcept:\n    pass"
+ tile_color 0x3c3b44ff
+ label <Left>x
+ note_font Verdana
+ note_font_size 50
+ xpos -510
+ ypos -330
+ bdwidth 140
+ bdheight 323
+ z_order 1
+ addUserKnob {20 F_VFX l BackdropNode}
+ addUserKnob {43 text l Text}
+ text x
+ addUserKnob {7 font_size l "Font Size" R 10 100}
+ font_size 50
+ addUserKnob {4 position l "" -STARTLINE M {Left Center}}
+ addUserKnob {26 S01 l " " T " "}
+ addUserKnob {22 grow l " <img src=\"F_scalep.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef grow(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()-step)\n            n\['ypos'].setValue(n\['ypos'].getValue()-step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()+step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()+step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\ngrow(n,50)"}
+ addUserKnob {22 shrink l " <img src=\"F_scalem.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef shrink(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()+step)\n            n\['ypos'].setValue(n\['ypos'].getValue()+step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()-step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()-step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\nshrink(n,50)"}
+ addUserKnob {22 colorandom l " <img src=\"ColorBars.png\">" -STARTLINE T "import colorsys, random\nn=nuke.thisNode()\nR,G,B= colorsys.hsv_to_rgb(random.random(),.1+random.random()*.15,.15+random.random()*.15)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ) )"}
+ addUserKnob {22 red l " <img src=\"F_r.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.0, 0.77, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 orange l " <img src=\"F_o.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.1, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 yellow l " <img src=\"F_y.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.16, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 green l " <img src=\"F_g.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.33, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 cyan l " <img src=\"F_c.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.46, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 blue l " <img src=\"F_b.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.6, 0.7, 0.76]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 darkblue l " <img src=\"F_db.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.67, 0.74, 0.6]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 magenta l " <img src=\"F_m.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.8, 0.74, 0.65]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 pink l " <img src=\"F_p.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.92, 0.74, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {26 S02 l " " T " "}
+ addUserKnob {26 Ftools l "" +STARTLINE T "<font color=\"#1C1C1C\"> Franklin VFX - 2018"}
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode3
+ knobChanged "try:\n    listenedKnobs = \['text', 'position', 'name']\n    node = nuke.thisNode()\n    name = node.knob('name').value()\n    text = node.knob('text').value()\n    position = node.knob('position').value()\n    position = \"<\" + position + \">\"\n    label = node.knob('label').value()\n    \n    if nuke.thisKnob().name() in listenedKnobs:\n        if text == \"\":\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue()\n            else:\n                node.knob('label').setValue(position + name)\n        else:\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue(text)\n            else:\n                node.knob('label').setValue(position + text)\n                \n    elif nuke.thisKnob().name() == 'font_size':\n        fontSize = node.knob('font_size').value()\n        node.knob('note_font_size').setValue(fontSize)\nexcept:\n    pass"
+ tile_color 0x383e3eff
+ label <Left>y
+ note_font Verdana
+ note_font_size 50
+ xpos -290
+ ypos -330
+ bdwidth 140
+ bdheight 323
+ z_order 1
+ addUserKnob {20 F_VFX l BackdropNode}
+ addUserKnob {43 text l Text}
+ text y
+ addUserKnob {7 font_size l "Font Size" R 10 100}
+ font_size 50
+ addUserKnob {4 position l "" -STARTLINE M {Left Center}}
+ addUserKnob {26 S01 l " " T " "}
+ addUserKnob {22 grow l " <img src=\"F_scalep.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef grow(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()-step)\n            n\['ypos'].setValue(n\['ypos'].getValue()-step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()+step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()+step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\ngrow(n,50)"}
+ addUserKnob {22 shrink l " <img src=\"F_scalem.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef shrink(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()+step)\n            n\['ypos'].setValue(n\['ypos'].getValue()+step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()-step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()-step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\nshrink(n,50)"}
+ addUserKnob {22 colorandom l " <img src=\"ColorBars.png\">" -STARTLINE T "import colorsys, random\nn=nuke.thisNode()\nR,G,B= colorsys.hsv_to_rgb(random.random(),.1+random.random()*.15,.15+random.random()*.15)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ) )"}
+ addUserKnob {22 red l " <img src=\"F_r.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.0, 0.77, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 orange l " <img src=\"F_o.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.1, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 yellow l " <img src=\"F_y.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.16, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 green l " <img src=\"F_g.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.33, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 cyan l " <img src=\"F_c.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.46, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 blue l " <img src=\"F_b.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.6, 0.7, 0.76]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 darkblue l " <img src=\"F_db.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.67, 0.74, 0.6]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 magenta l " <img src=\"F_m.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.8, 0.74, 0.65]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 pink l " <img src=\"F_p.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.92, 0.74, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {26 S02 l " " T " "}
+ addUserKnob {26 Ftools l "" +STARTLINE T "<font color=\"#1C1C1C\"> Franklin VFX - 2018"}
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode7
+ knobChanged "try:\n    listenedKnobs = \['text', 'position', 'name']\n    node = nuke.thisNode()\n    name = node.knob('name').value()\n    text = node.knob('text').value()\n    position = node.knob('position').value()\n    position = \"<\" + position + \">\"\n    label = node.knob('label').value()\n    \n    if nuke.thisKnob().name() in listenedKnobs:\n        if text == \"\":\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue()\n            else:\n                node.knob('label').setValue(position + name)\n        else:\n            if node.knob('position').value() == \"left\":\n                node.knob('label').setValue(text)\n            else:\n                node.knob('label').setValue(position + text)\n                \n    elif nuke.thisKnob().name() == 'font_size':\n        fontSize = node.knob('font_size').value()\n        node.knob('note_font_size').setValue(fontSize)\nexcept:\n    pass"
+ tile_color 0x3c3b44ff
+ label <Left>rot.
+ note_font Verdana
+ note_font_size 50
+ xpos -70
+ ypos -330
+ bdwidth 140
+ bdheight 323
+ z_order 1
+ addUserKnob {20 F_VFX l BackdropNode}
+ addUserKnob {43 text l Text}
+ text rot.
+ addUserKnob {7 font_size l "Font Size" R 10 100}
+ font_size 50
+ addUserKnob {4 position l "" -STARTLINE M {Left Center}}
+ addUserKnob {26 S01 l " " T " "}
+ addUserKnob {22 grow l " <img src=\"F_scalep.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef grow(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()-step)\n            n\['ypos'].setValue(n\['ypos'].getValue()-step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()+step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()+step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\ngrow(n,50)"}
+ addUserKnob {22 shrink l " <img src=\"F_scalem.png\">" -STARTLINE T "n=nuke.thisNode()\n\ndef shrink(node=None,step=50):\n    try:\n        if not node:\n            n=nuke.selectedNode()\n        else:\n            n=node\n            n\['xpos'].setValue(n\['xpos'].getValue()+step)\n            n\['ypos'].setValue(n\['ypos'].getValue()+step)\n            n\['bdwidth'].setValue(n\['bdwidth'].getValue()-step*2)\n            n\['bdheight'].setValue(n\['bdheight'].getValue()-step*2)\n    except Exception,e:\n        print('Error:: %s' % e)\n\nshrink(n,50)"}
+ addUserKnob {22 colorandom l " <img src=\"ColorBars.png\">" -STARTLINE T "import colorsys, random\nn=nuke.thisNode()\nR,G,B= colorsys.hsv_to_rgb(random.random(),.1+random.random()*.15,.15+random.random()*.15)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ) )"}
+ addUserKnob {22 red l " <img src=\"F_r.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.0, 0.77, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 orange l " <img src=\"F_o.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.1, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 yellow l " <img src=\"F_y.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.16, 0.8, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 green l " <img src=\"F_g.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.33, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 cyan l " <img src=\"F_c.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.46, 0.8, 0.7]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 blue l " <img src=\"F_b.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.6, 0.7, 0.76]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 darkblue l " <img src=\"F_db.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.67, 0.74, 0.6]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 magenta l " <img src=\"F_m.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.8, 0.74, 0.65]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {22 pink l " <img src=\"F_p.png\">" -STARTLINE T "import colorsys\nn=nuke.thisNode()\nR,G,B= \[0.92, 0.74, 0.8]\nR,G,B=colorsys.hsv_to_rgb(R,G,B)\nn\['tile_color'].setValue( int('%02x%02x%02x%02x' % (R*255,G*255,B*255,255), 16 ))\n"}
+ addUserKnob {26 S02 l " " T " "}
+ addUserKnob {26 Ftools l "" +STARTLINE T "<font color=\"#1C1C1C\"> Franklin VFX - 2018"}
+}
+StickyNote {
+ inputs 0
+ name StickyNote1
+ label "camShake controls"
+ xpos -150
+ ypos -417
+}
+Group {
+ inputs 0
+ name waveMaker
+ onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+ knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+ tile_color 0x3aff71ff
+ note_font Verdana
+ xpos -480
+ ypos -231
+ addUserKnob {20 User}
+ addUserKnob {3 firstFrame l "First Frame"}
+ firstFrame 1
+ addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+ addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+ maxValue 1
+ addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+ waveLength {{fps/parent.wave_camShake.speed}}
+ addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+ phase 0.5
+ addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+ invPhase true
+ addUserKnob {7 evolution t "evolution for the random curve"}
+ evolution {{parent.wave_camShake.rSeed}}
+ addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+ addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+ wave1 Random
+ addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+ waveMix {{parent.wave_camShake.random}}
+ addUserKnob {26 ""}
+ addUserKnob {7 power}
+ power 1
+ addUserKnob {7 output}
+ output {{"disable ? 0 : ((((sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+}
+ Output {
+  inputs 0
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group
+Group {
+ name waveGrade
+ tile_color 0x7c9eb5ff
+ xpos -480
+ ypos -134
+ addUserKnob {20 User}
+ addUserKnob {41 inp1 +INVISIBLE T upstreamValue3.output}
+ addUserKnob {7 avgcurve +INVISIBLE}
+ avgcurve {{(inp1(frame-1)+inp1(frame)+inp1(frame+1))/3 i}}
+ addUserKnob {7 amplify t "Multiply the average input value with this and add the input curve on top:\n\n((inp1 - avgcurve) * amplify) + inp1" R -50 50}
+ addUserKnob {7 multiply t "multiply the curve by this" R 0 10}
+ multiply 1
+ addUserKnob {7 offset t "Add this to the output value" R -10 10}
+ offset -0.5
+ addUserKnob {7 output t "Operation are carried out in this order\n- amplify\n- multiply\n- offset\n----------"}
+ output {{"disable ? inp1 : ((((inp1-avgcurve)*amplify)+inp1)*multiply)+(offset)"}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveGrade v1.0 | Fynn Laue"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -40
+  ypos -9
+ }
+ Group {
+  name upstreamValue3
+  onCreate "n = nuke.thisNode()\n# Hide these knobs from the curve editor\nn.knob(\"output\").setFlag(0x20000000)"
+  label v005
+  xpos -40
+  ypos 148
+  addUserKnob {20 User}
+  addUserKnob {43 pNode t "this script finds the upstream value. Or rather the name of the node and appends a .\nThis is then used in an expression appended by a knob name to get that knob's value." +INVISIBLE}
+  pNode "\[\n    # This throws error 'Nothing is named \"Nothing\"' when node has no input0\n    # set x \[node this.input0]\n    set starting_point \"this.input0\"\n    set default \"this.d_\"\n\n    # Set x to input if it exists, otherwise return default\n    if \{\[exists \$starting_point]\} \{\n        set x \[node \$starting_point]\n    \} \{\n        return \$default\n    \}\n\n    set finished 0\n    while \{\$finished != 1\} \{\n        # First look for a specific node type\n        set skip_node 1\n        while \{\$skip_node == 1\} \{\n            # TODO: Make better grouping to reduce nested if statements\n            if \{(\[class \$x] != \"Group\" && \[class \$x] != \"Input\" && \$x != \[topnode \$x])\} \{\n                set x \[node \$x.input0]\n            \} \{\n                # Stop at first enabled Group node\n                if \{(\[class \$x] == \"Group\") || (\[class \$x] == \"Input\")\} \{\n                    set skip_node 0\n                \} \{\n                    if \{\$x == \[topnode \$x]\} \{\n                        return \$default\n                    \} \{\n                        set x \[node \$x.input0]\n                    \}\n                \}\n            \}\n        \}\n        # Return Group node if it has an output knob\n        if \{\[class \$x] == \"Group\" && \[exists \$x.output]\} \{\n            set x \[append x \".\"]\n            return \$x\n        \} \{\n            # If node is an Input node (of a Group node), return its parent\n            if \{\[class \$x]==\"Input\"\} \{\n                set inp \"\$x.parent.input\"\n                set inputNum \[value \$x.number]\n                set inp \[append inp \$inputNum]\n                if \{\[exists \$inp]\} \{\n                    set x \[node \$inp]\n                \} \{\n                    set finished 1\n                \}\n            \} \{\n                set finished 1\n            \}\n        \}\n    \}\n    return \$default\n]"
+  addUserKnob {7 d_output t "if no upstream value is found, default to this value"}
+  addUserKnob {7 output}
+  output {{"\[value knob.pNode]output"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "upstreamValue v1.0 | Fynn Laue 2020"}
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 0
+  }
+  Output {
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -40
+  ypos 423
+ }
+end_group
+Group {
+ name waveGrade1
+ tile_color 0x7c9eb5ff
+ xpos -480
+ ypos -86
+ addUserKnob {20 User}
+ addUserKnob {41 inp1 +INVISIBLE T upstreamValue3.output}
+ addUserKnob {7 avgcurve +INVISIBLE}
+ avgcurve {{(inp1(frame-1)+inp1(frame)+inp1(frame+1))/3 i}}
+ addUserKnob {7 amplify t "Multiply the average input value with this and add the input curve on top:\n\n((inp1 - avgcurve) * amplify) + inp1" R -50 50}
+ addUserKnob {7 multiply t "multiply the curve by this" R 0 10}
+ multiply {{parent.wave_camShake.pan i}}
+ addUserKnob {7 offset t "Add this to the output value" R -10 10}
+ addUserKnob {7 output t "Operation are carried out in this order\n- amplify\n- multiply\n- offset\n----------"}
+ output {{"disable ? inp1 : ((((inp1-avgcurve)*amplify)+inp1)*multiply)+(offset)" i}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveGrade v1.0 | Fynn Laue"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -40
+  ypos -9
+ }
+ Group {
+  name upstreamValue3
+  onCreate "n = nuke.thisNode()\n# Hide these knobs from the curve editor\nn.knob(\"output\").setFlag(0x20000000)"
+  label v005
+  xpos -40
+  ypos 148
+  addUserKnob {20 User}
+  addUserKnob {43 pNode t "this script finds the upstream value. Or rather the name of the node and appends a .\nThis is then used in an expression appended by a knob name to get that knob's value." +INVISIBLE}
+  pNode "\[\n    # This throws error 'Nothing is named \"Nothing\"' when node has no input0\n    # set x \[node this.input0]\n    set starting_point \"this.input0\"\n    set default \"this.d_\"\n\n    # Set x to input if it exists, otherwise return default\n    if \{\[exists \$starting_point]\} \{\n        set x \[node \$starting_point]\n    \} \{\n        return \$default\n    \}\n\n    set finished 0\n    while \{\$finished != 1\} \{\n        # First look for a specific node type\n        set skip_node 1\n        while \{\$skip_node == 1\} \{\n            # TODO: Make better grouping to reduce nested if statements\n            if \{(\[class \$x] != \"Group\" && \[class \$x] != \"Input\" && \$x != \[topnode \$x])\} \{\n                set x \[node \$x.input0]\n            \} \{\n                # Stop at first enabled Group node\n                if \{(\[class \$x] == \"Group\") || (\[class \$x] == \"Input\")\} \{\n                    set skip_node 0\n                \} \{\n                    if \{\$x == \[topnode \$x]\} \{\n                        return \$default\n                    \} \{\n                        set x \[node \$x.input0]\n                    \}\n                \}\n            \}\n        \}\n        # Return Group node if it has an output knob\n        if \{\[class \$x] == \"Group\" && \[exists \$x.output]\} \{\n            set x \[append x \".\"]\n            return \$x\n        \} \{\n            # If node is an Input node (of a Group node), return its parent\n            if \{\[class \$x]==\"Input\"\} \{\n                set inp \"\$x.parent.input\"\n                set inputNum \[value \$x.number]\n                set inp \[append inp \$inputNum]\n                if \{\[exists \$inp]\} \{\n                    set x \[node \$inp]\n                \} \{\n                    set finished 1\n                \}\n            \} \{\n                set finished 1\n            \}\n        \}\n    \}\n    return \$default\n]"
+  addUserKnob {7 d_output t "if no upstream value is found, default to this value"}
+  addUserKnob {7 output}
+  output {{"\[value knob.pNode]output"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "upstreamValue v1.0 | Fynn Laue 2020"}
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 0
+  }
+  Output {
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -40
+  ypos 423
+ }
+end_group
+Group {
+ inputs 0
+ name waveMaker1
+ onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+ knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+ tile_color 0x3aff71ff
+ note_font Verdana
+ xpos -260
+ ypos -231
+ addUserKnob {20 User}
+ addUserKnob {3 firstFrame l "First Frame"}
+ firstFrame 1
+ addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+ addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+ maxValue 1
+ addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+ waveLength {{parent.waveMaker.waveLength/2}}
+ addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+ phase 0.5
+ addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+ invPhase true
+ addUserKnob {7 evolution t "evolution for the random curve"}
+ evolution {{parent.wave_camShake.rSeed}}
+ addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+ addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+ wave1 Random
+ addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+ waveMix {{parent.wave_camShake.random}}
+ addUserKnob {26 ""}
+ addUserKnob {7 power}
+ power 1
+ addUserKnob {7 output}
+ output {{"disable ? 0 : ((((sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+}
+ Output {
+  inputs 0
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group
+Group {
+ name waveGrade2
+ tile_color 0x7c9eb5ff
+ xpos -260
+ ypos -134
+ addUserKnob {20 User}
+ addUserKnob {41 inp1 +INVISIBLE T upstreamValue3.output}
+ addUserKnob {7 avgcurve +INVISIBLE}
+ avgcurve {{(inp1(frame-1)+inp1(frame)+inp1(frame+1))/3 i}}
+ addUserKnob {7 amplify t "Multiply the average input value with this and add the input curve on top:\n\n((inp1 - avgcurve) * amplify) + inp1" R -50 50}
+ addUserKnob {7 multiply t "multiply the curve by this" R 0 10}
+ multiply 1
+ addUserKnob {7 offset t "Add this to the output value" R -10 10}
+ offset -0.5
+ addUserKnob {7 output t "Operation are carried out in this order\n- amplify\n- multiply\n- offset\n----------"}
+ output {{"disable ? inp1 : ((((inp1-avgcurve)*amplify)+inp1)*multiply)+(offset)"}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveGrade v1.0 | Fynn Laue"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -40
+  ypos -9
+ }
+ Group {
+  name upstreamValue3
+  onCreate "n = nuke.thisNode()\n# Hide these knobs from the curve editor\nn.knob(\"output\").setFlag(0x20000000)"
+  label v005
+  xpos -40
+  ypos 148
+  addUserKnob {20 User}
+  addUserKnob {43 pNode t "this script finds the upstream value. Or rather the name of the node and appends a .\nThis is then used in an expression appended by a knob name to get that knob's value." +INVISIBLE}
+  pNode "\[\n    # This throws error 'Nothing is named \"Nothing\"' when node has no input0\n    # set x \[node this.input0]\n    set starting_point \"this.input0\"\n    set default \"this.d_\"\n\n    # Set x to input if it exists, otherwise return default\n    if \{\[exists \$starting_point]\} \{\n        set x \[node \$starting_point]\n    \} \{\n        return \$default\n    \}\n\n    set finished 0\n    while \{\$finished != 1\} \{\n        # First look for a specific node type\n        set skip_node 1\n        while \{\$skip_node == 1\} \{\n            # TODO: Make better grouping to reduce nested if statements\n            if \{(\[class \$x] != \"Group\" && \[class \$x] != \"Input\" && \$x != \[topnode \$x])\} \{\n                set x \[node \$x.input0]\n            \} \{\n                # Stop at first enabled Group node\n                if \{(\[class \$x] == \"Group\") || (\[class \$x] == \"Input\")\} \{\n                    set skip_node 0\n                \} \{\n                    if \{\$x == \[topnode \$x]\} \{\n                        return \$default\n                    \} \{\n                        set x \[node \$x.input0]\n                    \}\n                \}\n            \}\n        \}\n        # Return Group node if it has an output knob\n        if \{\[class \$x] == \"Group\" && \[exists \$x.output]\} \{\n            set x \[append x \".\"]\n            return \$x\n        \} \{\n            # If node is an Input node (of a Group node), return its parent\n            if \{\[class \$x]==\"Input\"\} \{\n                set inp \"\$x.parent.input\"\n                set inputNum \[value \$x.number]\n                set inp \[append inp \$inputNum]\n                if \{\[exists \$inp]\} \{\n                    set x \[node \$inp]\n                \} \{\n                    set finished 1\n                \}\n            \} \{\n                set finished 1\n            \}\n        \}\n    \}\n    return \$default\n]"
+  addUserKnob {7 d_output t "if no upstream value is found, default to this value"}
+  addUserKnob {7 output}
+  output {{"\[value knob.pNode]output"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "upstreamValue v1.0 | Fynn Laue 2020"}
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 0
+  }
+  Output {
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -40
+  ypos 423
+ }
+end_group
+Group {
+ name waveGrade3
+ tile_color 0x7c9eb5ff
+ xpos -260
+ ypos -86
+ addUserKnob {20 User}
+ addUserKnob {41 inp1 +INVISIBLE T upstreamValue3.output}
+ addUserKnob {7 avgcurve +INVISIBLE}
+ avgcurve {{(inp1(frame-1)+inp1(frame)+inp1(frame+1))/3 i}}
+ addUserKnob {7 amplify t "Multiply the average input value with this and add the input curve on top:\n\n((inp1 - avgcurve) * amplify) + inp1" R -50 50}
+ addUserKnob {7 multiply t "multiply the curve by this" R 0 10}
+ multiply {{parent.wave_camShake.tilt i}}
+ addUserKnob {7 offset t "Add this to the output value" R -10 10}
+ addUserKnob {7 output t "Operation are carried out in this order\n- amplify\n- multiply\n- offset\n----------"}
+ output {{"disable ? inp1 : ((((inp1-avgcurve)*amplify)+inp1)*multiply)+(offset)" i}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveGrade v1.0 | Fynn Laue"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -40
+  ypos -9
+ }
+ Group {
+  name upstreamValue3
+  onCreate "n = nuke.thisNode()\n# Hide these knobs from the curve editor\nn.knob(\"output\").setFlag(0x20000000)"
+  label v005
+  xpos -40
+  ypos 148
+  addUserKnob {20 User}
+  addUserKnob {43 pNode t "this script finds the upstream value. Or rather the name of the node and appends a .\nThis is then used in an expression appended by a knob name to get that knob's value." +INVISIBLE}
+  pNode "\[\n    # This throws error 'Nothing is named \"Nothing\"' when node has no input0\n    # set x \[node this.input0]\n    set starting_point \"this.input0\"\n    set default \"this.d_\"\n\n    # Set x to input if it exists, otherwise return default\n    if \{\[exists \$starting_point]\} \{\n        set x \[node \$starting_point]\n    \} \{\n        return \$default\n    \}\n\n    set finished 0\n    while \{\$finished != 1\} \{\n        # First look for a specific node type\n        set skip_node 1\n        while \{\$skip_node == 1\} \{\n            # TODO: Make better grouping to reduce nested if statements\n            if \{(\[class \$x] != \"Group\" && \[class \$x] != \"Input\" && \$x != \[topnode \$x])\} \{\n                set x \[node \$x.input0]\n            \} \{\n                # Stop at first enabled Group node\n                if \{(\[class \$x] == \"Group\") || (\[class \$x] == \"Input\")\} \{\n                    set skip_node 0\n                \} \{\n                    if \{\$x == \[topnode \$x]\} \{\n                        return \$default\n                    \} \{\n                        set x \[node \$x.input0]\n                    \}\n                \}\n            \}\n        \}\n        # Return Group node if it has an output knob\n        if \{\[class \$x] == \"Group\" && \[exists \$x.output]\} \{\n            set x \[append x \".\"]\n            return \$x\n        \} \{\n            # If node is an Input node (of a Group node), return its parent\n            if \{\[class \$x]==\"Input\"\} \{\n                set inp \"\$x.parent.input\"\n                set inputNum \[value \$x.number]\n                set inp \[append inp \$inputNum]\n                if \{\[exists \$inp]\} \{\n                    set x \[node \$inp]\n                \} \{\n                    set finished 1\n                \}\n            \} \{\n                set finished 1\n            \}\n        \}\n    \}\n    return \$default\n]"
+  addUserKnob {7 d_output t "if no upstream value is found, default to this value"}
+  addUserKnob {7 output}
+  output {{"\[value knob.pNode]output"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "upstreamValue v1.0 | Fynn Laue 2020"}
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 0
+  }
+  Output {
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -40
+  ypos 423
+ }
+end_group
+Group {
+ inputs 0
+ name waveMaker2
+ onCreate "#========================================\n# onCreate\n#========================================\nimport nuke\ndef getRoot():\n    root = None\n    try:\n        root = nuke.root()\n        if root.name():\n            pass\n    except:\n        root = None\n    return root\n\ndef onCreate():\n    node = nuke.thisNode()\n    knob = node.knob(\"firstFrame\")\n    root = getRoot()\n    if not root:\n        return\n    # Prevent node from throwing python error on comp open\n    knob.setValue(root.knob(\"first_frame\").value())\nonCreate()"
+ knobChanged "#========================================\n# knobChanged\n#========================================\nimport nuke\ndef knobChanged():\n    node = nuke.thisNode()\n    knob = nuke.thisKnob()\n    knobName = knob.name()\n    waves = \[\n        \"(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2\", # sin\n        \"(asin(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi))))+pi/2)/pi\", # triangle\n        \"(ceil(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))))\", # square\n        \"(abs(sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # bounce\n        \"((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))\", # random\n        \"((((frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength)))/waveLength)\", # sawtooth\n        \"(sin(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\", # sawtooth parabolic\n        \"(cos(((pow(pi,2)/2)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(pi*waveLength)) % (pi/2)))\",  # sawtooth parabolic reversed\n        \"((exp(((2*pi)*(frame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))%(waveLength*(pi*2)))/waveLength)-1)/exp(2*pi))\",  # sawtooth exponential\n    ]\n    if knobName in \[\"wave0\", \"wave1\"]:\n        # Build output expression\n        expr0 = waves\[int(node.knob(\"wave0\").getValue())]\n        expr1 = waves\[int(node.knob(\"wave1\").getValue())]\n        exprOut = \"disable ? 0 : (((\{0\}*(1-waveMix)) + (\{1\}*waveMix))*(maxValue-minValue)+minValue)*power\".format(expr0, expr1)\n        node.knob(\"output\").setExpression(exprOut)\n        # Enable evolution knob if random wave selected\n        node.knob(\"evolution\").setEnabled(any(\[i.value().lower() == \"random\" for i in \[node.knob(\"wave0\"), node.knob(\"wave1\")]]))\nknobChanged()"
+ tile_color 0x3aff71ff
+ note_font Verdana
+ xpos -40
+ ypos -231
+ addUserKnob {20 User}
+ addUserKnob {3 firstFrame l "First Frame"}
+ firstFrame {{parent.wave_camShake.swayDelay}}
+ addUserKnob {7 minValue l "Min Value" t "lowest possible value"}
+ addUserKnob {7 maxValue l "Max Value" t "highest possible value" -STARTLINE}
+ maxValue 1
+ addUserKnob {7 waveLength l Length t "Higher values are slower. Values below 2 may produce undesirable results when using even waves like sine" R 2 50}
+ waveLength {{parent.waveMaker.waveLength}}
+ addUserKnob {7 phase l Phase t "Not counted in frames but in cycles:\n1 'phase' is half a cycle (or evolution) of the wave."}
+ phase 0.5
+ addUserKnob {6 invPhase l invert t "inverts the curves' phase" -STARTLINE}
+ invPhase true
+ addUserKnob {7 evolution t "evolution for the random curve"}
+ evolution {{parent.wave_camShake.rSeed}}
+ addUserKnob {68 wave0 l Wave M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" "" ""}}
+ addUserKnob {68 wave1 l "Wave 1" -STARTLINE M {Sine Triangle Square Bounce Random Sawtooth/Sawtooth "Sawtooth/Sawtooth (Parabolic)" "Sawtooth/Sawtooth (Parabolic Reversed)" "Sawtooth/Sawtooth (Exponential)" "" ""}}
+ wave1 Random
+ addUserKnob {7 waveMix l "Wave Mix" t "0 = Only Wave 0\n1 = Only Wave 1"}
+ waveMix {{parent.wave_camShake.random/2}}
+ addUserKnob {26 ""}
+ addUserKnob {7 power}
+ power 1
+ addUserKnob {7 output}
+ output {{"disable ? 0 : ((((sin(pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(2*pi)))+1)/2*(1-waveMix)) + (((random(evolution, pi/2+(frame-firstFrame-((phase+(invPhase ? 0.5 : 0))*waveLength*(0.5)))/(waveLength/(pi)))))*waveMix))*(maxValue-minValue)+minValue)*power"}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveMaker v1.0 | Fynn Laue 2020"}
+}
+ Output {
+  inputs 0
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group
+Group {
+ name waveGrade4
+ tile_color 0x7c9eb5ff
+ xpos -40
+ ypos -134
+ addUserKnob {20 User}
+ addUserKnob {41 inp1 +INVISIBLE T upstreamValue3.output}
+ addUserKnob {7 avgcurve +INVISIBLE}
+ avgcurve {{(inp1(frame-1)+inp1(frame)+inp1(frame+1))/3 i}}
+ addUserKnob {7 amplify t "Multiply the average input value with this and add the input curve on top:\n\n((inp1 - avgcurve) * amplify) + inp1" R -50 50}
+ addUserKnob {7 multiply t "multiply the curve by this" R 0 10}
+ multiply 1
+ addUserKnob {7 offset t "Add this to the output value" R -10 10}
+ offset -0.5
+ addUserKnob {7 output t "Operation are carried out in this order\n- amplify\n- multiply\n- offset\n----------"}
+ output {{"disable ? inp1 : ((((inp1-avgcurve)*amplify)+inp1)*multiply)+(offset)"}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveGrade v1.0 | Fynn Laue"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -40
+  ypos -9
+ }
+ Group {
+  name upstreamValue3
+  onCreate "n = nuke.thisNode()\n# Hide these knobs from the curve editor\nn.knob(\"output\").setFlag(0x20000000)"
+  label v005
+  xpos -40
+  ypos 148
+  addUserKnob {20 User}
+  addUserKnob {43 pNode t "this script finds the upstream value. Or rather the name of the node and appends a .\nThis is then used in an expression appended by a knob name to get that knob's value." +INVISIBLE}
+  pNode "\[\n    # This throws error 'Nothing is named \"Nothing\"' when node has no input0\n    # set x \[node this.input0]\n    set starting_point \"this.input0\"\n    set default \"this.d_\"\n\n    # Set x to input if it exists, otherwise return default\n    if \{\[exists \$starting_point]\} \{\n        set x \[node \$starting_point]\n    \} \{\n        return \$default\n    \}\n\n    set finished 0\n    while \{\$finished != 1\} \{\n        # First look for a specific node type\n        set skip_node 1\n        while \{\$skip_node == 1\} \{\n            # TODO: Make better grouping to reduce nested if statements\n            if \{(\[class \$x] != \"Group\" && \[class \$x] != \"Input\" && \$x != \[topnode \$x])\} \{\n                set x \[node \$x.input0]\n            \} \{\n                # Stop at first enabled Group node\n                if \{(\[class \$x] == \"Group\") || (\[class \$x] == \"Input\")\} \{\n                    set skip_node 0\n                \} \{\n                    if \{\$x == \[topnode \$x]\} \{\n                        return \$default\n                    \} \{\n                        set x \[node \$x.input0]\n                    \}\n                \}\n            \}\n        \}\n        # Return Group node if it has an output knob\n        if \{\[class \$x] == \"Group\" && \[exists \$x.output]\} \{\n            set x \[append x \".\"]\n            return \$x\n        \} \{\n            # If node is an Input node (of a Group node), return its parent\n            if \{\[class \$x]==\"Input\"\} \{\n                set inp \"\$x.parent.input\"\n                set inputNum \[value \$x.number]\n                set inp \[append inp \$inputNum]\n                if \{\[exists \$inp]\} \{\n                    set x \[node \$inp]\n                \} \{\n                    set finished 1\n                \}\n            \} \{\n                set finished 1\n            \}\n        \}\n    \}\n    return \$default\n]"
+  addUserKnob {7 d_output t "if no upstream value is found, default to this value"}
+  addUserKnob {7 output}
+  output {{"\[value knob.pNode]output"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "upstreamValue v1.0 | Fynn Laue 2020"}
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 0
+  }
+  Output {
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -40
+  ypos 423
+ }
+end_group
+Group {
+ name waveGrade5
+ tile_color 0x7c9eb5ff
+ xpos -40
+ ypos -86
+ addUserKnob {20 User}
+ addUserKnob {41 inp1 +INVISIBLE T upstreamValue3.output}
+ addUserKnob {7 avgcurve +INVISIBLE}
+ avgcurve {{(inp1(frame-1)+inp1(frame)+inp1(frame+1))/3 i}}
+ addUserKnob {7 amplify t "Multiply the average input value with this and add the input curve on top:\n\n((inp1 - avgcurve) * amplify) + inp1" R -50 50}
+ addUserKnob {7 multiply t "multiply the curve by this" R 0 10}
+ multiply {{parent.wave_camShake.rot i}}
+ addUserKnob {7 offset t "Add this to the output value" R -10 10}
+ addUserKnob {7 output t "Operation are carried out in this order\n- amplify\n- multiply\n- offset\n----------"}
+ output {{"disable ? inp1 : ((((inp1-avgcurve)*amplify)+inp1)*multiply)+(offset)" i}}
+ addUserKnob {26 ""}
+ addUserKnob {26 credit l "" +STARTLINE T "WaveGrade v1.0 | Fynn Laue"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -40
+  ypos -9
+ }
+ Group {
+  name upstreamValue3
+  onCreate "n = nuke.thisNode()\n# Hide these knobs from the curve editor\nn.knob(\"output\").setFlag(0x20000000)"
+  label v005
+  xpos -40
+  ypos 148
+  addUserKnob {20 User}
+  addUserKnob {43 pNode t "this script finds the upstream value. Or rather the name of the node and appends a .\nThis is then used in an expression appended by a knob name to get that knob's value." +INVISIBLE}
+  pNode "\[\n    # This throws error 'Nothing is named \"Nothing\"' when node has no input0\n    # set x \[node this.input0]\n    set starting_point \"this.input0\"\n    set default \"this.d_\"\n\n    # Set x to input if it exists, otherwise return default\n    if \{\[exists \$starting_point]\} \{\n        set x \[node \$starting_point]\n    \} \{\n        return \$default\n    \}\n\n    set finished 0\n    while \{\$finished != 1\} \{\n        # First look for a specific node type\n        set skip_node 1\n        while \{\$skip_node == 1\} \{\n            # TODO: Make better grouping to reduce nested if statements\n            if \{(\[class \$x] != \"Group\" && \[class \$x] != \"Input\" && \$x != \[topnode \$x])\} \{\n                set x \[node \$x.input0]\n            \} \{\n                # Stop at first enabled Group node\n                if \{(\[class \$x] == \"Group\") || (\[class \$x] == \"Input\")\} \{\n                    set skip_node 0\n                \} \{\n                    if \{\$x == \[topnode \$x]\} \{\n                        return \$default\n                    \} \{\n                        set x \[node \$x.input0]\n                    \}\n                \}\n            \}\n        \}\n        # Return Group node if it has an output knob\n        if \{\[class \$x] == \"Group\" && \[exists \$x.output]\} \{\n            set x \[append x \".\"]\n            return \$x\n        \} \{\n            # If node is an Input node (of a Group node), return its parent\n            if \{\[class \$x]==\"Input\"\} \{\n                set inp \"\$x.parent.input\"\n                set inputNum \[value \$x.number]\n                set inp \[append inp \$inputNum]\n                if \{\[exists \$inp]\} \{\n                    set x \[node \$inp]\n                \} \{\n                    set finished 1\n                \}\n            \} \{\n                set finished 1\n            \}\n        \}\n    \}\n    return \$default\n]"
+  addUserKnob {7 d_output t "if no upstream value is found, default to this value"}
+  addUserKnob {7 output}
+  output {{"\[value knob.pNode]output"}}
+  addUserKnob {26 ""}
+  addUserKnob {26 credit l "" +STARTLINE T "upstreamValue v1.0 | Fynn Laue 2020"}
+ }
+  Input {
+   inputs 0
+   name Input1
+   xpos 0
+  }
+  Output {
+   name Output1
+   xpos 0
+   ypos 300
+  }
+ end_group
+ Output {
+  name Output1
+  xpos -40
+  ypos 423
+ }
+end_group
+CheckerBoard2 {
+ inputs 0
+ name CheckerBoard1
+ xpos 400
+ ypos -369
+}
+Blur {
+ size 5
+ name Blur1
+ xpos 400
+ ypos -273
+}
+Transform {
+ translate {{parent.waveGrade1.output} {parent.waveGrade3.output}}
+ rotate {{parent.waveGrade5.output}}
+ center {{width/2} {height/2}}
+ shutteroffset centred
+ name Transform1
+ xpos 400
+ ypos 63
+}
+Group {
+ inputs 0
+ name wave_camShake
+ tile_color 0xc1ffd100
+ xpos -260
+ ypos -417
+ addUserKnob {20 User}
+ addUserKnob {7 speed t cycles/second R 0.1 2}
+ speed 0.5
+ addUserKnob {7 size R 0 250}
+ size 50
+ addUserKnob {7 sway}
+ sway 0.5
+ addUserKnob {3 swayDelay l delay -STARTLINE}
+ swayDelay 12
+ addUserKnob {7 random t "0 = walking\n1 = unsteady handheld"}
+ random 0.5
+ addUserKnob {26 text l "" -STARTLINE T "0 = walking\n1 = unsteady handheald"}
+ addUserKnob {7 rSeed l seed +INVISIBLE R 0 1000}
+ rSeed 380
+ addUserKnob {7 pan +INVISIBLE R 0 960}
+ pan {{size}}
+ addUserKnob {7 tilt +INVISIBLE R 0 540}
+ tilt {{pan/2}}
+ addUserKnob {7 rot +INVISIBLE}
+ rot {{pan/180*pi*sway}}
+}
+ Output {
+  inputs 0
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group

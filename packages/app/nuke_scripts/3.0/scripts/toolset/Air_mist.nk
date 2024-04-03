@@ -1,0 +1,470 @@
+#! /opt/Nuke13.2v5/libnuke-13.2.5.so -nx
+version 13.2 v5
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="3840" y="254" w="2560" h="1307" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="2487" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1254"/>
+                <splitter orientation="1">
+                    <split size="1401"/>
+                    <splitter orientation="2">
+                        <split size="528"/>
+                        <dock id="" activePageId="Viewer.1">
+                            <page id="Viewer.2"/>
+                            <page id="Viewer.1"/>
+                        </dock>
+                        <split size="629"/>
+                        <splitter orientation="1">
+                            <split size="699"/>
+                            <dock id="" activePageId="Properties.1">
+                                <page id="Properties.1"/>
+                            </dock>
+                            <split size="698"/>
+                            <dock id="" activePageId="DAG.1" focus="true">
+                                <page id="DAG.1"/>
+                                <page id="DAG.2"/>
+                            </dock>
+                        </splitter>
+                        <split size="89"/>
+                        <splitter orientation="1">
+                            <split size="1158"/>
+                            <dock id="" activePageId="Curve Editor.1">
+                                <page id="DopeSheet.1"/>
+                                <page id="Curve Editor.1"/>
+                            </dock>
+                            <split size="239"/>
+                            <dock id="" activePageId="Toolbar_CompToolbar.1">
+                                <page id="Toolbar_CompToolbar.1"/>
+                            </dock>
+                        </splitter>
+                    </splitter>
+                    <split size="1082"/>
+                    <splitter orientation="2">
+                        <split size="1254"/>
+                        <dock id="" activePageId="uk.co.thefoundry.scripteditor.2">
+                            <page id="com.adrianpueyo.KnobScripterPane"/>
+                            <page id="uk.co.thefoundry.scripteditor.2"/>
+                        </dock>
+                    </splitter>
+                </splitter>
+                <split size="0"/>
+                <dock id=""/>
+            </splitter>
+            <split size="25"/>
+            <dock id=""/>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /WORK_DATA/develop/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/Air_mist.nk
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+ luts {linear {}
+   sRGB {}
+   rec709 {}
+   Cineon {}
+   Gamma1.8 {}
+   Gamma2.2 {}
+   Gamma2.4 {}
+   Gamma2.6 {}
+   Panalog {}
+   REDLog {}
+   ViperLog {}
+   AlexaV3LogC {}
+   PLogLin {}
+   SLog {}
+   SLog1 {}
+   SLog2 {}
+   SLog3 {}
+   CLog {}
+   Log3G10 {}
+   Log3G12 {}
+   HybridLogGamma {}
+   Protune {}
+   BT1886 {}
+   st2084 {}
+   "Blackmagic Film Generation 5" {}
+   ARRILogC4 {}
+   REDSpace {}
+   cineon2 {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}}
+}
+Group {
+ inputs 0
+ name Air_mist1
+ tile_color 0x3473ffff
+ label 2023_2
+ note_font Verdana
+ xpos -294
+ ypos -89
+ mapsize {0.15 0.15}
+ addUserKnob {20 mist}
+ addUserKnob {26 cloud l "" -STARTLINE T cloud}
+ addUserKnob {41 which l type T Switch1.which}
+ addUserKnob {26 ""}
+ addUserKnob {19 cloudcolor}
+ cloudcolor {0.675 0.6750000119 0.6750000119 0}
+ addUserKnob {6 cloudcolor_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {26 ""}
+ addUserKnob {7 speed l speed-fast<-->slow R 1 5}
+ speed 0.5
+ addUserKnob {7 size l size-big<--->small R 1 55}
+ size 8.4
+ addUserKnob {7 high l height R -15 15}
+ high 0.9
+ addUserKnob {7 w l width R -15 15}
+ w 2.4
+ addUserKnob {7 rtz R -360 360}
+ rtz 124
+ addUserKnob {7 rty R -55 55}
+ rty -1
+ addUserKnob {26 "" l " "}
+ addUserKnob {41 format l "output format" T Reformat1.format}
+ addUserKnob {26 Mirror l Cloud-Mirror}
+ addUserKnob {41 Horizontal l Mirror--width T Mirror1.Horizontal}
+ addUserKnob {41 Vertical l Mirror--height T Mirror1.Vertical}
+ addUserKnob {26 startframe}
+ addUserKnob {41 input.first l INVISIBLE +INVISIBLE T Retime1.input.first}
+ addUserKnob {41 input.first_lock l INVISIBLE +INVISIBLE T Retime1.input.first_lock}
+ addUserKnob {41 input.last l INVISIBLE -STARTLINE +INVISIBLE T Retime1.input.last}
+ addUserKnob {41 input.last_lock l INVISIBLE +INVISIBLE T Retime1.input.last_lock}
+ addUserKnob {41 reverse l INVISIBLE +INVISIBLE T Retime1.reverse}
+ addUserKnob {41 output.first l startframe--->number T Retime1.output.first}
+ addUserKnob {41 output.first_lock l INVISIBLE +INVISIBLE T Retime1.output.first_lock}
+ addUserKnob {41 output.last l INVISIBLE -STARTLINE +INVISIBLE T Retime1.output.last}
+ addUserKnob {41 output.last_lock l INVISIBLE +INVISIBLE T Retime1.output.last_lock}
+ addUserKnob {26 ""}
+ addUserKnob {26 name_1 l ..... T "LJW System"}
+ addUserKnob {20 endGroup n -1}
+}
+ Axis2 {
+  inputs 0
+  translate {{-(parent.w)} 0 0}
+  pivot_translate {-72 0 20.5}
+  name Axis1
+  xpos -864
+  ypos 1314
+ }
+ Camera2 {
+  translate {{-frame/parent.speed} {parent.high} {parent.size}}
+  rotate {0 {parent.rty} {parent.rtz}}
+  focal 15
+  name Camera2
+  tile_color 0xff30ff
+  xpos -864
+  ypos 1460
+ }
+ Read {
+  inputs 0
+  file_type exr
+  file /backstage/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/src/pre5.0001.exr
+  format "3965 2734 0 0 3965 2734 1 "
+  origset true
+  name Read6
+  label "\[value first]-\[value last]"
+  xpos -74
+  ypos -460
+ }
+ Read {
+  inputs 0
+  file_type exr
+  file /backstage/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/src/pre4.0001.exr
+  format "2918 2219 0 0 2918 2219 1 "
+  origset true
+  name Read1
+  label "\[value first]-\[value last]"
+  xpos -339
+  ypos -455
+ }
+ Read {
+  inputs 0
+  file_type exr
+  file /backstage/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/src/pre3.0001.exr
+  format "3965 2734 0 0 3965 2734 1 "
+  origset true
+  name Read4
+  label "\[value first]-\[value last]"
+  xpos -592
+  ypos -455
+ }
+ Read {
+  inputs 0
+  file_type exr
+  file /backstage/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/src/pre2.0001.exr
+  format "1920 960 0 0 1920 960 1 DIE"
+  origset true
+  name Read3
+  label "\[value first]-\[value last]"
+  xpos -859
+  ypos -455
+ }
+ Read {
+  inputs 0
+  file_type exr
+  file /backstage/dcc/packages/app/nuke_scripts/3.0/scripts/toolset/src/pre1.0001.exr
+  format "1920 960 0 0 1920 960 1 DIE"
+  origset true
+  name Read7
+  label "\[value first]-\[value last]"
+  xpos -1105
+  ypos -455
+ }
+ Switch {
+  inputs 5
+  name Switch1
+  xpos -592
+  ypos -90
+ }
+ Reformat {
+  format "2048 1152 0 0 2048 1152 1 mg_2048x1152"
+  name Reformat11
+  xpos -592
+  ypos 113
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  color {{parent.cloudcolor.r} {parent.cloudcolor.g} {parent.cloudcolor.b} {parent.cloudcolor.a}}
+  format "2048 1152 0 0 2048 1152 1 mg_2048x1152"
+  name Constant7
+  xpos -327
+  ypos 171
+ }
+ ShuffleCopy {
+  inputs 2
+  alpha red
+  name ShuffleCopy9
+  xpos -592
+  ypos 203
+ }
+ Premult {
+  name Premult4
+  xpos -592
+  ypos 279
+ }
+ Grade {
+  channels rgba
+  whitepoint 0.78
+  gamma 0.32
+  name Grade4
+  xpos -592
+  ypos 445
+ }
+set N9c478e0 [stack 0]
+ Card2 {
+  rows 1
+  columns 1
+  translate {32 0 0}
+  uniform_scale 45.54
+  control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+  name Card11
+  xpos -1012
+  ypos 634
+ }
+push $N9c478e0
+ Card2 {
+  rows 1
+  columns 1
+  translate {-30 0 0}
+  uniform_scale 45.54
+  control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+  name Card13
+  xpos -802
+  ypos 634
+ }
+push $N9c478e0
+ Card2 {
+  rows 1
+  columns 1
+  uniform_scale 45.54
+  control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+  name Card7
+  xpos -592
+  ypos 634
+ }
+push $N9c478e0
+ Card2 {
+  rows 1
+  columns 1
+  translate {-15.85998726 4.919999599 -3.751003419e-07}
+  rotate {0 180.000005 180.000005}
+  uniform_scale 41.54
+  control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+  name Card12
+  xpos -382
+  ypos 634
+ }
+push $N9c478e0
+ Card2 {
+  rows 1
+  columns 1
+  translate {15.85998726 4.919999599 -3.751003419e-07}
+  rotate {0 180.000005 180.000005}
+  uniform_scale 41.54
+  control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+  name Card10
+  xpos -172
+  ypos 634
+ }
+ MergeGeo {
+  inputs 5
+  name MergeGeo1
+  xpos -592
+  ypos 817
+ }
+set N9f9c660 [stack 0]
+ TransformGeo {
+  translate {-184.1999969 0 0}
+  name TransformGeo3
+  xpos -299
+  ypos 1049
+ }
+push $N9f9c660
+ TransformGeo {
+  translate {-106.4000015 0 0}
+  name TransformGeo2
+  xpos -592
+  ypos 952
+ }
+push $N9f9c660
+ TransformGeo {
+  translate {-27.5 0 0}
+  name TransformGeo1
+  xpos -882
+  ypos 1049
+ }
+ MergeGeo {
+  inputs 3
+  name MergeGeo2
+  xpos -592
+  ypos 1049
+ }
+ TransformGeo {
+  translate {12 0 0}
+  name TransformGeo4
+  xpos -592
+  ypos 1163
+ }
+push 0
+push 0
+ Scene {
+  inputs 3
+  name Scene2
+  tile_color 0xff30ff
+  xpos -578
+  ypos 1342
+ }
+ Reformat {
+  inputs 0
+  format "2048 1152 0 0 2048 1152 1 mg_2048x1152"
+  name Reformat1
+  xpos -114
+  ypos 1476
+ }
+ ScanlineRender {
+  inputs 3
+  motion_vectors_type velocity
+  name ScanlineRender3
+  xpos -592
+  ypos 1483
+ }
+ Defocus {
+  defocus 9.4
+  name Defocus17
+  xpos -592
+  ypos 1551
+ }
+ Mirror {
+  Horizontal true
+  Vertical true
+  name Mirror1
+  xpos -592
+  ypos 1633
+ }
+ Retime {
+  input.first_lock true
+  input.last 1047
+  output.first 1001
+  output.first_lock true
+  output.last 2047
+  time ""
+  name Retime1
+  xpos -592
+  ypos 1701
+ }
+ Multiply {
+  channels rgba
+  value 0.3
+  name Multiply3
+  xpos -592
+  ypos 1769
+ }
+ Output {
+  name Output1
+  xpos -592
+  ypos 1871
+ }
+end_group

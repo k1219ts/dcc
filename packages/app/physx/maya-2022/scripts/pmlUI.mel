@@ -1,0 +1,1201 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+//
+// Copyright  (C) 2005  Alias  Systems Corp. ("Alias")   All rights  reserved.
+// These  coded instructions, statements and computer programs (collectively
+// the "Data') contain unpublished information  proprietary to Alias  Systems
+// which is protected by Canadian and US federal  copyright law and by
+// international treaties.  The Data and may not be disclosed to third parties
+// or copied or duplicated, in whole or in part, without prior written consent
+// of Alias.  AGEIA Technologies, Inc. may only use the Data in accordance with
+// the terms of license granted by Alias.
+//
+// Original author: Dean Edmonds, Gooroos Software (http://www.gooroos.com)
+// Maintainer: Christian Laforte, Feeling Software (http://www.feelingsoftware.com)
+//
+
+global proc pmlUI()
+{
+	// Clean-up before initializing menu, in case it
+	// recently changed.
+	pmlUI_cleanup();
+	
+	// If the first optionVar doesn't exist, assume that none of them do
+	// and that they need to be reset.
+	if (!`optionVar -exists pml_convexHull_createMesh`)
+	{
+		initConvexHullOptions(true);
+		initSpatialAggHullOptions(true);
+		//initSkinVolumeOptions(true);
+	}
+}
+
+
+global proc pmlUI_cleanup()
+{
+    if (`window -exists pmlPrefsWin`) deleteUI pmlPrefsWin;
+}
+
+
+//----------------------------------------------------------------
+//
+//      Convex Hull Options
+//
+//----------------------------------------------------------------
+
+global proc initConvexHullOptions(int $reset)
+{
+    if ($reset || !`optionVar -exists pml_convexHull_createMesh`)
+        optionVar -iv pml_convexHull_createMesh true;
+
+    if ($reset || !`optionVar -exists pml_convexHull_enableVertexLimit`)
+        optionVar -iv pml_convexHull_enableVertexLimit false;
+
+    if ($reset || !`optionVar -exists pml_convexHull_keepHistory`)
+        optionVar -iv pml_convexHull_keepHistory true;
+
+    if ($reset || !`optionVar -exists pml_convexHull_parentWithOriginal`)
+        optionVar -iv pml_convexHull_parentWithOriginal true;
+
+    if ($reset || !`optionVar -exists pml_convexHull_replaceOriginal`)
+        optionVar -iv pml_convexHull_replaceOriginal false;
+
+    if ($reset || !`optionVar -exists pml_convexHull_vertexLimit`)
+        optionVar -iv pml_convexHull_vertexLimit 50;
+
+    //
+    // Overhull-specific options.
+    //
+    if ($reset || !`optionVar -exists pml_convexHull_useOverhull`)
+        optionVar -iv pml_convexHull_useOverhull false;
+
+    if ($reset || !`optionVar -exists pml_convexHull_bevelAngle`)
+        optionVar -fv pml_convexHull_bevelAngle 45.0;
+
+    if ($reset || !`optionVar -exists pml_convexHull_inflate`)
+        optionVar -fv pml_convexHull_inflate 0.0;
+
+    if ($reset || !`optionVar -exists pml_convexHull_maxPlanes`)
+        optionVar -iv pml_convexHull_maxPlanes 16;
+}
+
+
+global proc pml_convexHull()
+{
+    string  $options;
+
+    if (`optionVar -q pml_convexHull_replaceOriginal`)
+        $options = " -r";
+    else
+    {
+        $options = " -ch 1"; // + `optionVar -q pml_convexHull_keepHistory`;
+
+        if (`optionVar -q pml_convexHull_createMesh`)
+            $options += " -cm";
+    }
+
+	if (`optionVar -q pml_convexHull_parentWithOriginal`)
+		$options += " -pwo";
+
+    if (`optionVar -q pml_convexHull_enableVertexLimit`)
+    {
+        int $vertexLimit = `optionVar -q pml_convexHull_vertexLimit`;
+
+        $options += " -vl " + $vertexLimit;
+    }
+
+    if (`optionVar -q pml_convexHull_useOverhull`)
+    {
+        float   $bevelAngle = `optionVar -q pml_convexHull_bevelAngle`;
+        float   $inflate = `optionVar -q pml_convexHull_inflate`;
+        int     $maxPlanes = `optionVar -q pml_convexHull_maxPlanes`;
+
+        $bevelAngle = `convertUnit -f "deg" ("" + $bevelAngle)`;
+		$inflate = `convertUnit -f "cm" ("" + $inflate)`;
+
+        $options += " -o -ba " + $bevelAngle + " -i " + $inflate
+                    + " -mp " + $maxPlanes;
+    }
+
+	print ("convexHull " + $options);
+    eval("convexHull " + $options);
+}
+
+
+global proc pml_convexHull_options()
+{
+	//	Name of the command for this option box.
+	//
+	string $commandName = "convexHull";
+
+	//	Build the option box actions.
+	//
+    global string $gOptionBoxActionToolItem;
+	$gOptionBoxActionToolItem = "";
+
+	global string $gOptionBoxActionToolItemCB;
+	$gOptionBoxActionToolItemCB = "";
+
+	//	Step 1:  Get the option box.
+	//	============================
+	string $layout = getOptionBox();
+	setParent $layout;
+
+	//	Step 2:  Pass the command name to the option box.
+	//	=================================================
+	setOptionBoxCommandName($commandName);
+	
+	//	Step 3:  Activate the default UI template.
+	//	==========================================
+	setUITemplate -pushTemplate DefaultTemplate;
+
+	//	Step 4: Create option box contents.
+	//	===================================
+
+	tabLayout -scr true -tv false;
+	
+	string	$parent = `columnLayout -adjustableColumn 1`;
+
+    radioButtonGrp -nrb 3 -l "Output Type"
+        -l1 "New Mesh"
+        -l2 "Replace Orig"
+        -l3 "None"
+        -cw 2 80
+        -cw 3 100
+        -cw 4 80
+        -cc "pml_convexHull_visibility"
+        pml_outputTypeOptions;
+
+    checkBoxGrp -ncb 1 -l "" -l1 "Parent Hull With Original"
+		pml_parentHullWithOriginalBox;
+
+    checkBoxGrp -ncb 1 -l "" -l1 "Keep Construction History" pml_keepHistoryBox;
+
+    checkBoxGrp -ncb 1 -l "" -l1 "Limit # Of Vertices"
+        -cc "pml_convexHull_visibility"
+        pml_enableVertLimitBox;
+
+    intSliderGrp -min 1 -fmn 1 -max 100 -l "Max # Vertices" pml_vertLimitFld;
+
+    separator;
+
+    radioButtonGrp -nrb 2 -l "Algorithm"
+        -l1 "Normal"
+        -l2 "Overhull"
+        -cc "pml_convexHull_visibility"
+        pml_algorithmOptions;
+
+    floatSliderGrp -l "Bevel Angle"
+        -min 0.0 -max 90.0
+        pml_bevelAngleFld;
+
+    floatSliderGrp -l "Inflate"
+        -min 0.0 -max 10.0
+        pml_inflateFld;
+
+    intSliderGrp -l "Max Planes"
+        -min 4 -max 100
+        pml_maxPlanesFld;
+
+    separator;
+	
+	//	Step 5: Deactivate the default UI template.
+	//  ===========================================
+	//
+	setUITemplate -popTemplate;
+
+	//	Step 6: Customize the buttons.  
+	//	==============================
+
+	//	'Apply' button.
+	//
+	string $applyBtn = getOptionBoxApplyBtn();
+	button -edit -l "Create Hull"
+        -command "pml_convexHull_saveOptions; pml_convexHull" $applyBtn;
+
+	//	'Save' button.
+	//
+	string $saveBtn = getOptionBoxSaveBtn();
+	button -edit 
+		-command "pml_convexHull_saveOptions; hideOptionBox"
+		$saveBtn;
+
+	//	'Reset' button.
+	//
+	string $resetBtn = getOptionBoxResetBtn();
+	button -edit -command "pml_convexHull_setup true" $resetBtn;
+
+	//	Step 7: Set the option box title.
+	//	=================================
+	//
+	setOptionBoxTitle("Convex Hull Options");
+
+	//	Step 8: Customize the 'Help' menu item text.
+	//	============================================
+	//
+	setOptionBoxHelpTag("Convex Hull");
+
+	//	Step 9: Set the current values of the option box.
+	//	=================================================
+	//
+	eval("pml_convexHull_setup false");
+	
+	//	Step 10: Show the option box.
+	//	=============================
+	//
+	showOptionBox();
+}
+
+
+global proc pml_convexHull_saveOptions()
+{
+	float	$fval;
+	int		$ival;
+
+    $ival = `radioButtonGrp -q -select pml_outputTypeOptions`;
+    optionVar -iv pml_convexHull_createMesh ($ival == 1);
+    optionVar -iv pml_convexHull_replaceOriginal ($ival == 2);
+
+    $ival = `checkBoxGrp -q -v1 pml_parentHullWithOriginalBox`;
+    optionVar -iv pml_convexHull_parentWithOriginal $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_keepHistoryBox`;
+    optionVar -iv pml_convexHull_keepHistory $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_enableVertLimitBox`;
+    optionVar -iv pml_convexHull_enableVertexLimit $ival;
+
+    $ival = `intSliderGrp -q -v pml_vertLimitFld`;
+    optionVar -iv pml_convexHull_vertexLimit $ival;
+
+    $ival = `radioButtonGrp -q -select pml_algorithmOptions`;
+    optionVar -iv pml_convexHull_useOverhull ($ival == 2);
+
+    $fval = `floatSliderGrp -q -v pml_bevelAngleFld`;
+    optionVar -fv pml_convexHull_bevelAngle $fval;
+
+    $fval = `floatSliderGrp -q -v pml_inflateFld`;
+    optionVar -fv pml_convexHull_inflate $fval;
+
+    $ival = `intSliderGrp -q -v pml_maxPlanesFld`;
+    optionVar -iv pml_convexHull_maxPlanes $ival;
+}
+
+
+global proc pml_convexHull_setup(int $reset)
+{
+	float	$fval;
+	int		$ival;
+
+    initConvexHullOptions($reset);
+
+    int $outputType = 3;
+
+    if (`optionVar -q pml_convexHull_createMesh`)
+        $outputType = 1;
+    else if (`optionVar -q pml_convexHull_replaceOriginal`)
+        $outputType = 2;
+
+    radioButtonGrp -e -select $outputType pml_outputTypeOptions;
+
+    $ival = `optionVar -q pml_convexHull_parentWithOriginal`;
+    checkBoxGrp -e -v1 $ival pml_parentHullWithOriginalBox;
+
+    $ival = `optionVar -q pml_convexHull_keepHistory`;
+    checkBoxGrp -e -v1 $ival pml_keepHistoryBox;
+
+    $ival = `optionVar -q pml_convexHull_enableVertexLimit`;
+    checkBoxGrp -e -v1 $ival pml_enableVertLimitBox;
+
+    $ival = `optionVar -q pml_convexHull_vertexLimit`;
+    intSliderGrp -e -v $ival pml_vertLimitFld;
+
+    if ($reset)
+        intSliderGrp -e -min 1 -fmn 1 -max 100 pml_vertLimitFld;
+
+    int $useOverhull = `optionVar -q pml_convexHull_useOverhull`;
+
+    if ($useOverhull)
+        radioButtonGrp -e -select 2 pml_algorithmOptions;
+    else
+        radioButtonGrp -e -select 1 pml_algorithmOptions;
+
+    $fval = `optionVar -q pml_convexHull_bevelAngle`;
+    floatSliderGrp -e -v $fval pml_bevelAngleFld;
+
+    if ($reset)
+        floatSliderGrp -e -min 0.0 -max 90.0 pml_bevelAngleFld;
+
+    $fval = `optionVar -q pml_convexHull_inflate`;
+    floatSliderGrp -e -v $fval pml_inflateFld;
+
+    if ($reset)
+        floatSliderGrp -e -min 0.0 -max 10.0 pml_inflateFld;
+
+    $ival = `optionVar -q pml_convexHull_maxPlanes`;
+    intSliderGrp -e -v $ival pml_maxPlanesFld;
+
+    if ($reset)
+        intSliderGrp -e -min 4 -max 100 pml_maxPlanesFld;
+
+    pml_convexHull_visibility();
+}
+
+
+global proc pml_convexHull_visibility()
+{
+    //
+    // 'Keep History' doesn't make sense with 'Replace Original'.
+    //
+    int $outputType = `radioButtonGrp -q -select pml_outputTypeOptions`;
+
+    checkBoxGrp -e -enable ($outputType != 2) pml_keepHistoryBox;
+  
+ 	//
+	// 'Parent Hull With Original' only makes sense if we're actually
+	// creating an separate output mesh.
+	//
+	checkBoxGrp -e -enable ($outputType == 1) pml_parentHullWithOriginalBox;
+
+    //
+    // The Max Vertices slider should only be enabled if Vertex Limit is
+    // on.
+    //
+    int $enable = `checkBoxGrp -q -v1 pml_enableVertLimitBox`;
+
+    intSliderGrp -e -enable $enable pml_vertLimitFld;
+
+    //
+    // The overhull-specific options are only enabled when the overhull
+    // algorithm is selected.
+    //
+    int $algorithm = `radioButtonGrp -q -select pml_algorithmOptions`;
+    $enable = ($algorithm == 2);
+
+    floatSliderGrp -e -enable $enable pml_bevelAngleFld;
+    floatSliderGrp -e -enable $enable pml_inflateFld;
+    intSliderGrp -e -enable $enable pml_maxPlanesFld;
+}
+
+
+//----------------------------------------------------------------
+//
+//      Spatial Aggregate Hull Options
+//
+//----------------------------------------------------------------
+
+global proc initSpatialAggHullOptions(int $reset)
+{
+    if ($reset || !`optionVar -exists pml_spatialAggHull_allowAxial`)
+        optionVar -iv pml_spatialAggHull_allowAxial true;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_allowHull`)
+        optionVar -iv pml_spatialAggHull_allowHull true;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_createCombinedMesh`)
+        optionVar -iv pml_spatialAggHull_createCombinedMesh false;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_createHullMeshes`)
+        optionVar -iv pml_spatialAggHull_createHullMeshes false;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_parentWithOriginal`)
+        optionVar -iv pml_spatialAggHull_parentWithOriginal true;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_keepHistory`)
+        optionVar -iv pml_spatialAggHull_keepHistory true;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_faceTestLimit`)
+        optionVar -iv pml_spatialAggHull_vertexLimit 50;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_groupHullMeshes`)
+        optionVar -iv pml_spatialAggHull_groupHullMeshes false;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_replaceOriginal`)
+        optionVar -iv pml_spatialAggHull_replaceOriginal false;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_solidBias`)
+        optionVar -iv pml_spatialAggHull_solidBias false;
+
+    if ($reset || !`optionVar -exists pml_spatialAggHull_useVolumeCalc`)
+        optionVar -iv pml_spatialAggHull_useVolumeCalc false;
+}
+
+
+global proc pml_spatialAggHull()
+{
+    string  $options;
+
+    if (`optionVar -q pml_spatialAggHull_replaceOriginal`)
+        $options = " -r";
+    else
+    {
+        $options = " -ch " + `optionVar -q pml_spatialAggHull_keepHistory`;
+
+        if (`optionVar -q pml_spatialAggHull_createCombinedMesh`)
+            $options += " -ccm";
+    }
+
+    if (`optionVar -q pml_spatialAggHull_createHullMeshes`)
+    {
+        $options += " -cim";
+
+        if (`optionVar -q pml_spatialAggHull_groupHullMeshes`)
+            $options += " -gim";
+    }
+
+    if (`optionVar -q pml_spatialAggHull_parentWithOriginal`)
+        $options += " -pwo";
+
+    if (`optionVar -q pml_spatialAggHull_allowAxial`)
+        $options += " -aa";
+
+    if (`optionVar -q pml_spatialAggHull_allowHull`)
+        $options += " -ah";
+
+    if (`optionVar -q pml_spatialAggHull_solidBias`)
+        $options += " -sb";
+
+    if (`optionVar -q pml_spatialAggHull_useVolumeCalculation`)
+        $options += " -uvc";
+
+    $options += " -ftl " + `optionVar -q pml_spatialAggHull_faceTestLimit`;
+
+    eval("spatialAggHull " + $options);
+}
+
+
+global proc pml_spatialAggHull_options()
+{
+	//	Name of the command for this option box.
+	//
+	string $commandName = "spatialAggHull";
+
+	//	Build the option box actions.
+	//
+    global string $gOptionBoxActionToolItem;
+	$gOptionBoxActionToolItem = "";
+
+	global string $gOptionBoxActionToolItemCB;
+	$gOptionBoxActionToolItemCB = "";
+
+	//	Step 1:  Get the option box.
+	//	============================
+	string $layout = getOptionBox();
+	setParent $layout;
+
+	//	Step 2:  Pass the command name to the option box.
+	//	=================================================
+	setOptionBoxCommandName($commandName);
+	
+	//	Step 3:  Activate the default UI template.
+	//	==========================================
+	setUITemplate -pushTemplate DefaultTemplate;
+
+	//	Step 4: Create option box contents.
+	//	===================================
+
+	tabLayout -scr true -tv false;
+	
+	string $parent = `columnLayout -adjustableColumn 1`;
+
+    checkBoxGrp -ncb 2 -l "Individual Hulls"
+        -l1 "Create Meshes"
+        -l2 "Group Meshes"
+        -cc "pml_spatialAggHull_visibility"
+        pml_createMeshesBox;
+
+    radioButtonGrp -nrb 3 -l "Combined Hull"
+        -l1 "New Mesh"
+        -l2 "Replace Orig"
+        -l3 "None"
+        -cw 2 80
+        -cw 3 100
+        -cw 4 80
+        -cc "pml_spatialAggHull_visibility"
+        pml_combinedOutputOptions;
+
+    checkBoxGrp -ncb 1 -l "" -l1 "Parent Hulls With Original"
+		pml_parentHullsWithOriginalBox;
+
+    checkBoxGrp -ncb 1 -l "" -l1 "Keep Construction History" pml_keepHistoryBox;
+    checkBoxGrp -ncb 1 -l "" -l1 "Allow Axial" pml_allowAxialBox;
+    checkBoxGrp -ncb 1 -l "" -l1 "Allow Hull" pml_allowHullBox;
+    checkBoxGrp -ncb 1 -l "" -l1 "Solid Bias" pml_solidBiasBox;
+    checkBoxGrp -ncb 1 -l "" -l1 "Volume Calc" pml_volumeCalcBox;
+
+    intSliderGrp -min 1 -fmn 1 -max 100 -l "Face Test Limit" pml_faceTestLimitFld;
+
+    separator;
+	
+	//	Step 5: Deactivate the default UI template.
+	//  ===========================================
+	//
+	setUITemplate -popTemplate;
+
+	//	Step 6: Customize the buttons.  
+	//	==============================
+
+	//	'Apply' button.
+	//
+	string $applyBtn = getOptionBoxApplyBtn();
+	button -edit -l "Create Hull"
+        -command "pml_spatialAggHull_saveOptions; pml_spatialAggHull" $applyBtn;
+
+	//	'Save' button.
+	//
+	string $saveBtn = getOptionBoxSaveBtn();
+	button -edit 
+		-command "pml_spatialAggHull_saveOptions; hideOptionBox"
+		$saveBtn;
+
+	//	'Reset' button.
+	//
+	string $resetBtn = getOptionBoxResetBtn();
+	button -edit -command "pml_spatialAggHull_setup true" $resetBtn;
+
+	//	Step 7: Set the option box title.
+	//	=================================
+	//
+	setOptionBoxTitle("Spatial Aggregate Hull Options");
+
+	//	Step 8: Customize the 'Help' menu item text.
+	//	============================================
+	//
+	setOptionBoxHelpTag("Spatial Aggregate Hull");
+
+	//	Step 9: Set the current values of the option box.
+	//	=================================================
+	//
+	eval("pml_spatialAggHull_setup false");
+	
+	//	Step 10: Show the option box.
+	//	=============================
+	//
+	showOptionBox();
+}
+
+
+global proc pml_spatialAggHull_saveOptions()
+{
+	int	$ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_createMeshesBox`;
+    optionVar -iv pml_spatialAggHull_createHullMeshes $ival;
+
+    $ival = `checkBoxGrp -q -v2 pml_createMeshesBox`;
+    optionVar -iv pml_spatialAggHull_groupHullMeshes $ival;
+
+    $ival = `radioButtonGrp -q -select pml_combinedOutputOptions`;
+    optionVar -iv pml_spatialAggHull_createCombinedMesh ($ival == 1);
+    optionVar -iv pml_spatialAggHull_replaceOriginal ($ival == 2);
+
+    $ival = `checkBoxGrp -q -v1 pml_parentHullsWithOriginalBox`;
+    optionVar -iv pml_spatialAggHull_parentWithOriginal $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_keepHistoryBox`;
+    optionVar -iv pml_spatialAggHull_keepHistory $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_allowAxialBox`;
+    optionVar -iv pml_spatialAggHull_allowAxial $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_allowHullBox`;
+    optionVar -iv pml_spatialAggHull_allowHull $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_solidBiasBox`;
+    optionVar -iv pml_spatialAggHull_solidBias $ival;
+
+    $ival = `checkBoxGrp -q -v1 pml_volumeCalcBox`;
+    optionVar -iv pml_spatialAggHull_useVolumeCalc $ival;
+
+    $ival = `intSliderGrp -q -v pml_faceTestLimitFld`;
+    optionVar -iv pml_spatialAggHull_faceTestLimit $ival;
+}
+
+
+global proc pml_spatialAggHull_setup(int $reset)
+{
+	int		$ival;
+
+    initSpatialAggHullOptions($reset);
+
+    $ival = `optionVar -q pml_spatialAggHull_createHullMeshes`;
+    checkBoxGrp -e -v1 $ival pml_createMeshesBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_groupHullMeshes`;
+    checkBoxGrp -e -v2 $ival pml_createMeshesBox;
+
+    int $outputType = 3;
+
+    if (`optionVar -q pml_spatialAggHull_createCombinedMesh`)
+        $outputType = 1;
+    else if (`optionVar -q pml_spatialAggHull_replaceOriginal`)
+        $outputType = 2;
+
+    radioButtonGrp -e -select $outputType pml_combinedOutputOptions;
+
+    $ival = `optionVar -q pml_spatialAggHull_parentWithOriginal`;
+    checkBoxGrp -e -v1 $ival pml_parentHullsWithOriginalBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_keepHistory`;
+    checkBoxGrp -e -v1 $ival pml_keepHistoryBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_allowAxial`;
+    checkBoxGrp -e -v1 $ival pml_allowAxialBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_allowHull`;
+    checkBoxGrp -e -v1 $ival pml_allowHullBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_solidBias`;
+    checkBoxGrp -e -v1 $ival pml_solidBiasBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_useVolumeCalc`;
+    checkBoxGrp -e -v1 $ival pml_volumeCalcBox;
+
+    $ival = `optionVar -q pml_spatialAggHull_faceTestLimit`;
+    intSliderGrp -e -v $ival pml_faceTestLimitFld;
+
+    if ($reset)
+        intSliderGrp -e -min 1 -fmn 1 -max 100 pml_faceTestLimitFld;
+
+    pml_spatialAggHull_visibility();
+}
+
+
+global proc pml_spatialAggHull_visibility()
+{
+    //
+    // For the individual hull output, 'Group Meshes' only makes sense if
+    // 'Create Meshes' is on.
+    //
+    int $createMeshes = `checkBoxGrp -q -v1 pml_createMeshesBox`;
+    checkBoxGrp -e -enable2 $createMeshes pml_createMeshesBox;
+
+    //
+    // 'Keep History' doesn't make sense with 'Replace Original'.
+    //
+    int $outputType = `radioButtonGrp -q -select pml_combinedOutputOptions`;
+
+    checkBoxGrp -e -enable ($outputType != 2) pml_keepHistoryBox;
+ 
+ 	//
+	// 'Parent Hulls With Original' only makes sense if we're actually
+	// generating some meshes (individual or combined).
+	//
+	checkBoxGrp -e -enable ($createMeshes || ($outputType == 1))
+		pml_parentHullsWithOriginalBox;
+}
+
+
+//----------------------------------------------------------------
+//
+//      Skin Collision Volume Options
+//
+//----------------------------------------------------------------
+
+//global proc initSkinVolumeOptions(int $reset)
+//{
+//    if ($reset || !`optionVar -exists pml_skinVolume_createCombinedMesh`)
+//        optionVar -iv pml_skinVolume_createCombinedMesh off;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_createHullMeshes`)
+//        optionVar -iv pml_skinVolume_createHullMeshes on;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_enableVertexLimit`)
+//        optionVar -iv pml_skinVolume_enableVertexLimit false;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_keepHistory`)
+//        optionVar -iv pml_skinVolume_keepHistory on;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_parentWithOriginal`)
+//        optionVar -iv pml_skinVolume_parentWithOriginal true;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_replaceOriginal`)
+//        optionVar -iv pml_skinVolume_replaceOriginal false;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_useEntireSkin`)
+//        optionVar -iv pml_skinVolume_useEntireSkin 1;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_vertexLimit`)
+//        optionVar -iv pml_skinVolume_vertexLimit 50;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_weightThreshold`)
+//        optionVar -fv pml_skinVolume_weightThreshold 0.4;
+//
+//    //
+//    // Overhull-specific options.
+//    //
+//    if ($reset || !`optionVar -exists pml_skinVolume_useOverhull`)
+//        optionVar -iv pml_skinVolume_useOverhull false;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_bevelAngle`)
+//        optionVar -fv pml_skinVolume_bevelAngle 45.0;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_inflate`)
+//        optionVar -fv pml_skinVolume_inflate 0.0;
+//
+//    if ($reset || !`optionVar -exists pml_skinVolume_maxPlanes`)
+//        optionVar -iv pml_skinVolume_maxPlanes 16;
+//}
+
+
+//global proc pml_skinVolume(int $isKinematic)
+//{
+//    string  $options;
+//
+//    if (`optionVar -q pml_skinVolume_replaceOriginal`) 
+//        $options = " -r";
+//    else
+//    {
+//        $options = " -ch " + `optionVar -q pml_skinVolume_keepHistory`;
+//
+//        if (`optionVar -q pml_skinVolume_createCombinedMesh`)
+//            $options += " -ccm";
+//    }
+//
+//    if (`optionVar -q pml_skinVolume_createHullMeshes`)
+//        $options += " -cim";
+//
+//    if (`optionVar -q pml_skinVolume_enableVertexLimit`)
+//    {
+//        int $vertexLimit = `optionVar -q pml_skinVolume_vertexLimit`;
+//
+//        $options += " -vl " + $vertexLimit;
+//    }
+//
+//    if (`optionVar -q pml_skinVolume_parentWithOriginal`)
+//        $options += " -pwo";
+//
+//    if (`optionVar -q pml_skinVolume_useEntireSkin`)
+//        $options += " -ues";
+//
+//    $options += " -wt " + `optionVar -q pml_skinVolume_weightThreshold`;
+//
+//    if (`optionVar -q pml_skinVolume_useOverhull`)
+//    {
+//        float   $bevelAngle = `optionVar -q pml_skinVolume_bevelAngle`;
+//        float   $inflate = `optionVar -q pml_skinVolume_inflate`;
+//        int     $maxPlanes = `optionVar -q pml_skinVolume_maxPlanes`;
+//
+//        $bevelAngle = `convertUnit -f "deg" ("" + $bevelAngle)`;
+//		$inflate = `convertUnit -f "cm" ("" + $inflate)`;
+//
+//        $options += " -o -ba " + $bevelAngle + " -i " + $inflate
+//                    + " -mp " + $maxPlanes;
+//    }
+//
+//	if ($isKinematic == 0 || $isKinematic == 1) // create dynamic ragdoll
+//	{
+//		// call the skinCollisionVolumeCmd's command, which will call AggHullCmd's doIt
+//		// because skinCollisionVolumeCmd is derived from AggHullCmd
+//		
+//		$scv = `skinCollisionVolume  -ch 1 -cim -pwo -ues -wt 0.4`;// + $options);
+//		
+//		nxRigidBodyFromSkinCollisionVolume($scv, $isKinematic);
+//		
+//		//if ($isKinematic == 0)
+//		//{
+//		//	NxRagdollCreateRigidConstraints();
+//		//}
+//	}
+//	else
+//	{
+//		eval("skinCollisionVolume " + $options);
+//	}
+//
+//}
+
+
+//global proc pml_skinVolume_options(int $isKinematic)
+//{
+//	
+//	//	Name of the command for this option box.
+//	//
+//	string $commandName = "skinCollisionVolume";
+//
+//	//	Build the option box actions.
+//	//
+//    global string $gOptionBoxActionToolItem;
+//	$gOptionBoxActionToolItem = "";
+//
+//	global string $gOptionBoxActionToolItemCB;
+//	$gOptionBoxActionToolItemCB = "";
+//
+//	//	Step 1:  Get the option box.
+//	//	============================
+//	string $layout = getOptionBox();
+//	setParent $layout;
+//
+//	//	Step 2:  Pass the command name to the option box.
+//	//	=================================================
+//	setOptionBoxCommandName($commandName);
+//	
+//	//	Step 3:  Activate the default UI template.
+//	//	==========================================
+//	setUITemplate -pushTemplate DefaultTemplate;
+//
+//	//	Step 4: Create option box contents.
+//	//	===================================
+//
+//	tabLayout -scr true -tv false;
+//	
+//	string $parent = `columnLayout -adjustableColumn 1`;
+//
+//    checkBoxGrp -ncb 1 -l ""
+//        -l1 "Create Per-Joint Hulls"
+//        pml_createMeshesBox;
+//
+//    radioButtonGrp -nrb 3 -l "Combined Hull"
+//        -l1 "New Mesh"
+//        -l2 "Replace Skin"
+//        -l3 "None"
+//        -cw 2 80
+//        -cw 3 100
+//        -cw 4 80
+//        -cc "pml_skinVolume_visibility"
+//        pml_combinedOutputOptions;
+//
+//	checkBoxGrp -ncb 1 -l "" -l1 "Parent Combined Hull With Skin"
+//		pml_parentHullsWithSkinBox;
+//
+//    checkBoxGrp -ncb 1 -l "" -l1 "Keep Construction History" pml_keepHistoryBox;
+//
+//    checkBoxGrp -ncb 1 -l "" -l1 "Limit # Of Vertices"
+//        -cc "pml_skinVolume_visibility"
+//        pml_enableVertLimitBox;
+//
+//    intSliderGrp -min 1 -fmn 1 -max 100 -l "Max # Vertices" pml_vertLimitFld;
+//
+//    floatSliderGrp -min 0.0 -fmn 0.0 -max 1.0 -fmx 1.0 -l "Weight Threshold"
+//        pml_weightThresholdFld;
+//
+//	checkBoxGrp -ncb 1 -l "" -l1 "Use All Skin Vertices" pml_useEntireSkinBox;
+//
+//    separator;
+//
+//    radioButtonGrp -nrb 2 -l "Algorithm"
+//        -l1 "Normal"
+//        -l2 "Overhull"
+//        -cc "pml_skinVolume_visibility"
+//        pml_algorithmOptions;
+//
+//    floatSliderGrp -l "Bevel Angle"
+//        -min 0.0 -max 90.0
+//        pml_bevelAngleFld;
+//
+//    floatSliderGrp -l "Inflate"
+//        -min 0.0 -max 10.0
+//        pml_inflateFld;
+//
+//    intSliderGrp -l "Max Planes"
+//        -min 4 -max 100
+//        pml_maxPlanesFld;
+//
+//    separator;
+//	
+//	//	Step 5: Deactivate the default UI template.
+//	//  ===========================================
+//	//
+//	setUITemplate -popTemplate;
+//
+//	//	Step 6: Customize the buttons.  
+//	//	==============================
+//
+//	//	'Apply' button.
+//	//
+//	string $applyBtn = getOptionBoxApplyBtn();
+//	
+//	if ($isKinematic == 0)
+//	{
+//		button -edit -l "Create Hull"
+//			-command "pml_skinVolume_saveOptions; pml_skinVolume(0);" $applyBtn;
+//	}
+//	else if ($isKinematic == 1)
+//	{
+//		button -edit -l "Create Hull"
+//		-command "pml_skinVolume_saveOptions; pml_skinVolume(1);" $applyBtn;
+//	}
+//	else // 2 option means no setup; just the volume
+//	{
+//		button -edit -l "Create Hull"
+//		-command "pml_skinVolume_saveOptions; pml_skinVolume(2);" $applyBtn;
+//	}
+//	
+//
+//	//	'Save' button.
+//	//
+//	string $saveBtn = getOptionBoxSaveBtn();
+//	button -edit 
+//		-command "pml_skinVolume_saveOptions; hideOptionBox"
+//		$saveBtn;
+//
+//	//	'Reset' button.
+//	//
+//	string $resetBtn = getOptionBoxResetBtn();
+//	button -edit -command "pml_skinVolume_setup true" $resetBtn;
+//
+//	//	Step 7: Set the option box title.
+//	//	=================================
+//	//
+//	setOptionBoxTitle("Skin Collision Volume Options");
+//
+//	//	Step 8: Customize the 'Help' menu item text.
+//	//	============================================
+//	//
+//	setOptionBoxHelpTag("Skin Collision Volume");
+//
+//	//	Step 9: Set the current values of the option box.
+//	//	=================================================
+//	//
+//	eval("pml_skinVolume_setup false");
+//	
+//	//	Step 10: Show the option box.
+//	//	=============================
+//	//
+//	
+//	showOptionBox();
+//}
+
+
+//global proc pml_skinVolume_saveOptions()
+//{
+//	float	$fval;
+//	int		$ival;
+//
+//    $ival = `checkBoxGrp -q -v1 pml_createMeshesBox`;
+//    optionVar -iv pml_skinVolume_createHullMeshes $ival;
+//
+//    $ival = `radioButtonGrp -q -select pml_combinedOutputOptions`;
+//    optionVar -iv pml_skinVolume_createCombinedMesh ($ival == 1);
+//    optionVar -iv pml_skinVolume_replaceOriginal ($ival == 2);
+//
+//    $ival = `checkBoxGrp -q -v1 pml_parentHullsWithSkinBox`;
+//    optionVar -iv pml_skinVolume_parentWithOriginal $ival;
+//
+//    $ival = `checkBoxGrp -q -v1 pml_keepHistoryBox`;
+//    optionVar -iv pml_skinVolume_keepHistory $ival;
+//
+//    $ival = `checkBoxGrp -q -v1 pml_enableVertLimitBox`;
+//    optionVar -iv pml_skinVolume_enableVertexLimit $ival;
+//
+//    $ival = `checkBoxGrp -q -v1 pml_useEntireSkinBox`;
+//    optionVar -iv pml_skinVolume_useEntireSkinBox $ival;
+//
+//    $ival = `intSliderGrp -q -v pml_vertLimitFld`;
+//    optionVar -iv pml_skinVolume_vertexLimit $ival;
+//
+//    $fval = `floatSliderGrp -q -v pml_weightThresholdFld`;
+//    optionVar -fv pml_skinVolume_weightThreshold $fval;
+//
+//    $ival = `radioButtonGrp -q -select pml_algorithmOptions`;
+//    optionVar -iv pml_skinVolume_useOverhull ($ival == 2);
+//
+//    $fval = `floatSliderGrp -q -v pml_bevelAngleFld`;
+//    optionVar -fv pml_skinVolume_bevelAngle $fval;
+//
+//    $fval = `floatSliderGrp -q -v pml_inflateFld`;
+//    optionVar -fv pml_skinVolume_inflate $fval;
+//
+//    $ival = `intSliderGrp -q -v pml_maxPlanesFld`;
+//    optionVar -iv pml_skinVolume_maxPlanes $ival;
+//}
+
+
+//global proc pml_skinVolume_setup(int $reset)
+//{
+//	float	$fval;
+//	int		$ival;
+//
+//    initSkinVolumeOptions($reset);
+//
+//    $ival = `optionVar -q pml_skinVolume_createHullMeshes`;
+//    checkBoxGrp -e -v1 $ival pml_createMeshesBox;
+//
+//    int $combinedHull = 3;
+//
+//    if (`optionVar -q pml_skinVolume_createCombinedMesh`)
+//        $combinedHull = 1;
+//    else if (`optionVar -q pml_skinVolume_replaceOriginal`)
+//        $combinedHull = 2;
+//
+//    radioButtonGrp -e -select $combinedHull pml_combinedOutputOptions;
+//
+//    $ival = `optionVar -q pml_skinVolume_parentWithOriginal`;
+//    checkBoxGrp -e -v1 $ival pml_parentHullsWithSkinBox;
+//
+//    $ival = `optionVar -q pml_skinVolume_keepHistory`;
+//    checkBoxGrp -e -v1 $ival pml_keepHistoryBox;
+//
+//    $ival = `optionVar -q pml_skinVolume_enableVertexLimit`;
+//    checkBoxGrp -e -v1 $ival pml_enableVertLimitBox;
+//
+//    $ival = `optionVar -q pml_skinVolume_useEntireSkin`;
+//    checkBoxGrp -e -v1 $ival pml_useEntireSkinBox;
+//
+//    $ival = `optionVar -q pml_skinVolume_vertexLimit`;
+//    intSliderGrp -e -v $ival pml_vertLimitFld;
+//
+//    if ($reset)
+//        intSliderGrp -e -min 1 -fmn 1 -max 100 pml_vertLimitFld;
+//
+//    $fval = `optionVar -q pml_skinVolume_weightThreshold`;
+//    floatSliderGrp -e -v $fval pml_weightThresholdFld;
+//
+//    int $useOverhull = `optionVar -q pml_skinVolume_useOverhull`;
+//
+//    if ($useOverhull)
+//        radioButtonGrp -e -select 2 pml_algorithmOptions;
+//    else
+//        radioButtonGrp -e -select 1 pml_algorithmOptions;
+//
+//    $fval = `optionVar -q pml_skinVolume_bevelAngle`;
+//    floatSliderGrp -e -v $fval pml_bevelAngleFld;
+//
+//    if ($reset)
+//        floatSliderGrp -e -min 0.0 -max 90.0 pml_bevelAngleFld;
+//
+//    $ival = `optionVar -q pml_skinVolume_inflate`;
+//    floatSliderGrp -e -v $ival pml_inflateFld;
+//
+//    if ($reset)
+//        floatSliderGrp -e -min 0.0 -max 10.0 pml_inflateFld;
+//
+//    $ival = `optionVar -q pml_skinVolume_maxPlanes`;
+//    intSliderGrp -e -v $ival pml_maxPlanesFld;
+//
+//    if ($reset)
+//        intSliderGrp -e -min 4 -max 100 pml_maxPlanesFld;
+//
+//    pml_skinVolume_visibility();
+//}
+
+
+//global proc pml_skinVolume_visibility()
+//{
+//    //
+//    // 'Keep History' doesn't make sense with 'Replace Original'.
+//    //
+//    int $outputType = `radioButtonGrp -q -select pml_combinedOutputOptions`;
+//
+//    checkBoxGrp -e -enable ($outputType != 2) pml_keepHistoryBox;
+// 
+// 	//
+//	// 'Parent Combined Hull With Skin' only makes sense if we're actually
+//	// generating a combined hull.
+//	//
+//	checkBoxGrp -e -enable ($outputType == 1) pml_parentHullsWithSkinBox;
+//
+//    //
+//    // The Max Vertices slider should only be enabled if Vertex Limit is
+//    // on.
+//    //
+//    int $enable = `checkBoxGrp -q -v1 pml_enableVertLimitBox`;
+//
+//    intSliderGrp -e -enable $enable pml_vertLimitFld;
+//
+//    //
+//    // The overhull-specific options are only enabled when the overhull
+//    // algorithm is selected.
+//    //
+//    int $algorithm = `radioButtonGrp -q -select pml_algorithmOptions`;
+//    $enable = ($algorithm == 2);
+//
+//    floatSliderGrp -e -enable $enable pml_bevelAngleFld;
+//    floatSliderGrp -e -enable $enable pml_inflateFld;
+//    intSliderGrp -e -enable $enable pml_maxPlanesFld;
+//}
+
+
+//----------------------------------------------------------------
+//
+//      General Preferences
+//
+//----------------------------------------------------------------
+
+proc initPreferences(int $reset)
+{
+    if ($reset || !`optionVar -exists pml_prefs_interruptResponseTime`)
+        optionVar -fv pml_prefs_interruptResponseTime 0.5;
+
+    if ($reset || !`optionVar -exists pml_prefs_showProgressBar`)
+        optionVar -iv pml_prefs_showProgressBar off;
+}
+
+
+global proc pml_preferences()
+{
+	//
+	// Get the current preference values.
+	//
+	initPreferences(false);
+
+	float	$responseTime = `optionVar -q pml_prefs_interruptResponseTime`;
+	int		$showProgressBar = `optionVar -q pml_prefs_showProgressBar`;
+
+	//
+	// Create the option window.
+	//
+	if (`window -exists pmlPrefsWin`) deleteUI pmlPrefsWin;
+
+	window -title "Maya PML Preferences" -w 470 -h 140 pmlPrefsWin;
+
+	string	$outerForm = `formLayout`;
+	string	$scroll = `scrollLayout -cr true`;
+	string	$innerForm = `formLayout`;
+
+	checkBoxGrp -ncb 1 -l "" -l1 "Show Progress Bar" -cw 1 160 -cw 2 200
+		-v1 $showProgressBar
+		-cc1 "optionVar -iv pml_prefs_showProgressBar `checkBoxGrp -q -v1 pml_showProgressBarBox`"
+		pml_showProgressBarBox;
+
+    floatSliderGrp -l "Interrupt Response Time"
+		-cw 1 160
+		-f true
+        -min 0.0 -max 10.0
+		-v $responseTime
+		-cc "optionVar -fv pml_prefs_interruptResponseTime `floatSliderGrp -q -v pml_responseTimeFld`"
+        pml_responseTimeFld;
+
+	formLayout -e
+		-af pml_showProgressBarBox left 10
+		-af pml_showProgressBarBox right 10
+		-af pml_showProgressBarBox top 10
+		-af pml_responseTimeFld left 10
+		-af pml_responseTimeFld right 10
+		-ac pml_responseTimeFld top 10 pml_showProgressBarBox
+		$innerForm;
+
+	setParent ..;
+	setParent ..;
+
+	button -l "Close" -c "deleteUI pmlPrefsWin" pml_closeBtn;
+
+	formLayout -e
+		-af pml_closeBtn left 10
+		-af pml_closeBtn right 10
+		-af pml_closeBtn bottom 10
+		$outerForm;
+
+	formLayout -e
+		-af $scroll left 0
+		-af $scroll right 0
+		-af $scroll top 0
+		-af $scroll bottom 40
+		$outerForm;
+
+	showWindow;
+
+	//
+	// The scrollLayout will initially come up with space for the
+	// horizontal scrollbar, even though it doesn't display the scrollbar.
+	// Resizing the window after it is displayed will get rid of that blank
+	// space.
+	//
+	window -e -h 141 pmlPrefsWin;
+	
+	
+}

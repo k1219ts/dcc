@@ -1,0 +1,56 @@
+#! /usr/local/Nuke7.0v5/Nuke7.0 -nx
+version 7.0 v5
+Gizmo {
+ help "Add random camera shake, including motion blur."
+ label "\[value amplitude] px at \[value frequency]"
+ addUserKnob {20 CameraShake}
+ addUserKnob {14 amplitude t "Size of the shake, in pixels." R 0 100}
+ amplitude 10
+ addUserKnob {7 rotation t "Maximum rotation about the center, in degrees." R 0 15}
+ addUserKnob {7 scaling t "Maximum scale fluctuation." R 0 0.2}
+ addUserKnob {7 frequency t "Lowest frequency of the shake, in cycles per frame."}
+ frequency 0.5
+ addUserKnob {3 octaves t "Add higher frequency shaking to the basic shake (make it more like Brownian motion)."}
+ octaves 2
+ addUserKnob {3 seed t "Choose a different seed value to produce a different sequence of random numbers for the camera shake transform." -STARTLINE}
+ addUserKnob {22 randomize_seed l "Randomize Seed" t "Press this button to set a random seed value." -STARTLINE T "import random\nnuke.thisNode().knob('seed').setValue( random.randint(1,16384) )"}
+ addUserKnob {7 scale l "fixed scale" t "Extra scale to prevent the edges of the image from entering frame." R 1 1.2}
+ scale 1
+ addUserKnob {12 cs_center l center t "The center of the scale/rotation."}
+ cs_center {{"\[value input.width 0]/2"} {"\[value input.height 0]/2"}}
+ addUserKnob {41 filter T Transform1.filter}
+ addUserKnob {41 clamp -STARTLINE T Transform1.clamp}
+ addUserKnob {41 black_outside l crop t "Crop the image to have black outside of the frame." -STARTLINE T Transform1.black_outside}
+ addUserKnob {41 motionblur T Transform1.motionblur}
+ addUserKnob {41 shutter T Transform1.shutter}
+ addUserKnob {41 shutteroffset T Transform1.shutteroffset}
+ addUserKnob {41 shuttercustomoffset l "" -STARTLINE T Transform1.shuttercustomoffset}
+ addUserKnob {26 Movement}
+ addUserKnob {41 translate T Transform1.translate}
+ addUserKnob {22 Export_transform T "ff = str(int(nuke.root()\['first_frame'].value()))\nlf = str(int(nuke.root()\['last_frame'].value()))\n\nframeView = nuke.getFramesAndViews('Range', ff+'-'+lf)\nif '-' in frameView\[0]:\n    startFrame = int(frameView\[0].split('-')\[0])\n    endFrame = int(frameView\[0].split('-')\[1])\nelse:\n    startFrame = int(frameView\[0])\n    endFrame = int(frameView\[0])\n\ncs = nuke.thisNode()\ntr = cs.node('Transform1')\n\nnuke.thisNode().end()\nnt = nuke.nodes.Transform()\n\nnt\['translate'].setAnimated()\nnt\['rotate'].setAnimated()\nnt\['scale'].setAnimated()\n\nfor i in range(startFrame, endFrame+1):\n    nt\['translate'].setValue(tr\['translate'].valueAt(i)\[0], 0, i)\n    nt\['translate'].setValue(tr\['translate'].valueAt(i)\[1], 1, i)   \n    nt\['rotate'].setValueAt(tr\['rotate'].valueAt(i), i)\n    nt\['scale'].setValueAt(tr\['scale'].valueAt(i), i)\n\nnt.setXYpos(cs.xpos(), cs.ypos()+100)\nnt\['center'].fromScript('\{\"\\\\\[value input.width 0]/2\"\} \{\"\\\\\[value input.height 0]/2\"\}')\n\n" +STARTLINE}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+  ypos -32
+ }
+ Transform {
+  translate {{fBm((seed+frame)*frequency,2.5,3.5,octaves,2,.5)*amplitude.w} {fBm(frame*frequency+100,10.5,11.5,octaves,2,.5)*amplitude.h}}
+  rotate {{fBm((seed+frame)*frequency,20.5,21.5,octaves,2,.5)*parent.rotation}}
+  scale {{(fBm((seed+frame)*frequency,30.5,31.5,octaves,2,.5)*parent.scaling+parent.scale)}}
+  center {{parent.cs_center} {parent.cs_center}}
+  black_outside false
+  motionblur 1
+  shutteroffset centred
+  name Transform1
+  selected true
+  xpos 0
+  ypos 36
+ }
+ Output {
+  name Output1
+  xpos 157
+  ypos 144
+ }
+end_group

@@ -1,0 +1,135 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ inputs 2
+ addUserKnob {20 timewarp}
+ addUserKnob {20 org_plates l "org_plates / timewarp" n 1}
+ addUserKnob {6 timecode_view +STARTLINE}
+ timecode_view true
+ addUserKnob {41 lookup l "input frame" T TimeWarp1.lookup}
+ addUserKnob {41 filter T TimeWarp1.filter}
+ addUserKnob {26 ""}
+ addUserKnob {20 edit_mov n 1}
+ addUserKnob {6 edit_view +STARTLINE}
+ edit_view true
+ addUserKnob {41 input.first l "input range" T Retime1.input.first}
+ addUserKnob {41 input.first_lock l " " -STARTLINE T Retime1.input.first_lock}
+ addUserKnob {41 input.last l "" -STARTLINE T Retime1.input.last}
+ addUserKnob {41 input.last_lock l " " -STARTLINE T Retime1.input.last_lock}
+ addUserKnob {41 reverse -STARTLINE T Retime1.reverse}
+ addUserKnob {41 output.first l "output range" T Retime1.output.first}
+ addUserKnob {41 output.first_lock l " " -STARTLINE T Retime1.output.first_lock}
+ addUserKnob {41 output.last l "" -STARTLINE T Retime1.output.last}
+ addUserKnob {41 output.last_lock l " " -STARTLINE T Retime1.output.last_lock}
+ addUserKnob {26 reformat}
+ addUserKnob {41 format l "output format" T Reformat1.format}
+ addUserKnob {41 resize l "resize type" T Reformat1.resize}
+ addUserKnob {41 center -STARTLINE T Reformat1.center}
+ addUserKnob {41 flip -STARTLINE T Reformat1.flip}
+ addUserKnob {41 flop -STARTLINE T Reformat1.flop}
+ addUserKnob {41 turn -STARTLINE T Reformat1.turn}
+}
+ Input {
+  inputs 0
+  name edit_mov
+  xpos -331
+  ypos -535
+  number 1
+ }
+ Dot {
+  name Dot2
+  xpos -303
+  ypos -456
+ }
+ Retime {
+  input.first 1001
+  input.last 1042
+  output.first 1001
+  output.last 1042
+  time ""
+  name Retime1
+  label "\[knob output.first] - \[knob output.last](\[expr \[knob output.last]-\[knob output.first]+1])"
+  xpos -331
+  ypos -392
+ }
+ Reformat {
+  name Reformat1
+  xpos -331
+  ypos -208
+ }
+ Input {
+  inputs 0
+  name org_plates
+  xpos -595
+  ypos -522
+ }
+ Dot {
+  name Dot1
+  xpos -567
+  ypos -451
+ }
+set Neae7c840 [stack 0]
+ Text2 {
+  font_size_toolbar 100
+  font_width_toolbar 100
+  font_height_toolbar 100
+  message "\[timecode]"
+  old_message {{49 57 58 53 53 58 53 48 58 50 51}
+    }
+  old_expression_markers {{0 10}
+    }
+  box {1404 189 1910 290}
+  transforms {{0 2}
+    }
+  cursor_position 10
+  scale {1 1}
+  center {1024 659}
+  cursor_initialised true
+  autofit_bbox false
+  initial_cursor_position {{1404 290.5}
+    }
+  group_animations {{0} imported: 0 selected: 0 items: "root transform/"}
+  animation_layers {{1 11 1024 659 0 0 1 1 0 0 0 0}
+    }
+  name Text1
+  xpos -503
+  ypos -401
+ }
+push $Neae7c840
+ Switch {
+  inputs 2
+  which {{timecode_view}}
+  name switch1
+  label timecode
+  xpos -595
+  ypos -353
+ }
+ TimeWarp {
+  lookup {{int(curve) C x1001 1001}}
+  time ""
+  filter nearest
+  name TimeWarp1
+  xpos -595
+  ypos -278
+ }
+set N516975e0 [stack 0]
+ Merge2 {
+  inputs 2
+  name Merge1
+  xpos -479
+  ypos -208
+ }
+push $N516975e0
+ Switch {
+  inputs 2
+  which {{edit_view}}
+  name Switch1
+  xpos -595
+  ypos -169
+ }
+ Output {
+  name Output1
+  xpos -595
+  ypos 70
+ }
+end_group

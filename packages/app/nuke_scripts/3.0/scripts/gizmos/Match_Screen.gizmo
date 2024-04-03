@@ -1,0 +1,194 @@
+#! /usr/local/Nuke9.0v5/libnuke-9.0.5.so -nx
+version 9.0 v5
+Gizmo {
+ tile_color 0x212121ff
+ addUserKnob {20 ms l "Match Screen"}
+ addUserKnob {41 screen_type l "screen type" T IBKColourV3_1.screen_type}
+ addUserKnob {22 Preview -STARTLINE T "targetKnob = nuke.thisNode().node('Switch1')\['which']\nif targetKnob.value() == 1:\n    targetKnob.setValue(0)\nelse:\n    targetKnob.setValue(1)\n\n    "}
+ addUserKnob {41 Size l "IBKColour size" T IBKColourV3_1.Size}
+ addUserKnob {41 off l darks T IBKColourV3_1.off}
+ addUserKnob {41 mult l lights T IBKColourV3_1.mult}
+ addUserKnob {41 erode T IBKColourV3_1.erode}
+ addUserKnob {41 multi l "patch black" T IBKColourV3_2.multi}
+ addUserKnob {26 ""}
+ addUserKnob {41 red_weight l "red weight" T IBKGizmoV3_1.red_weight}
+ addUserKnob {41 blue_green_weight l "blue/green weight" T IBKGizmoV3_1.blue_green_weight}
+ addUserKnob {26 ""}
+ addUserKnob {41 constant_color l match_color T Constant1.color}
+ addUserKnob {26 ""}
+ addUserKnob {26 introduce l "Match Screen" T "v1.0 by comp - sunghwan.kimc@tatic.com"}
+}
+ Input {
+  inputs 0
+  name Source
+  xpos -975
+  ypos 487
+ }
+ Dot {
+  name Dot14
+  xpos -941
+  ypos 558
+ }
+set N66c7c70 [stack 0]
+ Dot {
+  name Dot1
+  xpos -820
+  ypos 558
+ }
+set N66cc840 [stack 0]
+ IBKColourV3 {
+  name IBKColourV3_1
+  xpos -710
+  ypos 554
+  screen_type green
+ }
+set N6863470 [stack 0]
+ Dot {
+  name Dot2
+  xpos -268
+  ypos 558
+ }
+ Dot {
+  name Dot3
+  xpos -268
+  ypos 1125
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  color {0 0.5 0 0}
+  name Constant1
+  xpos -474
+  ypos 653
+ }
+push $N6863470
+ IBKColourV3 {
+  name IBKColourV3_2
+  xpos -710
+  ypos 598
+  screen_type {{IBKColourV3_1.screen_type x1097 0}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+ }
+ IBKColourV3 {
+  name IBKColourV3_3
+  xpos -710
+  ypos 647
+  screen_type {{IBKColourV3_1.screen_type}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+  multi {{IBKColourV3_2.multi*2}}
+ }
+ IBKColourV3 {
+  name IBKColourV3_4
+  xpos -710
+  ypos 673
+  screen_type {{IBKColourV3_1.screen_type}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+  multi {{IBKColourV3_3.multi*2}}
+ }
+ IBKColourV3 {
+  name IBKColourV3_5
+  xpos -710
+  ypos 699
+  screen_type {{IBKColourV3_1.screen_type}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+  multi {{IBKColourV3_4.multi*2}}
+ }
+ IBKColourV3 {
+  name IBKColourV3_6
+  xpos -710
+  ypos 725
+  screen_type {{IBKColourV3_1.screen_type}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+  multi {{IBKColourV3_5.multi*2}}
+ }
+ IBKColourV3 {
+  name IBKColourV3_7
+  xpos -710
+  ypos 751
+  screen_type {{IBKColourV3_1.screen_type}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+  multi {{IBKColourV3_6.multi*2}}
+ }
+ IBKColourV3 {
+  name IBKColourV3_8
+  xpos -710
+  ypos 777
+  screen_type {{IBKColourV3_1.screen_type}}
+  Size {{IBKColourV3_1.Size}}
+  off {{IBKColourV3_1.off} {IBKColourV3_1.off} {IBKColourV3_1.off}}
+  mult {{IBKColourV3_1.mult} {IBKColourV3_1.mult} {IBKColourV3_1.mult}}
+  multi {{IBKColourV3_7.multi*2}}
+ }
+set N701ab10 [stack 0]
+ Merge2 {
+  inputs 2
+  operation minus
+  name Merge1
+  xpos -474
+  ypos 777
+ }
+push $N701ab10
+push $N66cc840
+ IBKGizmoV3 {
+  inputs 2
+  name IBKGizmoV3_1
+  selected false
+  xpos -854
+  ypos 777
+  st {{IBKColourV3_1.screen_type==0?1:0 x1099 0}}
+ }
+ Shuffle {
+  in alpha
+  name Shuffle1
+  xpos -854
+  ypos 834
+ }
+ Invert {
+  name Invert1
+  xpos -854
+  ypos 860
+ }
+ Merge2 {
+  inputs 2
+  operation multiply
+  name Merge2
+  xpos -474
+  ypos 866
+ }
+ Dot {
+  name Dot4
+  xpos -440
+  ypos 1027
+ }
+push $N66c7c70
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge3
+  xpos -975
+  ypos 1023
+ }
+ Switch {
+  inputs 2
+  name Switch1
+  xpos -975
+  ypos 1121
+ }
+ Output {
+  name Output1
+  xpos -975
+  ypos 1209
+ }
+end_group

@@ -1,0 +1,39 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ addUserKnob {20 User l loc}
+ addUserKnob {41 uniform_scale l loc_scale T Sphere1.uniform_scale}
+ addUserKnob {41 color l loc_color T Constant1.color}
+}
+ Input {
+  inputs 0
+  name axis
+  xpos 219
+  ypos -772
+ }
+ Constant {
+  inputs 0
+  color {1 0 0 1}
+  name Constant1
+  xpos 424
+  ypos -877
+ }
+ Sphere {
+  name Sphere1
+  xpos 424
+  ypos -747
+ }
+ TransformGeo {
+  inputs 2
+  name TransformGeo1
+  selected true
+  xpos 206
+  ypos -549
+ }
+ Output {
+  name Output1
+  xpos 201
+  ypos -451
+ }
+end_group
+

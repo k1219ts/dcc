@@ -1,0 +1,21 @@
+#! /opt/Nuke12.2v4/libnuke-12.2.4.so -nx
+version 12.2 v4
+Gizmo {
+ tile_color 0xd17c76ff
+ addUserKnob {20 User}
+ addUserKnob {4 Cryptomatte_Ratio M {0.25 0.33 0.5 "" ""}}
+ Cryptomatte_Ratio 0.5
+ addUserKnob {26 "" +STARTLINE}
+ addUserKnob {22 CreateNode l "          CreateNode          " T "import random\n\nnodeName = nuke.thisNode().input(0).name()\n\ngetList = nuke.toNode(nodeName).knob('matteList')\n\nlist = getList.getValue().split(',')\nratio = nuke.thisNode().knob('Cryptomatte_Ratio').value()\nratio = float(ratio)\nlength = len(list)\nwith nuke.Root():\n    if ratio == 0.25:\n        pop1 = random.sample(list,int(length * ratio)+1)\n        for i in pop1:\n            list.remove(i)\n        pop2 = random.sample(list,int(length * ratio))\n        for i in pop2:\n            list.remove(i)\n        \n        pop3 = random.sample(list,int(length * ratio))\n        for i in pop3:\n            list.remove(i)\n        \n        pop4 = random.sample(list,int(length * ratio))\n        pop1 = str(pop1).split(\"'\")\[1:-1]\n        pop2 = str(pop2).split(\"'\")\[1:-1]\n        pop3 = str(pop3).split(\"'\")\[1:-1]\n        pop4 = str(pop4).split(\"'\")\[1:-1]\n        node1 = nuke.createNode(\"Cryptomatte\")\n        node1\['matteList'].setValue(\",\".join(pop1))\n        node1\['matteOnly'].setValue(1)\n\n        node2 = nuke.createNode(\"Cryptomatte\")\n        node2\['matteList'].setValue(\",\".join(pop2))\n        node2\['matteOnly'].setValue(1)\n\n        node3 = nuke.createNode(\"Cryptomatte\")\n        node3\['matteList'].setValue(\",\".join(pop3))\n        node3\['matteOnly'].setValue(1)\n\n        node4 = nuke.createNode(\"Cryptomatte\")\n        node4\['matteList'].setValue(\",\".join(pop4))\n        node4\['matteOnly'].setValue(1)\n    \n    if ratio == 0.33:\n        pop1 = random.sample(list,int(length * ratio)+1)\n        for i in pop1:\n            list.remove(i)\n        \n        pop2 = random.sample(list,int(length * ratio))\n        for i in pop2:\n            list.remove(i)\n        \n        pop3 = random.sample(list,int(length * ratio))\n        pop1 = str(pop1).split(\"'\")\[1:-1]\n        pop2 = str(pop2).split(\"'\")\[1:-1]\n        pop3 = str(pop3).split(\"'\")\[1:-1]\n    \n        node1 = nuke.createNode(\"Cryptomatte\")\n        node1\['matteList'].setValue(\",\".join(pop1))\n        node1\['matteOnly'].setValue(1)\n\n        node2 = nuke.createNode(\"Cryptomatte\")\n        node2\['matteList'].setValue(\",\".join(pop2))\n        node2\['matteOnly'].setValue(1)\n\n        node3 = nuke.createNode(\"Cryptomatte\")\n        node3\['matteList'].setValue(\",\".join(pop3))\n        node3\['matteOnly'].setValue(1)\n    \n    \n    \n    if ratio == 0.5:\n        pop1 = random.sample(list,int(length * ratio)+1)\n        for i in pop1:\n            list.remove(i)\n        \n        pop2 = random.sample(list,int(length * ratio))\n    \n        pop1 = str(pop1).split(\"'\")\[1:-1]\n        pop2 = str(pop2).split(\"'\")\[1:-1]\n    \n        node1 = nuke.createNode(\"Cryptomatte\")\n        node1\['matteList'].setValue(\",\".join(pop1))\n        node1\['matteOnly'].setValue(1)\n        node2 = nuke.createNode(\"Cryptomatte\")\n        node2\['matteList'].setValue(\",\".join(pop2))\n        node2\['matteOnly'].setValue(1)\n    \n" +STARTLINE}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+ }
+ Output {
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group

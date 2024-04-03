@@ -1,0 +1,520 @@
+proc string getDisplayFilter()
+{
+	return `optionMenu -q -v "menuDisplayFilter"`;
+                        
+}
+
+//This function use the node name as item name, use the short name as displaylabel, use item name as annotation
+proc addNodeToTree(string $node, string $display, string $parent, string $tree)
+{
+	print ("add node to tree " + $node + ", " + $display + ", " + $parent + ", " + $tree + "\n");
+	treeView -edit -addItem $node $parent $tree;
+	treeView -edit -displayLabel $node $display $tree;
+}
+
+proc addNodesAndChildrenToTree(string $node)
+{
+	 addNodeToTree($node, shortNameOf($node), "", "shapesListTree");
+
+     //string $shapes[] = `listRelatives -ad -fullPath -type "physicsShape" $node`;
+	  string $shapes[] = `listConnections -shapes true -type "physicsShape" $node`;
+     for($shape in $shapes)
+     {
+		 addNodeToTree(longNameOf($shape), shortNameOf($shape), $node, "shapesListTree");
+     }
+}
+ 
+proc fillShapesTree()
+{
+	string $filter = getDisplayFilter();
+	string $selectedRbs[];
+	string $selectdClothes[];
+	if($filter == "Selected")
+	{
+		//Get the selection
+		string $sel[] = `ls -sl`;
+
+		//Iterate the selection to find rigid body and cloth
+		for($obj in $sel)
+		{
+			$selectedRbs = `listRelatives -ad -fullPath -type "nxRigidBody" $obj`;
+			$selectdClothes = `listRelatives -ad -fullPath -type "apexClothing" $obj`;			
+		}
+	}
+	
+	if($filter != "Clothing")
+	{
+		if($filter != "Selected")
+		{
+			$selectedRbs = `ls -long -type "nxRigidBody"`;
+		}
+
+		for($rb in $selectedRbs)
+		{
+			string $type = `getAttr -as ($rb+".act")`;
+
+			if($filter == "Dynamic Rigidbody")
+			{
+				if($type != "Dynamic")
+					continue;
+			}
+			else if($filter == "Kinematic Rigidbody")
+			{
+				if($type != "Kinematic")
+					continue;
+			}
+			else if($filter == "Static Rigidbody")
+			{
+				if($type != "Static")
+					continue;
+			}
+
+			addNodesAndChildrenToTree($rb);
+		}
+	}
+
+	if($filter == "Clothing" ||$filter == "All" || $filter == "Selected")
+	{
+		if($filter != "Selected")
+		{
+			$selectdClothes = `ls -long -type "apexClothing"`;
+		}
+		
+		for($cloth in $selectdClothes)
+		{        
+			  addNodeToTree($cloth, shortNameOf($cloth), "", "shapesListTree");
+		}
+	}
+	
+}
+
+proc fillSimulationSetsTree()
+{
+    string $sets[] =`simulationSets -ls all`;
+    for($set in $sets)
+    {
+       if($set != "")
+             treeView -edit -addItem $set "" "setsListTree";
+    }
+    
+    treeView -q -fullPathName "setsListTree";
+    
+    string $rbs[] = `ls -long -type "nxRigidBody"`;
+    for($rb in $rbs)
+    {
+        //string $shapes[] = `listRelatives -ad -fullPath -type "physicsShape" $rb`;
+		string $shapes[] = `listConnections -shapes true -type "physicsShape" $rb`;
+        for($shape in $shapes)
+        {
+            //string $node_sets[] =`simulationSets -ls $rb`;         
+            string $node_sets[] =`simulationSets -ls $shape`;
+            string $nodeName = longNameOf($rb) + ":"+longNameOf($shape);
+			string $displayName = shortNameOf($rb) + ":" + shortNameOf($shape);
+            for($nset in $node_sets)
+            {
+    			if($nset != "")
+    			{
+					addNodeToTree($nodeName, $displayName, $nset, "setsListTree");
+    				$nodeName = $nodeName + " ";
+    			}
+            }
+        }
+    }
+
+	string $cloths[] = `ls -type "apexClothing"`;
+	for($cloth in $cloths)
+    {        
+           string $node_sets[] =`simulationSets -ls $cloth`;
+           string $nodeName = $cloth;
+           for($nset in $node_sets)
+           {
+    	       if($nset != "")
+    		   {
+				   addNodeToTree($nodeName, shortNameOf($cloth), $nset, "setsListTree");
+				   //treeView -edit -addItem $nodeName $nset "setsListTree";
+				   $nodeName = $nodeName + " ";
+    		    }
+           }
+    }
+}
+
+global proc SimSetsWinUI_refreshSimSetsTreeView(string $setsListTree)
+{
+    treeView -edit -removeAll $setsListTree;
+    fillSimulationSetsTree();
+    refreshEditorTemplates;
+	refreshAE;
+}
+
+global proc SimSetsWinUI_refreshShapeTreeView()
+{
+    treeView -edit -removeAll "shapesListTree";
+    fillShapesTree();
+}
+
+global proc SimSetsWinUI_onTreeViewItemSelected(string $control)
+{
+    string $sels[] = `treeView -q -si $control`;
+    for($obj in $sels)
+    {
+        print $obj;
+        string $children[] = `treeView -q -children $obj $control`;
+        for($child in $children)
+        {     
+            treeView -edit -si $child true $control;
+        }
+    }
+}
+
+global proc SimSetsWinUI_onBtnAddClick(string $shapesListTree, string $setsListTree)
+{
+    string $shapes[] = `treeView -q -si $shapesListTree`;
+    if(size($shapes) == 0)
+    {
+        print "No shape or clothing is selected!\n";
+        return;
+    }
+    
+    string $sets[] = `treeView -q -si $setsListTree`;
+    if(size($sets) == 0)
+    {
+        print "No simulation set is selected!\n";
+        return;
+    }
+        
+    for($set in $sets)
+    {
+		string $setName = $set;
+		int $setIdx = `simulationSets -si $setName`;
+
+		while($setIdx == -1)
+		{			
+			$setName = `treeView -q -itemParent $setName $setsListTree`;
+			if($setName=="")
+			{
+				print ("Cannot find the simulation set " + $setName);
+				return;
+			}
+			else
+			{
+				$setIdx = `simulationSets -si $setName`;
+			}
+		}
+
+        for($shape in $shapes)
+        {
+            string $type = `nodeType $shape`;                
+            if($type == "physicsShape" || $type == "apexClothing")
+            {
+                simulationSets -i $shape $setName false;
+                print ("put " + $shape + " in " + $setName + "\n"); 
+            }
+                 
+        }
+    }
+    
+     SimSetsWinUI_refreshSimSetsTreeView($setsListTree);
+    
+    for($set in $sets)
+    {
+        treeView -edit -selectItem $set true $setsListTree;         
+    }
+}
+
+global proc SimSetsWinUI_onBtnRemoveClick(string $shapesListTree, string $setsListTree)
+{
+    print "Button Remove is clicked\n";
+    string $shapes[] = `treeView -q -si $setsListTree`;
+    if(size($shapes) == 0)
+    {
+        print "No object is selected!\n";
+        return;
+    }
+    
+    string $sets[];
+    for($shape in $shapes)
+    {
+        if(`treeView -q -isLeaf $shapes $setsListTree`)
+        {
+            string $name_array[] = stringToStringArray($shape, ":");
+			string $shapeName = $name_array[size($name_array) - 1];
+            string $set = `treeView -q -itemParent $shape $setsListTree`;
+            $sets[size($sets)] = $set;
+            int $setIdx = `simulationSets -si $set`;
+            if($setIdx == -1)
+            {
+                print ("Cannot find the simulation set " + $set);                 
+            }
+            else
+            {
+                simulationSets -o $shapeName $set;
+            }
+        
+        }
+        
+    }
+    
+    SimSetsWinUI_refreshSimSetsTreeView($setsListTree);
+    
+    for($set in $sets)
+    {
+        treeView -edit -selectItem $set true $setsListTree;         
+    }
+}
+
+global proc SimSetsWinUI_onBtnCloseClick()
+{
+    print "Button Close is clicked\n";
+    if (`window -exists SimSetsWin`) deleteUI SimSetsWin;
+}
+
+global proc SimSetsWinUI_onBtnNewSet()
+{
+    string $text;
+    string $result = `promptDialog
+        -title "New Simulation Set"
+        -message "Enter Name:"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+    
+    if ($result == "OK") 
+    {
+        $text = `promptDialog -query -text`;
+        simulationSets -c $text;
+    }
+
+	if (`window -exists SimSetsWin`)   
+		SimSetsWinUI_refreshSimSetsTreeView("setsListTree");
+}
+
+global proc SimSetsWinUI_onBtnRenameSet(string $setsListTree)
+{
+    string $sets[] = `treeView -q -si $setsListTree`;
+    if(size($sets) != 1)
+    {
+        print "Must select one simulation set!\n";
+        return;
+    }
+    
+    string $text;
+    string $result = `promptDialog
+        -title "Rename Simulation Set"
+        -message "Enter New Name:"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+    
+    if ($result == "OK") 
+    {
+        $text = `promptDialog -query -text`;
+        simulationSets -rn $sets[0] $text;
+    }
+    
+    SimSetsWinUI_refreshSimSetsTreeView($setsListTree);
+}
+
+global proc SimSetsWinUI_onBtnCloneSet(string $setsListTree)
+{
+    string $sets[] = `treeView -q -si $setsListTree`;
+    if(size($sets) != 1)
+    {
+        print "Must select one simulation set!\n";
+        return;
+    }
+    
+    string $text;
+    string $result = `promptDialog
+        -title "Clone Simulation Set"
+        -message "Enter Name:"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+    
+    if ($result == "OK") 
+    {
+        $text = `promptDialog -query -text`;
+        simulationSets -c $text;
+        string $objs[] = `simulationSets -lo $sets[0]`;
+        for($obj in $objs)
+        {            
+            simulationSets -i $obj $text false;
+        }
+    }
+    
+    SimSetsWinUI_refreshSimSetsTreeView($setsListTree);
+}
+
+global proc SimSetsWinUI_onBtnDeleteSet(string $setsListTree)
+{
+    string $sets[] = `treeView -q -si $setsListTree`;
+    if(size($sets) == 0)
+    {
+        print "Must select at least one simulation set!\n";
+        return;
+    }
+    
+    for($set in $sets)
+    {    
+        string $objs[] = `simulationSets -lo $set`;
+        for($obj in $objs)
+        {            
+            simulationSets -o $obj $set;
+        }
+        
+        simulationSets -d $set;         
+    }    
+    SimSetsWinUI_refreshSimSetsTreeView($setsListTree);
+}
+
+global proc createSimulationSetManagerWindow( string $curNode)
+{
+    string $mainLayout = "mainLayout";
+    string $upperLayout = "upperLayout";
+    string $leftLayout = "leftLayout";
+    string $middleLayout = "middleLayout";
+    string $rightLayout = "rightLayout";
+    string $bottomLayout = "bottomLayout";
+    string $shapesListTree = "shapesListTree";
+    string $setsListTree = "setsListTree";
+    string $btn_Add = "btnAddShapeToSet";
+    string $btn_Remove = "btnRemoveShapeFromSet";
+    string $btn_Close = "btnCloseWindow";
+    string $btn_new_set = "btnNewSet";
+    string $btn_rename_set = "btnRenameSet";  
+    string $btn_clone_set = "btnCloneSet";  
+    string $btn_delete_set = "btnDeleteSet";  
+    
+    if (`window -exists SimSetsWin`) deleteUI SimSetsWin;
+    	
+    window -title "SimulationSet Manager" -w 600 SimSetsWin;
+        formLayout -w 600 $mainLayout;
+            formLayout -w 600 $upperLayout;
+    
+                //The left side tree
+                frameLayout -label "Shapes" -borderStyle "in" $leftLayout;
+                    string $leftInternalForm = "leftInternalForm";
+                    formLayout -h 200 $leftInternalForm;
+                        string $menuDisplayFilter = "menuDisplayFilter";
+                        optionMenu -label "Display Filter" -changeCommand "SimSetsWinUI_refreshShapeTreeView" $menuDisplayFilter;
+                            menuItem -label "All";
+                            menuItem -label "Selected";
+                            menuItem -label "Dynamic Rigidbody";
+                            menuItem -label "Kinematic Rigidbody";
+                            menuItem -label "Static Rigidbody";
+                            menuItem -label "Clothing";
+                            //menuItem -label "Destructable";  
+                        
+                        treeView -abr false -h 200 $shapesListTree;                            
+    			        formLayout -e
+                                   -attachPosition $menuDisplayFilter  top     0 0
+                                   -attachPosition $menuDisplayFilter  left    5 0                                    
+                                   -attachPosition $menuDisplayFilter  right   0 100
+                                   -attachPosition $shapesListTree     bottom  0 100
+                                   -attachPosition $shapesListTree     left    5 0
+                                   -attachPosition $shapesListTree     right   0 100
+                                   -attachControl  $shapesListTree     top     2 $menuDisplayFilter
+                                   $leftInternalForm;
+                                            
+                    setParent ..; //To formLayout leftLayout
+                setParent ..; //To frameLayout upperLayout
+                
+    
+                //The middle column for buttons
+                formLayout -h 240 -w 100 $middleLayout;
+                    button -label "Add >>" $btn_Add;
+                    button -label "Remove" $btn_Remove; 
+                     
+                    formLayout -e
+                               -attachPosition  $btn_Add       top    0 40
+                               -attachPosition  $btn_Add       left   0 25
+                               -attachControl   $btn_Remove    top    2 $btn_Add
+                               -attachPosition  $btn_Remove    left   0 25
+                               $middleLayout;
+                   
+                setParent ..;  //To upperLayout
+                
+                //The right side tree        
+                frameLayout -label "Simulation Sets" -borderStyle "in" $rightLayout;
+                    string $setsInternalForm = "setsInternalForm";
+                    formLayout -h 200 $setsInternalForm;
+                        //Four buttons layout
+                        string $buttonsLayout = "buttonsLayout";
+                        rowLayout -nc 4 $buttonsLayout;
+                            button -label "New" $btn_new_set;
+                            button -label "Rename" $btn_rename_set;
+                            button -label "Clone" $btn_clone_set;
+                            button -label "Delete" $btn_delete_set;
+                        setParent ..; //To setsInnerForm
+    
+                        treeView -abr false -h 200 $setsListTree; 
+                                
+                        formLayout -e
+                                   -attachPosition $buttonsLayout top 0 0
+                                   -attachPosition $buttonsLayout left 5 0                                    
+                                   -attachPosition $buttonsLayout right 0 100
+                                   -attachPosition $setsListTree bottom 0 100
+                                   -attachPosition $setsListTree left 5 0
+                                   -attachPosition $setsListTree right 0 98
+                                   -attachControl $setsListTree top 2 $buttonsLayout
+                                   $setsInternalForm;
+                                            
+                     setParent ..; //To frameLayout rightLayout
+                 setParent ..; //To formLayout upperLayout                    
+                        
+                 formLayout -e
+                            -attachPosition  $leftLayout    left    0 0
+                            -attachControl   $leftLayout    right   0 $middleLayout
+                            -attachPosition  $leftLayout    top     0 0
+                            -attachPosition  $leftLayout    bottom  0 100
+                            -attachPosition  $middleLayout  left    5 43
+                            -attachPosition  $middleLayout  top     0 5
+                            -attachPosition  $middleLayout  bottom  0 90
+                            -attachControl   $rightLayout   left    0 $middleLayout
+                            -attachPosition  $rightLayout   right   0 100
+                            -attachPosition  $rightLayout   top     0 0
+                            -attachPosition  $rightLayout   bottom  0 100
+                            $upperLayout;
+            
+            setParent ..;  //To mainLayout  
+                                         
+            formLayout $bottomLayout;
+                button -label "Close" $btn_Close;  
+                formLayout -e
+                           -attachPosition  $btn_Close    right    0 100
+                           $bottomLayout;
+                             
+            formLayout -e 
+                       -attachPosition  $upperLayout    left    0  0 
+                       -attachPosition  $upperLayout    right   0  100 
+                       -attachPosition  $upperLayout    top     0  0 
+                       -attachControl   $upperLayout    bottom  10 $bottomLayout 
+                       -attachPosition  $bottomLayout   bottom  0  98 
+                       -attachPosition  $bottomLayout   left    0  0 
+                       -attachPosition  $bottomLayout   right   0  98 
+                       $mainLayout;
+    showWindow;        
+    fillShapesTree();
+    treeView -edit -removeAll "setsListTree";
+    fillSimulationSetsTree();
+    
+    string $selectItemCmd = "SimSetsWinUI_onTreeViewItemSelected(\""+$shapesListTree+"\")";
+    treeView -edit -selectionChangedCommand $selectItemCmd $shapesListTree;
+    
+    string $addCmd = "SimSetsWinUI_onBtnAddClick(\""+$shapesListTree+"\",\""+$setsListTree+"\")";
+    button -e -command $addCmd $btn_Add;
+    button -e -command ("SimSetsWinUI_onBtnRemoveClick(\""+$shapesListTree+"\",\""+$setsListTree+"\")") $btn_Remove;
+    button -e -command ("SimSetsWinUI_onBtnCloseClick()") $btn_Close;
+    
+    button -e -command ("SimSetsWinUI_onBtnNewSet") $btn_new_set;
+    button -e -command ("SimSetsWinUI_onBtnRenameSet(\""+$setsListTree+"\")")  $btn_rename_set;
+    button -e -command ("SimSetsWinUI_onBtnCloneSet(\""+$setsListTree+"\")")  $btn_clone_set;
+    button -e -command ("SimSetsWinUI_onBtnDeleteSet(\""+$setsListTree+"\")")  $btn_delete_set;
+
+	if($curNode != "")
+	{
+		print ("current node is " +$curNode + "\n");
+		if( `treeView -query -itemExists $curNode $shapesListTree`)
+			treeView -edit -selectItem $curNode true $shapesListTree;
+	}
+}

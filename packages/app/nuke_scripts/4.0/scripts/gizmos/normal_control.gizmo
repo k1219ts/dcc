@@ -1,0 +1,80 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ tile_color 0xff5594ff
+ note_font "Bitstream Vera Sans Bold Bold"
+ note_font_size 12
+ addUserKnob {20 con l control}
+ addUserKnob {7 xa l x_angle R 0 360}
+ addUserKnob {7 ya l y_angle R -90 90}
+ addUserKnob {26 ""}
+ addUserKnob {19 cc l color}
+ cc {{Constant3.color} {Constant3.color} {Constant3.color} {Constant3.color}}
+ addUserKnob {6 cc_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {26 ""}
+ addUserKnob {26 TAG l "made by" T 0=2}
+}
+ Constant {
+  inputs 0
+  channels rgb
+  color {{cos(radians(Polar_height))*cos(radians(equator_angle))} {sin(radians(Polar_height))} {cos(radians(Polar_height))*sin(radians(equator_angle))} 1}
+  name Constant3
+  xpos -703
+  ypos 280
+  addUserKnob {20 User}
+  addUserKnob {7 equator_angle l Equator_angle R 0 360}
+  equator_angle {{parent.xa}}
+  addUserKnob {7 Polar_height l Polar_Heilght R -90 90}
+  Polar_height {{parent.ya}}
+  addUserKnob {41 color_1 l color T Constant3.color}
+ }
+set N9f3d270 [stack 0]
+ Dot {
+  name Dot46
+  label "user 에 서 수치 조절"
+  note_font "DejaVu Sans Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic"
+  note_font_size 50
+  xpos -552
+  ypos 289
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos -864
+  ypos 224
+ }
+push $N9f3d270
+ Difference {
+  inputs 2
+  name Difference2
+  xpos -864
+  ypos 297
+ }
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle32
+  xpos -864
+  ypos 352
+ }
+ Invert {
+  name Invert2
+  xpos -864
+  ypos 411
+ }
+ Dot {
+  name Dot42
+  label "Nomal Alpha  Check"
+  note_font "DejaVu Sans Bold Italic Bold Italic Bold Italic Bold Italic Bold Italic"
+  note_font_size 50
+  note_font_color 0xffbf00ff
+  xpos -848
+  ypos 518
+ }
+ Output {
+  name Output1
+  xpos -864
+  ypos 618
+ }
+end_group

@@ -1,0 +1,215 @@
+#! /opt/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ inputs 3
+ addUserKnob {20 matte_layer}
+ addUserKnob {26 plates_choice}
+ addUserKnob {20 endGroup n -1}
+ addUserKnob {6 anamolpic_1 l 2048*858 +STARTLINE}
+ addUserKnob {6 namal l 2048*1080 -STARTLINE}
+ addUserKnob {6 anamolpic_2 l 2059*858 -STARTLINE}
+ addUserKnob {20 endGroup_1 l endGroup n -1}
+ addUserKnob {6 anamolpic_3 l 2592*1080 +STARTLINE}
+ addUserKnob {6 anamolpic_4 l 3072*1134 -STARTLINE}
+}
+ Input {
+  inputs 0
+  name B_other
+  xpos 481
+  ypos 5
+  number 2
+ }
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle3
+  xpos 481
+  ypos 31
+ }
+ Shuffle {
+  red black
+  green black
+  alpha black
+  name B
+  xpos 481
+  ypos 68
+ }
+ Input {
+  inputs 0
+  name G_character
+  xpos 444
+  ypos -535
+  number 1
+ }
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle2
+  xpos 444
+  ypos -509
+ }
+ Shuffle {
+  red black
+  blue black
+  alpha black
+  name G
+  xpos 444
+  ypos -440
+ }
+ Input {
+  inputs 0
+  name R_plate
+  xpos 470
+  ypos -1231
+ }
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle1
+  xpos 470
+  ypos -1183
+ }
+ Shuffle {
+  green black
+  blue black
+  alpha black
+  name R
+  xpos 470
+  ypos -1067
+ }
+set Ncf44eb0 [stack 0]
+ Dot {
+  name Dot3
+  xpos 486
+  ypos -988
+ }
+ Dot {
+  name Dot22
+  xpos 994
+  ypos -988
+ }
+ Merge2 {
+  inputs 2
+  name Merge1
+  xpos 975
+  ypos -440
+ }
+ Merge2 {
+  inputs 2
+  name Merge2
+  xpos 975
+  ypos 68
+ }
+set Ncdd71a0 [stack 0]
+ Dot {
+  name Dot5
+  xpos 497
+  ypos 275
+ }
+ Reformat {
+  type "to box"
+  format "2048 858 0 0 2048 858 1 DOK"
+  box_height 858
+  resize height
+  black_outside true
+  name Reformat4
+  label 2324*858
+  xpos 469
+  ypos 415
+ }
+push $Ncdd71a0
+ Dot {
+  name Dot2
+  xpos 620
+  ypos 273
+ }
+ Reformat {
+  type "to box"
+  box_width 2059
+  box_height 858
+  name Reformat2
+  label 2059*858
+  xpos 592
+  ypos 408
+ }
+set Ncc806c0 [stack 0]
+push $Ncc806c0
+push $Ncdd71a0
+ Dot {
+  name Dot1
+  xpos 755
+  ypos 283
+ }
+ Reformat {
+  type "to box"
+  box_width 2048
+  box_height 858
+  box_fixed true
+  name Reformat1
+  label 2048*858
+  xpos 727
+  ypos 412
+ }
+push $Ncdd71a0
+ Reformat {
+  format "2048 1080 0 0 2048 1080 1 2K_DCP"
+  box_width 2059
+  box_height 858
+  box_fixed true
+  name Reformat3
+  label 2048*1080
+  xpos 975
+  ypos 289
+ }
+ Switch {
+  inputs 2
+  which {{anamolpic_1}}
+  name Switch1
+  label 2048*858
+  xpos 975
+  ypos 412
+ }
+ Switch {
+  inputs 2
+  which {{anamolpic_2}}
+  name Switch2
+  label 2048*858
+  xpos 975
+  ypos 563
+ }
+ Switch {
+  inputs 2
+  which {{anamolpic_3}}
+  name Switch3
+  label 2048*858
+  xpos 975
+  ypos 715
+ }
+ Switch {
+  inputs 2
+  which {{anamolpic_4}}
+  name Switch4
+  label 2048*858
+  xpos 975
+  ypos 803
+ }
+set Ne03ccb0 [stack 0]
+ Output {
+  name Output1
+  xpos 975
+  ypos 1292
+ }
+push $Ne03ccb0
+push $Ncf44eb0
+ Viewer {
+  inputs 2
+  frame_range 1001-1407
+  viewerProcess "sRGB (ACES)"
+  name Viewer1
+  xpos 1037
+  ypos 1979
+ }
+end_group

@@ -1,0 +1,261 @@
+#! /opt/Nuke13.2v5/libnuke-13.2.5.so -nx
+version 13.2 v5
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="3840" y="254" w="2560" h="1307" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="2487" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1254"/>
+                <splitter orientation="1">
+                    <split size="1401"/>
+                    <splitter orientation="2">
+                        <split size="528"/>
+                        <dock id="" activePageId="Viewer.1">
+                            <page id="Viewer.2"/>
+                            <page id="Viewer.1"/>
+                        </dock>
+                        <split size="629"/>
+                        <splitter orientation="1">
+                            <split size="699"/>
+                            <dock id="" activePageId="Properties.1">
+                                <page id="Properties.1"/>
+                            </dock>
+                            <split size="698"/>
+                            <dock id="" activePageId="DAG.1">
+                                <page id="DAG.1"/>
+                            </dock>
+                        </splitter>
+                        <split size="89"/>
+                        <splitter orientation="1">
+                            <split size="1158"/>
+                            <dock id="" activePageId="Curve Editor.1">
+                                <page id="DopeSheet.1"/>
+                                <page id="Curve Editor.1"/>
+                            </dock>
+                            <split size="239"/>
+                            <dock id="" activePageId="Toolbar_CompToolbar.1">
+                                <page id="Toolbar_CompToolbar.1"/>
+                            </dock>
+                        </splitter>
+                    </splitter>
+                    <split size="1082"/>
+                    <splitter orientation="2">
+                        <split size="1254"/>
+                        <dock id="" activePageId="uk.co.thefoundry.scripteditor.2">
+                            <page id="com.adrianpueyo.KnobScripterPane"/>
+                            <page id="uk.co.thefoundry.scripteditor.2"/>
+                        </dock>
+                    </splitter>
+                </splitter>
+                <split size="0"/>
+                <dock id=""/>
+            </splitter>
+            <split size="25"/>
+            <dock id=""/>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name "/WORK_DATA/develop/__MY_TA__/일지/-11월-/13에 넣을 캐터리/BackgroundMatting.nk"
+ format "2048 1318 0 0 2048 1318 1 GOD"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ OCIO_config custom
+ customOCIOConfigPath /opt/Nuke14.0v2/plugins/OCIOConfigs/configs/cg-config-v1.0.0_aces-v1.3_ocio-v2.1.ocio
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+ luts {linear {}
+   sRGB {}
+   rec709 {}
+   Cineon {}
+   Gamma1.8 {}
+   Gamma2.2 {}
+   Gamma2.4 {}
+   Gamma2.6 {}
+   Panalog {}
+   REDLog {}
+   ViperLog {}
+   AlexaV3LogC {}
+   PLogLin {}
+   SLog {}
+   SLog1 {}
+   SLog2 {}
+   SLog3 {}
+   CLog {}
+   Log3G10 {}
+   Log3G12 {}
+   HybridLogGamma {}
+   Protune {}
+   BT1886 {}
+   st2084 {}
+   "Blackmagic Film Generation 5" {}
+   ARRILogC4 {}
+   REDSpace {}
+   cineon2 {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}}
+}
+Group {
+ inputs 0
+ name BackgroundMatting
+ onCreate "import sys\nthis = nuke.thisNode()\ninference = nuke.toNode(f\"\{this.name()\}.Inference1\")\nthis\[\"gpuName\"].setValue(inference\[\"gpuName\"].value())\nthis\[\"channelsIn\"].setValue(\"rgba.red, rgba.green, rgba.blue\")\ninference.forceValidate()\nis_enabled = inference\[\"modelFile\"].enabled()\nif (sys.platform.lower() == \"darwin\") and (not inference\[\"useGPUIfAvailable\"].enabled()): this\[\"useGPUIfAvailable\"].setValue(False), this\[\"useGPUIfAvailable\"].setEnabled(False)\nif not is_enabled:\n    for k in this.knobs(): this\[k].setEnabled(False)\nthis\[\"halfPrecision\"].setVisible(this\[\"useGPUIfAvailable\"].enabled())"
+ onDestroy "nuke.thisNode()\[\"knobChanged\"].setValue(\"\")"
+ knobChanged "this = nuke.thisNode()\nthis\[\"halfPrecision\"].setVisible(this\[\"useGPUIfAvailable\"].value())"
+ xpos -25
+ ypos 78
+ addUserKnob {20 BackgroundMatting}
+ addUserKnob {26 localGPU l "Local GPU:" T ""}
+ addUserKnob {26 gpuName l "" -STARTLINE T "Not available"}
+ addUserKnob {6 useGPUIfAvailable l "Use GPU if available" t "Select this to render on the <b>Local GPU</b>, if available.\n\nYou can select this even if no GPU is currently available on your machine. The GPU will then be used whenever the script is opened on a machine which does have a GPU available. You should also select this if you wish to render from the command line with the <b>--gpu</b> option.\n\nIf this node requires full frames from its inputs, and is therefore unable to reduce its memory overhead, it will fall back to the CPU if an attempt to render a frame on the GPU fails due to lack of memory. When this occurs, a warning message will be printed to the console." +STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {26 channelsIn l "Channels In:" t "The channels the model expects as input." T "rgba.red, rgba.green, rgba.blue"}
+ addUserKnob {41 in_colorspace l "Input Colorspace" t "Define the colorspace that the input image is in." T OCIOColorSpace1.in_colorspace}
+ addUserKnob {6 halfPrecision l "Optimize for Speed and Memory" t "Whether to process at half float precision. This speeds up execution and enables the processing of larger images, however there is the risk of artifacts with some trained models." +HIDDEN +STARTLINE}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 783
+  ypos 33
+ }
+set Na809b50 [stack 0]
+ Dot {
+  name Dot10
+  xpos 1050
+  ypos 43
+ }
+set N1b12ca50 [stack 0]
+ Assert {
+  expression 0
+  message "The CleanPlate is missing rgb"
+  name Assert2
+  xpos 1346
+  ypos 165
+ }
+push $N1b12ca50
+ Assert {
+  expression 0
+  message "The input stream is missing rgb"
+  name Assert1
+  xpos 1161
+  ypos 168
+ }
+push $N1b12ca50
+ Assert {
+  expression 0
+  message "The Input and CleanPlate are missing rgb"
+  name Assert3
+  xpos 1012
+  ypos 167
+ }
+ Switch {
+  inputs 3
+  which {{"\[python \{len(nuke.toNode('Input1').channels())\}] == 0 && \[python \{len(nuke.toNode('CleanPlate').channels())\}] == 0? 0 : \[python \{len(nuke.toNode('Input1').channels())\}] != 0 && \[python \{len(nuke.toNode('CleanPlate').channels())\}] == 0 ? 2 :  \[python \{len(nuke.toNode('Input1').channels())\}] == 0 && \[python \{len(nuke.toNode('CleanPlate').channels())\}] != 0 ? 1 : 0"}}
+  name Switch1
+  xpos 1012
+  ypos 274
+ }
+push $Na809b50
+ OCIOColorSpace {
+  in_colorspace scene_linear
+  out_colorspace color_picking
+  name OCIOColorSpace1
+  knobChanged "nuke.toNode(\"OCIOColorSpace2\")\[\"out_colorspace\"].setValue(nuke.thisNode()\[\"in_colorspace\"].value())"
+  xpos 783
+  ypos 103
+ }
+ set C1aff63f0 [stack 0]
+set N1aff63f0 [stack 0]
+ Dot {
+  name Dot1
+  xpos 934
+  ypos 114
+ }
+ Dot {
+  name Dot2
+  xpos 925
+  ypos 437
+ }
+ Input {
+  inputs 0
+  name CleanPlate
+  xpos 593
+  ypos 32
+  number 1
+ }
+clone $C1aff63f0 {
+  xpos 593
+  ypos 103
+  selected false
+ }
+ Dot {
+  name Dot3
+  xpos 631
+  ypos 180
+ }
+push $N1aff63f0
+ Shuffle2 {
+  inputs 2
+  fromInput1 {{0} B A}
+  fromInput2 {{1} B A}
+  in2 rgba
+  out2 motion
+  mappings "8 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 black -1 -1 rgba.alpha 0 3 black -1 -1 backward.v 1 3 rgba.red 1 0 forward.u 1 0 rgba.green 1 1 forward.v 1 1 rgba.blue 1 2 backward.u 1 2"
+  name Shuffle3
+  xpos 783
+  ypos 171
+ }
+ Inference {
+  useGPUIfAvailable {{parent.useGPUIfAvailable}}
+  modelFile /backstage/dcc/packages/app/nuke_scripts/4.0/scripts/Cattery/BackgroundMatting/background_matting.cat
+  halfPrecision {{parent.halfPrecision}}
+  serialiseKnob {}
+  name Inference1
+  selected true
+  xpos 783
+  ypos 252
+ }
+ Shuffle2 {
+  inputs 2
+  fromInput1 {{1} B A}
+  in1 rgb
+  out1 rgb
+  fromInput2 {{0} B A}
+  in2 alpha
+  out2 alpha
+  mappings "4 rgba.red 0 0 rgba.red 0 0 rgba.green 0 1 rgba.green 0 1 rgba.blue 0 2 rgba.blue 0 2 rgba.alpha 1 0 rgba.alpha 1 0"
+  name Shuffle1
+  xpos 774
+  ypos 426
+ }
+ OCIOColorSpace {
+  in_colorspace color_picking
+  out_colorspace scene_linear
+  name OCIOColorSpace2
+  xpos 774
+  ypos 485
+ }
+ Switch {
+  inputs 2
+  which {{"\[python \{len(nuke.toNode('Input1').channels())\}] == 0 || \[python \{len(nuke.toNode('CleanPlate').channels())\}] == 0? 1:0"}}
+  name Switch2
+  xpos 1003
+  ypos 485
+ }
+ Output {
+  name Output1
+  xpos 1003
+  ypos 566
+ }
+end_group

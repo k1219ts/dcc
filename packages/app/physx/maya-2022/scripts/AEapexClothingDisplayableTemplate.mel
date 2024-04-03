@@ -1,0 +1,68 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+source "nxPhysicalMaterialSetLayout.mel";
+
+global proc AEapexClothingDisplayable_GoToClothing_command(string $node)
+{
+	string $connects[] = `listConnections -t "apexClothing" ($node + ".relativeApexClothing")`;
+	int $connectcount = `size $connects`;
+	if($connectcount == 0)
+	{
+		warning ("no apexClothing node found on " + $node + "\n");
+		return;
+	}
+	string $apexClothing = $connects[0];
+	select -r $apexClothing;
+	nxShowEditorExact $apexClothing;
+}
+
+global proc AEapexClothingDisplayable_GeneralNew(string $plug)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	
+	rowLayout -numberOfColumns 2;
+	text "";
+	button -label "Edit Clothing" 
+		"AEapexClothingDisplayable_GoToClothing";
+	setParent..;
+
+	setUITemplate -ppt;
+
+	AEapexClothingDisplayable_GeneralReplace($plug);
+}
+
+global proc AEapexClothingDisplayable_GeneralReplace(string $plug)
+{
+	string $buff[];
+	tokenize($plug, ".", $buff);
+	string $node = $buff[0];
+
+	string $cmd = ("AEapexClothingDisplayable_GoToClothing_command(\"" + $node + "\")" );
+	button -e -command $cmd "AEapexClothingDisplayable_GoToClothing";
+
+	AEapexClothingDisplayable_GoToClothing_command $node;
+}
+
+global proc AEapexClothingDisplayableTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;
+
+	editorTemplate -beginLayout "General" -collapse false;	
+	editorTemplate -callCustom "AEapexClothingDisplayable_GeneralNew" 
+		"AEapexClothingDisplayable_GeneralReplace" $nodeName;
+	editorTemplate -endLayout;
+
+	string $attrs[] = `attributeInfo -all -type apexClothingDisplayable`;
+	for($attr in $attrs)
+	{
+		editorTemplate -suppress $attr;
+	}
+
+	editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}

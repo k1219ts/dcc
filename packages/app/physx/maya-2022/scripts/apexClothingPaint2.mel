@@ -1,0 +1,2223 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+// this is defined in float.h
+//define FLT_MAX 3.402823466e+38F // max value
+global float $MAX_FLOAT = 3.402823466e+38;
+global float $MIN_FLOAT = -3.402823466e+38;
+
+//global string $apexClothingPaint2_Tool = "artApexClothingPaint";
+global string $apexClothingPaint2_Context = "";//"apexClothingPaintContext";
+global string $apexClothingPaint2_ColorSet = "apexTmpClothingColorSet";
+global string $apexClothingPaint2_Controls = "apexClothingPaint2_Window";
+
+global string	$apexClothingPaint2_AttributeName;
+global string	$apexClothingPaint2_AttributeNameUI;
+global int		$apexClothingPaint2_AttributeId;
+global string	$apexClothingPaint2_AttributeName_MaxDistance = "maxDistances";
+global int		$apexClothingPaint2_AttributeId_MaxDistance = 1;
+global string	$apexClothingPaint2_AttributeName_LatchToNearest = "latchToNearest";
+global int		$apexClothingPaint2_AttributeId_LatchToNearest = 2;
+global string	$apexClothingPaint2_AttributeName_BackStopOffset = "backStopOffset";
+global int		$apexClothingPaint2_AttributeId_BackStopOffset = 3;
+global string	$apexClothingPaint2_AttributeName_BackStopRadius = "backStopRadius";
+global int		$apexClothingPaint2_AttributeId_BackStopRadius = 4;
+global string	$apexClothingPaint2_AttributeName_VertexSelection = "vertexSelection";
+global int		$apexClothingPaint2_AttributeId_VertexSelection = 5;
+
+global string $apexClothingPaint2_GreyRangeMinName;
+global string $apexClothingPaint2_GreyRangeMaxName;
+global string $apexClothingPaint2_PaintValueName;
+
+global int $apexClothingPaint2_SpecialValueMode_Disabled = 0;
+global int $apexClothingPaint2_SpecialValueMode_NoEffect = 1;
+global int $apexClothingPaint2_SpecialValueMode = 0;
+
+global string $apexClothingPaint2_formerOpMode = "absolute";  //brush operation "absolute" "additive" "scale" "smooth" 
+
+global string $apexClothingPaint2_VisMode_Off = "Off";
+global string $apexClothingPaint2_VisMode_Lines = "Lines";
+global string $apexClothingPaint2_VisMode_Sphere_PointCloud = "Sphere PointCloud";
+global string $apexClothingPaint2_VisMode_Sphere_Frame = "Sphere Frame";
+global string $apexClothingPaint2_VisMode_Sphere_Solid = "Sphere Solid";
+
+global int $apexClothingPaint2_StampSolid_Enabled = 0;
+global float $apexClothingPaint2_StampSolid_Value = 0.0;
+
+global string $apexClothingPaint2_ModelEditor;
+global int $apexClothingPaint2_On = 0;
+global string $apexClothingNodePainting = "";
+
+global string $apexClothingPaint2_MeshName;
+global string $apexClothingPaint2_ClothingName;
+global int $bPaintCustomMesh = 0;
+global int $bPaintClothingMeshHide = 0;  // 0 : display
+global int $bPaintCustomMeshHide = 1;    // 1 : not display
+
+global int $apexClothingPaint2_GraphicalLodSparseIndex;
+
+global string $apexClothingPaint2_OldDisplayAppearance;
+global string $apexClothingPaint2_OldMeshColorSet;
+global int $apexClothingPaint2_OldMeshShading;
+global string $apexClothingPaint2_OldMaterialBlend;
+global string $apexClothingPaint2_OldMaterialChannel;
+global int $apexClothingPaint2_OldPolygonDoubleSided;
+global int $apexClothingPaint2_OldPolygonOpposite;
+global string $apexClothingPaint2_OldFloodCmd = "";
+global int $apexShowSmoothFloodWarning = true;
+
+global string $apexClothingPaint2_LatchToNearestGroupItems[];
+
+global float $physXPaintToolCleanupTime = 0;
+
+eval("source \"artAttrCallback.mel\";");		// REQUIRED FOR PAINTER SYSTEM!
+eval("source \"apexClothingMiscellaneous.mel\";"); //REQUIRED TO USE getApexClothingFromMesh()
+
+$apexClothingPaint2_AttributeName = $apexClothingPaint2_AttributeName_MaxDistance;
+$apexClothingPaint2_AttributeNameUI = $apexClothingPaint2_AttributeName;
+$apexClothingPaint2_AttributeId = $apexClothingPaint2_AttributeId_MaxDistance;
+$apexClothingPaint2_SpecialValueMode = $apexClothingPaint2_SpecialValueMode_Disabled;
+
+//global string $apexClothingPaint2_RestoreSelection[];
+
+global proc artUserPaintCreateSetupFrame( 
+	string 	$parent,
+	string  $currTool
+)
+{
+	setUITemplate -pushTemplate OptionsTemplate;
+	setParent $parent;
+	
+	columnLayout;
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kToolSetupCmd"))  toolSetupTextField; 
+	
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kToolCleanupCmd"))  toolCleanupTextField; 
+	separator -h 20 -style "none";
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kGetSurfaceCmd"))  getSrfTextField; 
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kGetArrayAttrCmd"))  getArrayAttrTextField; 
+	separator -h 20 -style "none";
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kInitializeCmd"))  initTextField; 
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kFinalizeCmd"))  finalizeTextField; 
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kSetValueCmd"))  setValueTextField; 
+	textFieldGrp  -label (uiRes("m_artUserPaintProperties.kGetValueCmd"))  getValueTextField; 
+	separator -h 20 -style "none";
+	checkBoxGrp -ncb 1 -label (uiRes("m_artUserPaintProperties.kSendFullPaths"))  
+					   -label1 (uiRes("m_artUserPaintProperties.kOnOff"))  
+					    fullPathsChkBox;
+	
+	setParent ..;
+	setParent ..;
+
+	setUITemplate -popTemplate;		 
+}
+
+// =======================================================
+// Main Procedure.
+// =======================================================
+global proc artUserPaintProperties()
+{
+	apexClothingPaint2_HookPaintScriptsToolUI;
+}
+
+global proc apexClothingPaint2_OnOff_bySelection()
+{
+	print( "[apexClothingPaint2_OnOff_bySelection]\n");
+
+	string $meshes[] = getSelectedMeshes();
+	for ( $mesh in $meshes )
+	{
+		// find the clothing node name first
+		string $clothingNode = getApexClothingFromMesh( $mesh );
+		if ( $clothingNode != "" )
+		{
+			print( "[apexClothingPaint2_OnOff_bySelection] Clothing Node Name: " + $clothingNode + "\n" );
+			
+			apexClothingPaint2_OnOff($clothingNode);
+			return;;
+		}
+	}
+}
+
+global proc apexClothingPaint2_Read_PaintValue()
+{
+	global int $apexClothingPaint2_PaintValueInitialized;
+	// When initializing paint value slider, the slider is changed by Maya inside by artUserPaintCtx. We should ignore this.
+	if($apexClothingPaint2_PaintValueInitialized == 0)
+	{
+		$apexClothingPaint2_PaintValueInitialized = 1;
+		return;
+	}
+	global string $apexClothingPaint2_AttributeName;
+	global string $apexClothingPaint2_AttributeNameUI;
+	global string $apexClothingPaint2_PaintValueName;
+	$apexClothingPaint2_PaintValueName = "apexClothingPaint2_PaintValue_" + $apexClothingPaint2_AttributeNameUI;
+	if(`control -exists artAttrValueSlider` )
+	{
+		float $paintValue = `floatSliderGrp -q -v "artAttrValueSlider"`;
+		optionVar -floatValue $apexClothingPaint2_PaintValueName $paintValue;
+	}
+}
+
+global proc apexClothingPaint2_Update_VisibleRangeControl()
+{
+	global string $apexClothingPaint2_GreyRangeMinName;
+	global string $apexClothingPaint2_GreyRangeMaxName;
+	global string $apexClothingPaint2_Context;
+	float $lower = `optionVar -q $apexClothingPaint2_GreyRangeMinName`;
+	float $upper = `optionVar -q $apexClothingPaint2_GreyRangeMaxName`;
+
+	floatFieldGrp -e -value1 $lower apexClothingPaint2_VisibleRangeControl;
+	floatFieldGrp -e -value2 $upper apexClothingPaint2_VisibleRangeControl;
+
+	artUserPaintCtx -edit
+		-minvalue $lower
+		-maxvalue $upper
+		$apexClothingPaint2_Context;
+}
+
+global proc apexClothingPaint2_Update_PaintValue()
+{
+	global string $apexClothingPaint2_AttributeName;
+	global string $apexClothingPaint2_AttributeNameUI;
+	global string $apexClothingPaint2_PaintValueName;
+	$apexClothingPaint2_PaintValueName = "apexClothingPaint2_PaintValue_" + $apexClothingPaint2_AttributeNameUI;
+	if(`control -exists artAttrValueSlider` &&
+		`optionVar -exists $apexClothingPaint2_PaintValueName` )
+	{
+		float $value = `optionVar -q $apexClothingPaint2_PaintValueName`;
+		evalDeferred ("artUserPaintCtx -e -value " +  $value + " `currentCtx`");
+	}
+}
+
+global proc apexClothingStopPainting()
+{
+	global string $apexClothingNodePainting;
+	global int $apexClothingPaint2_On;
+	if($apexClothingPaint2_On == 1)
+	{
+		if($apexClothingNodePainting != "")
+		{
+			apexClothingPaint2_End($apexClothingNodePainting);
+		}
+		$apexClothingPaint2_On = 0;
+	}
+}
+
+global proc apexClothingPaint2_Start( string $clothingNode )
+{
+	print( "[apexClothingPaint2_Start] BEGIN\n");
+
+	global string $apexClothingNodePainting;
+	
+	global int $bPaintCustomMesh;
+	global int $bPaintClothingMeshHide;
+	global int $bPaintCustomMeshHide;
+	global string $apexClothingPaint2_MeshName;
+
+	int $bPaintCustomMeshPre = $bPaintCustomMesh;
+
+	$bPaintCustomMesh = 0;     // clear this flag
+
+	global string $apexClothingPaint2_ClothingName;
+
+	//global string $apexClothingPaint2_Tool;
+	global string $apexClothingPaint2_Context;
+
+	global int $apexClothingPaint2_On;
+
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+	global int $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value;
+	global string $lastPaintingChannel;
+	global string $apexClothingPaint2_AttributeName_LatchToNearest;
+	global string $apexClothingPaint2_MeshNameGraphics;
+	global string $apexClothingPaint2_MeshNameCustom;	
+
+	$apexClothingPaint2_ClothingName = $clothingNode;
+	$apexClothingPaint2_GraphicalLodSparseIndex = `getAttr ($clothingNode + ".currentGraphicalLOD")`;
+	print( "[apexClothingPaint2_Start] Clothing GFX LOD Mesh Index: "+$apexClothingPaint2_GraphicalLodSparseIndex+"\n");
+
+	int $style = `getAttr ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "].lodPhysicalMeshStyle")`;
+	$apexClothingPaint2_MeshName = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $apexClothingPaint2_ClothingName, $apexClothingPaint2_GraphicalLodSparseIndex );
+	$apexClothingPaint2_MeshNameGraphics = $apexClothingPaint2_MeshName;
+	$customMeshPaintablePlug = ($apexClothingPaint2_ClothingName+".lodCompoundAttributes["+$apexClothingPaint2_GraphicalLodSparseIndex+"]."+"lodCustomMeshPaintable");
+	int $bPaintable = `getAttr $customMeshPaintablePlug`;
+	string $customPhysicalMeshes[] = `listConnections -source true -shapes true ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "].lodManualPhysicalMeshIn")`;
+	int $bCustomPaintable = ( size( $customPhysicalMeshes ) > 0 && $bPaintable && ($style == $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value) );
+
+	{
+		string $meshParentCustom;
+		string $meshParentClothing;
+
+		//global string $apexClothingPaint2_RestoreSelection[];
+		
+		//$apexClothingPaint2_RestoreSelection = `ls -long -selection`;
+		$apexClothingPaint2_MeshNameCustom="";
+		print ("$lastPaintingChannel = " + $lastPaintingChannel + "\n");
+		if ( $bCustomPaintable)  // paintable does not mean painting to custom mesh because latch is not on custom mesh
+		{
+			$apexClothingPaint2_MeshNameCustom = $customPhysicalMeshes[0];
+			if($lastPaintingChannel != $apexClothingPaint2_AttributeName_LatchToNearest)
+			{
+				$bPaintCustomMesh = 1;
+				$apexClothingPaint2_MeshName = $apexClothingPaint2_MeshNameCustom;
+			}
+			print "[apexClothingPaint2_Start] use custom physical mesh.\n";
+		}
+		print( "[apexClothingPaint2_Start] Clothing GFX LOD Mesh Name: "+$apexClothingPaint2_MeshName+"\n");
+
+
+		if($apexClothingPaint2_MeshName == "")
+		{
+			//no mesh = toggle off
+			warning( "Could not find a valid mesh with clothing to paint on.  Exiting Painter." );
+			print( "[apexClothingPaint2_Start] END\n");
+			evalDeferred( "apexClothingPaint2_End( \"" + $clothingNode + "\" )" );
+			return;
+		}
+    
+		// to be able to paint on this LOD meshes, if different than true selection, it must be selected before the paint tool is setup
+		string $meshParent = `firstParentOf $apexClothingPaint2_MeshName`;
+		print ( "[apexClothingPaint2_Start] Ensure mesh parent is selected: " + $meshParent + "\n");
+		select -replace $meshParent;
+		
+		$bPaintCustomMeshHide = 1;
+		if($bCustomPaintable)
+		{
+			$meshParentCustom = `firstParentOf $apexClothingPaint2_MeshNameCustom`;
+			$bPaintCustomMeshHide = getAttr ($meshParentCustom + ".intermediateObject");
+		}
+		$meshParentClothing = `firstParentOf $apexClothingPaint2_MeshNameGraphics`;
+		$bPaintClothingMeshHide = getAttr ($meshParentClothing + ".intermediateObject");
+		print ("$meshParentCustom=" + $meshParentCustom + ", $meshParentClothing=" + $meshParentClothing + "\n");
+		if($bPaintCustomMesh)
+		{
+			setAttr ($meshParentClothing + ".intermediateObject") true;
+			// un-hide paintible custom physical mesh
+			setAttr ($meshParentCustom + ".intermediateObject") false;
+		}
+		else
+		{
+			setAttr ($meshParentClothing + ".intermediateObject") false;
+
+			// hide paintible custom physical mesh
+			if($bCustomPaintable)
+			{
+				setAttr ($meshParentCustom + ".intermediateObject") true;
+			}
+
+			// hide all meshes except the one to be painted
+			apexClothing_ShowAllLodMeshes( $apexClothingPaint2_ClothingName, false );
+		}
+	
+		//modify mesh settings to paint nicely.
+		apexClothingPaint2_MeshInit();
+		
+		//if (! `artAttrTool -exists $apexClothingPaint2_Tool`) 
+		//	artAttrTool -add $apexClothingPaint2_Tool;
+
+		//if (!`artUserPaintCtx -exists $apexClothingPaint2_Context`) 
+		//{
+		//	artUserPaintCtx -whichTool $apexClothingPaint2_Tool $apexClothingPaint2_Context;
+		//	rememberCtxSettings $apexClothingPaint2_Context;
+		//}
+
+		//setToolTo $apexClothingPaint2_Context;
+		
+		evalDeferred( "apexClothingPaint2_deferredStart()" );
+		$apexClothingPaint2_On = 1;
+		$apexClothingNodePainting = $clothingNode;
+
+		print( "[apexClothingPaint2_Start] END\n");
+	}
+	// keep attribte editor for clothing node
+	select -add $clothingNode;
+}
+
+global proc apexClothingPaint2_End( string $clothingNode )
+{
+	print( "[apexClothingPaint2_End] BEGIN\n");
+
+	global string $apexClothingNodePainting;
+	
+	global int $bPaintCustomMesh;
+	global int $bPaintClothingMeshHide;
+	global int $bPaintCustomMeshHide;
+	global string $apexClothingPaint2_MeshName;
+
+	int $bPaintCustomMeshPre = $bPaintCustomMesh;
+
+	$bPaintCustomMesh = 0;     // clear this flag
+
+	global string $apexClothingPaint2_ClothingName;
+
+	//global string $apexClothingPaint2_Tool;
+	global string $apexClothingPaint2_Context;
+
+	global int $apexClothingPaint2_On;
+
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+	global int $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value;
+	global string $lastPaintingChannel;
+	global string $apexClothingPaint2_AttributeName_LatchToNearest;
+	global string $apexClothingPaint2_MeshNameGraphics;
+	global string $apexClothingPaint2_MeshNameCustom;	
+
+	if($apexClothingPaint2_ClothingName == "")
+		return;
+
+	// remember the paint Op mode
+	global string $apexClothingPaint2_formerOpMode;
+	$apexClothingPaint2_formerOpMode = `artUserPaintCtx -q -selectedattroper $apexClothingPaint2_Context`;
+
+	int $iExist = `objExists $apexClothingPaint2_ClothingName`;
+	if($iExist == 0)
+	{
+		$apexClothingPaint2_ClothingName = "";
+		$apexClothingPaint2_On = 0;
+		$apexClothingNodePainting = "";
+		print( "[apexClothingPaint2_End] END2\n");
+		return;
+	}
+	
+	//$apexClothingPaint2_ClothingName = $clothingNode;
+	//$apexClothingPaint2_GraphicalLodSparseIndex = `getAttr ($clothingNode + ".currentGraphicalLOD")`;
+	print( "[apexClothingPaint2_End] Clothing GFX LOD Mesh Index: "+$apexClothingPaint2_GraphicalLodSparseIndex+"\n");
+
+	int $style = `getAttr ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "].lodPhysicalMeshStyle")`;
+	//$apexClothingPaint2_MeshName = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $apexClothingPaint2_ClothingName, $apexClothingPaint2_GraphicalLodSparseIndex );
+	//$apexClothingPaint2_MeshNameGraphics = $apexClothingPaint2_MeshName;
+	$customMeshPaintablePlug = ($apexClothingPaint2_ClothingName+".lodCompoundAttributes["+$apexClothingPaint2_GraphicalLodSparseIndex+"]."+"lodCustomMeshPaintable");
+	int $bPaintable = `getAttr $customMeshPaintablePlug`;
+	string $customPhysicalMeshes[] = `listConnections -source true -shapes true ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "].lodManualPhysicalMeshIn")`;
+	int $bCustomPaintable = ( size( $customPhysicalMeshes ) > 0 && $bPaintable && ($style == $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value) );
+
+	{
+		if($bCustomPaintable)
+		{
+			string $meshParentCustom = `firstParentOf $apexClothingPaint2_MeshNameCustom`;
+			// restore display mode of the custom physical mesh
+			setAttr ($meshParentCustom + ".intermediateObject") $bPaintCustomMeshHide;
+		}
+
+		// restore display mode of the LOD
+		string $meshParentClothing = `firstParentOf $apexClothingPaint2_MeshNameGraphics`;
+		setAttr ($meshParentClothing + ".intermediateObject") $bPaintClothingMeshHide;
+
+		apexClothingPaint2_Read_PaintValue();
+
+		// this was expected to be setted up as 0 in apexClothingPaint2_ToolCleanup which is invoked when exit
+		// However, "Modify->Paint Sctipts Tool" option doesn't invoke apexClothingPaint2_ToolCleanup
+		$apexClothingPaint2_On = 0;
+		$apexClothingNodePainting = "";
+
+		global string $gSelect; //global selection
+    	setToolTo $gSelect;	// exit paint: it will triger callback apexClothingPaint2_ToolCleanup
+		nxShowEditorExact( $apexClothingPaint2_ClothingName );
+
+		print( "[apexClothingPaint2_End] END\n");
+	}
+	// keep attribte editor for clothing node
+	select -add $clothingNode;
+}
+
+global proc apexClothingPaint2_OnOff( string $clothingNode )
+{
+	print( "[apexClothingPaint2_OnOff] BEGIN\n");
+
+	if($clothingNode == "")
+	{
+		$clothingNode = physxFindFocusFromSelection();
+
+		if ( $clothingNode != "" )
+		{
+			setAttributeEditorVisible 1;
+			showEditorExact $clothingNode;
+		}
+	}
+
+	global int $apexClothingPaint2_On;
+	global string $apexClothingPaint2_ClothingName;
+
+	$apexClothingPaint2_ClothingName = $clothingNode;
+
+	if ( 0 == $apexClothingPaint2_On )
+	{
+		apexClothingPaint2_Start $clothingNode;
+	}
+	else
+	{
+		apexClothingPaint2_End $clothingNode;
+	}
+	print( "[apexClothingPaint2_OnOff] End\n");
+}
+
+global proc apexClothingPaint2_deferredStart()
+{
+	global string $apexClothingPaint2_Context;
+
+	//ScriptPaintTool;          // this one is not supported in some Maya
+	artUserPaintToolScript 4;   // use this one instead
+
+	//make sure it is open
+	toolPropertyWindow -inMainWindow true;
+    updateMainWindowComponentState();
+
+	/*
+	evalDeferred("apexClothingPaint2_HookPaintScriptsToolUI");
+	*/
+
+	$apexClothingPaint2_Context = `currentCtx`;
+	artUserPaintCtx -e -toolSetupCmd "apexClothingPaint2_ToolSetup" $apexClothingPaint2_Context;
+}
+
+// This is from Maya scripts artUserPaintProperties
+global proc apexClothingPaint2_HookPaintScriptsToolUI()
+{
+	string $parent =`toolPropertyWindow -q -location`;
+	string $layout = $parent + "|artUserPaint";
+
+	if(!`columnLayout -q -exists $layout`)
+	{
+	// Base Artisan (applicable to all Artisan tools) properties.
+	source "artisanProperties.mel";
+	source "artisanCallback.mel";
+
+	source "artAttrProperties.mel";
+	source "artUserPaintCallback.mel";
+
+	string	$currContext = `currentCtx`;
+	string	$currTool	 = `contextInfo -c $currContext`;
+
+	setUITemplate -pushTemplate DefaultTemplate;
+
+	/*
+	string $parent =`toolPropertyWindow -q -location`;
+	*/
+	setParent $parent;
+
+	/*
+	$parent += "|artUserPaint";
+
+	// Delete all UI controls created by Maya itself
+	if(`columnLayout -q -exists $parent`)
+ 		deleteUI $parent;
+	*/
+	columnLayout -adj true artUserPaint;
+
+	// Brush frameLayout.
+	frameLayout -label (uiRes("m_artUserPaintProperties.kBrush")) 
+		-collapsable true -collapse false
+		artUserPaintBrushFrame;
+
+		// Create brush option menu.
+		artisanCreateBrushFrame( "artUserPaintBrushFrame", $currTool );
+	setParent ..;
+
+	frameLayout -label (uiRes("m_artUserPaintProperties.kPaintAttributes")) 
+       	-collapsable true -collapse false
+       	artCommonOperationFrame;
+
+		setUITemplate -pushTemplate OptionsTemplate;
+		setParent artCommonOperationFrame;
+		columnLayout;
+
+		// Put all the common stuff.
+		apexArtAttrCreateCommonProperties();
+
+		setParent ..;
+		setUITemplate -popTemplate;		 
+	setParent ..;
+		
+	// Paint Visualizer framelayout.
+	//
+	frameLayout -l (uiRes("m_apexClothingPaint.kPaintVisualizer")) -collapsable true -collapse false;
+	columnLayout;
+	{					
+		global string $apexClothingPaint2_VisMode_Off;
+		global string $apexClothingPaint2_VisMode_Lines;
+		global string $apexClothingPaint2_VisMode_Sphere_Frame;
+		global string $apexClothingPaint2_VisMode_Sphere_Solid;
+		global string $apexClothingPaint2_ClothingName;
+		optionMenuGrp -label (uiRes("m_apexClothingPaint.kVisualizationMode"))
+			-cc ("apexClothingPaint2_VertexVisualizerChanged()") 
+			apexClothingPaint2_ShowVertexVisualizerMenuGrp;
+			menuItem -label $apexClothingPaint2_VisMode_Off;
+			menuItem -label $apexClothingPaint2_VisMode_Lines;
+			menuItem -label $apexClothingPaint2_VisMode_Sphere_Frame;
+			menuItem -label $apexClothingPaint2_VisMode_Sphere_Solid;
+		global string $apexClothingPaint2_PaintVisualizerMode;
+		if( `optionVar -exists $apexClothingPaint2_PaintVisualizerMode`)
+		{
+			string $visMode = `optionVar -q $apexClothingPaint2_PaintVisualizerMode`;
+			optionMenuGrp -e -value $visMode apexClothingPaint2_ShowVertexVisualizerMenuGrp;
+		}
+		
+		apexClothingPaint2_VertexVisualizerChanged();
+		    
+		floatSliderGrp -label "Scale"
+			-field true
+			-min 0.0
+			-precision 3 
+			-step 0.01 
+			-changeCommand ("setAttr "+$apexClothingPaint2_ClothingName+".drawingScaled #1;refresh();")
+			-value `getAttr ($apexClothingPaint2_ClothingName+".drawingScaled")`
+			apexClothingPaint2_DrawingScaledSlider;
+
+		checkBoxGrp 
+			-label ""
+			-numberOfCheckBoxes 1
+			-label1 "Mask Out Overridden Vertices"
+			-onCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".maskOutOverriddenVertices 1; apexClothingPaintRange "+$apexClothingPaint2_ClothingName)
+			-offCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".maskOutOverriddenVertices 0; apexClothingPaintRange "+$apexClothingPaint2_ClothingName)
+			-value1 `getAttr ($apexClothingPaint2_ClothingName+".maskOutOverriddenVertices")`
+			apexClothingPaint2_MaskOutOverriddenVerticesCheckBox;
+
+		checkBoxGrp 
+			-label ""
+			-numberOfCheckBoxes 1
+			-label1 "Backstop Displacement"
+			-onCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".backStopDisplacement 1;")
+			-offCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".backStopDisplacement 0;")
+			-value1 `getAttr ($apexClothingPaint2_ClothingName+".backStopDisplacement")`
+			apexClothingPaint2_BackStopDisplacementCheckBox;
+	}	
+	setParent ..;//end columnLayout
+	setParent ..;//end frameLayout
+
+	//apexClothingPaint2_LTNPaintChannelControls(1);
+	global string $apexClothingPaint2_AttributeName;
+	// to support custom paintible physical mesh, we need this convertion
+	if($apexClothingPaint2_AttributeName == "customMaxDistances")
+	{
+		$apexClothingPaint2_AttributeName = "maxDistances";
+	}
+	else if($apexClothingPaint2_AttributeName == "customBackStopOffset")
+	{
+		$apexClothingPaint2_AttributeName = "backStopOffset";
+	}
+	else if($apexClothingPaint2_AttributeName == "customBackStopRadius")
+	{
+		$apexClothingPaint2_AttributeName = "backStopRadius";
+	}
+	
+	optionMenuGrp -edit -v $apexClothingPaint2_AttributeName apexClothingPaint2_AttributeMenu;	
+	apexClothingPaint2_AttributeChanged();
+
+    // Stroke options.
+	frameLayout -label (uiRes("m_artUserPaintProperties.kStroke")) 
+		-collapsable true -collapse true
+		artUserPaintStrokeFrame;
+
+		// Create stroke options.
+		artisanCreateStrokeFrame( "artUserPaintStrokeFrame", $currTool );
+	setParent ..;
+
+    // Stylus Pressure options.
+	frameLayout -label (uiRes("m_artUserPaintProperties.kStylusPressure")) 
+		-collapsable true -collapse true
+		artUserPaintPressureFrame;
+
+		// Create stroke options.
+		artisanCreatePressureFrame( "artUserPaintPressureFrame", $currTool );
+	setParent ..;
+	
+	// Attribute Maps options.
+	frameLayout -label (uiRes("m_artUserPaintProperties.kAttributeMaps")) 
+		-collapsable true -collapse true
+		artAttrAttrMapFrame;
+
+		// Create Attribute Map option menu.
+		artisanCreateAttrMapFrame( "artAttrAttrMapFrame", $currTool );
+	setParent ..;
+
+	// Display options.
+	frameLayout -label (uiRes("m_artUserPaintProperties.kDisplay")) 
+		-collapsable true -collapse true
+		artUserPaintDisplayFrame;
+
+		// Create Display options.
+		artisanCreateDisplayFrame( "artUserPaintDisplayFrame", $currTool );
+	setParent ..;
+	
+	// Setup options.
+	frameLayout -visible false -label (uiRes("m_artUserPaintProperties.kSetup")) 
+		-collapsable true -collapse true
+		artUserPaintSetupFrame;
+
+		// Create Display options.
+		artUserPaintCreateSetupFrame( "artUserPaintSetupFrame", $currTool );
+	setParent ..;
+		
+	setParent ..;
+	setUITemplate -popTemplate;
+	}
+	// Set the callbacks and various global functions.
+	artUserPaintCallback( "artUserPaintCtx" );
+
+}
+
+global proc apexArtAttrCreateCommonProperties()
+//
+// Common Attribute Paint UI - operation, value, clamping.
+//
+{
+		global string	$apexClothingPaint2_AttributeName_MaxDistance;
+		global string	$apexClothingPaint2_AttributeName_LatchToNearest;
+		global string	$apexClothingPaint2_AttributeName_BackStopOffset;
+		global string	$apexClothingPaint2_AttributeName_BackStopRadius;
+		global string	$apexClothingPaint2_AttributeName_VertexSelection;	
+		optionMenuGrp -label "Attribute"
+			-cc ("apexClothingPaint2_AttributeChanged") 
+			apexClothingPaint2_AttributeMenu;	
+			menuItem -label $apexClothingPaint2_AttributeName_MaxDistance;
+			menuItem -label $apexClothingPaint2_AttributeName_LatchToNearest;
+			menuItem -label $apexClothingPaint2_AttributeName_BackStopOffset;
+			menuItem -label $apexClothingPaint2_AttributeName_BackStopRadius;
+			//menuItem -label $apexClothingPaint2_AttributeName_VertexSelection;
+
+	columnLayout apexPaintToolLayout1;
+	// Paint Operation.
+	string $attribPaint = (uiRes("m_artAttrProperties.kAttribPaintAnnot"));
+	radioButtonGrp -nrb 2
+		-cw 3 77
+		-label (uiRes("m_artAttrProperties.kPaintOperation")) 
+		-label1 (uiRes("m_artAttrProperties.kReplace"))  
+		-label2 (uiRes("m_artAttrProperties.kAdd"))  
+		-annotation $attribPaint 
+	artAttrOperRadioButton0;
+
+	radioButtonGrp -shareCollection artAttrOperRadioButton0
+		-cw 3 77
+		-nrb 2 
+		-label  ""
+		-label1 (uiRes("m_artAttrProperties.kScale"))  
+		-label2 (uiRes("m_artAttrProperties.kSmooth")) 
+		-annotation $attribPaint 
+	artAttrOperRadioButton1;
+
+	//separator -h 10 -style "none";
+
+	// Value Range. 
+	rowColumnLayout -nc 2 -cw 1 320 -cw 2 20 ;
+		// Value Range. 
+		floatSliderGrp -field true -label (uiRes("m_artAttrProperties.kValue"))  
+			-cw 3 100
+			-annotation (uiRes("m_artAttrProperties.kPaintValueAnnot")) 
+			-precision 4 
+			-min 0.0 -max 1.0 
+			-value 1.0
+			-step 0.05 
+		artAttrValueSlider;
+	global int $apexClothingPaint2_PaintValueInitialized;
+	$apexClothingPaint2_PaintValueInitialized = 0;
+
+	if( getApplicationVersionAsFloat() < 2011 )
+		symbolButton -image "eyeDropper.xpm" artAttrValuePick;
+	else
+		symbolButton -image "eyeDropper.png" artAttrValuePick;
+	setParent .. ;
+
+			// toggle between standard and no effect painting
+		global int $apexClothingPaint2_SpecialValueMode_Disabled;
+		global int $apexClothingPaint2_SpecialValueMode_NoEffect;
+		global int $apexClothingPaint2_SpecialValueMod;
+		radioButtonGrp 
+			-numberOfRadioButtons 2
+			-label "Value Mode"
+			-annotation (uiRes("m_artAttrProperties.kPaintValueAnnot")) 
+			-labelArray2 "Standard" "No Effect"
+			-changeCommand "apexClothingPaint2_updateArtUserPaintCtxValueForBackStop"
+			apexClothingPaint2_SpecialValueControl;
+		$apexClothingPaint2_SpecialValueMod = $apexClothingPaint2_SpecialValueMode_Disabled;
+		radioButtonGrp -edit -select 1 apexClothingPaint2_SpecialValueControl;
+		
+		rowLayout -numberOfColumns 2 -columnWidth2 310 70;
+		{ 
+			floatFieldGrp -label "Visible Range"
+				-numberOfFields 2
+				-value1 0.0
+				-value2 1.0
+				-changeCommand "apexClothingPaint2_VisibleRangeChanged"
+				apexClothingPaint2_VisibleRangeControl;
+		
+			button 
+				-label "Auto-Fit" 
+				-command "apexClothingPaint2_VisibleRangeAutoFit()"
+				-annotation "automatically fit range to value painted"
+				apexClothingPaint2_VisibleAutoFitControl;
+		}
+		setParent ..; //end Visible Range row
+	setParent..;//apexPaintToolLayout1;
+
+ 	floatFieldGrp  -visible false -label (uiRes("m_artAttrProperties.kMinMaxValue"))  
+ 		-numberOfFields 2
+ 		-annotation (uiRes("m_artAttrProperties.kMinMaxValueAnnot")) 
+ 		-precision 4
+ 		-value1 0.0 
+ 		-value2 1.0
+ 	artAttrMinMaxValue;
+
+	//separator -h 5 -style "none";
+
+	// Clamp options.
+ 	string $lower	= (uiRes("m_artAttrProperties.kLower"));
+ 	string $upper	= (uiRes("m_artAttrProperties.kUpper"));
+ 	checkBoxGrp -visible false -ncb 2 -label (uiRes("m_artAttrProperties.kClamp")) 
+ 		-cw3 131 68  68 
+ 		-labelArray2 $lower $upper
+ 		- annotation (uiRes("m_artAttrProperties.kClampPaint"))
+ 	artAttrClampChkBox;
+			
+ 	floatFieldGrp -visible false -label (uiRes("m_artAttrProperties.kClampValues"))  
+ 		-numberOfFields 2
+ 		-annotation (uiRes("m_artAttrProperties.kLowerUpperClampAnnot")) 
+ 		-precision 4
+ 		-value1 0.0 
+ 		-value2 1.0
+ 	artAttrClampField;
+
+	//separator -h 15 -style "none";
+
+	columnLayout apexPaintToolLayout2;
+	columnLayout -width 310;
+		radioButtonGrp -numberOfRadioButtons 2
+			-label "Operation" 
+			-labelArray2 "Add" "Erase"
+			-select 1
+			apexClothingPaint2_LTNOperationRadioGrp;
+	setParent ..; //end radio buttons column
+
+	columnLayout -width 310 -columnOffset "left" 142;	
+		checkBoxGrp 
+			-label ""
+			-numberOfCheckBoxes 1
+			-label1 "Override Other Channels" apexClothingPaint2_LTNOverrideCheckBox;
+	setParent ..; //end Override check box column
+
+	columnLayout -width 310 -columnOffset "left" 70 apexClothingPaint2_LTNGroupColumnLayout;	
+		if( getApplicationVersionAsFloat() > 2010 )
+		{
+			optionMenuGrp 
+				-label "Latch Group"
+				-columnAttach2 "right" "left"
+				-columnOffset2 10 0
+				-columnWidth2 70 80
+				-cc ("apexClothingPaint2_LatchToNearestGroupChanged()") 
+				//-parent apexClothingPaint2_LTNGroupColumnLayout
+				apexClothingPaint2_LTNGroupMenuGrp;
+		}
+
+		apexClothingPaint2_LatchToNearestGroupChanged();
+	setParent ..; //end Group column
+
+	columnLayout -width 310;
+		radioButtonGrp -numberOfRadioButtons 2
+			-label "Paint Value" 
+			-labelArray2 "Latch" "Drive"
+			-select 1
+			-changeCommand "apexClothingPaint2_updateArtUserPaintCtxValue()"
+			apexClothingPaint2_LTNPaintValueRadioGrp;
+	setParent ..; //end radio buttons column
+
+	setParent ..;//apexPaintToolLayout2;
+
+	// Flood
+	rowColumnLayout -nc 1 -cs 1 100  -cw 1 200;
+		button  -label (uiRes("m_artAttrProperties.kFlood")) 
+			-annotation (uiRes("m_artAttrProperties.kFloodSelectedAnnot")) 
+		artAttrFloodButton;
+	setParent ..;
+
+	apexClothingPaint2_updateArtUserPaintCtxValue();
+}
+
+global proc apexClothingPaintUIRefreshDefered()
+{
+	global string $AEapexClothing_ClothingNodeName;
+	global int $bPaintClothingMeshHide;
+	global int $bPaintCustomMeshHide;
+	print ("[apexClothingPaintUIRefreshDefered] bPaintCustomMeshHide = " + $bPaintCustomMeshHide + ", bPaintClothingMeshHide=" + $bPaintClothingMeshHide + "\n");
+	apexClothingPaint2_OnOff( $AEapexClothing_ClothingNodeName );
+	//apexClothingPaint2_MeshInit();
+	apexClothingPaint2_OnOff( $AEapexClothing_ClothingNodeName );
+}
+
+global proc apexClothingPaint2_AttributeChanged()
+{
+	global string $apexClothingPaint2_Context;
+	global string $apexClothingPaint2_ClothingName;
+	global string $apexClothingPaint2_AttributeName;
+	global string $apexClothingPaint2_AttributeNameUI;
+	global int $apexClothingPaint2_AttributeId;
+	global string $apexClothingPaint2_AttributeName_MaxDistance;
+	global string $apexClothingPaint2_AttributeName_LatchToNearest;
+	global string $apexClothingPaint2_AttributeName_BackStopOffset;
+	global string $apexClothingPaint2_AttributeName_BackStopRadius;
+	global string $apexClothingPaint2_AttributeName_VertexSelection;
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+	global int $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value;
+	global float $MAX_FLOAT;
+	global float $MIN_FLOAT;
+	
+	global string $apexClothingPaint2_GreyRangeMinName;
+	global string $apexClothingPaint2_GreyRangeMaxName;
+
+	global int $bPaintCustomMesh;
+	global string $lastPaintingChannel;
+	global string $apexClothingPaint2_MeshNameGraphics;
+	global string $apexClothingPaint2_MeshNameCustom;
+	string $attr = `optionMenuGrp -q -v apexClothingPaint2_AttributeMenu`;
+	int $bNeedResetPaintUIPreventCrash = 0;
+	if($bPaintCustomMesh)
+	{
+		if(($lastPaintingChannel == $apexClothingPaint2_AttributeName_LatchToNearest) && ($attr != $apexClothingPaint2_AttributeName_LatchToNearest))
+		{
+			$apexClothingPaint2_MeshName = $apexClothingPaint2_MeshNameCustom;
+			print( "[apexClothingPaint2_AttributeChanged] swith to " + $apexClothingPaint2_MeshName + "\n");
+			//setAttr ($apexClothingPaint2_MeshNameCustom + ".intermediateObject") true;
+			//setAttr ($apexClothingPaint2_MeshNameGraphics + ".intermediateObject") false;   // do not hide the clothing mesh
+			//apexClothingPaint2_MeshInit();
+			$bNeedResetPaintUIPreventCrash = 1;
+		}
+		if(($lastPaintingChannel != $apexClothingPaint2_AttributeName_LatchToNearest) && ($attr == $apexClothingPaint2_AttributeName_LatchToNearest))
+		{
+			$apexClothingPaint2_MeshName = $apexClothingPaint2_MeshNameGraphics;
+			print( "[apexClothingPaint2_AttributeChanged] swith to " + $apexClothingPaint2_MeshName + "\n");
+			//setAttr ($apexClothingPaint2_MeshNameGraphics + ".intermediateObject") false;
+			//setAttr ($apexClothingPaint2_MeshNameCustom + ".intermediateObject") true;   // do not need call this because Plugin does not hide the clothing mesh
+			//apexClothingPaint2_MeshInit();
+			$bNeedResetPaintUIPreventCrash = 1;
+		}
+	}
+	else
+	{
+		int $style = `getAttr ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "].lodPhysicalMeshStyle")`;
+		$apexClothingPaint2_MeshName = apexClothing_GetGraphicalLodMeshNameBySparseIndex( $apexClothingPaint2_ClothingName, $apexClothingPaint2_GraphicalLodSparseIndex );
+		$apexClothingPaint2_MeshNameGraphics = $apexClothingPaint2_MeshName;
+		$customMeshPaintablePlug = ($apexClothingPaint2_ClothingName+".lodCompoundAttributes["+$apexClothingPaint2_GraphicalLodSparseIndex+"]."+"lodCustomMeshPaintable");
+		int $bPaintable = `getAttr $customMeshPaintablePlug`;
+		string $customPhysicalMeshes[] = `listConnections -source true -shapes true ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "].lodManualPhysicalMeshIn")`;
+		if ( size( $customPhysicalMeshes ) > 0 && $bPaintable && ($style == $AEapexClothing_MeshAttrPhysMeshType_CUSTOM_value) )
+		{
+			if(($lastPaintingChannel == $apexClothingPaint2_AttributeName_LatchToNearest) && ($attr != $apexClothingPaint2_AttributeName_LatchToNearest))
+			{
+				$apexClothingPaint2_MeshName = $apexClothingPaint2_MeshNameCustom;
+				print( "[apexClothingPaint2_AttributeChanged] swith to " + $apexClothingPaint2_MeshName + "\n");
+				//setAttr ($apexClothingPaint2_MeshNameCustom + ".intermediateObject") true;
+				//setAttr ($apexClothingPaint2_MeshNameGraphics + ".intermediateObject") false;   // do not hide the clothing mesh
+				//apexClothingPaint2_MeshInit();
+				$bNeedResetPaintUIPreventCrash = 1;
+			}
+			if(($lastPaintingChannel != $apexClothingPaint2_AttributeName_LatchToNearest) && ($attr == $apexClothingPaint2_AttributeName_LatchToNearest))
+			{
+				$apexClothingPaint2_MeshName = $apexClothingPaint2_MeshNameGraphics;
+				print( "[apexClothingPaint2_AttributeChanged] swith to " + $apexClothingPaint2_MeshName + "\n");
+				//setAttr ($apexClothingPaint2_MeshNameGraphics + ".intermediateObject") false;
+				//setAttr ($apexClothingPaint2_MeshNameCustom + ".intermediateObject") true;   // do not need call this because Plugin does not hide the clothing mesh
+				//apexClothingPaint2_MeshInit();
+				$bNeedResetPaintUIPreventCrash = 1;
+			}
+		}
+	}
+	$lastPaintingChannel = $attr;
+
+	print( "[apexClothingPaint2_AttributeChanged] BEGIN " + $attr + "\n");
+	//print( "$apexClothingPaint2_AttributeName = " + $apexClothingPaint2_AttributeName + "\n");
+	//SAVE OUT OLD STATE HERE!!!
+		
+	int $attrId = apexClothingPaint2_ChannelStringToInt( $attr );	
+	$apexClothingPaint2_AttributeId = $attrId;
+
+	apexClothingPaint2_Read_PaintValue();
+
+	$apexClothingPaint2_AttributeName = $attr;
+	$apexClothingPaint2_AttributeNameUI = $apexClothingPaint2_AttributeName;
+	if($bPaintCustomMesh)
+	{
+		if($apexClothingPaint2_AttributeNameUI == $apexClothingPaint2_AttributeName_MaxDistance)
+		{
+			$apexClothingPaint2_AttributeName = "customMaxDistances";
+		}
+		else if($apexClothingPaint2_AttributeNameUI == $apexClothingPaint2_AttributeName_BackStopOffset)
+		{
+			$apexClothingPaint2_AttributeName = "customBackStopOffset";
+		}
+		else if($apexClothingPaint2_AttributeNameUI == $apexClothingPaint2_AttributeName_BackStopRadius)
+		{
+			$apexClothingPaint2_AttributeName = "customBackStopRadius";
+		}
+	}
+	
+	//print( "$apexClothingPaint2_AttributeName = " + $apexClothingPaint2_AttributeName + "\n");
+
+	//RESET UI HERE
+	if( `control -exists apexClothingPaint2_SpecialValueControl` )
+		radioButtonGrp -edit -enable2 false -select 1 apexClothingPaint2_SpecialValueControl;
+
+	if( `control -exists apexClothingPaint2_VisibleRangeControl` )
+		floatFieldGrp -edit -enable1 true -enable2 true apexClothingPaint2_VisibleRangeControl;
+
+	if( `control -exists apexClothingPaint2_VisibleAutoFitControl` )
+		button -edit -enable true  apexClothingPaint2_VisibleAutoFitControl;
+	
+	if( `control -exists artAttrValueSlider` )
+		floatSliderGrp -e -step 0.001 -precision 3 artAttrValueSlider;
+
+	//if( `control -exists apexClothingPaint2_LTNPaintAttributeLayout` )
+	//if( `control -exists apexClothingPaint2_LTNPaintAttributeColumnLayout` ) 
+	{
+		//$valueParentLayout = `floatSliderGrp -q -parent artAttrValueSlider`;
+		//$paintAttributeColLayout = `rowColumnLayout -q -parent $valueParentLayout`;
+		// 1 More level up would be artCommonOperationFrame framelayout = columnLayout -q -parent columnLayout48;
+
+		if( $attr == $apexClothingPaint2_AttributeName_LatchToNearest )
+		{
+			// Enable LTN Paint Attribute controls & disable the default Paint Attribute controls
+			//columnLayout -e -visible true apexClothingPaint2_LTNPaintAttributeColumnLayout;			
+			//columnLayout -e -enable false -visible false $paintAttributeColLayout;
+			
+			//layout -e -visible true apexClothingPaint2_LTNPaintAttributeFrameLayout;
+			layout -e -visible false apexPaintToolLayout1;
+			layout -e -visible true apexPaintToolLayout2;
+		}
+		else
+		{
+			// Disable LTN Paint Attribute controls & enable the default Paint Attribute controls
+			//columnLayout -e -visible false apexClothingPaint2_LTNPaintAttributeColumnLayout;
+			//columnLayout -e -enable true -visible true $paintAttributeColLayout;
+			//layout -e -visible false apexClothingPaint2_LTNPaintAttributeFrameLayout;
+			//layout -e -visible true artCommonOperationFrame;
+			layout -e -visible true apexPaintToolLayout1;
+			layout -e -visible false apexPaintToolLayout2;
+		}
+
+		apexClothingPaint2_updateArtUserPaintCtxValue();
+	}
+				
+	//CUSTOMIZE UI
+	if($attr == $apexClothingPaint2_AttributeName_MaxDistance)
+	{
+ 		artUserPaintCtx -edit
+ 			-clamplower 0.0
+ 			-clampupper $MAX_FLOAT
+ 			$apexClothingPaint2_Context;
+ 		floatFieldGrp -e -value1 0.0 -value2 $MAX_FLOAT artAttrClampField;
+
+		artUserPaintCtx -edit
+			-clamp "lower"
+			$apexClothingPaint2_Context;
+	}
+	else if($attr == $apexClothingPaint2_AttributeName_BackStopOffset)
+	{
+ 		artUserPaintCtx -edit
+ 			-clamplower $MIN_FLOAT
+ 			-clampupper $MAX_FLOAT
+ 			$apexClothingPaint2_Context;
+ 		floatFieldGrp -e -value1 $MIN_FLOAT -value2 $MAX_FLOAT artAttrClampField;
+
+		artUserPaintCtx -edit
+			-clamp "none"
+			$apexClothingPaint2_Context;
+
+
+		if( `control -exists apexClothingPaint2_SpecialValueControl` )
+			radioButtonGrp -edit -enable2 true apexClothingPaint2_SpecialValueControl;
+	}
+	else if($attr == $apexClothingPaint2_AttributeName_BackStopRadius)
+	{
+ 		artUserPaintCtx -edit		
+ 			-clamplower 0.0
+ 			-clampupper $MAX_FLOAT
+ 			$apexClothingPaint2_Context;
+ 		floatFieldGrp -e -value1 0.0 -value2 $MAX_FLOAT artAttrClampField;
+		
+		artUserPaintCtx -edit		
+			-clamp "lower"
+			$apexClothingPaint2_Context;
+			
+	}	
+	else if($attr == $apexClothingPaint2_AttributeName_LatchToNearest
+	|| $attr == $apexClothingPaint2_AttributeName_VertexSelection)
+	{
+		global string $apexClothingPaint2_formerOpMode;
+
+ 		artUserPaintCtx -edit
+ 			-clamplower 0.0
+ 			-clampupper 1.0
+ 			$apexClothingPaint2_Context;
+ 		floatFieldGrp -e -value1 0.0 -value2 1.0 artAttrClampField;
+
+		artUserPaintCtx -edit
+			-clamp "both"
+			-selectedattroper $apexClothingPaint2_formerOpMode
+			$apexClothingPaint2_Context;
+
+		if( `control -exists artAttrValueSlider` )
+			floatSliderGrp -e -step 1.0 -precision 0 -value 0 artAttrValueSlider;
+					
+		if( `control -exists apexClothingPaint2_VisibleRangeControl` )
+		{
+			floatFieldGrp -edit 
+				-enable1 false -enable2 false 
+				-value1 0.0 -value2 1.0 
+				apexClothingPaint2_VisibleRangeControl;
+		}
+
+		if( `control -exists apexClothingPaint2_VisibleAutoFitControl` )
+			button -edit -enable false  apexClothingPaint2_VisibleAutoFitControl;
+					
+	}
+	
+	//APPLY NEW CHANNEL
+	setAttr ($apexClothingPaint2_ClothingName + ".paintChannel") $attrId;
+
+	//LOAD NEW RANGES
+		
+	$apexClothingPaint2_GreyRangeMinName = "apexClothingPaint2_GreyRangeMin_" + $apexClothingPaint2_AttributeNameUI;
+	$apexClothingPaint2_GreyRangeMaxName = "apexClothingPaint2_GreyRangeMax_" + $apexClothingPaint2_AttributeNameUI;
+
+
+	if( `control -exists apexClothingPaint2_VisibleRangeControl`
+	&& `optionVar -exists $apexClothingPaint2_GreyRangeMinName` 
+	&& `optionVar -exists $apexClothingPaint2_GreyRangeMaxName` )
+	{
+		float $greyMin = `optionVar -q $apexClothingPaint2_GreyRangeMinName`;
+		float $greyMax = `optionVar -q $apexClothingPaint2_GreyRangeMaxName`;
+	
+		floatFieldGrp -e -value1 $greyMin -value2 $greyMax apexClothingPaint2_VisibleRangeControl;
+	}
+	
+	apexClothingPaint2_VisibleRangeChanged();
+
+	apexClothingPaint2_Update_PaintValue();
+
+	// need to update vertex visualizer as $apexClothingPaint2_AttributeId is used
+	apexClothingPaint2_VertexVisualizerChanged();
+
+	print( "[apexClothingPaint2_AttributeChanged] END " + $attr + "\n");
+
+	if($bNeedResetPaintUIPreventCrash)
+	{
+		evalDeferred( "apexClothingPaintUIRefreshDefered" );
+	}
+}
+
+global proc apexClothingPaint2_CreateHelperUI()
+{
+	global string $apexClothingPaint2_Context;
+	global string $apexClothingPaint2_ClothingName;
+	global string $apexClothingPaint2_AttributeName;
+	global string $apexClothingPaint2_GreyRangeMinName;
+	global string $apexClothingPaint2_GreyRangeMaxName;
+		
+	//rowColumnLayout -nc 1 -cs 1 132 -cw 1 240;
+	columnLayout  -adjustableColumn true -height 330 "apexClothingPaint2_HelperUIColumnLayout";
+
+	frameLayout -l "Selection" -collapsable true -collapse false;
+	columnLayout;
+	{
+		global string	$apexClothingPaint2_AttributeName_MaxDistance;
+		global string	$apexClothingPaint2_AttributeName_LatchToNearest;
+		global string	$apexClothingPaint2_AttributeName_BackStopOffset;
+		global string	$apexClothingPaint2_AttributeName_BackStopRadius;
+		global string	$apexClothingPaint2_AttributeName_VertexSelection;	
+		optionMenuGrp -label "Attribute"
+			-cc ("apexClothingPaint2_AttributeChanged") 
+			-columnWidth 2 120
+			apexClothingPaint2_AttributeMenu;	
+			menuItem -label $apexClothingPaint2_AttributeName_MaxDistance;
+			menuItem -label $apexClothingPaint2_AttributeName_LatchToNearest;
+			menuItem -label $apexClothingPaint2_AttributeName_BackStopOffset;
+			menuItem -label $apexClothingPaint2_AttributeName_BackStopRadius;
+			//menuItem -label $apexClothingPaint2_AttributeName_VertexSelection;
+		
+
+		// toggle between standard and no effect painting
+		global int $apexClothingPaint2_SpecialValueMode_Disabled;
+		global int $apexClothingPaint2_SpecialValueMode_NoEffect;
+		global int $apexClothingPaint2_SpecialValueMod;
+		radioButtonGrp 
+			-numberOfRadioButtons 2
+			-label "Value Mode"
+			-annotation (uiRes("m_artAttrProperties.kPaintValueAnnot")) 
+			-labelArray2 "Standard" "No Effect"
+			-changeCommand "apexClothingPaint2_updateArtUserPaintCtxValueForBackStop"
+			apexClothingPaint2_SpecialValueControl;
+		$apexClothingPaint2_SpecialValueMod = $apexClothingPaint2_SpecialValueMode_Disabled;
+		radioButtonGrp -edit -select 1 apexClothingPaint2_SpecialValueControl;
+		
+		rowLayout -numberOfColumns 2 -columnWidth2 310 70;
+		{ 
+			floatFieldGrp -label "Visible Range"
+				-numberOfFields 2
+				-value1 0.0
+				-value2 1.0
+				-changeCommand "apexClothingPaint2_VisibleRangeChanged"
+				apexClothingPaint2_VisibleRangeControl;
+		
+			button 
+				-label "Auto-Fit" 
+				-command "apexClothingPaint2_VisibleRangeAutoFit()"
+				-annotation "automatically fit range to value painted"
+				apexClothingPaint2_VisibleAutoFitControl;
+		}
+		setParent ..; //end Visible Range row
+		
+	}	
+	setParent ..;//end columnLayout
+	setParent ..;//end frameLayout
+
+	frameLayout -l "Paint Visualizer" -collapsable true -collapse false;
+	columnLayout;
+	{					
+		global string $apexClothingPaint2_VisMode_Off;
+		global string $apexClothingPaint2_VisMode_Lines;
+		global string $apexClothingPaint2_VisMode_Sphere_Frame;
+		global string $apexClothingPaint2_VisMode_Sphere_Solid;
+		optionMenuGrp -label "Visualization Mode"
+			-cc ("apexClothingPaint2_VertexVisualizerChanged()") 
+			apexClothingPaint2_ShowVertexVisualizerMenuGrp;
+			menuItem -label $apexClothingPaint2_VisMode_Off;
+			menuItem -label $apexClothingPaint2_VisMode_Lines;
+			menuItem -label $apexClothingPaint2_VisMode_Sphere_Frame;
+			menuItem -label $apexClothingPaint2_VisMode_Sphere_Solid;
+		apexClothingPaint2_VertexVisualizerChanged();
+    
+		floatSliderGrp -label "Scale"
+			-field true
+			-min 0.0
+			-precision 3 
+			-step 0.01 
+			-changeCommand ("setAttr "+$apexClothingPaint2_ClothingName+".drawingScaled #1;")
+			-value `getAttr ($apexClothingPaint2_ClothingName+".drawingScaled")`
+			apexClothingPaint2_DrawingScaledSlider;
+
+		checkBoxGrp 
+			-label ""
+			-numberOfCheckBoxes 1
+			-label1 "Mask Out Overridden Vertices"
+			-onCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".maskOutOverriddenVertices 1; apexClothingPaintRange "+$apexClothingPaint2_ClothingName)
+			-offCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".maskOutOverriddenVertices 0; apexClothingPaintRange "+$apexClothingPaint2_ClothingName)
+			-value1 `getAttr ($apexClothingPaint2_ClothingName+".maskOutOverriddenVertices")`
+			apexClothingPaint2_MaskOutOverriddenVerticesCheckBox;
+
+		checkBoxGrp 
+			-label ""
+			-numberOfCheckBoxes 1
+			-label1 "Backstop Displacement"
+			-onCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".backStopDisplacement 1;")
+			-offCommand1 ("setAttr "+$apexClothingPaint2_ClothingName+".backStopDisplacement 0;")
+			-value1 `getAttr ($apexClothingPaint2_ClothingName+".backStopDisplacement")`
+			apexClothingPaint2_BackStopDisplacementCheckBox;
+	}	
+	setParent ..;//end columnLayout
+	setParent ..;//end frameLayout
+
+	setParent ..;//end global columnLayout
+
+	apexClothingPaint2_LTNPaintChannelControls(0);
+	
+	optionMenuGrp -edit -v $apexClothingPaint2_AttributeName apexClothingPaint2_AttributeMenu;	
+	apexClothingPaint2_AttributeChanged();
+	//apexClothingPaint2_VisibleRangeChanged();	
+}
+
+// LTN Paint Attributes Commands
+global proc apexClothingPaint2_updateArtUserPaintCtxValueForBackStop()
+{
+	$value = `radioButtonGrp -q -select apexClothingPaint2_SpecialValueControl`;
+	global int $apexClothingPaint2_SpecialValueMod;
+	if($value == 1) 
+	{
+		global int $apexClothingPaint2_SpecialValueMode_Disabled;
+		$apexClothingPaint2_SpecialValueMod =  $apexClothingPaint2_SpecialValueMode_Disabled;
+		apexClothingPaint2_Update_PaintValue();
+		apexClothingPaint2_Update_VisibleRangeControl();
+	}
+	else
+	{
+		apexClothingPaint2_Read_PaintValue();
+		apexClothingPaint2_VisibleRangeChanged();
+		global int $apexClothingPaint2_SpecialValueMode_NoEffect;
+		$apexClothingPaint2_SpecialValueMod = $apexClothingPaint2_SpecialValueMode_NoEffect;
+		global float $MAX_FLOAT;
+		global string $apexClothingPaint2_Context;
+		floatSliderGrp -e -min 0.0 -max 1.0 artAttrValueSlider;
+		artUserPaintCtx -edit -maxvalue $MAX_FLOAT	$apexClothingPaint2_Context;
+		floatSliderGrp -e -max $MAX_FLOAT artAttrValueSlider;
+		artUserPaintCtx -e -value $MAX_FLOAT $apexClothingPaint2_Context;
+	}
+}
+
+global proc apexClothingPaint2_LTNPaintChannelControls(int $integrate)
+{
+	// set column layout to park under default paint attributes frame
+	$parentForLTN = `frameLayout -q -childArray "artCommonOperationFrame"`;
+	//columnLayout -parent "artCommonOperationFrame" apexClothingPaint2_LTNPaintAttributeColumnLayout;
+	if($integrate == 0)
+	{
+		frameLayout 
+			-label "Latch To Nearest Paint Attribute" 
+			-collapsable true
+			-collapse false
+			//-parent "artUserPaint" 
+			-parent "apexClothingPaint2_HelperUIColumnLayout"
+			apexClothingPaint2_LTNPaintAttributeFrameLayout;
+	}
+	else
+	{
+		frameLayout 
+			-label "Latch To Nearest Paint Attribute" 
+			-collapsable true
+			-collapse false
+			//-parent "artUserPaint" 
+			//-parent "apexClothingPaint2_HelperUIColumnLayout"
+			apexClothingPaint2_LTNPaintAttributeFrameLayout;
+	}
+
+	//columnLayout -parent $parentForLTN apexClothingPaint2_LTNPaintAttributeColumnLayout;
+	columnLayout apexClothingPaint2_LTNPaintAttributeColumnLayout;
+	{
+		columnLayout -width 310 -columnOffset "left" 70 apexClothingPaint2_LTNGroupColumnLayout;	
+			if( getApplicationVersionAsFloat() > 2010 )
+			{
+				optionMenuGrp 
+					-label "Latch Group"
+					-columnAttach2 "right" "left"
+					-columnOffset2 10 0
+					-columnWidth2 70 80
+					-cc ("apexClothingPaint2_LatchToNearestGroupChanged()") 
+					//-parent apexClothingPaint2_LTNGroupColumnLayout
+					apexClothingPaint2_LTNGroupMenuGrp;
+			}
+
+			apexClothingPaint2_LatchToNearestGroupChanged();
+		setParent ..; //end Group column
+    
+		columnLayout -width 310;
+		radioButtonGrp -numberOfRadioButtons 2
+			-label "Paint Value" 
+			-labelArray2 "Slave" "Master"
+			-select 1
+			-changeCommand "apexClothingPaint2_updateArtUserPaintCtxValue()"
+			apexClothingPaint2_LTNPaintValueRadioGrp;
+		setParent ..; //end radio buttons column
+
+		columnLayout -width 310;
+		radioButtonGrp -numberOfRadioButtons 2
+			-label "Operation" 
+			-labelArray2 "Add" "Erase"
+			-select 1
+			apexClothingPaint2_LTNOperationRadioGrp;
+		setParent ..; //end radio buttons column
+
+		columnLayout -width 310 -columnOffset "left" 142;	
+			checkBox -label "Also erase other channels" apexClothingPaint2_LTNOverrideCheckBox;
+		setParent ..; //end Override check box column
+
+		//columnLayout -width 310 -columnOffset "left" 70;		
+		rowColumnLayout -nc 1 -cs 1 100  -cw 1 200;
+			button -label "Flood" 
+				//-width 240
+				//-align "center"
+				-command "apexClothingPaint2_FloodCommand();" 
+				apexClothingPaint2_LTNFloodBtn;
+		setParent ..; //end Flood Button column
+
+	}	
+	setParent ..;//end columnLayout
+	setParent ..;//end frameLayout
+
+	// Update master/slave state
+	apexClothingPaint2_updateArtUserPaintCtxValue();
+}
+
+global proc apexClothingPaint2_VisibleRangeChanged()
+{
+	global string $apexClothingPaint2_Context;
+	global string $apexClothingPaint2_ClothingName;
+	global string $apexClothingPaint2_GreyRangeMinName;
+	global string $apexClothingPaint2_GreyRangeMaxName;
+
+	float $lower = `floatFieldGrp -q -value1 apexClothingPaint2_VisibleRangeControl`;
+	float $upper = `floatFieldGrp -q -value2 apexClothingPaint2_VisibleRangeControl`;
+	
+	optionVar -floatValue $apexClothingPaint2_GreyRangeMinName $lower;
+	optionVar -floatValue $apexClothingPaint2_GreyRangeMaxName $upper;
+	
+	setAttr ($apexClothingPaint2_ClothingName + ".paintRangeLower") $lower;
+	setAttr ($apexClothingPaint2_ClothingName + ".paintRangeUpper") $upper;
+
+	artUserPaintCtx -edit
+		-minvalue $lower
+		-maxvalue $upper
+		$apexClothingPaint2_Context;
+	
+	apexClothingPaintRange $apexClothingPaint2_ClothingName;	
+}
+
+// Toggle between using auto-fit or manual input for paint range
+global proc apexClothingPaint2_VisibleRangeAutoFit()
+{
+	global string $apexClothingPaint2_ClothingName;
+	global string $apexClothingPaint2_AttributeName;
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+	global string $apexClothingPaint2_Context;
+
+	$apexClothingPaint2_GraphicalLodSparseIndex = `getAttr ($apexClothingPaint2_ClothingName + ".currentGraphicalLOD")`;	
+	float $paintValues[] = `getAttr ( $apexClothingPaint2_ClothingName + ".lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "]." + $apexClothingPaint2_AttributeName )`;
+
+	// Initialise the min & max to the first value found
+	float $valueMin = $paintValues[0]; 
+	float $valueMax = $paintValues[0];
+	for( $i=1; $i < size($paintValues); $i++ )
+	{
+		if( $paintValues[$i] < $valueMin ) 
+			$valueMin = $paintValues[$i]; 
+
+		if( $paintValues[$i] > $valueMax ) 
+			$valueMax = $paintValues[$i];
+	}
+
+	float $min = $valueMin;
+	float $max = $valueMax;
+	//float $min = `convertUnit -fromUnit "cm" -toUnit `currentUnit -q -linear` ("\"" + $valueMin + "\"")`;
+	//float $max = `convertUnit -fromUnit "cm" -toUnit `currentUnit -q -linear` ("\"" + $valueMax + "\"")`;
+
+	floatFieldGrp -e -value1 $min apexClothingPaint2_VisibleRangeControl;
+	floatFieldGrp -e -value2 $max apexClothingPaint2_VisibleRangeControl;
+
+	artUserPaintCtx -edit
+		-minvalue $min
+		-maxvalue $max
+		$apexClothingPaint2_Context;
+
+	// cannot set directly using $min and $max
+	// must get it from the RangeControl so that the values are distance adjusted
+	float $lower = `floatFieldGrp -q -value1 apexClothingPaint2_VisibleRangeControl`;
+	float $upper = `floatFieldGrp -q -value2 apexClothingPaint2_VisibleRangeControl`;
+	setAttr ($apexClothingPaint2_ClothingName + ".paintRangeLower") $lower;
+	setAttr ($apexClothingPaint2_ClothingName + ".paintRangeUpper") $upper;
+
+	apexClothingPaint2_VisibleRangeChanged();
+	//apexClothingPaintRange $apexClothingPaint2_ClothingName;
+}
+
+// LTN Paint Attributes Commands
+global proc apexClothingPaint2_updateArtUserPaintCtxValue()
+{
+	global string $apexClothingPaint2_Context;
+	$value = `radioButtonGrp -q -select apexClothingPaint2_LTNPaintValueRadioGrp`;
+
+	if($value == 2) // Master Vertex
+	{
+		$value = 0; 
+	}
+	
+	artUserPaintCtx -e -value $value $apexClothingPaint2_Context;
+
+	setAttr (apexClothingPaint2_getClothingMeshName() + ".lodLatchToNearestCurrentMode" ) $value;
+	//floatSliderGrp -e -v ($value-1) "artAttrValueSlider";
+}
+
+// Update the current group
+global proc apexClothingPaint2_LatchToNearestGroupChanged()
+{
+	// Format group item label with * at the end on groups that contain painted values
+	//apexClothingPaint2_AddEditLatchToNearestGroupItems();
+	if( getApplicationVersionAsFloat() < 2011 )
+		apexClothingPaint2_AddEditLatchToNearestGroupItems_2010();
+	else
+		apexClothingPaint2_AddEditLatchToNearestGroupItems_2011();
+
+	int $group = `optionMenuGrp -q -select apexClothingPaint2_LTNGroupMenuGrp`;
+	setAttr (apexClothingPaint2_getClothingMeshName() + ".lodLatchToNearestCurrentGroup" ) $group;
+}
+
+global proc apexClothingPaint2_AddEditLatchToNearestGroupItems_2010()
+{
+	global string $apexClothingPaint2_LatchToNearestGroupItems[];
+	global string $apexClothingPaint2_ClothingName;
+	int $group = 1;
+
+	if( `optionMenuGrp -q -exists apexClothingPaint2_LTNGroupMenuGrp` )
+	{
+		$group = `optionMenuGrp -q -select apexClothingPaint2_LTNGroupMenuGrp`;
+			print ("fgroup: " + $group + "\n");
+		deleteUI apexClothingPaint2_LTNGroupMenuGrp;
+	}
+
+	// Format group item label with * at the end on groups that contain painted values
+	int $bold[] = `GroupWithPaintedValuesCmd -cn $apexClothingPaint2_ClothingName`;
+	optionMenuGrp 
+		-label "Latch Group"
+		-columnAttach2 "right" "left"
+		-columnOffset2 10 0
+		-columnWidth2 70 80
+		-cc ("apexClothingPaint2_LatchToNearestGroupChanged()") 
+		-parent apexClothingPaint2_LTNGroupColumnLayout
+		apexClothingPaint2_LTNGroupMenuGrp;
+
+	for($i=0; $i<30; $i++)
+	{
+		int $index = $i+1;
+		$label = ("Group "+$index);
+		if( $bold[$i] )
+			$label = $label + " *";
+		$apexClothingPaint2_LatchToNearestGroupItems[$i] = `menuItem -label $label`;
+	}
+
+	// Set selected menu item
+	optionMenuGrp -e -select $group apexClothingPaint2_LTNGroupMenuGrp;
+}
+
+global proc apexClothingPaint2_AddEditLatchToNearestGroupItems_2011()
+{
+	global string $apexClothingPaint2_LatchToNearestGroupItems[];
+	global string $apexClothingPaint2_ClothingName;
+	int $group = 1;
+	
+	// delete the current menu items if exist by checking if the 1st group item exist
+	if( `menuItem -q -exists $apexClothingPaint2_LatchToNearestGroupItems[0]` )
+	{
+		$group = `optionMenuGrp -q -select apexClothingPaint2_LTNGroupMenuGrp`;
+
+		for($i=0; $i<30; $i++)
+			deleteUI -menuItem $apexClothingPaint2_LatchToNearestGroupItems[$i];
+	}
+
+	// Format group item label with * at the end on groups that contain painted values
+	int $bold[] = `GroupWithPaintedValuesCmd -cn $apexClothingPaint2_ClothingName`;
+
+	for($i=0; $i<30; $i++)
+	{
+		//$apexClothingPaint2_LatchToNearestGroupItems[$i] = `menuItem -parent "apexClothingPaint2_LTNGroupMenuGrp|OptionMenu" -label ("Group "+$i) -boldFont $bold[$i]`;
+		//$label = ("Group "+$i);
+		//if( $bold[$i-1] )
+		int $index = $i+1;
+		$label = ("Group "+$index);
+		if( $bold[$i] )
+			$label = $label + " *";
+		$apexClothingPaint2_LatchToNearestGroupItems[$i] = `menuItem -parent "apexClothingPaint2_LTNGroupMenuGrp|OptionMenu" -label $label`;
+	}
+
+	// Set selected menu item
+	optionMenuGrp -e -select $group apexClothingPaint2_LTNGroupMenuGrp;
+}
+
+global proc string apexClothingPaint2_getClothingMeshName()
+{
+
+	global string $apexClothingPaint2_ClothingName;
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+
+	string $inputAttrName = "lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "]";
+	return ($apexClothingPaint2_ClothingName + "." + $inputAttrName );
+}
+
+// Apex 2 Paint Visualizer Commands
+global proc apexClothingPaint2_VertexVisualizerChanged()
+{
+	global string $apexClothingPaint2_ClothingName;
+
+	global string $apexClothingPaint2_VisMode_Off;
+	global string $apexClothingPaint2_VisMode_Lines;
+	global string $apexClothingPaint2_VisMode_Sphere_Frame;
+	global string $apexClothingPaint2_VisMode_Sphere_Solid;
+	global int $apexClothingPaint2_AttributeId;
+
+	string $vis_mode = `optionMenuGrp -q -value	apexClothingPaint2_ShowVertexVisualizerMenuGrp`;
+
+	if ( $vis_mode == $apexClothingPaint2_VisMode_Off )
+	{
+		//Disable noodles
+		setAttr ($apexClothingPaint2_ClothingName + ".showHelper") 0;
+		setAttr ($apexClothingPaint2_ClothingName + ".drawingShape") 0;
+		setAttr ($apexClothingPaint2_ClothingName + ".showVertexVisualization") 0;
+	}
+	else if ( $vis_mode == $apexClothingPaint2_VisMode_Lines )
+	{
+		setAttr ($apexClothingPaint2_ClothingName + ".showHelper") $apexClothingPaint2_AttributeId;
+		//Disable spheres
+		setAttr ($apexClothingPaint2_ClothingName + ".drawingShape") 0; 
+		setAttr ($apexClothingPaint2_ClothingName + ".showVertexVisualization") 0;
+	}
+	else if ( $vis_mode == $apexClothingPaint2_VisMode_Sphere_Frame )
+	{
+		//Disable noodles
+		setAttr ($apexClothingPaint2_ClothingName + ".showHelper")  $apexClothingPaint2_AttributeId;	
+		setAttr ($apexClothingPaint2_ClothingName + ".drawingShape") 3;
+		setAttr ($apexClothingPaint2_ClothingName + ".showVertexVisualization") 0;
+	}
+	else if ( $vis_mode == $apexClothingPaint2_VisMode_Sphere_Solid )
+	{
+		//Disable noodles
+		setAttr ($apexClothingPaint2_ClothingName + ".showHelper") $apexClothingPaint2_AttributeId;
+		setAttr ($apexClothingPaint2_ClothingName + ".drawingShape") 2;
+		setAttr ($apexClothingPaint2_ClothingName + ".showVertexVisualization") 0;
+	}
+
+	// See bug 6481. When change Visualization Mode menu item and save directly, Maya crash. The crash happens inside Maya.
+	// This should be a Maya UI bug. Work around it.
+	string $array[] = `getPanel -visiblePanels`;
+	setFocus $array[0];
+
+	// when we are switchi lod in paint mode, we rebuild the ui for the tool window, so we need to restore the visualizer mode
+	global string $apexClothingPaint2_PaintVisualizerMode = "apexClothingPaint2_PaintVisualizerMode";
+	optionVar -stringValue $apexClothingPaint2_PaintVisualizerMode $vis_mode;
+
+	refresh;
+}
+
+global proc int apexClothingPaint2_ChannelStringToInt(string $str)
+{
+	global string	$apexClothingPaint2_AttributeName_MaxDistance;
+	global int		$apexClothingPaint2_AttributeId_MaxDistance;
+	global string	$apexClothingPaint2_AttributeName_LatchToNearest;
+	global int		$apexClothingPaint2_AttributeId_LatchToNearest;
+	global string	$apexClothingPaint2_AttributeName_BackStopOffset;
+	global int		$apexClothingPaint2_AttributeId_BackStopOffset;
+	global string	$apexClothingPaint2_AttributeName_BackStopRadius;
+	global int		$apexClothingPaint2_AttributeId_BackStopRadius;
+	global string	$apexClothingPaint2_AttributeName_VertexSelection;
+	global int		$apexClothingPaint2_AttributeId_VertexSelection;
+
+	if($str == $apexClothingPaint2_AttributeName_MaxDistance)
+		return $apexClothingPaint2_AttributeId_MaxDistance;
+	else if($str == $apexClothingPaint2_AttributeName_LatchToNearest)
+		return $apexClothingPaint2_AttributeId_LatchToNearest;
+	else if($str == $apexClothingPaint2_AttributeName_BackStopOffset)
+		return $apexClothingPaint2_AttributeId_BackStopOffset;
+	else if($str == $apexClothingPaint2_AttributeName_BackStopRadius)
+		return $apexClothingPaint2_AttributeId_BackStopRadius;
+	else if($str == $apexClothingPaint2_AttributeName_VertexSelection)
+		return $apexClothingPaint2_AttributeId_VertexSelection;
+	else
+		return 0; //none
+}
+
+global proc apexClothingPaint2_ToolSetup( string $context )
+{
+	print( "[apexClothingPaint2_ToolSetup] BEGIN\n");
+
+	global string $apexClothingPaint2_formerOpMode;
+	global int $apexClothingPaint2_On;
+	$apexClothingPaint2_On = 1;	 
+	
+	// -----------------------------------------------
+	// Setup the model editor for attribute painting 
+	//
+	global string $apexClothingPaint2_ModelEditor;
+	$apexClothingPaint2_ModelEditor = "";
+	string $panels[] = `getPanel -type modelPanel`;	
+	int $iPanel;
+	for($iPanel = 0; $iPanel < size($panels); $iPanel = $iPanel + 1)
+	{
+		if(`modelEditor -q -activeView $panels[$iPanel]` == true)
+		{
+			$apexClothingPaint2_ModelEditor = $panels[$iPanel];
+			break;
+		}
+	}
+	
+	if($apexClothingPaint2_ModelEditor != "")
+	{
+		global string $apexClothingPaint2_OldDisplayAppearance;
+		$apexClothingPaint2_OldDisplayAppearance = `modelEditor -q -displayAppearance $apexClothingPaint2_ModelEditor`;
+	
+		modelEditor -edit -displayAppearance smoothShaded -activeView $apexClothingPaint2_ModelEditor;
+	}			 
+	// -------------------------------------------
+	 
+	artUserPaintCtx -edit 
+		//-activeListChangedProc "apexClothingPaintToolSelectionChanged"
+		-toolOnProc "apexClothingPaintToolOn"
+		-toolOffProc "apexClothingPaintToolOff"
+		-beforeStrokeCmd ""
+		-duringStrokeCmd "apexClothingPaint2_DuringPainting"
+		-afterStrokeCmd ""
+		-toolCleanupCmd "apexClothingPaint2_ToolCleanup"
+		-initializeCmd "apexClothingPaint2_StrokeInit"
+		-finalizeCmd "apexClothingPaint2_StrokeFinalize"
+		-getValueCommand "apexClothingPaint2_getValue"
+		-setValueCommand "apexClothingPaint2_setValue"	
+		 $context;
+
+	artUserPaintCtx -edit 
+		-stampProfile "solid"
+		-selectedattroper $apexClothingPaint2_formerOpMode  //brush operation "absolute" "additive" "scale" "smooth" 
+		-accopacity off				//d:false
+		-usepressure false			//d:false
+		-outline true				//d:true
+		-outwhilepaint true			//d:false (outline while painting)
+		-colorfeedback false
+		-interactiveUpdate true
+		 $context;
+	
+	//-disablelighting false $context;		
+	//-brushfeedback true $context;//d:true
+	//-projective false $context;//d:false				
+	//-surfaceConformedBrushVertices true $context;//d:false
+	//-tangentOutline true $context;
+	//-paintmode "tangent" or "screen"(default)
+	// -----------------------------------------------
+	
+	evalDeferred( "apexClothingPaint2_ToolSetupDeferred" );
+
+	print( "[apexClothingPaint2_ToolSetup] END\n");
+}
+
+global proc apexClothingPaint2_DuringPainting()
+{
+	global string $apexClothingPaint2_ClothingName;
+	setAttr ($apexClothingPaint2_ClothingName + ".paintState") 2; // After painting
+	setAttr ($apexClothingPaint2_ClothingName + ".paintState") 1; // Before painting: Ready for next painting
+}
+
+global proc apexClothingPaintToolOn()
+{
+}
+
+global proc apexClothingPaintToolOff()
+{
+}
+
+ global proc apexClothingPaint2_FloodCommand()
+ {
+ 	print( "[apexClothingPaint2_FloodCommand]\n" );
+ 
+ 	global string $apexClothingPaint2_ClothingName;
+ 	global string $apexClothingPaint2_AttributeName;
+ 	global string $apexClothingPaint2_AttributeNameUI;
+ 	global string $apexClothingPaint2_Context;
+ 	global string $apexClothingPaint2_OldFloodCmd;
+ 	global string $apexClothingPaint2_MeshName;
+ 
+ 	//float $currValue = `artUserPaintCtx -q -value $apexClothingPaint2_Context`;
+ 	float $currValue = `floatSliderGrp -q -v "artAttrValueSlider"`;
+ 	string $blendOp = `artUserPaintCtx -q -selectedattroper $apexClothingPaint2_Context`;
+
+	string $isolateFaces = "";
+	string $objectSet = `isolateSelect -q -vo modelPanel4`;
+	if($objectSet != "")
+	{
+		string $faces[] = `sets -q $objectSet`;
+		for($aface in $faces)
+		{
+			$isolateFaces += $aface;
+		}
+	}
+ 	if( $apexClothingPaint2_AttributeNameUI == "latchToNearest" )
+ 	{
+ 		string $operation = "add";
+ 		if( `radioButtonGrp -q -select apexClothingPaint2_LTNOperationRadioGrp` == 2 )
+ 			$operation = "erase";
+ 
+ 		// Get the state of override check box
+		int $override = off;
+		if(`checkBoxGrp -q -value1 apexClothingPaint2_LTNOverrideCheckBox`)
+			$override = on;
+
+		// Use replace paint option.
+ 		//print ("ApexValuesPaintingFloodCmd -opt 1 -atr "+$apexClothingPaint2_AttributeName+" -nn "+$apexClothingPaint2_ClothingName+" -iv "+$currValue+" -ltnfop "+$operation+";");
+ 		ApexValuesPaintingFloodCmd -opt 1 -atr $apexClothingPaint2_AttributeNameUI -nn $apexClothingPaint2_ClothingName -iv $currValue -ltn $operation -is $isolateFaces -lor $override;
+ 		// here is a trick to refresh vertex colors
+ 		apexClothingPaint2_updateArtUserPaintCtxValue();
+ 		return;
+ 	}
+ 
+ 	// Update paint range if value exceeds current limits
+ 	//apexClothingCheckExceedPaintRange( $currValue );
+ 
+ 	if ( $blendOp == "smooth" ) // Smooth
+ 	{
+ 		global int $apexShowSmoothFloodWarning;
+ 		//warning( "Flooding with smooth is a very slow operation!" );
+ 		string $message = "Flooding with smooth is a very slow operation! Proceed?";
+ 		string $response = "Yes";
+ 		if($apexShowSmoothFloodWarning)
+ 		{
+	 		$response = `confirmDialog -title "Warning" 
+ 								   -message $message -button "Yes" -button "No" 
+ 								   -defaultButton "Yes" -cancelButton "No" 
+ 								   -dismissString "No"`;
+		}
+ 
+ 		if( $response == "Yes" )
+ 		{
+ 			$apexShowSmoothFloodWarning = false;
+ 			// user maya's smooth flood
+ 			// eval( $apexClothingPaint2_OldFloodCmd );
+ 			// use our own smooth flood
+ 			float $radius = `floatSliderGrp -q -v upperRadiusSlider`;
+ 			ApexValuesPaintingFloodCmd -opt 3 -atr $apexClothingPaint2_AttributeNameUI -nn $apexClothingPaint2_ClothingName -mn $apexClothingPaint2_MeshName -r $radius -is $isolateFaces;
+ 		}
+ 		//else
+ 		//{
+ 		//	// use our own smooth flood???
+ 		//	float $radius = `floatSliderGrp -q -v upperRadiusSlider`;
+ 		//	ApexValuesPaintingFloodCmd -opt 3 -atr $apexClothingPaint2_AttributeNameUI -nn $apexClothingPaint2_ClothingName -mn $apexClothingPaint2_MeshName -r $radius -is $isolateFaces;
+ 		//}
+ 	}
+ 	else if ( $blendOp == "scale" ) // Scale
+ 	{
+ 		ApexValuesPaintingFloodCmd -opt 2 -atr $apexClothingPaint2_AttributeNameUI -nn $apexClothingPaint2_ClothingName -iv $currValue -is $isolateFaces;
+ 	}
+ 	else if ( $blendOp == "absolute" ) // Replace
+ 	{
+ 		ApexValuesPaintingFloodCmd -opt 1 -atr $apexClothingPaint2_AttributeNameUI -nn $apexClothingPaint2_ClothingName -iv $currValue -is $isolateFaces;
+ 	}
+ 	else if ( $blendOp == "additive" ) // Add
+ 	{
+ 		ApexValuesPaintingFloodCmd -opt 0 -atr $apexClothingPaint2_AttributeNameUI -nn $apexClothingPaint2_ClothingName -iv $currValue -is $isolateFaces;
+ 	}
+}
+
+global proc apexClothingPaint2_ToolSetupDeferred()
+{
+	print( "[apexClothingPaint2_ToolSetupDeferred] BEGIN\n");
+
+	global string $apexClothingPaint2_Context;
+
+	// -----------------------------------------------
+	// create the helper window
+ 	global string $apexClothingPaint2_Controls;
+ 	if (`window -exists $apexClothingPaint2_Controls`)
+ 	{
+ 		deleteUI $apexClothingPaint2_Controls;
+ 	}
+	
+	// create the window
+// 	window -title "APEX Clothing Paint"
+// 		//-widthHeight 512 320 
+// 		-widthHeight 412 320 
+// 		-titleBarMenu false //make it so that there is no way to close and looe this dialog!!!  We close on paint quite.
+// 		$apexClothingPaint2_Controls;
+// 	
+// 	apexClothingPaint2_CreateHelperUI();
+// 
+// 	showWindow $apexClothingPaint2_Controls; //show the window
+	
+	//artAttrOperRadioButton0 = radioButtonGrp (absolute || additive)
+	//artAttrOperRadioButton1 = radioButtonGrp (scale || smooth)
+	//artAttrValueSlider = floatSliderGrp
+	//artAttrValuePick = symbolButton
+	//artAttrMinMaxValue floatFieldGrp (v1 = lower, v2 = higher)
+	//artAttrClampChkBox checkBoxGrp (v1 = lower, v2 = higher)
+	//artAttrClampField = floatFieldGrp (v1 = lower, v2 = higher)	
+
+	//floatFieldGrp -e -enable1 false -enable2 false artAttrMinMaxValue;
+	checkBoxGrp -e -enable1 false -enable2 false artAttrClampChkBox;
+	floatFieldGrp -e -enable1 false -enable2 false artAttrClampField;
+
+	// keep the original flood command on the flood button and swap in ours
+ 	global string $apexClothingPaint2_OldFloodCmd;
+ 	$apexClothingPaint2_OldFloodCmd = `button -q -command artAttrFloodButton`;
+ 	button -e -command "apexClothingPaint2_FloodCommand();" artAttrFloodButton;
+
+	//apexClothingPaint2_LTNPaintChannelControls(1);
+	global string $apexClothingPaint2_AttributeName;
+	// to support custom paintible physical mesh, we need this convertion
+	if($apexClothingPaint2_AttributeName == "customMaxDistances")
+	{
+		$apexClothingPaint2_AttributeName = "maxDistances";
+	}
+	else if($apexClothingPaint2_AttributeName == "customBackStopOffset")
+	{
+		$apexClothingPaint2_AttributeName = "backStopOffset";
+	}
+	else if($apexClothingPaint2_AttributeName == "customBackStopRadius")
+	{
+		$apexClothingPaint2_AttributeName = "backStopRadius";
+	}
+	
+	optionMenuGrp -edit -v $apexClothingPaint2_AttributeName apexClothingPaint2_AttributeMenu;	
+
+	apexClothingPaint2_Update_PaintValue();
+
+	apexClothingPaint2_AttributeChanged();
+
+	print( "[apexClothingPaint2_ToolSetupDeferred] Ready to Paint.\n");
+}
+
+global proc apexClothingPaint2_ToolCleanup(string $context)
+{
+	global int $apexClothingPaint2_On;
+	global string $apexClothingPaint2_ClothingName;
+
+	print( "[apexClothingPaint2_ToolCleanup] BEGIN " + $apexClothingPaint2_ClothingName + "\n");
+
+	// this proc could be called twice with different scenario
+	if($apexClothingPaint2_On == 1)
+	{
+		//$apexClothingPaint2_On = 0;
+		apexClothingPaint2_End($apexClothingPaint2_ClothingName);
+	}
+	else
+	{
+		$apexClothingPaint2_On = 0;
+		apexClothingPaint2_Read_PaintValue();
+	}
+
+	apexClothingPaint2_StopPaintVisual();
+	apexClothingPaint2_RestoreColorSet();
+
+ 	global string $apexClothingPaint2_Controls;
+ 	if (`window -exists $apexClothingPaint2_Controls`)
+ 	{
+ 		deleteUI $apexClothingPaint2_Controls;
+ 		//if( `control -exists apexClothingPaint2_LTNPaintAttributeColumnLayout` ) 
+ 		//	deleteUI apexClothingPaint2_LTNPaintAttributeColumnLayout;
+ 
+ 		if( `layout -exists apexClothingPaint2_LTNPaintAttributeFrameLayout` ) 
+ 			deleteUI apexClothingPaint2_LTNPaintAttributeFrameLayout;
+ 	}
+	/*
+	string $parent =`toolPropertyWindow -q -location`;
+	$parent += "|artUserPaint";
+	deleteUI $parent;
+	// we use Maya creation function to recreate instead of restoring
+	artUserPaintProperties;
+	*/
+	//global string $apexClothingPaint2_ModelEditor;
+	//global string $apexClothingPaint2_OldDisplayAppearance;
+	//modelEditor -edit -displayAppearance $apexClothingPaint2_OldDisplayAppearance -activeView $apexClothingPaint2_ModelEditor;
+
+	//floatSliderGrp -e -step 0.001 -precision 3 artAttrValueSlider;
+	//floatFieldGrp -e -enable1 true -enable2 true artAttrMinMaxValue;
+	//checkBoxGrp -e -enable1 true -enable2 true artAttrClampChkBox;
+	//floatFieldGrp -e -enable1 true -enable2 true artAttrClampField;
+
+	//// swap back to original flood button command
+	//global string $apexClothingPaint2_OldFloodCmd;
+	//button -e -command $apexClothingPaint2_OldFloodCmd artAttrFloodButton;
+
+	//global string $apexClothingPaint2_ClothingName;
+	//global string $apexClothingPaint2_MeshName;
+
+
+	//// show the Attribute Editor for ApexClothingNode
+
+	//global string $apexClothingPaint2_RestoreSelection[];
+	//select -clear;
+	//for($restoreItem in $apexClothingPaint2_RestoreSelection)
+	//	select -add $restoreItem;
+
+	//nxShowEditorExact( $apexClothingPaint2_ClothingName );
+
+	//$apexClothingPaint2_MeshName = "";
+ //   $apexClothingPaint2_ClothingName = "";
+	print( "[apexClothingPaint2_ToolCleanup] END\n");
+	string $curCtx = `currentCtx`;
+	if($curCtx == "artUserPaintContext")
+	{
+	artUserPaintCtx -edit 
+		-tsc "" 
+		-toolOnProc "" 
+		-toolOffProc "" 
+		-duringStrokeCmd "" 
+		-toolCleanupCmd "" 
+		-initializeCmd ""
+		-finalizeCmd ""
+		-getValueCommand ""
+		-setValueCommand ""	
+		$curCtx;
+	}
+
+	global float $physXPaintToolCleanupTime;
+	$physXPaintToolCleanupTime = `timerX`;
+}
+
+global proc apexClothingPaint2_MeshInit()
+{
+	print( "[apexClothingPaint2_MeshInit] BEGIN \n");
+
+    global string $apexClothingPaint2_MeshName;
+    global string $apexClothingPaint2_ClothingName;
+    
+    if($apexClothingPaint2_MeshName == "")
+    {
+		print( "[apexClothingPaint2_MeshInit] apexClothingPaint2_MeshName is empty! \n");
+		return;
+	}
+
+	int $tmpIntArray[];
+	string $tmpStringArray[];
+	
+	//ColorSets
+	global string $apexClothingPaint2_ColorSet;
+	global string $apexClothingPaint2_OldMeshColorSet;
+	$tmpStringArray = `polyColorSet -q -currentColorSet $apexClothingPaint2_MeshName`;
+	$apexClothingPaint2_OldMeshColorSet = $tmpStringArray[0];
+
+	int $hasApexClothingPaintColorSet = 0;
+	string $colorSets[] = `polyColorSet -q -allColorSets $apexClothingPaint2_MeshName`;
+	int $iColorSet;
+	for($iColorSet = 0; $iColorSet < size($colorSets); $iColorSet = $iColorSet + 1)
+	{
+		if($colorSets[$iColorSet] == $apexClothingPaint2_ColorSet)
+		{
+			$hasApexClothingPaintColorSet = 1;
+			break;
+		}
+	}
+	
+	if(!$hasApexClothingPaintColorSet)
+		polyColorSet -create -representation "RGB" -colorSet $apexClothingPaint2_ColorSet $apexClothingPaint2_MeshName;
+	
+	polyColorSet -currentColorSet -colorSet $apexClothingPaint2_ColorSet $apexClothingPaint2_MeshName;	
+	
+	global int $apexClothingPaint2_OldMeshShading;
+	$tmpIntArray = `polyOptions -q -colorShadedDisplay $apexClothingPaint2_MeshName`;
+	$apexClothingPaint2_OldMeshShading = $tmpIntArray[0];
+	polyOptions -colorShadedDisplay 1 $apexClothingPaint2_MeshName;
+
+	global string $apexClothingPaint2_OldMaterialBlend;
+	$tmpStringArray = `polyOptions -q -materialBlend $apexClothingPaint2_MeshName`;
+	$apexClothingPaint2_OldMaterialBlend = $tmpStringArray[0];
+	polyOptions -materialBlend overwrite $apexClothingPaint2_MeshName;
+
+	global string $apexClothingPaint2_OldMaterialChannel;
+	$tmpStringArray = `polyOptions -q -colorMaterialChannel $apexClothingPaint2_MeshName`;
+	$apexClothingPaint2_OldMaterialChannel = $tmpStringArray[0];
+	polyOptions -colorMaterialChannel none $apexClothingPaint2_MeshName;
+	//print ("-- backup mat: " + $apexClothingPaint2_OldMaterialChannel + ", " + $apexClothingPaint2_MeshName + "\n");
+	
+	global int $apexClothingPaint2_OldPolygonDoubleSided;
+	$apexClothingPaint2_OldPolygonDoubleSided = `getAttr ($apexClothingPaint2_MeshName + ".doubleSided")`;
+	setAttr ($apexClothingPaint2_MeshName + ".doubleSided") 0;
+	
+	global int $apexClothingPaint2_OldPolygonOpposite;
+	$apexClothingPaint2_OldPolygonOpposite = `getAttr ($apexClothingPaint2_MeshName + ".opposite")`;
+	setAttr ($apexClothingPaint2_MeshName + ".opposite") 0;
+	
+	string $oldPaintMeshSource = `connectionInfo -sourceFromDestination ($apexClothingPaint2_ClothingName + ".paintMesh")`;
+	if($oldPaintMeshSource != "")
+		disconnectAttr $oldPaintMeshSource ($apexClothingPaint2_ClothingName + ".paintMesh");
+	connectAttr ($apexClothingPaint2_MeshName + ".message") ($apexClothingPaint2_ClothingName + ".paintMesh");
+
+	// apexClothingPaintRange changes Vertex Color. apexClothingBackupVertexColors to backup and restore it.
+	//global string $AEapexClothing_ClothingNodeName;
+	//apexClothingBackupVertexColors("-b", $AEapexClothing_ClothingNodeName);
+
+	print( "[apexClothingPaint2_MeshInit] END\n"); 
+}
+
+
+global proc apexClothingPaint2_RestoreColorSet()
+{
+	global string $apexClothingPaint2_ColorSet;
+	global string $apexClothingPaint2_OldMeshColorSet;
+    global string $apexClothingPaint2_MeshName;
+	print( "[apexClothingPaint2_RestoreColorSet] BEGIN " + $apexClothingPaint2_MeshName + "\n");
+	if (`objExists $apexClothingPaint2_MeshName`)
+	{
+		// apexClothingPaintRange changes Vertex Color. apexClothingBackupVertexColors to backup and restore it.
+		//global string $AEapexClothing_ClothingNodeName;
+		//apexClothingBackupVertexColors("-r", $AEapexClothing_ClothingNodeName);
+		
+		string $colorSets[] = `polyColorSet -q -currentColorSet $apexClothingPaint2_MeshName`;
+		if(size($colorSets)>0)
+		{
+			if($colorSets[0] == $apexClothingPaint2_ColorSet)
+			{
+				polyColorSet -delete -colorSet $apexClothingPaint2_ColorSet $apexClothingPaint2_MeshName;
+			}
+		}
+
+		if($apexClothingPaint2_OldMeshColorSet != "")
+		{
+			if($apexClothingPaint2_OldMeshColorSet != $apexClothingPaint2_ColorSet)
+			{
+				polyColorSet -currentColorSet -colorSet $apexClothingPaint2_OldMeshColorSet $apexClothingPaint2_MeshName;
+			}
+		}
+	}
+
+	print( "[apexClothingPaint2_RestoreColorSet] END\n");
+}
+
+global proc apexClothingPaint2_StopPaintVisual()
+{
+    global string $apexClothingPaint2_MeshName;
+    global string $apexClothingPaint2_ClothingName;
+
+	if (`objExists $apexClothingPaint2_MeshName`)
+	{
+		global int $apexClothingPaint2_OldMeshShading;
+		polyOptions -colorShadedDisplay $apexClothingPaint2_OldMeshShading $apexClothingPaint2_MeshName;
+
+		global string $apexClothingPaint2_OldMaterialBlend;
+		polyOptions -materialBlend $apexClothingPaint2_OldMaterialBlend $apexClothingPaint2_MeshName;
+
+		global string $apexClothingPaint2_OldMaterialChannel;
+		//print ("-- restore mat: " + $apexClothingPaint2_OldMaterialChannel + ", " + $apexClothingPaint2_MeshName + "\n");
+		polyOptions -colorMaterialChannel $apexClothingPaint2_OldMaterialChannel $apexClothingPaint2_MeshName;
+		
+		global int $apexClothingPaint2_OldPolygonDoubleSided;
+		setAttr ($apexClothingPaint2_MeshName + ".doubleSided") $apexClothingPaint2_OldPolygonDoubleSided;
+		
+		global int $apexClothingPaint2_OldPolygonOpposite;
+		setAttr ($apexClothingPaint2_MeshName + ".opposite") $apexClothingPaint2_OldPolygonOpposite;
+
+		if (`objExists $apexClothingPaint2_ClothingName`)
+		{
+			if(`isConnected ($apexClothingPaint2_MeshName + ".message") ($apexClothingPaint2_ClothingName + ".paintMesh")`)
+				disconnectAttr ($apexClothingPaint2_MeshName + ".message") ($apexClothingPaint2_ClothingName + ".paintMesh");
+			setAttr ($apexClothingPaint2_ClothingName + ".paintChannel") 0;
+
+			setAttr ($apexClothingPaint2_ClothingName + ".showHelper") 0;
+			setAttr ($apexClothingPaint2_ClothingName + ".showVertexVisualization") 0;
+		}
+	}
+
+	//$apexClothingPaint2_MeshName = "";
+    //$apexClothingPaint2_ClothingName = "";
+
+	print( "[apexClothingPaint2_StopPaintVisual] END\n");
+}
+
+
+global proc string apexClothingPaint2_StrokeInit( string $mesh )
+{
+	print( "[apexClothingPaint2_StrokeInit] BEGIN " + $mesh + "\n");
+
+    global string $apexClothingPaint2_Context;
+    global string $apexClothingPaint2_MeshName;
+    global string $apexClothingPaint2_ClothingName;
+	global int $apexClothingPaint2_StampSolid_Enabled;
+	global float $apexClothingPaint2_StampSolid_Value;
+
+	string $stampMode = `artUserPaintCtx -q -stampProfile $apexClothingPaint2_Context`;
+	print( "[apexClothingPaint2_StrokeInit] StampMode:" + $stampMode + "\n");
+
+	string $blendOp = `artUserPaintCtx -q -selectedattroper $apexClothingPaint2_Context`;
+	print( "[apexClothingPaint2_StrokeInit] BlendOp:" + $blendOp + "\n");
+	
+	$apexClothingPaint2_StampSolid_Enabled = ($blendOp == "absolute") && ($stampMode == "solid" || $stampMode == "square");
+	print( "[apexClothingPaint2_StrokeInit] StampSolid_Enabled:" + $apexClothingPaint2_StampSolid_Enabled + "\n");
+	
+	//$apexClothingPaint2_StampSolid_Value = `artUserPaintCtx -q -value $apexClothingPaint2_Context`;
+	$apexClothingPaint2_StampSolid_Value = `floatSliderGrp -q -v "artAttrValueSlider"`;
+	print( "[apexClothingPaint2_StrokeInit] StampSolid_Value:" + $apexClothingPaint2_StampSolid_Value + "\n");
+
+	setAttr ($apexClothingPaint2_ClothingName + ".paintState") 1; // Before painting
+
+	print( "[apexClothingPaint2_StrokeInit] END\n");
+	int $currGraphicsLodIndex = `getAttr ($apexClothingPaint2_ClothingName + ".currentGraphicalLOD")`;
+	string $paintPlug = ($apexClothingPaint2_ClothingName + ".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPaintOverride");
+	int $override = 1 ;
+	if($currGraphicsLodIndex > 0)
+	{
+		 $override = `getAttr $paintPlug`;
+	}
+	if($mesh == $apexClothingPaint2_MeshName && $override)
+		return ( "-id 0" ) ;  
+	else
+		return "";
+}
+
+global proc apexClothingPaint2_StrokeFinalize( int $slot )
+{
+	global string $apexClothingPaint2_ClothingName;
+	setAttr ($apexClothingPaint2_ClothingName + ".paintState") 2; // After state
+	setAttr ($apexClothingPaint2_ClothingName + ".paintState") 0; // Normal state
+	print( "[apexClothingPaint2_StrokeFinalize] " + $slot + "\n");
+}
+
+global proc apexClothingPaint2_setValue( int $slot, int $vertexId, float $val)
+{
+	// for GWDCC-476 PhysX Maya Plugin - cannot paint clothing in one sample.
+	// it has $slot = -1.
+	//if($slot < 0)
+	//	return;
+
+    global string $apexClothingPaint2_ClothingName;
+    global string $apexClothingPaint2_AttributeName;
+    global string $apexClothingPaint2_AttributeNameUI;
+    global int $apexClothingPaint2_AttributeId;
+    global string $apexClothingPaint2_AttributeName_MaxDistance;
+    global int $apexClothingPaint2_AttributeId_BackStopOffset;
+	global int $apexClothingPaint2_SpecialValueMode;
+	global int $apexClothingPaint2_SpecialValueMode_NoEffect;
+	global int $apexClothingPaint2_StampSolid_Enabled;
+	global float $apexClothingPaint2_StampSolid_Value;
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+	global int $bPaintCustomMesh;
+	
+	float $finalValue = $val;
+
+	string $inputAttrName = "lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "]";
+	
+	string $vertexIdStr = "[" + $vertexId + "]";
+	
+	if($apexClothingPaint2_SpecialValueMode == $apexClothingPaint2_SpecialValueMode_NoEffect
+	&& $apexClothingPaint2_AttributeId == $apexClothingPaint2_AttributeId_BackStopOffset)
+	{
+		$finalValue = `getAttr ($apexClothingPaint2_ClothingName + "." + $apexClothingPaint2_AttributeName_MaxDistance + $vertexIdStr )`;
+		if($bPaintCustomMesh)
+		{
+			$finalValue = `getAttr ($apexClothingPaint2_ClothingName + "." + "customMaxDistances" + $vertexIdStr )`;
+		}
+	}
+	else if( $apexClothingPaint2_StampSolid_Enabled != 0 )
+	{
+		$finalValue = $apexClothingPaint2_StampSolid_Value;
+	}
+
+	if( $apexClothingPaint2_AttributeNameUI == "latchToNearest" )
+	{
+		// Turn On/Off latchToNearest Group bit.
+		string $operation = "add";
+		if( `radioButtonGrp -q -select apexClothingPaint2_LTNOperationRadioGrp` == 2 )
+			$operation = "erase";
+
+		// Get the state of override check box
+		int $override = off;
+		if(`checkBoxGrp -q -value1 apexClothingPaint2_LTNOverrideCheckBox`)
+			$override = on;
+
+		//print ("LatchToNearestSetCmd -op " + $operation + $group + " -vId " + $vertexId + " -cn " + $apexClothingPaint2_ClothingName);
+		LatchToNearestSetCmd -op $operation -or $override -vId $vertexId -cn $apexClothingPaint2_ClothingName;
+	}
+	else
+	{
+		//print( "[apexClothingPaint2_setValue] Req:" + $val + " Set:" + $finalValue + "\n");
+		//print( $apexClothingPaint2_ClothingName + "." + $inputAttrName + "." + $apexClothingPaint2_AttributeName + $vertexIdStr + "\n" );
+		setAttr ($apexClothingPaint2_ClothingName + "." + $inputAttrName + "." + $apexClothingPaint2_AttributeName + $vertexIdStr) $finalValue;
+	}
+}
+
+global proc float apexClothingPaint2_getValue( int $slot, int $vertexId )
+{
+    global string $apexClothingPaint2_ClothingName;
+	global string $apexClothingPaint2_AttributeName;
+    global int $apexClothingPaint2_AttributeId;
+	global int $apexClothingPaint2_GraphicalLodSparseIndex;
+
+	string $inputAttrName = "lodCompoundAttributes[" + $apexClothingPaint2_GraphicalLodSparseIndex + "]";
+	
+	string $vertexIdStr = "[" + $vertexId + "]";
+    float $ret = `getAttr ($apexClothingPaint2_ClothingName + "." + $inputAttrName + "." + $apexClothingPaint2_AttributeName + $vertexIdStr)`;
+	//print("apexClothingPaint2_getValue $vertexId=" + $vertexId + ", value = " + $ret + "\n" );
+	return $ret;
+}
+
+global proc physxPostSceneSaved()
+{
+    global float $physXPaintToolCleanupTime;
+    float $deltaTime = `timerX` - $physXPaintToolCleanupTime;
+    // if less than 2 seconds between apexClothingPaint2_ToolCleanup and this callback. we will show paint UI.
+    if($deltaTime < 2)
+    {
+	    global string $AEapexClothing_ClothingNodeName;
+		apexClothingPaint2_OnOff( $AEapexClothing_ClothingNodeName );
+		print ("[physxPostSceneSaved] restore Paint UI by guessing, delta time = " + $deltaTime + "(s)\n");
+	}
+}
+
+scriptJob -e SceneSaved "physxPostSceneSaved()";

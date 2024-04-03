@@ -1,0 +1,59 @@
+NVIDIA CORPORATION
+PHYSX PLUG-IN FOR MAYA END USER LICENSE AGREEMENT
+ 
+NVIDIA Corporation ("NVIDIA") is willing to license the PhysX Plug-In for Maya and the accompanying documentation, installation routines and support files, sample art files and assets, and supporting utilities to you only on the condition that you accept all the terms in this License Agreement ("Agreement").
+ 
+IMPORTANT: READ THE FOLLOWING TERMS AND CONDITIONS BEFORE USING THE ACCOMPANYING PHYSX PLUG-IN FOR 3DS MAX.
+ 
+IF YOU DO NOT AGREE TO THE TERMS OF THIS AGREEMENT, NVIDIA IS NOT WILLING TO LICENSE THE MAYA PLUG-IN TO YOU.  IF YOU DO NOT AGREE TO THESE TERMS, YOU SHALL DESTROY THIS ENTIRE PRODUCT AND PROVIDE EMAIL VERIFICATION TO PHYSXLICENCING@NVIDIA.COM OF DELETION OF ALL COPIES OF THE ENTIRE PRODUCT. 
+ 
+NVIDIA MAY MODIFY THE TERMS OF THIS AGREEMENT FROM TIME TO TIME.  ANY USE OF THE PHYSX PLUG-IN FOR MAYA WILL BE SUBJECT TO SUCH UPDATED TERMS.  A CURRENT VERSION OF THIS AGREEMENT IS POSTED ON NVIDIA'S DEVELOPER WEBSITE:
+ 
+ www.developer.nvidia.com
+ 
+1. Definitions. 
+ 
+ "PhysX Plug-In for Maya" or "Maya Plug-In" means the set of instructions for computers, in executable form only and in any media (which may include diskette, CD-ROM, downloadable internet, hardware, or firmware) comprising NVIDIA's proprietary software and related media and printed materials, including reference guides, documentation, and other manuals, installation routines and support files, libraries, sample art files and assets, support utilities and any subsequent updates or adaptations provided by NVIDIA, whether with this installation or as separately downloaded.
+ 
+2. License.  NVIDIA grants you ("you") a limited, non-exclusive, personal, non-transferable, world-wide, royalty-free license to possess, install and use one copy of the Maya Plug-In solely for internal evaluation, development and testing purposes, provided you meet and comply with all requirements of this Agreement.  
+ 
+In addition, you may not and shall not permit others to:
+ 
+(i) modify, reproduce, de-compile, reverse engineer or translate the Maya Plug-In; or
+ 
+(ii) distribute or transfer the Maya Plug-In in any form, including source code.
+ 
+Except as expressly granted herein, no other license under any patent, copyright, trade secret, trademark or other intellectual property right is granted to or conferred upon you by this Agreement.  All other rights are expressly reserved by NVIDIA and its licensors.
+ 
+3. Ownership, Protections.  The Maya Plug-In is owned by NVIDIA and NVIDIA licensors, and is protected by United States copyright laws, international treaty provisions, and other applicable laws.  You acknowledge that the Maya Plug-In contains valuable proprietary information and trade secrets and that unauthorized or improper use of the Maya Plug-In will result in irreparable harm to NVIDIA and its licensors for which monetary damages would be inadequate and for which NVIDIA and its licensors will be entitled to immediate injunctive relief.
+ 
+4. Restrictions.  You will not, and will not permit others to: (a) modify, translate, decompile, bootleg, reverse engineer, disassemble, or extract the inner workings of any portion of the Maya Plug-In, (b) copy the look-and-feel or functionality of any portion of the Maya Plug-In; (c) remove any proprietary notices, marks, labels, or logos from the Maya Plug-In N or any portion thereof; (d) rent, transfer or use as a service bureau all or some of the Maya Plug-In without NVIDIA's prior written consent, subject to the requirements of this Agreement; (e) utilize any computer software or hardware which is designed to defeat any copy protection device, should the Maya Plug-In be equipped with such a protection device; or (f) use the Maya Plug-In in any manner that would cause the Maya Plug-In to become subject to an Open Source License.  "Open Source License" includes, without limitation, a software license that requires as a condition of use, modification, and/or distribution of such software that the Maya Plug-In be (i) disclosed or distributed in source code form; (ii) be licensed for the purpose of making derivative works; or (iii) be redistributable at no charge.  Unauthorized copying of the Maya Plug-In, or failure to comply with any of the provisions of this Agreement, will result in automatic termination of this license. 
+ 
+5. Trademark License.  Except as expressly set forth in this Section 5, or in a separate written agreement with NVIDIA, you may not use NVIDIA's trademarks, whether registered or unregistered, in connection with the use of the Maya Plug-In in any manner or imply that NVIDIA endorses or otherwise approves of the use or that you and NVIDIA are in any way affiliated.  Your use of the NVIDIA name under this Agreement does not create any right, title or interest in the NVIDIA name or any NVIDIA trademarks and all goodwill arising from your use inure solely to the benefit of NVIDIA.
+ 
+6. DISCLAIMER.  EXCEPT FOR THE ABOVE EXPRESS LIMITED WARRANTY, THE MAYA PLUG-IN IS PROVIDED "AS IS" AND NVIDIA AND ITS LICENSORS MAKE, AND YOU RECEIVE, NO OTHER WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR IN ANY COMMUNICATION WITH YOU.  NVIDIA SPECIFICALLY DISCLAIMS ANY OTHER WARRANTY INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE.  NVIDIA DOES NOT WARRANT THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR FREE OR THAT DEFECTS IN THE SOFTWARE WILL BE CORRECTED.  NVIDIA MAKES NO WARRANTY WITH RESPECT TO THE CORRECTNESS, ACCURACY, OR RELIABILITY OF THE SOFTWARE AND DOCUMENTATION.  Some jurisdictions do not allow the exclusion of implied warranties, so the above exclusion may not apply to you. 
+ 
+7. Confidential Information.  All technical and business information disclosed by NVIDIA to you under this Agreement, including but not limited to source code, documentation, technical assistance and any confidential information pertaining to NVIDIA's business or products, are to be considered "NVIDIA Confidential Information." You will not disclose any portion of NVIDIA Confidential Information to any third party and will protect all NVIDIA Confidential Information with the same degree of care as you use to protect your own information of a confidential or proprietary nature, but always with at least a reasonable degree of care.  This obligation of confidentiality will survive termination and/or expiration of this Agreement for any reason.
+ 
+8. LIMITATION OF LIABILITY.  THE TOTAL LIABILITY OF NVIDIA AND ITS LICENSORS UNDER THIS AGREEMENT FOR DAMAGES WILL NOT EXCEED $100 IN THE AGGREGATE.  IN NO EVENT WILL NVIDIA OR ITS LICENSORS BE LIABLE IN ANY WAY FOR INCIDENTAL, CONSEQUENTIAL, INDIRECT, SPECIAL OR PUNITIVE DAMAGES OF ANY NATURE, INCLUDING WITHOUT LIMITATION, LOST BUSINESS PROFITS, OR LIABILITY OR INJURY TO THIRD PERSONS, WHETHER FORESEEABLE OR NOT, REGARDLESS OF WHETHER NVIDIA OR ITS LICENSORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.  Some jurisdictions do not permit limitations of liability for incidental or consequential damages, so the above exclusions may not apply to you.  
+ 
+9. Support and Technical Support.  NVIDIA has no obligation to continue providing or updating the Maya Plug-In. NVIDIA may provide you with technical support related to use of the Maya Plug-In under terms and conditions as posted on the NVIDIA PhysX developer website, which may, in NVIDIA's sole discretion, be changed from time to time.
+ 
+10. Term of License; Termination.  Your right to use the Maya Plug-In will begin when you check the "I accept the terms in the License Agreement" box, which constitutes acceptance of the terms and conditions herein, and complete the Maya Plug-In installation process.  The license is effective until otherwise terminated.  You may terminate it at any time by destroying the Maya Plug-In and all portions thereof, together with all copies in any form.  If you fail to comply with any material term or condition of this Agreement and do not cure the noncompliance within 30 days of receipt of written notice of noncompliance from NVIDIA, NVIDIA may terminate your rights whereupon you will certify to NVIDIA in writing that the original and all copies, in whole or in part, of the Maya Plug-In have been destroyed. 
+ 
+11. Governing Law.  This Agreement will be interpreted under and controlled by the laws of the State of Delaware notwithstanding the application of any conflicts of law rules. Exclusive venue over all disputes arising under or relating to this Agreement shall be in the federal or state courts of Santa Clara County, California.  
+ 
+12. Export.  You agree and certify that no portion of the Maya Plug-In nor any other technical data received from NVIDIA will be exported outside the United States except as authorized and as permitted by the laws and regulations of the United States.  If you have rightfully obtained the Maya Plug-In outside of the United States, you agree that you will not re-export any portion of the Maya Plug-In nor any other technical data received from NVIDIA, except as permitted by the laws and regulations of the United States and the laws and regulations of the jurisdiction in which you obtained the Maya Plug-In.
+ 
+13. Assignment.  You may not sublicense, assign or transfer this Agreement or the Maya Plug-In except as expressly provided in this Agreement.  Any attempt to otherwise sublicense, assign or transfer any of the rights, duties or obligations hereunder is null and void. 
+ 
+14. Survival.  The parties agree that where the context of any provision indicates an intent that it will survive the term of this Agreement, then it will survive. 
+ 
+16. Entire Agreement.  This Agreement contains the parties entire agreement regarding your use of the Maya Plug-In. 
+ 
+Copyright Â© 2010 NVIDIA Corporation.  All rights reserved.    
+ 
+ 
+ 
+US AND INTERNATIONAL PATENTS PENDING.
+ 

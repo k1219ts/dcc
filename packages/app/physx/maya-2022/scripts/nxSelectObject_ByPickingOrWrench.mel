@@ -1,0 +1,173 @@
+// Copyright (c) 2005 - 2013 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+global proc AEnxSelectObject_ByPickingOrWrenchNew(string $pickButtonName, string $wrenchButtonName, string $initialLabelName)
+{
+	global string  $physxIconFormat;
+	rowLayout -numberOfColumns 3;
+	text "";
+	button -label $initialLabelName -align "center" $pickButtonName;
+	iconTextButton 
+		-style "iconOnly"  -align "center"
+		-width 25 -height 20
+		-image ("smallEditWithOptions" + $physxIconFormat) 
+		$wrenchButtonName;
+}
+
+global proc nxSelectObject_ByPickingOrWrench(string $plug, string $hint, string $pickButtonName, string $wrenchButtonName, string $label, string $outlinerWindowname, 
+	string $filter, string $commandAfterSelect)
+{
+	button -e -command ("nxSelectObject_PickCommand(\"" + $plug + "\",\"" + $hint + "\",\"" + $commandAfterSelect + "\")" )  $pickButtonName;
+	global string $gOutlinerWindowForRootTranslation;
+	string $buttonCommand = "nxOutlinerEditor(\"" + $plug + "\",\"" + $outlinerWindowname + "\",\"" + $filter + "\",\""  + $commandAfterSelect + "\",\"" + $label +"\");";
+	iconTextButton -e	
+		-command $buttonCommand
+		$wrenchButtonName;
+}
+
+global proc nxSelectObject_PickCommand(string $plug, string $hint, string $commandAfterSelect)
+{
+	NvExecuteOnSelection -hint $hint -cmd ("nxSelectObject_CommandAfterSelect(\"" + $plug + "\",\"" + $commandAfterSelect + "\")" );
+}
+
+global proc nxSelectObject_CommandAfterSelect(string $plug, string $commandAfterSelect)
+{
+	string $selectionList[] = `NvExecuteOnSelection -q`;
+	int $selectionListLen = size($selectionList);
+	
+	// get the last on the list
+	// because the delay execute command adds in the currently selected item too
+	// and the item we select will be the last item in that list
+	string $selected = $selectionList[$selectionListLen - 1]; // selected is the transform name
+
+	string $allCommand = $commandAfterSelect + "(\"" + $selected + "\",\"" + $plug + "\");";
+	eval $allCommand;
+	physxShelf_FocusSelectedCommand();
+}
+
+// Display the outliner listing only all joints in the scene
+global string $gNxOutlinerEditorFilter_Joint = "";
+global string $gNxOutlinerEditorFilter_Mesh = "";
+global string $gNxOutlinerEditorFilter_Curve = "";
+global proc nxOutlinerEditor(string $plug, string $windowName, string $type, string $command, string $label)
+{
+	global string $windowName;
+	if(`window -exists $windowName`) return;
+
+	global string $gNxOutlinerEditorFilter_Mesh;
+	string $filter = "";
+	if($type == "joint")
+	{
+		$filter = "DefaultJointsFilter"; // Maya built-in filter
+	}
+	else if($type == "mesh")
+	{
+		if($gNxOutlinerEditorFilter_Mesh == "" || `objExists $gNxOutlinerEditorFilter_Mesh` == 0)
+		{
+			$gNxOutlinerEditorFilter_Mesh = `itemFilter -byType "mesh"`;
+		}
+		$filter = $gNxOutlinerEditorFilter_Mesh;
+	}
+	else if($type == "curve")
+	{
+		global string $gNxOutlinerEditorFilter_Curve;
+		if($gNxOutlinerEditorFilter_Curve == "" || `objExists $gNxOutlinerEditorFilter_Curve` == 0)
+		{
+			$gNxOutlinerEditorFilter_Curve = `itemFilter -byType "nurbsCurve"`;
+		}
+		$filter = $gNxOutlinerEditorFilter_Curve;
+	}
+
+
+	// Create a new regular outliner in its own window
+	window -title "Joints Outliner" -widthHeight 350 450 $windowName;
+		string $formLayout = `formLayout -numberOfDivisions 100`;
+			string $frameLayout = `frameLayout -label $label -collapse false -h 350`; 
+				string $outliner = `outlinerEditor`;
+				outlinerEditor -edit
+					-mainListConnection "worldList"
+					-selectionConnection "modelList"
+					-expandObjects false
+					-showDagOnly true
+					-ignoreDagHierarchy false
+					-showNamespace true
+					-highlightActive true
+					-autoSelectNewObjects false
+					-doNotSelectNewObjects false
+					-showSetMembers true
+					-filter $filter
+					$outliner;
+			setParent ..;
+
+			string $buff[];
+			clear $buff;
+			tokenize($plug, ".", $buff);
+			string $selectNode = $buff[0];
+
+			string $allCommand = "nxOutlinerCallback(\"" + $windowName + "\",\"" + $command + "\",\"" + $plug + "\")";
+			string $okButton = `button -label "OK" -command $allCommand`;
+			string $cancelBtn = `button -label "Cancel" -command ("nxOutlinerCancelButtonCallback(\"" + $windowName + "\",\""  + $selectNode + "\")")`;
+		formLayout -edit
+			-attachForm     $frameLayout    "top"    5
+			-attachForm     $frameLayout    "left"   5
+			-attachControl  $frameLayout    "bottom" 5 $okButton
+			-attachForm     $frameLayout    "right"   5
+
+			-attachNone $okButton "top"    
+			-attachForm $okButton "left"  5
+			-attachForm  $okButton "bottom" 5 
+			-attachPosition $okButton "right"   0 50
+
+     
+			-attachNone     $cancelBtn "top"    
+			-attachPosition $cancelBtn "left"   0 50
+			-attachForm  $cancelBtn "bottom" 5 
+			-attachForm     $cancelBtn     "right"   5 
+			$formLayout;
+
+		setParent ..;  
+	showWindow $windowName;
+}
+
+global proc nxOutlinerCancelButtonCallback(string $windowName, string $selectNode)
+{
+	if(`window -exists $windowName`)
+		deleteUI -window $windowName;
+	nxShowEditorExact( $selectNode );
+}
+
+global proc nxOutlinerCallback(string $windowName, string $command, string $plug)
+{
+	$selectionList = `ls -sl`;
+	int $selectionListLen = size($selectionList);
+	string $selected = $selectionList[$selectionListLen - 1]; // selected is the transform name
+
+	string $allCommand = $command + "(\"" + $selected + "\",\"" + $plug + "\");";
+	eval $allCommand;
+
+	string $buff[];
+	clear $buff;
+	tokenize($plug, ".", $buff);
+	string $selectNode = $buff[0];
+
+	// After adding joints to the list, close the window by deleting the UI.
+	nxOutlinerCancelButtonCallback($windowName, $selectNode);
+}
+
+global proc int nxOutlinerEditorScriptFilterMesh(string $name)
+{
+    if(`nodeType $name` == "mesh")
+        return (1 - `getAttr ($name+".intermediateObject")`);
+	return 0;
+}
+
+global proc int nxOutlinerEditorScriptFilterCurve(string $name)
+{
+    if(`nodeType $name` == "nurbsCurve")
+        return (1 - `getAttr ($name+".intermediateObject")`);
+	return 0;
+}

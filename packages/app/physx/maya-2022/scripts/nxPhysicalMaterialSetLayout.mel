@@ -1,0 +1,599 @@
+// Copyright (c) 2005 - 2013 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+//global string $nxPhysicalMaterialItems[];
+
+global proc getCurrentLODPhysicalMaterialIndices(string $nodeName, int $indices[])
+{
+	clear $indices;
+	
+	int $currGraphicsLodIndex = `getAttr ($nodeName + ".currentGraphicalLOD")`;
+	if($currGraphicsLodIndex<0)
+	{
+		$currGraphicsLodIndex = 0;
+	}
+	int $override = `getAttr ($nodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+"lodPhysicalMaterialOverride")`;
+	if(!$override)
+	{
+		$currGraphicsLodIndex = 0;
+	}
+	int $length = `getAttr -size ($nodeName+".physicalMaterialTable")`;
+	if($length == 0)
+	{
+		getAttr ($nodeName + ".physicalMaterialSets[0].pmName");
+		setAttr ($nodeName + ".physicalMaterialTable[0]") 0;
+		setAttr ($nodeName + ".physicalMaterialExport[0]") 1;
+		$length = 1;
+	}
+	int $i;
+	for($i = 0; $i < $length; $i++)
+	{
+		int $graphicsLodIndex = `getAttr ($nodeName+".physicalMaterialTable[" + $i+ "]")`;
+		if($graphicsLodIndex == $currGraphicsLodIndex)
+		{
+			$indices[size($indices)] = $i;
+		}
+	}
+}
+
+proc editPopUpMenu(string $presetLoadCommand, string $presetSaveCommand, string $physicalMaterialList, 
+	string $createMenu, string $renameMenu, string $loadMenu, string $saveMenu, 
+	string $exportMenu, string $notexportMenu, string $nodeName, string $index)
+{
+	menuItem -e -command ("evalEcho nxPhysicalMaterialCreateDialog(\"" + $nodeName + "\")") ($createMenu+$index);
+	string $renameCmd = "nxPhysicalMaterialRenameDialog(\"" + $nodeName + "\",\"" + $physicalMaterialList + "\")";
+	menuItem -e -command ( $renameCmd ) ($renameMenu+$index);
+	menuItem -e -command ("evalEcho " + $presetLoadCommand) ($loadMenu+$index);
+	menuItem -e -command ("evalEcho " + $presetSaveCommand) ($saveMenu+$index);
+	string $exportCmd = "nxPhysicalMaterialConfigExport(\"" + $nodeName + "\",\"" + $physicalMaterialList + "\",1)";
+	string $notexportCmd = "nxPhysicalMaterialConfigExport(\"" + $nodeName + "\",\"" + $physicalMaterialList + "\",0)";
+	menuItem -e -command ($exportCmd) ($exportMenu+$index);
+	menuItem -e -command ($notexportCmd) ($notexportMenu+$index);
+}
+
+proc createPopUpMenu(string $createMenu, string $renameMenu, string $loadMenu, string $saveMenu, 
+					string $exportMenu, string $notexportMenu, string $nodeName, string $index)
+{
+	menuItem -label "Create"  ($createMenu+$index);
+	menuItem -label "Rename"  ($renameMenu+$index);
+	menuItem -label "Load" ($loadMenu+$index);
+	menuItem -label "Save" ($saveMenu+$index);
+	menuItem -label "Export Cloth Material" ($exportMenu+$index);
+	menuItem -label "Do not Export Cloth Material" ($notexportMenu+$index);
+}
+
+global proc nxphysicalMaterialSetLayoutNew(string $plug, string $physicalMaterialEditButtonLayout, 
+	string $physicalMaterialMoveUpButton, string $physicalMaterialMoveDownButton, string $physicalMaterialDeleteButton, 
+	string $physicalMaterialList, string $textScrollListSelectChanged,
+	string $createMenu, string $renameMenu, string $loadMenu, string $saveMenu, string $exportMenu, string $notexportMenu)
+{
+	string $buff[];
+	clear $buff;
+	tokenize($plug, ".", $buff);
+	string $selectNode = $buff[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -numberOfColumns 5 -columnWidth5 280 25 25 25 25 $physicalMaterialEditButtonLayout;
+	text -l "";//label
+
+	iconTextButton
+		-style "iconOnly"  -align "center"
+		-width 25 -height 20
+		-image ("PositionUp.png") 
+		$physicalMaterialMoveUpButton;
+
+	iconTextButton
+		-style "iconOnly"  -align "center"
+		-width 25 -height 20
+		-image ("PositionDown.png") 
+		$physicalMaterialMoveDownButton;
+
+	global string  $physxIconFormat;
+	iconTextButton
+		-style "iconOnly"  -align "center"
+		-width 25 -height 20
+		-image ("smallEditWithOptions" + $physxIconFormat) ;
+		
+	// for left click
+	popupMenu -button 1;
+		createPopUpMenu($createMenu, $renameMenu, $loadMenu, $saveMenu, $exportMenu, $notexportMenu, $selectNode, "0");
+	// for right click
+ 	popupMenu;
+ 		createPopUpMenu($createMenu, $renameMenu, $loadMenu, $saveMenu, $exportMenu, $notexportMenu, $selectNode, "1");
+
+	iconTextButton 
+		-style "iconOnly"  -align "center"
+		-width 25 -height 20
+		-image ("pxSmallTrash" + $physxIconFormat) 
+		$physicalMaterialDeleteButton;
+	setParent..;
+
+	textScrollList -width 200
+			-allowMultiSelection 0
+			-height 60	-selectCommand ($textScrollListSelectChanged + "(\"" + $physicalMaterialList + "\",\"" + $selectNode + "\")")
+			-annotation "the material tagged with \"*\" will not be exported"
+			$physicalMaterialList;
+	setUITemplate -ppt;
+}
+
+// to delete unuseful parameters
+global proc nxphysicalMaterialSetLayoutReplace(string $plug, string $physicalMaterialEditButtonLayout, 
+	string $physicalMaterialMoveUpButton, string $physicalMaterialMoveDownButton, string $physicalMaterialDeleteButton, 
+	string $physicalMaterialList, string $textScrollListSelectChanged,
+	string $createMenu, string $renameMenu, string $loadMenu, string $saveMenu,  string $exportMenu, string $notexportMenu, 
+	string $nodeName, string $presetLoadCommand, string $presetSaveCommand)
+{
+	editPopUpMenu($presetLoadCommand, $presetSaveCommand, $physicalMaterialList, $createMenu, $renameMenu, $loadMenu, $saveMenu, $exportMenu, $notexportMenu, $nodeName, "0");
+	editPopUpMenu($presetLoadCommand, $presetSaveCommand, $physicalMaterialList, $createMenu, $renameMenu, $loadMenu, $saveMenu, $exportMenu, $notexportMenu, $nodeName, "1");
+	iconTextButton -e
+		-command ("nxPhysicalMaterialConfigOrder(\"" + $nodeName + "\",\"" + $physicalMaterialList + "\",-1)")
+		$physicalMaterialMoveUpButton;
+	iconTextButton -e
+		-command ("nxPhysicalMaterialConfigOrder(\"" + $nodeName + "\",\"" + $physicalMaterialList + "\",1)")
+		$physicalMaterialMoveDownButton;
+	iconTextButton -e
+		-command ("nxPhysicalMaterialDelete(\"" + $physicalMaterialList +"\",\""+ $nodeName +"\")")
+		$physicalMaterialDeleteButton;
+	textScrollList -e
+		-selectCommand ($textScrollListSelectChanged + "(\"" + $physicalMaterialList + "\",\"" + $nodeName + "\")")
+		$physicalMaterialList;
+}
+
+global proc nxPhysicalMaterialCreateDialog(string $nodeName)
+{
+	$window = "AEapexClothingPhysicalMaterialCreateWindow";
+	string $deleteCmd = "deleteUI -window " + $window;
+	if(`window -exists $window`) {evalEcho $deleteCmd;}
+	window -title "Physical Material Name" -resizeToFitChildren true $window;
+	columnLayout;
+    rowLayout -height 10;
+	setParent ..;
+	textField -width 300 -alwaysInvokeEnterCommandOnReturn true -enterCommand ("nxCreatePhysicalMaterialSetDialog " + $nodeName) "nxPhysicalMaterialNameTextField";
+	showWindow $window;
+		rowLayout -numberOfColumns 3 -columnWidth3 200 50 50;
+		text -label"";
+		button -label "Ok" -width 50 -command ("nxCreatePhysicalMaterialSetDialog " + $nodeName);
+		button -label "Cancel" -width 50 -command $deleteCmd;
+	setParent ..;
+	window -e -sizeable off $window;
+}
+
+global proc nxCreatePhysicalMaterialSetDialog(string $nodeName)
+{
+	string $name = `textField -q -text "nxPhysicalMaterialNameTextField"`;
+	AEnxAPEXClothingCreatePhysicalMaterialSet($nodeName, $name);
+	
+	string $deleteCmd = "deleteUI -window AEapexClothingPhysicalMaterialCreateWindow";
+	evalDeferred $deleteCmd;
+}
+
+global proc AEnxAPEXClothingCreatePhysicalMaterialSet(string $nodeName, string $name)
+{
+	int $array[];// = `getAttr -multiIndices ($nodeName+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+	int $length = size($array);
+	string $nameList[];
+	clear $nameList;
+	int $i;
+	for($i = 0; $i < $length; $i++)
+	{
+		$nameList[size($nameList)] = `getAttr ($nodeName+".physicalMaterialSets[" + $array[$i] + "].pmName")`;
+	}
+	string $newName = $name;
+	int $postFix = 1;
+	while(1)
+	{
+		
+		int $isFound = stringArrayFind($newName, 0, $nameList);
+		if($isFound == -1)
+		{
+			break;
+		}
+		else
+		{
+			$newName = $name + $postFix;
+			$postFix++;
+		}
+	}
+
+	int $index = `getAttr -size ($nodeName+".physicalMaterialSets")`;
+	setAttr -type "string" ($nodeName +".physicalMaterialSets[" + $index + "].pmName") $newName;
+	setAttr ($nodeName+".selectedPhysicalMaterialSet") ($index);
+	int $currGraphicsLodIndex = `getAttr ($nodeName + ".currentGraphicalLOD")`;
+	setAttr ($nodeName +".physicalMaterialTable[" + $index + "]") $currGraphicsLodIndex;
+	int $exportCount = `getAttr ($nodeName +".physicalMaterialExport[" + $currGraphicsLodIndex + "]")`;
+	$exportCount++;
+	setAttr ($nodeName +".physicalMaterialExport[" + $currGraphicsLodIndex + "]") $exportCount;
+}
+
+global proc nxPhysicalMaterialRenameDialog(string $nodeName, string $physicalMaterialList)
+{
+	$window = "nxPhysicalMaterialRenameDialog";
+	string $deleteCmd = "deleteUI -window " + $window;
+	if(`window -exists $window`) {evalEcho $deleteCmd;}
+	window -title "Physical Material Name" -resizeToFitChildren true $window;
+	columnLayout;
+    rowLayout -height 10;
+	setParent ..;
+	textField -width 300 -alwaysInvokeEnterCommandOnReturn true -enterCommand ("AEnxAPEXClothingRenamePhysicalMaterialSet(\"" + $nodeName + "\",\"" + 
+		$physicalMaterialList + "\")") "AEapexClothingPhysicalMaterialEditNameTextField";
+	showWindow $window;
+		rowLayout -numberOfColumns 3 -columnWidth3 200 50 50;
+		text -label"";
+		button -label "Ok" -width 50 -command ("AEnxAPEXClothingRenamePhysicalMaterialSet(\"" + $nodeName + "\",\"" + 
+		$physicalMaterialList + "\")");
+		button -label "Cancel" -width 50 -command $deleteCmd;
+	setParent ..;
+	window -e -sizeable off $window;
+}
+
+global proc AEnxAPEXClothingRenamePhysicalMaterialSet(string $nodeName, string $physicalMaterialList)
+{
+	string $selectedItem[] = `textScrollList -q -selectItem $physicalMaterialList`;
+	int $index = nxGetSelectLogicalIndexWithSelected($nodeName, $selectedItem[0]);
+	if($index == -1) return;
+	string $name = `textField -q -text "AEapexClothingPhysicalMaterialEditNameTextField"`;
+
+	string $nameList[];
+	clear $nameList;
+	int $array[];// = `getAttr -multiIndices ($nodeName+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+	int $length = size($array);
+	for($i = 0; $i < $length; $i++)
+	{
+		if($array[$i] != $index &&	($name == `getAttr ($nodeName+".physicalMaterialSets[" + $array[$i] + "].pmName")`))
+		{
+			confirmDialog -title "Warning" 
+				-message "The name has existed."
+				-button "OK" ;
+			return;
+		}
+	}
+
+	string $cmd = "setAttr -type \"string\" " + $nodeName+".physicalMaterialSets[" + $index + "].pmName " + $name;
+	evalEcho $cmd;
+
+	AEnxRecreatePhysicalMaterialUIControl($nodeName, $physicalMaterialList);
+	string $deleteCmd = "deleteUI -window nxPhysicalMaterialRenameDialog";
+	evalDeferred $deleteCmd;
+}
+
+global proc AEnxRecreatePhysicalMaterialUIControl(string $nodeName, string $physicalMaterialList )
+{
+	textScrollList -e -removeAll $physicalMaterialList;
+
+	int $array[];// = `getAttr -multiIndices ($nodeName+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+	int $length = size($array);
+	if($length == 0)
+	{
+		AEnxAPEXClothingCreatePhysicalMaterialSet($nodeName, "default");
+		$length = 1;
+	}
+
+	int $i;
+	int $selectedIndex = `getAttr  ($nodeName+".selectedPhysicalMaterialSet")`;
+	for($i = 0; $i < $length; $i++)
+	{
+		string $name = `getAttr ($nodeName+".physicalMaterialSets[" + $array[$i] + "].pmName")`;
+		string $font = "plainLabelFont";
+		int $export = `getAttr ($nodeName+".physicalMaterialSets[" + $array[$i] + "].pmIsExport")`;
+		if(!$export)
+		{
+			$name = $name + " *";
+			$font = "obliqueLabelFont";
+		}
+
+		textScrollList -e -append $name $physicalMaterialList;
+		if( getApplicationVersionAsFloat() > 2013 )
+		{
+			textScrollList -e -lineFont ($i+1) $font $physicalMaterialList;
+		}
+
+		if($selectedIndex == $array[$i])
+		{
+			textScrollList -e -selectItem $name $physicalMaterialList;
+		}
+	}
+}
+
+global proc nxPhysicalMaterialDelete(string $physicalMaterialList, string $nodeName)
+{
+	string $selectedItem[] = `textScrollList -q -selectItem $physicalMaterialList`;
+	if(size($selectedItem) != 1) return;
+
+	int $index = nxGetSelectLogicalIndexWithSelected($nodeName, $selectedItem[0]);
+	if($index == -1) return;
+
+	if(`textScrollList -q -numberOfRows $physicalMaterialList` < 2)
+	{
+		confirmDialog -title "Warning" 
+			-message "Need one at least."
+			-button "OK" ;
+		return;
+	}
+
+	int $array[];// = `getAttr -multiIndices ($nodeName+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+	int $length = size($array);
+	int $i;
+	int $newSelected;
+	for($i = 0; $i < $length; $i++)
+	{
+		if($index == $array[$i])
+		{
+			break;
+		}
+	}
+	if($i == 0) $newSelected = $array[1];
+	else $newSelected = $array[$i - 1];
+	setAttr ($nodeName+".selectedPhysicalMaterialSet") ($newSelected);
+	//Cannot find procedure "AEmentalrayReplaceMessage"
+	//removeMultiInstance -b true ( $nodeName+".physicalMaterialSets[" + $index + "]");
+	//removeMultiInstance -b true ( $nodeName+".physicalMaterialTable[" + $index + "]");
+	setAttr ( $nodeName+".physicalMaterialTable[" + $index + "]") -1;
+	int $currGraphicsLodIndex = `getAttr ($nodeName + ".currentGraphicalLOD")`;
+	int $exportCount = `getAttr ($nodeName +".physicalMaterialExport[" + $currGraphicsLodIndex + "]")`;
+	$exportCount--;
+	setAttr ($nodeName +".physicalMaterialExport[" + $currGraphicsLodIndex + "]") $exportCount;
+
+	AEnxRecreatePhysicalMaterialUIControl($nodeName, $physicalMaterialList);
+}
+
+global proc nxPhysicalMaterialConfigOrder(string $nodeName, string $physicalMaterialList, int $direction)
+{
+	int $selectedIndexes[] = `textScrollList -q -selectIndexedItem $physicalMaterialList`;
+	if(size($selectedIndexes) != 1) return;
+	int $selectedIndex = $selectedIndexes[0];
+	
+	int $totalItems = `textScrollList -q -numberOfItems $physicalMaterialList`;
+	int $index = $selectedIndex + $direction;
+    if($index < 1 || $index > $totalItems) return;
+	
+	int $array[];// = `getAttr -multiIndices ($nodeName+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+
+	string $attrs[] = `listAttr -leaf ($nodeName +".physicalMaterialSets[0]")`;
+	int $attrSize = size($attrs);
+	int $i;
+	string $attrSrc, $attrDesc;
+	string $strValue;
+	int $bValue;
+	float $dValue;
+	for($i = 1; $i < $attrSize; $i++)
+	{
+		$attrSrc = $nodeName +".physicalMaterialSets[" + $array[($index - 1)] + "]." + $attrs[$i];
+		$attrDesc = $nodeName +".physicalMaterialSets[" + $array[($selectedIndex - 1)] + "]." + $attrs[$i];
+
+		string $attrType = `getAttr -type $attrSrc`;
+		if($attrType == "string")
+		{
+			$strValue = `getAttr $attrSrc`;
+			setAttr -type "string" $attrSrc `getAttr $attrDesc`;
+			setAttr -type "string" $attrDesc $strValue;
+		}
+		else if($attrType == "bool")
+		{
+			$bValue = `getAttr $attrSrc`;
+			setAttr $attrSrc `getAttr $attrDesc`;
+			setAttr $attrDesc $bValue;
+		}
+		else
+		{
+			$dValue = `getAttr $attrSrc`;
+			setAttr $attrSrc `getAttr $attrDesc`;
+			setAttr $attrDesc $dValue;
+		}
+	};
+	setAttr ($nodeName +".selectedPhysicalMaterialSet") ($index - 1);
+    
+	string $selectedNames[] = `textScrollList -q -selectItem $physicalMaterialList`;
+    textScrollList -e -removeIndexedItem $selectedIndex $physicalMaterialList;
+    textScrollList -e -appendPosition $index $selectedNames[0] $physicalMaterialList;
+    textScrollList -e -selectIndexedItem $index $physicalMaterialList;
+}
+
+global proc nxPhysicalMaterialConfigExport(string $nodeName, string $physicalMaterialList, int $export)
+{
+    string $selectedNames[] = `textScrollList -q -selectItem $physicalMaterialList`;
+    if(size($selectedNames) != 1) return;
+	
+	int $array[];// = `getAttr -multiIndices ($nodeName+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+
+	if(!$export)
+	{
+		int $length = size($array);
+		int $i;
+		int $exportCount = 0;
+		for($i = 0; $i < $length; $i++)
+		{
+			int $bExport = `getAttr ($nodeName+".physicalMaterialSets[" + $array[$i] + "].pmIsExport")`;
+			if($bExport)
+				$exportCount++;
+		}
+
+		if($exportCount < 2)
+		{
+			warning "at least export one material.\n";
+			return;
+		}
+	}
+    
+    string $selectedName = $selectedNames[0];
+    int $strSize = size($selectedName);
+    if($strSize < 2 && $export) return;
+	
+    int $subfix = endsWith($selectedName, " *");
+    if($subfix != $export) return;
+    
+    int $selectedIndexes[] = `textScrollList -q -selectIndexedItem $physicalMaterialList`;
+    int $index = $selectedIndexes[0];
+
+    textScrollList -e -removeIndexedItem $index $physicalMaterialList;
+    string $name;
+    string $font;
+	int $currGraphicsLodIndex = `getAttr ($nodeName + ".currentGraphicalLOD")`;
+	int $exportCount = `getAttr ($nodeName +".physicalMaterialExport[" + $currGraphicsLodIndex + "]")`;
+	if($export)
+    {
+        $name = `substring $selectedName 1 ($strSize-2)`;
+        $font = "plainLabelFont";
+		setAttr ($nodeName +".physicalMaterialSets[" + $array[($index - 1)] + "].pmIsExport") true;
+		$exportCount++;
+    }
+    else
+    {
+        $name = $selectedName + " *";
+        $font = "obliqueLabelFont";
+		setAttr ($nodeName +".physicalMaterialSets[" + $array[($index - 1)] + "].pmIsExport") false;
+		$exportCount--;
+    }
+	setAttr ($nodeName +".physicalMaterialExport[" + $currGraphicsLodIndex + "]") $exportCount;
+        
+    textScrollList -e -appendPosition $index $name $physicalMaterialList;
+    textScrollList -e -selectIndexedItem $index $physicalMaterialList;
+	if( getApplicationVersionAsFloat() > 2013 )
+	{
+		textScrollList -e -lineFont $index $font $physicalMaterialList;
+	}
+}
+
+global proc int nxGetSelectLogicalIndexWithSelected(string $nodeName, string $selectedItem)
+{
+	if($selectedItem == "") return -1;
+
+    int $subfix = endsWith($selectedItem, " *");
+	if($subfix)
+    {
+		int $strSize = size($selectedItem);
+        $selectedItem = `substring $selectedItem 1 ($strSize-2)`;
+    }
+
+	int $array[];// = `getAttr -multiIndices ($node+".physicalMaterialSets")`;
+	getCurrentLODPhysicalMaterialIndices($nodeName, $array);
+	int $length = size($array);
+	int $i;
+	for($i = 0; $i < $length; $i++)
+	{
+		$name = `getAttr ($nodeName+".physicalMaterialSets[" + $array[$i] + "].pmName")`;
+		if($selectedItem == $name)
+		{
+			return $array[$i];
+		}
+	}
+	warning "No item is selected\n";
+	return -1;
+}
+
+global proc nxSetPhysicalMaterialCommand(float $value, string $plug, string $lodPhysicalMaterial)
+{
+	string $nodeName = nxFurGetNodeName($plug);
+	int $selectedIndex = `getAttr  ($nodeName+".selectedPhysicalMaterialSet")`;
+	int $defaultIndex = `getAttr  ($nodeName+".defaultPhysicalMaterialSet")`;
+	if($selectedIndex == $defaultIndex )
+	{
+		int $currGraphicsLodIndex = `getAttr ($nodeName + ".currentGraphicalLOD")`;
+		$plug = ($nodeName+".lodCompoundAttributes["+$currGraphicsLodIndex+"]."+$lodPhysicalMaterial);
+		string $cmd = "setAttr " + $plug + " " + $value;
+		evalEcho $cmd;
+	}
+}
+
+global proc int nxUpdateDisplayedPhysicalMaterialSetMode(string $nodeName)
+{
+	int $currGraphicsLodIndex = `getAttr ($nodeName + ".currentGraphicalLOD")`;
+	if($currGraphicsLodIndex == 0)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+global proc string nxFurGetNodeName(string $plug)
+{
+	string $nodeName = "";
+	if($plug != "")
+	{
+		string $buffer[];
+		tokenize($plug, ".|", $buffer);
+		$nodeName = $buffer[0];
+	}
+	return $nodeName;
+}
+
+global proc string nxGetConnectedFilePlug(string $currentPlug)
+{
+    string $array[] = `listConnections  -type file -plugs 1 $currentPlug`;
+    if(`size $array` > 0) 
+        return $array[0];
+    else
+        return "";
+}
+
+global proc nxCopyOneAttr(string $nodeSrc, string $attrSrc, string $nodeDes, string $attrDes)
+{
+	string $plugSrc = $nodeSrc + "." + $attrSrc;
+	string $plugDes = $nodeDes + "." + $attrDes;
+	string $cmd = "setAttr " + $plugDes + "`getAttr " + $plugSrc + "`";
+	evalEcho $cmd;
+}
+
+global proc nxCopyAttributes(string $nodeSrc, string $attrSrc[], string $nodeDes, string $attrDes[])
+{
+	if(`size $attrSrc` != `size $attrDes`) 
+	{
+		error "The num of source array doesn't match dest array";
+		return;
+	}
+	int $i, $size;
+	$size = `size $attrSrc`;
+	for($i = 0; $i < $size; $i++)
+	{
+		string $plugSrc = $nodeSrc + "." + $attrSrc[$i];
+		string $plugDes = $nodeDes + "." + $attrDes[$i];
+		string $cmd = "setAttr " + $plugDes + "`getAttr " + $plugSrc + "`";
+		evalEcho $cmd;
+	}
+}
+
+global proc nxCopyStringAttributes(string $nodeSrc, string $attrSrc[], string $nodeDes, string $attrDes[])
+{
+	if(`size $attrSrc` != `size $attrDes`) 
+	{
+		error "The num of source array doesn't match dest array";
+		return;
+	}
+	int $i, $size;
+	$size = `size $attrSrc`;
+	for($i = 0; $i < $size; $i++)
+	{
+		string $plugSrc = $nodeSrc + "." + $attrSrc[$i];
+		string $plugDes = $nodeDes + "." + $attrDes[$i];
+		string $cmd = "setAttr " + $plugDes + " -type \"string\" " + "`getAttr " + $plugSrc + "`";
+		evalEcho $cmd;
+	}
+}
+
+global proc int nxIsMeshSkinned(string $mesh)
+{
+	string $array[] = `listHistory $mesh`;
+	int $length = size($array);
+	int $i;
+	for($i = 0; $i < $length; $i++)
+	{
+		if(`nodeType $array[$i]` == "skinCluster")
+		{
+			return 1;
+		}
+	}
+	return 0;
+}

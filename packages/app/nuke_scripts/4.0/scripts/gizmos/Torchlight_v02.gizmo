@@ -1,0 +1,127 @@
+set cut_paste_input [stack 0]
+version 6.3 v8
+push $cut_paste_input
+NoOp {
+ name TorchLight
+ tile_color 0xff0000ff
+ label v1
+ selected true
+ xpos -86
+ ypos -110
+ addUserKnob {20 mainTab l "Control Pannel"}
+ addUserKnob {20 v1 l 1-- n 1}
+ addUserKnob {1 Label1 l Label}
+ Label1 mast1
+ addUserKnob {7 minValue1 l minValue}
+ minValue1 0.5
+ addUserKnob {7 maxValue1 l maxValue}
+ maxValue1 10
+ addUserKnob {7 timeScale1 l timeScale}
+ timeScale1 4
+ addUserKnob {7 timeOffset1 l timeOffset}
+ addUserKnob {7 result1 l result}
+ result1 {{"minValue1 +\n\nabs(\n(sin((frame+timeOffset1)/24*timeScale1*.3))/3.5 + \n\n(sin((frame+timeOffset1)/24*timeScale1) + 1)/2 +\n\n(sin((frame + timeOffset1)/24*timeScale1*3) + 1)/3 +\n\n(sin((frame + timeOffset1)/24*timeScale1*6))/5\n\n) *\n\n(maxValue1-minValue1)"}}
+ addUserKnob {20 endGroup n -1}
+ addUserKnob {26 ""}
+ addUserKnob {20 v2 l 2-- n 1}
+ addUserKnob {1 Label2 l Label}
+ Label2 mast2
+ addUserKnob {7 minValue2 l minValue}
+ minValue2 0.4
+ addUserKnob {7 maxValue2 l maxValue}
+ maxValue2 2
+ addUserKnob {7 timeScale2 l timeScale}
+ timeScale2 6
+ addUserKnob {7 timeOffset2 l timeOffset}
+ timeOffset2 100
+ addUserKnob {7 result2 l result}
+ result2 {{"minValue2 +\n\nabs(\n(sin((frame+timeOffset2)/24*timeScale2*.3))/3.5 + \n\n(sin((frame+timeOffset2)/24*timeScale2) + 1)/2 +\n\n(sin((frame + timeOffset2)/24*timeScale2*3) + 1)/3 +\n\n(sin((frame + timeOffset2)/24*timeScale2*6))/5\n\n) *\n\n(maxValue2-minValue2)"}}
+ addUserKnob {20 endGroup_1 l endGroup n -1}
+ addUserKnob {26 ""}
+ addUserKnob {20 v3 l 3-- n 1}
+ addUserKnob {1 Label3 l Label}
+ Label3 mast3
+ addUserKnob {7 minValue3 l minValue}
+ minValue3 0.2
+ addUserKnob {7 maxValue3 l maxValue}
+ maxValue3 4
+ addUserKnob {7 timeScale3 l timeScale}
+ timeScale3 5
+ addUserKnob {7 timeOffset3 l timeOffset}
+ timeOffset3 200
+ addUserKnob {7 result3 l result}
+ result3 {{"minValue3 +\n\nabs(\n(sin((frame+timeOffset3)/24*timeScale3*.3))/3.5 + \n\n(sin((frame+timeOffset3)/24*timeScale3) + 1)/2 +\n\n(sin((frame + timeOffset3)/24*timeScale3*3) + 1)/3 +\n\n(sin((frame + timeOffset3)/24*timeScale3*6))/5\n\n) *\n\n(maxValue3-minValue3)"}}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 v4 l 4-- n 1}
+ addUserKnob {1 Label4 l Label}
+ Label4 ramp
+ addUserKnob {7 minValue4 l minValue}
+ minValue4 0.3
+ addUserKnob {7 maxValue4 l maxValue}
+ maxValue4 5
+ addUserKnob {7 timeScale4 l timeScale}
+ timeScale4 12
+ addUserKnob {7 timeOffset4 l timeOffset}
+ timeOffset4 3000
+ addUserKnob {7 result4 l result}
+ result4 {{"minValue4 +\n\nabs(\n(sin((frame+timeOffset4)/24*timeScale4*.3))/3.5 + \n\n(sin((frame+timeOffset4)/24*timeScale4) + 1)/2 +\n\n(sin((frame + timeOffset4)/24*timeScale4*3) + 1)/3 +\n\n(sin((frame + timeOffset4)/24*timeScale4*6))/5\n\n) *\n\n(maxValue4-minValue4)"}}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 v5 l 5-- n 1}
+ addUserKnob {1 Label5 l Label}
+ Label5 mast5
+ addUserKnob {7 minValue5 l minValue}
+ minValue5 0.3
+ addUserKnob {7 maxValue5 l maxValue}
+ maxValue5 5
+ addUserKnob {7 timeScale5 l timeScale}
+ timeScale5 12
+ addUserKnob {7 timeOffset5 l timeOffset}
+ timeOffset5 3000
+ addUserKnob {7 result5 l result}
+ result5 {{"minValue5 +\n\nabs(\n(sin((frame+timeOffset5)/24*timeScale5*.3))/3.5 + \n\n(sin((frame+timeOffset5)/24*timeScale5) + 1)/2 +\n\n(sin((frame + timeOffset5)/24*timeScale5*3) + 1)/3 +\n\n(sin((frame + timeOffset5)/24*timeScale5*6))/5\n\n) *\n\n(maxValue5-minValue5)"}}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 v6 l 6-- n 1}
+ addUserKnob {1 Label6 l Label}
+ Label6 mast6
+ addUserKnob {7 minValue6 l minValue}
+ minValue6 0.3
+ addUserKnob {7 maxValue6 l maxValue}
+ maxValue6 5
+ addUserKnob {7 timeScale6 l timeScale}
+ timeScale6 12
+ addUserKnob {7 timeOffset6 l timeOffset}
+ timeOffset6 3000
+ addUserKnob {7 result6 l result}
+ result6 {{"minValue6 +\n\nabs(\n(sin((frame+timeOffset6)/24*timeScale6*.3))/3.5 + \n\n(sin((frame+timeOffset6)/24*timeScale6) + 1)/2 +\n\n(sin((frame + timeOffset6)/24*timeScale6*3) + 1)/3 +\n\n(sin((frame + timeOffset6)/24*timeScale6*6))/5\n\n) *\n\n(maxValue6-minValue6)"}}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 v7 l 7-- n 1}
+ addUserKnob {1 Label7 l Label}
+ Label7 mast7
+ addUserKnob {7 minValue7 l minValue}
+ minValue7 0.3
+ addUserKnob {7 maxValue7 l maxValue}
+ maxValue7 5
+ addUserKnob {7 timeScale7 l timeScale}
+ timeScale7 12
+ addUserKnob {7 timeOffset7 l timeOffset}
+ timeOffset7 3000
+ addUserKnob {7 result7 l result}
+ result7 {{"minValue7 +\n\nabs(\n(sin((frame+timeOffset7)/24*timeScale7*.3))/3.5 + \n\n(sin((frame+timeOffset7)/24*timeScale7) + 1)/2 +\n\n(sin((frame + timeOffset7)/24*timeScale7*3) + 1)/3 +\n\n(sin((frame + timeOffset7)/24*timeScale7*6))/5\n\n) *\n\n(maxValue7-minValue7)"}}
+ addUserKnob {20 endGroup_2 l endGroup n -1}
+ addUserKnob {20 v8 l 8-- n 1}
+ addUserKnob {1 Label8 l Label}
+ Label8 mast8
+ addUserKnob {7 minValue8 l minValue}
+ minValue8 0.3
+ addUserKnob {7 maxValue8 l maxValue}
+ maxValue8 5
+ addUserKnob {7 timeScale8 l timeScale}
+ timeScale8 12
+ addUserKnob {7 timeOffset8 l timeOffset}
+ timeOffset8 3000
+ addUserKnob {7 result8 l result}
+ result8 {{"minValue8 +\n\nabs(\n(sin((frame+timeOffset8)/24*timeScale8*.3))/3.5 + \n\n(sin((frame+timeOffset8)/24*timeScale8) + 1)/2 +\n\n(sin((frame + timeOffset8)/24*timeScale8*3) + 1)/3 +\n\n(sin((frame + timeOffset8)/24*timeScale8*6))/5\n\n) *\n\n(maxValue8-minValue8)"}}
+ addUserKnob {20 endGroup_3 l endGroup n -1}
+ addUserKnob {26 "" +STARTLINE}
+ addUserKnob {26 temp l "" +STARTLINE T "TorchLight v1\nLookdev & lighting dep\n"}
+}

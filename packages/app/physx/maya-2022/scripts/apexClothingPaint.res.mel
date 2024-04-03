@@ -1,0 +1,21 @@
+// Copyright (c) 2005 - 2011 NVIDIA Corporation. All rights reserved.
+// NVIDIA Corporation and its licensors retain all intellectual property and proprietary 
+// rights in and to this software and related documentation and any modifictions thereto.
+// Any use, reproduction, disclosure or distribution of this software and related 
+// documentation without an express license agreement from NVIDIA Corporation 
+// is strictly prohibited.
+
+//displayString -replace -value "Paint Attribute:" m_apexClothingPaint.kAttributeToPaint;
+//displayString -replace -value "artApexClothingPaint> apexClothingPaintToolOn: adding dynamic attr\n" m_apexClothingPaint.kapexClothingPaintAddingDynamicAttr;
+//displayString -replace -value "artApexClothingPaint> invoking apexClothingPaintToolOff\n" m_apexClothingPaint.kapexClothingPaintOff;
+//displayString -replace -value "artApexClothingPaint> invoking apexClothingPaintToolOn\n" m_apexClothingPaint.kapexClothingPaintOn;
+//displayString -replace -value "artApexClothingPaint> invoking apexClothingPaintProperties\n" m_apexClothingPaint.kapexClothingPaintProperties;
+//displayString -replace -value "artApexClothingPaint> invoking apexClothingPaintValues\n" m_apexClothingPaint.kapexClothingPaintValues;
+//displayString -replace -value "artApexClothingPaint> defining the tool via artAttrTool\n" m_apexClothingPaint.kapexClothingPaintDefiningTool;
+//displayString -replace -value "Paint Attribute Maps " m_apexClothingPaint.kExamplePaintAttributeMaps;
+//displayString -replace -value "Paint Brush " m_apexClothingPaint.kExamplePaintBrush;
+//displayString -replace -value "Paint Display " m_apexClothingPaint.kExamplePaintDisplay;
+//displayString -replace -value "Paint Stroke " m_apexClothingPaint.kExamplePaintStroke;
+//displayString -replace -value "Paint Stylus Pressure " m_apexClothingPaint.kExamplePaintStylusPressure;
+//displayString -replace -value "artApexClothingPaint> invoking apexClothingPaintToolScript\n" m_apexClothingPaint.kInvokingapexClothingPaint;
+//displayString -replace -value "ERROR: apexClothingPaint expects exactly one poly mesh to be selected\n" m_apexClothingPaint.kNeedOneMesh;
