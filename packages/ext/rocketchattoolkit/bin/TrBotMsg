@@ -1,0 +1,56 @@
+#!/usr/bin/python2.7
+from rocketchat.api import RocketChatAPI
+import argparse
+import sys
+import os
+
+import tractor.api.query as tq
+
+REMAP_OWNER = {
+    'rmantd': 'sanghun.kim'
+}
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Dexter Tractor Rocket Chat Processer.'
+    )
+
+    # parser.add_argument('-j', '--jid', type=str, help='Job ID')
+    parser.add_argument('-b', '--bot', type=str, default='BadBot', help='The name of the bot to send the message to.')
+
+    args, unknown = parser.parse_known_args(sys.argv)
+
+
+    env = os.environ
+    # Tractor
+    engine = env.get('TRACTOR_ENGINE')
+    jid    = env.get('TR_ENV_JID')
+    if not (engine and jid):
+        os._exit(0)
+
+    tq.setEngineClientParam(hostname=engine, port=80, user='editmasin')
+
+    jobs = tq.jobs('jid=%s' % jid)
+    if not jobs:
+        os._exit(0)
+
+    data = jobs[0]
+    owner = data['owner']
+    if REMAP_OWNER.has_key(owner):
+        owner = REMAP_OWNER[owner]
+    title = data['title']
+
+    message = '[Tractor Done] %s : ' % jid
+    if args.bot == 'BadBot':
+        message = '[Tractor Error] %s : ' % jid
+    message += title
+
+    # RocketChat
+    hostSetup = {
+        'domain': 'https://chat.dexterstudios.com',
+        'username': args.bot,
+        'password': 'dexterbot123'
+    }
+
+    api = RocketChatAPI(settings=hostSetup)
+    api.send_message(message, '@' + owner)

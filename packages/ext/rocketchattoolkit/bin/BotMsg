@@ -1,0 +1,50 @@
+#!/usr/bin/python2.7
+from rocketchat.api import RocketChatAPI
+import argparse
+import sys
+import os
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Dexter Rocket Chat Processer.'
+    )
+
+    parser.add_argument('-a', '--artist', type=str, help='Who will receive the message.')
+    parser.add_argument('-r', '--room', type=str, help='which room will receive the message.')
+    parser.add_argument('-m', '--message', type=str, required=True, nargs='*', help='Message to send.')
+    parser.add_argument('-b', '--bot', type=str, default='BadBot', help='The name of the bot to send the message to.')
+    parser.add_argument('-f', '--file', type=str, help='send file and description')
+
+    args, unknown = parser.parse_known_args(sys.argv)
+    message = ' '.join(args.message)
+
+    if not args.artist and not args.room:
+        print "# Error : not found message to target"
+        os._exit(1)
+
+    targetList = []
+    if args.artist:
+        targetList.append('@{ARTIST}'.format(ARTIST=args.artist))
+    if args.room:
+        targetList.append('{ROOM}'.format(ROOM=args.room))
+
+    hostSetup = {
+        'domain':'https://chat.dexterstudios.com', # 10.10.10.232:61015
+        'username': args.bot,
+        'password': 'dexterbot123'
+    }
+
+    # try:
+    api = RocketChatAPI(settings=hostSetup)
+    for target in targetList:
+        # print api.get_private_rooms(groups=target)
+        if args.file:
+            api.upload_file(target, '', args.file, message)
+        else:
+            print message, target
+            api.send_message(message, room_id=target)
+    # except Exception as e:
+    #     print "# Error :", e.message
+    #     os._exit(1)
+
+    os._exit(0)
