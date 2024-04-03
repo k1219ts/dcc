@@ -1,0 +1,11 @@
+{
+    "RenderManAssetLibrary": {
+        "version": "1.0",
+        "author": "DxPresetBrowser",
+        "description": "",
+        "protected": false,
+        "versionControl": "none",
+        "rendererVersion": "25.2",
+        "name": "Hdri Library(SHOW)"
+    }
+}

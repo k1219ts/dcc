@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=LocalQueue
+Comment=LocalQueue
+Exec=sh /backstage/dcc/DCC rez-env renderman-23.5 -- LocalQueue
+Terminal=false
+Type=Application
+Icon=/backstage/share/icons/LocalQueue_icon.png
+Categories=dexter

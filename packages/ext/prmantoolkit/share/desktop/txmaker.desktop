@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=TxMaker 2.0
+Comment=TxMaker
+Exec=sh /backstage/dcc/DCC rez-env prmantoolkit pyside2 renderman-23.5 -- txmaker
+Terminal=false
+Type=Application
+Icon=/others/backstage/share/icons/txmaker.jpg
+Categories=dexter

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gnome-terminal -- bash -c "/backstage/dcc/DCC rez-env prmantoolkit -- TxMakerForKatana; exec bash -i"

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xterm -hold -e /backstage/dcc/DCC prmantoolkit oiio ocio_configs -- ACEScgExr2jpg

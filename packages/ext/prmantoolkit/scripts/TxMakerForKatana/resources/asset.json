@@ -1,0 +1,53 @@
+{
+    "RenderManAsset": {
+        "usedNodeTypes": [],
+        "version": 1.0,
+        "asset": {
+            "envMap": {
+                "specs": {
+                    "description": "",
+                    "filename": "HLB2_202_025_0040C_v002.exr",
+                    "originalBitDepth": 32,
+                    "originalFormat": "OpenEXR\r",
+                    "displayWindowSize": [
+                        [
+                            4000,
+                            2000
+                        ]
+                    ],
+                    "originalSize": [
+                        [
+                            4000,
+                            2000
+                        ]
+                    ],
+                    "displayWindowOrigin": [
+                        [
+                            0,
+                            0
+                        ]
+                    ]
+                },
+                "dependencies": [
+                    "HLB2_202_025_0040C_v002.exr"
+                ],
+                "compatibility": {
+                    "hostNodeTypes": [],
+                    "host": {
+                        "version": "6.0",
+                        "name": "Katana"
+                    },
+                    "renderer": {
+                        "version": "25.2"
+                    }
+                },
+                "metadata": {
+                    "author": "EPIIC_renderman",
+                    "version": 0,
+                    "created": "2017-11-13 11:24:08"
+                }
+            }
+        },
+        "label": "HLB2_202_025_0040C_v002"
+    }
+}

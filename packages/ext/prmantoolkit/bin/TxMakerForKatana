@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python ${REZ_PRMANTOOLKIT_ROOT}/scripts/TxMakerForKatana/Main.py $*
