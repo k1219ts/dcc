@@ -1,0 +1,221 @@
+{
+    "layout": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "mocap": {
+        "pub": [
+            "preview", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "preview", 
+            "data", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "finalize": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ], 
+        "dev": [
+            "data/geoCache",
+            "cache/nCache", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ]
+    }, 
+    "fx": {
+        "pub": [
+            "preview", 
+            "data", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "preview", 
+            "data", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "ani": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "texture": {
+        "pub": [
+            "at", 
+            "mari", 
+            "obj", 
+            "ref", 
+            "scenes", 
+            "tif", 
+            "tmp"
+        ], 
+        "dev": [
+            "precomp",
+            "at", 
+            "mari", 
+            "obj", 
+            "ref", 
+            "scenes", 
+            "tif", 
+            "tmp"
+        ]
+    }, 
+    "hair": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "data/geoCache",
+            "data/zenn",
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ]
+    },
+    "hairSim": {
+        "pub": [
+            "data",
+            "preview",
+            "scenes",
+            "sourceimages",
+            "tmp"
+        ],
+        "dev": [
+            "data",
+            "data/geoCache",
+            "data/zenn",
+            "preview",
+            "scenes",
+            "sourceimages",
+            "tmp"
+        ]
+    },
+    "cloth": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ], 
+        "dev": [
+            "cache/nCache", 
+            "data/geoCache",
+            "data/nCache",
+            "data/qualoth",
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ]
+    }, 
+    "lighting": {
+        "pub": [
+            "images", 
+            "scenes", 
+            "nuke"
+        ], 
+        "dev": [
+            "hdri", 
+            "images", 
+            "precomp", 
+            "scenes"
+        ]
+    }, 
+    "rig": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ]
+    }, 
+    "matchmove": {
+        "pub": [
+            "nuke", 
+            "scenes", 
+            "undist", 
+            "tmp"
+        ], 
+        "dev": [
+            "3de", 
+            "nuke", 
+            "scenes", 
+            "undist", 
+            "tmp"
+        ]
+    }, 
+    "model": {
+        "pub": [
+            "data", 
+            "marv",
+            "mud",
+            "ztl",
+            "preview", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "fbx",
+            "mari",
+            "marv",
+            "mud",
+            "obj",
+            "render",
+            "render/images",
+            "render/katana",
+            "render/nuke",
+            "scenes",
+            "tmp",
+            "zenv",
+            "ztl"
+        ]
+    }
+}

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WORKCODE VERSION="1.0">
+    <DIRECTORY DESCRIPTION="Matchmove" NAME="matchmove">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="3de"/>
+            <DIRECTORY DESCRIPTION="" NAME="nuke"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="undist"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="nuke"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="undist"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="Modeling" NAME="model">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="3d"/>
+                <DIRECTORY DESCRIPTION="" NAME="3Dscan"/>
+                <DIRECTORY DESCRIPTION="" NAME="fbx"/>
+                <DIRECTORY DESCRIPTION="" NAME="max"/>
+                <DIRECTORY DESCRIPTION="" NAME="mud"/>
+                <DIRECTORY DESCRIPTION="" NAME="obj"/>
+                <DIRECTORY DESCRIPTION="" NAME="ztl"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes">
+                <DIRECTORY DESCRIPTION="" NAME="backup"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages">
+                <DIRECTORY DESCRIPTION="" NAME="exr"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="fbx"/>
+                <DIRECTORY DESCRIPTION="" NAME="obj"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes">
+                <DIRECTORY DESCRIPTION="" NAME="backup"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="Rigging" NAME="rig">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="exported"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="exported"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="Animation" NAME="ani">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+				<DIRECTORY DESCRIPTION="" NAME="cam"/>
+				<DIRECTORY DESCRIPTION="" NAME="exported"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="moc"/>
+                <DIRECTORY DESCRIPTION="" NAME="retime"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+				<DIRECTORY DESCRIPTION="" NAME="cam"/>
+				<DIRECTORY DESCRIPTION="" NAME="exported"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="moc"/>
+                <DIRECTORY DESCRIPTION="" NAME="retime"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="Layout" NAME="layout">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+                <DIRECTORY DESCRIPTION="" NAME="cam"/>
+                <DIRECTORY DESCRIPTION="" NAME="exported"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="moc"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+                <DIRECTORY DESCRIPTION="" NAME="cam"/>
+                <DIRECTORY DESCRIPTION="" NAME="exported"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="moc"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="" NAME="hair">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="Guide curve" NAME="gCurve"/>
+                <DIRECTORY DESCRIPTION="Geometry cache" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="Modeling data" NAME="model"/>
+                <DIRECTORY DESCRIPTION="Mudbox scene" NAME="mud"/>
+                <DIRECTORY DESCRIPTION="Zelos cache" NAME="zelos"/>
+                <DIRECTORY DESCRIPTION="Zelos attributes" NAME="zelosFurAttr"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes">
+                <DIRECTORY DESCRIPTION="" NAME="previous"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="Guide curve" NAME="gCurve"/>
+                <DIRECTORY DESCRIPTION="Geometry cache" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="Modeling data" NAME="model"/>
+                <DIRECTORY DESCRIPTION="Mudbox scene" NAME="mud"/>
+                <DIRECTORY DESCRIPTION="Zelos cache" NAME="zelos"/>
+                <DIRECTORY DESCRIPTION="Zelos attributes" NAME="zelosFurAttr"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes">
+                <DIRECTORY DESCRIPTION="" NAME="previous"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="" NAME="cloth">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="model"/>
+                <DIRECTORY DESCRIPTION="" NAME="qualoth"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes">
+                <DIRECTORY DESCRIPTION="" NAME="previous"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+                <DIRECTORY DESCRIPTION="" NAME="model"/>
+                <DIRECTORY DESCRIPTION="" NAME="qualoth"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes">
+                <DIRECTORY DESCRIPTION="" NAME="previous"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="Finalizing" NAME="finalize">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+                <DIRECTORY DESCRIPTION="" NAME="exported"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="anim"/>
+                <DIRECTORY DESCRIPTION="" NAME="exported"/>
+                <DIRECTORY DESCRIPTION="" NAME="geoCache"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="sourceimages"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="LNR" NAME="lighting">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="hdri"/>
+            <DIRECTORY DESCRIPTION="" NAME="images">
+                <DIRECTORY DESCRIPTION="" NAME="trash"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="precomp">
+	           <DIRECTORY DESCRIPTION="" NAME="jpg"/>
+	           <DIRECTORY DESCRIPTION="" NAME="mov"/>
+	           <DIRECTORY DESCRIPTION="" NAME="nuke"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="images"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="nuke"/>
+        </DIRECTORY>
+    </DIRECTORY>
+     <DIRECTORY DESCRIPTION="TEX" NAME="texture">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="at"/>
+            <DIRECTORY DESCRIPTION="" NAME="mari"/>
+            <DIRECTORY DESCRIPTION="" NAME="obj"/>
+            <DIRECTORY DESCRIPTION="" NAME="ref"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tif"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="at"/>
+            <DIRECTORY DESCRIPTION="" NAME="mari"/>
+            <DIRECTORY DESCRIPTION="" NAME="obj"/>
+            <DIRECTORY DESCRIPTION="" NAME="ref"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tif"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="motionCapture" NAME="mocap">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="motionBuilder"/>
+                <DIRECTORY DESCRIPTION="" NAME="mvn"/>
+                <DIRECTORY DESCRIPTION="" NAME="toMaya"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+    <DIRECTORY DESCRIPTION="Effect" NAME="fx">
+        <DIRECTORY DESCRIPTION="" NAME="dev">
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="bubble"/>
+                <DIRECTORY DESCRIPTION="" NAME="fire"/>
+                <DIRECTORY DESCRIPTION="" NAME="foam"/>
+				<DIRECTORY DESCRIPTION="" NAME="ocean"/>
+				<DIRECTORY DESCRIPTION="" NAME="smoke"/>
+				<DIRECTORY DESCRIPTION="" NAME="splash"/>
+				<DIRECTORY DESCRIPTION="" NAME="wood"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+        <DIRECTORY DESCRIPTION="" NAME="pub">
+            <DIRECTORY DESCRIPTION="" NAME="preview"/>
+            <DIRECTORY DESCRIPTION="" NAME="data">
+                <DIRECTORY DESCRIPTION="" NAME="bubble"/>
+                <DIRECTORY DESCRIPTION="" NAME="fire"/>
+                <DIRECTORY DESCRIPTION="" NAME="foam"/>
+				<DIRECTORY DESCRIPTION="" NAME="ocean"/>
+				<DIRECTORY DESCRIPTION="" NAME="smoke"/>
+				<DIRECTORY DESCRIPTION="" NAME="splash"/>
+				<DIRECTORY DESCRIPTION="" NAME="wood"/>
+            </DIRECTORY>
+            <DIRECTORY DESCRIPTION="" NAME="scenes"/>
+            <DIRECTORY DESCRIPTION="" NAME="tmp"/>
+        </DIRECTORY>
+    </DIRECTORY>
+</WORKCODE>

@@ -1,0 +1,5 @@
+#!/bin/bash
+export PYTHONPATH=/backstage/libs/python_lib:$PYTHONPATH
+export QT_PREFERRED_BINDING=PyQt4
+# python /netapp/backstage/pub/apps/maya2/global/dxsUsdUI/usdExportTool/Main.py
+python /backstage/apps/Maya/toolkits/dxsUsdUI/usdExportTool/Main.py

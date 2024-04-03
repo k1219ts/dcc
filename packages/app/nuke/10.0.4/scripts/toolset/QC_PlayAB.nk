@@ -1,0 +1,146 @@
+
+set cut_paste_input [stack 0]
+version 9.0 v5
+BackdropNode {
+inputs 0
+name BackdropNode1
+tile_color 0xaaaaaa00
+label "QC PlayAB"
+note_font_size 42
+selected true
+xpos -11401
+ypos 47395
+bdwidth 347
+bdheight 529
+}
+Read {
+inputs 0
+file /show/log/screening/_closed/20160314_TRI/TRI_0110/TRI_0110_comp_v01/TRI_0110_comp_v01.%04d.exr
+format "2048 1080 0 0 2048 1080 1 2K_DCP"
+first 1045
+last 1755
+origfirst 1045
+origlast 1755
+origset true
+name Read145
+label "\[value first]-\[value last]"
+selected true
+xpos -11380
+ypos 47491
+}
+Text {
+font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+yjustify bottom
+Transform 1
+box {0 0 500 500}
+center {1024 540}
+name Text2
+selected true
+xpos -11380
+ypos 47596
+}
+Retime {
+input.first 1045
+input.last 1755
+output.first 1045
+output.last 2466
+speed 0.5
+filter nearest
+time ""
+name Retime1
+label "\[knob output.first] - \[knob output.last](\[expr \[knob output.last]-\[knob output.first]+1])"
+selected true
+xpos -11380
+ypos 47643
+}
+Read {
+inputs 0
+file /show/log/screening/_closed/20160314_TRI/TRI_0110/TRI_0110_plate_v01/TRI_0110_plate_v01.%04d.exr
+format "2048 1080 0 0 2048 1080 1 2K_DCP"
+first 1045
+last 1755
+origfirst 1045
+origlast 1755
+origset true
+name Read146
+label "\[value first]-\[value last]"
+selected true
+xpos -11269
+ypos 47485
+}
+Text {
+font /netapp/dexter/production/inhouse/fonts/baekmuk-ttf/batang.ttf
+yjustify bottom
+Transform 1
+box {0 0 500 500}
+center {1024 540}
+name Text1
+selected true
+xpos -11269
+ypos 47597
+}
+Retime {
+input.first 1045
+input.last 1755
+output.first 1045
+output.last 2466
+speed 0.5
+filter nearest
+time ""
+name Retime2
+label "\[knob output.first] - \[knob output.last](\[expr \[knob output.last]-\[knob output.first]+1])"
+selected true
+xpos -11269
+ypos 47642
+}
+Switch {
+inputs 2
+which {{curve(((frame-0)%(1-0+1))+0) L 0 1 0}}
+name Switch1
+selected true
+xpos -11332
+ypos 47718
+}
+FrameRange {
+first_frame 1280
+last_frame 1880
+time ""
+name FrameRange1
+label "\[knob first_frame]-\[knob last_frame](\[expr \[knob last_frame]-\[knob first_frame]+1])"
+selected true
+xpos -11332
+ypos 47762
+}
+Write {
+name Write2
+selected true
+xpos -11332
+ypos 47829
+}
+Read {
+inputs 0
+file /dexter/Cache_DATA/supervisor/mark/Dexter_DEMO--QC/render/QC_PlayAB_v001/QC_PlayAB_v001.%04d.jpg
+format "2048 1080 0 0 2048 1080 1 2K_DCP"
+first 1280
+last 1880
+origfirst 1280
+origlast 1880
+origset true
+colorspace linear
+name Read148
+label "\[value first]-\[value last]"
+selected true
+xpos -11199
+ypos 47752
+}
+StickyNote {
+inputs 0
+name StickyNote1
+label example
+selected true
+xpos -11198
+ypos 47867
+}
+
+
+

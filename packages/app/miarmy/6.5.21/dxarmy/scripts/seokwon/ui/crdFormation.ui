@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>mainWindow</class>
+ <widget class="QWidget" name="mainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>152</width>
+    <height>171</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Crowd Formation</string>
+  </property>
+  <widget class="QPushButton" name="rndBtn">
+   <property name="geometry">
+    <rect>
+     <x>7</x>
+     <y>11</y>
+     <width>136</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Random Rotation</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="grpBtn">
+   <property name="geometry">
+    <rect>
+     <x>7</x>
+     <y>50</y>
+     <width>136</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Random Group</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="aimBtn">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>90</y>
+     <width>136</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Point Aim</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="drtBtn">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>128</y>
+     <width>136</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Direction Aim</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>365</width>
+    <height>75</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Distancer</string>
+  </property>
+  <widget class="QSlider" name="numSl">
+   <property name="geometry">
+    <rect>
+     <x>83</x>
+     <y>40</y>
+     <width>270</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="yBox">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>5</y>
+     <width>106</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Lock Y-axis</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="spBtn">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>6</y>
+     <width>114</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sample Target</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="numBox">
+   <property name="geometry">
+    <rect>
+     <x>5</x>
+     <y>37</y>
+     <width>70</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>numBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>numSl</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>39</x>
+     <y>49</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>217</x>
+     <y>49</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>numSl</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>numBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>217</x>
+     <y>49</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>39</x>
+     <y>49</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

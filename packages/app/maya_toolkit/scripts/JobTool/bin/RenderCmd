@@ -1,0 +1,7 @@
+#!/bin/bash
+rootpath=`dirname "$0"`
+script_path="${rootpath%/*}/ENV"
+source ${script_path}/maya.env && source ${script_path}/arnold.env && source ${script_path}/yeti.env
+
+$*
+

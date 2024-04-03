@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>csMain</class>
+ <widget class="QWidget" name="csMain">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>366</width>
+    <height>105</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>AttachCurve</string>
+  </property>
+  <widget class="QPushButton" name="goBtn">
+   <property name="geometry">
+    <rect>
+     <x>253</x>
+     <y>9</y>
+     <width>105</width>
+     <height>86</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Connect</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="csLE">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>70</y>
+     <width>52</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ctrlSel_2">
+   <property name="geometry">
+    <rect>
+     <x>29</x>
+     <y>70</y>
+     <width>185</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Curve Smoothness ( 1~5 ) :</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ctrlSel_3">
+   <property name="geometry">
+    <rect>
+     <x>55</x>
+     <y>40</y>
+     <width>150</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Curve Rebuild Spans :</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="crsLE">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>40</y>
+     <width>52</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="axisCB">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>11</y>
+     <width>53</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ctrlSel_4">
+   <property name="geometry">
+    <rect>
+     <x>66</x>
+     <y>11</y>
+     <width>137</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Path Direction Axis :</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="getSpanBtn">
+   <property name="geometry">
+    <rect>
+     <x>6</x>
+     <y>40</y>
+     <width>40</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Get</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="crvBtn">
+   <property name="geometry">
+    <rect>
+     <x>6</x>
+     <y>11</y>
+     <width>40</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Crv</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

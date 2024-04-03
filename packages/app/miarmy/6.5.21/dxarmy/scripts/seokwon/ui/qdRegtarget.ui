@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qdRetar</class>
+ <widget class="QWidget" name="qdRetar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>178</width>
+    <height>94</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Quadruped_Retargeting Tool</string>
+  </property>
+  <widget class="QPushButton" name="qdBtn">
+   <property name="geometry">
+    <rect>
+     <x>6</x>
+     <y>5</y>
+     <width>168</width>
+     <height>85</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Quadruped</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

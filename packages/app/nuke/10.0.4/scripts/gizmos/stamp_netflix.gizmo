@@ -1,0 +1,416 @@
+#! /usr/local/Nuke10.0v4/libnuke-10.0.4.so -nx
+version 10.0 v4
+Gizmo {
+ addUserKnob {20 User}
+ addUserKnob {4 outtype M {exr jpg}}
+ outtype jpg
+ addUserKnob {1 note t note}
+ addUserKnob {41 CDL_file T OCIOCDLTransform4.file}
+}
+ Read {
+  inputs 0
+  file "/netapp/backstage/pub/apps/nuke/icons/DEXTER STUDIOS_W_s.png"
+  format "170 60 0 0 170 60 1 "
+  origset true
+  name Read7
+  label "\[value first]-\[value last]"
+  xpos 907
+  ypos 456
+ }
+ Transform {
+  translate {30 1021}
+  scale 0.75
+  center {85 30}
+  name Transform2
+  xpos 1128
+  ypos 491
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[knob note]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 23
+  xjustify center
+  yjustify center
+  Transform 1
+  translate {960 30}
+  color {1 1 1 1}
+  name NOTE1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 1561
+  ypos 491
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 2 3]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 23
+  yjustify center
+  Transform 1
+  translate {50 30}
+  color {1 1 1 1}
+  name SHOT_VERSION1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 1567
+  ypos 450
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "FRAMES :"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  xjustify center
+  yjustify center
+  Transform 1
+  translate {{"2200 * 0.7"} {"1100 * 0.05"}}
+  color {1 1 1 1}
+  name FRAMES1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 1564
+  ypos 347
+  disable true
+ }
+ Text {
+  cliptype none
+  message "\[format %04d \[frame]]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 23
+  xjustify center
+  yjustify center
+  Transform 1
+  translate {1845 30}
+  color {1 1 1 1}
+  name FRAMES_VALUE2
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 1564
+  ypos 387
+ }
+push 0
+ Text {
+  inputs 0
+  cliptype none
+  message "\[clock format \[clock seconds] -format \{%m / %d / %Y\}]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 23
+  xjustify center
+  yjustify center
+  Transform 1
+  translate {1845 1052}
+  color {1 1 1 1}
+  name DATE1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 1555
+  ypos 289
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  name Constant2
+  xpos 850
+  ypos 113
+ }
+ Transform {
+  translate {0 1020}
+  scale {1.1 1}
+  center {960 540}
+  name Transform1
+  xpos 850
+  ypos 250
+ }
+ Constant {
+  inputs 0
+  channels rgb
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  name Constant4
+  xpos 1067
+  ypos 94
+ }
+ Transform {
+  translate {0 -1020}
+  scale {1.1 1}
+  center {960 540}
+  name Transform3
+  xpos 1067
+  ypos 166
+ }
+ Merge2 {
+  inputs 2
+  name Merge1
+  xpos 1067
+  ypos 250
+ }
+ Input {
+  inputs 0
+  name Input1
+  xpos 1280
+  ypos -397
+ }
+ Crop {
+  box {314 98 4154 2258}
+  reformat true
+  crop false
+  name Crop2
+  xpos 1280
+  ypos -330
+ }
+set N8723f70 [stack 0]
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  name Reformat2
+  xpos 1280
+  ypos -271
+ }
+ Colorspace {
+  colorspace_out Cineon
+  name Colorspace4
+  xpos 1280
+  ypos -188
+ }
+ OCIOCDLTransform {
+  slope {1.029999971 1.049999952 1.080000043}
+  offset {0.001000000047 0.003500000108 0.003000000026}
+  power {1.00999999 1 1.149999976}
+  working_space linear
+  read_from_file true
+  version 3
+  cccid 205_031_020_BG1
+  name OCIOCDLTransform4
+  selected true
+  xpos 1280
+  ypos -133
+  disable {{"\[python \{not(bool(nuke.thisNode()\['file'].value()))\}]"}}
+ }
+ Vectorfield {
+  vfield_file /stuff/holo/stuff/lut/Cadmus_4k_Rec709.cube
+  version 6
+  file_type cube
+  name Vectorfield6
+  xpos 1280
+  ypos -79
+ }
+ Dot {
+  name Dot1
+  xpos 1317
+  ypos -30
+ }
+set N873cb10 [stack 0]
+ Merge2 {
+  inputs 2
+  name Merge2
+  xpos 1280
+  ypos 250
+ }
+ Merge2 {
+  inputs 5+1
+  name Merge3
+  xpos 1280
+  ypos 371
+ }
+ Merge2 {
+  inputs 2
+  name Merge4
+  xpos 1280
+  ypos 491
+ }
+ Reformat {
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  name Reformat3
+  xpos 1280
+  ypos 562
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[join \[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 0 1] _]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 40
+  yjustify center
+  Transform 1
+  box {0 0 0 3}
+  translate {300 662}
+  color {1 1 1 1}
+  name ShotID1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 762
+  ypos 663
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[knob note]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 40
+  yjustify center
+  Transform 1
+  translate {300 438}
+  color {1 1 1 1}
+  name NOTE2
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 945
+  ypos 904
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[lrange \[split \[file rootname \[file tail \[value root.name] ] ] _ ] 2 3]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 40
+  yjustify center
+  Transform 1
+  translate {300 550}
+  color {1 1 1 1}
+  name SHOT_VERSION2
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 889
+  ypos 770
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[value this.parent.first_frame] - \[value this.parent.last_frame]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 40
+  yjustify center
+  Transform 1
+  translate {300 494}
+  color {1 1 1 1}
+  name FRAMES_VALUE1
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 921
+  ypos 837
+ }
+ Text {
+  inputs 0
+  cliptype none
+  message "\[clock format \[clock seconds] -format \{%m / %d / %Y\}]"
+  font /usr/share/fonts/liberation/LiberationSans-Regular.ttf
+  size 40
+  yjustify center
+  Transform 1
+  box {0 0 0 3}
+  translate {300 606}
+  color {1 1 1 1}
+  name DATE2
+  tile_color 0xff0000ff
+  note_font "Bitstream Vera Sans"
+  xpos 867
+  ypos 710
+ }
+push 0
+push $N873cb10
+ Dot {
+  name Dot5
+  xpos 622
+  ypos -30
+ }
+ Colorspace {
+  colorspace_in sRGB
+  name Colorspace2
+  xpos 588
+  ypos 555
+ }
+ FrameHold {
+  name FrameHold_BOCK1
+  xpos 588
+  ypos 824
+ }
+ Transform {
+  translate {462 100}
+  scale 0.326
+  center {960 540}
+  name Transform5
+  xpos 588
+  ypos 862
+ }
+ Read {
+  inputs 0
+  file "/netapp/backstage/pub/apps/nuke/icons/DEXTER STUDIOS_W_s.png"
+  format "170 60 0 0 170 60 1 "
+  origset true
+  name Read13
+  label "\[value first]-\[value last]"
+  xpos 112
+  ypos 862
+ }
+ Transform {
+  translate {445 750}
+  scale 1.93
+  center {85 30}
+  name Transform4
+  xpos 222
+  ypos 897
+ }
+ Read {
+  inputs 0
+  file "/stuff/holo/stuff/4K Test Materials/CadmusCompTest/CadmusSlate01.jpg"
+  format "1920 1080 0 0 1920 1080 1 HD_1080"
+  origset true
+  name Read1
+  label "\[value first]-\[value last]"
+  xpos 332
+  ypos 777
+ }
+ Merge2 {
+  inputs 2
+  name Merge5
+  xpos 332
+  ypos 897
+ }
+ Dot {
+  name Dot3
+  xpos 366
+  ypos 973
+ }
+ Merge2 {
+  inputs 7+1
+  name Merge6
+  xpos 588
+  ypos 969
+ }
+ Colorspace {
+  colorspace_out sRGB
+  name Colorspace1
+  xpos 1044
+  ypos 969
+ }
+ AppendClip {
+  inputs 2
+  firstFrame {{"root.first_frame - 1"}}
+  meta_from_first false
+  time ""
+  name AppendClip1
+  label "\[knob firstFrame] - \[knob lastFrame]"
+  xpos 1280
+  ypos 963
+ }
+push $N8723f70
+ Dot {
+  name Dot2
+  xpos 1742
+  ypos -326
+ }
+ Switch {
+  inputs 2
+  which {{parent.outtype}}
+  name Switch1
+  xpos 1708
+  ypos 969
+ }
+ Output {
+  name Output1
+  xpos 1708
+  ypos 1021
+ }
+end_group

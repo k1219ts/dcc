@@ -1,0 +1,223 @@
+global proc shelf_DexterArmy() {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Alembic_Publish"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "PUB"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "crwpub.png"
+        -image1 "crwpub.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import seokwon;seokwon.crwExportF2017.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Action_Export"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "ACT"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "actExp.png"
+        -image1 "actExp.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import McdmovExport.McdmovExport2017 as McdmovExport2017;McdmovExport2017.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Placement_Inverse"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "INV"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "Plbl.png"
+        -image1 "Plbl.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import seokwon.McdInverse2017 as McdInverse2017;McdInverse2017.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "OAshader_Management"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "ARG"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "shd.png"
+        -image1 "shd.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import seokwon.actStat as actStat;actStat.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Load_Actions"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "LoAc"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "loadAct.png"
+        -image1 "loadAct.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import seokwon.loadActs as loadActs;loadActs.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Action_Conversion"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "ACV"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "actConv.png"
+        -image1 "actConv.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import seokwon.acvConv as acvConv;acvConv.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Mcd_animBridge"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "left"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "MRG"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "wsi.png"
+        -image1 "wsi.png"
+        -style "iconAndTextHorizontal"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import seokwon.CrdAnimBridge as CrdAnimBridge;CrdAnimBridge.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+}

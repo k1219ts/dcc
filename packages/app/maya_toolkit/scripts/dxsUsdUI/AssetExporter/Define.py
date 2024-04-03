@@ -1,0 +1,9 @@
+MODEL_TYPE= 'model'
+SET_TYPE  = 'set'
+LGT_TYPE  = 'lighting'
+RIG_TYPE  = 'rig'
+ANI_TYPE  = 'ani'
+ZENN_TYPE = 'zenn'
+CAM_TYPE  = 'cam'
+AGENT_TYPE = "agent"
+CLIP_TYPE = 'clip'

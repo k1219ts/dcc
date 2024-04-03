@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>McdTransit</class>
+ <widget class="QWidget" name="McdTransit">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>265</width>
+    <height>517</height>
+   </rect>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>Transition Set</string>
+  </property>
+  <widget class="QComboBox" name="agentCmb">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>15</y>
+     <width>204</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="refBtn">
+   <property name="geometry">
+    <rect>
+     <x>226</x>
+     <y>15</y>
+     <width>29</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QTabWidget" name="tabWg">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>46</y>
+     <width>247</width>
+     <height>460</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="regAct">
+    <attribute name="title">
+     <string>Reg. Action</string>
+    </attribute>
+    <widget class="QListWidget" name="grpActLw">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>272</y>
+       <width>223</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="acceptDrops">
+      <bool>true</bool>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="nodeCmb">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>7</y>
+       <width>150</width>
+       <height>24</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="allActLw">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>72</y>
+       <width>224</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="acceptDrops">
+      <bool>true</bool>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="regActBtn">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>38</y>
+       <width>225</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Register Actions</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="crtGrpBtn">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>205</y>
+       <width>88</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Create Grp</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="grpCmb">
+     <property name="geometry">
+      <rect>
+       <x>102</x>
+       <y>205</y>
+       <width>133</width>
+       <height>24</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="regToGrpBtn">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>238</y>
+       <width>224</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Register to Group</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="copyEmt">
+    <attribute name="title">
+     <string>Copy Elements</string>
+    </attribute>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

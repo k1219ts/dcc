@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>mrp</class>
+ <widget class="QWidget" name="mrp">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>440</width>
+    <height>157</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Miarmy Rib Publish</string>
+  </property>
+  <widget class="QLineEdit" name="scFile">
+   <property name="geometry">
+    <rect>
+     <x>12</x>
+     <y>14</y>
+     <width>376</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="scFileBtn">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>14</y>
+     <width>31</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pubFileBtn">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>47</y>
+     <width>31</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="pubFile">
+   <property name="geometry">
+    <rect>
+     <x>12</x>
+     <y>47</y>
+     <width>375</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="chunk">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>79</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="minTime">
+   <property name="geometry">
+    <rect>
+     <x>277</x>
+     <y>77</y>
+     <width>48</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="maxTime">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>77</y>
+     <width>48</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pubBtn">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>111</y>
+     <width>420</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Pub</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>14</x>
+     <y>78</y>
+     <width>123</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>DisPatch Frames : </string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>77</y>
+     <width>50</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Range : </string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>329</x>
+     <y>76</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>~</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="brws">
+   <property name="geometry">
+    <rect>
+     <x>401</x>
+     <y>77</y>
+     <width>24</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../../../../../../usr/share/icons/hicolor/24x24/apps/firefox.png</normaloff>../../../../../../usr/share/icons/hicolor/24x24/apps/firefox.png</iconset>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

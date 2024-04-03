@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>229</width>
+    <height>89</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QPushButton" name="setJointAxisButton">
+   <property name="geometry">
+    <rect>
+     <x>6</x>
+     <y>9</y>
+     <width>109</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set Joint Axis</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="setConButton">
+   <property name="geometry">
+    <rect>
+     <x>124</x>
+     <y>9</y>
+     <width>97</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set FK Con</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="findpolV">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>49</y>
+     <width>215</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Find PoleVector</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

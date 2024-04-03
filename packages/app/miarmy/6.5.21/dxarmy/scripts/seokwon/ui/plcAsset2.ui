@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>plcAsset</class>
+ <widget class="QWidget" name="plcAsset">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>350</width>
+    <height>417</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Asset Placement</string>
+  </property>
+  <widget class="QLineEdit" name="targetGeo">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>10</y>
+     <width>102</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>54</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>150</width>
+     <height>24</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="selGeoBtn">
+   <property name="geometry">
+    <rect>
+     <x>272</x>
+     <y>11</y>
+     <width>72</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Select</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_6">
+   <property name="geometry">
+    <rect>
+     <x>32</x>
+     <y>11</y>
+     <width>105</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Target Surface :</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="numOri">
+   <property name="geometry">
+    <rect>
+     <x>279</x>
+     <y>199</y>
+     <width>65</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="crBtn">
+   <property name="geometry">
+    <rect>
+     <x>272</x>
+     <y>49</y>
+     <width>73</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Create</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>34</x>
+     <y>49</y>
+     <width>103</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Num of Assets :</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="numCh">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>48</y>
+     <width>54</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>54</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>150</width>
+     <height>24</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QLabel" name="Rot">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>199</y>
+     <width>112</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Rotate_Random :</string>
+   </property>
+  </widget>
+  <widget class="QSlider" name="slOri">
+   <property name="geometry">
+    <rect>
+     <x>126</x>
+     <y>201</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="geoConBtn">
+   <property name="geometry">
+    <rect>
+     <x>133</x>
+     <y>121</y>
+     <width>123</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Geo-Constrain On</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="aimTarget">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>235</y>
+     <width>150</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>54</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>150</width>
+     <height>24</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="aimBtn">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>235</y>
+     <width>64</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Select</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_7">
+   <property name="geometry">
+    <rect>
+     <x>55</x>
+     <y>235</y>
+     <width>84</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Target Aim :</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="loadBtn">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>365</y>
+     <width>335</width>
+     <height>43</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Convert</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="listWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>270</y>
+     <width>259</width>
+     <height>88</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="impBtn">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>270</y>
+     <width>63</width>
+     <height>56</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Import</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="delBtn">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>330</y>
+     <width>63</width>
+     <height>29</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="locScaleLabel">
+   <property name="geometry">
+    <rect>
+     <x>41</x>
+     <y>81</y>
+     <width>53</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Scale :</string>
+   </property>
+  </widget>
+  <widget class="QSlider" name="scsl">
+   <property name="geometry">
+    <rect>
+     <x>125</x>
+     <y>83</y>
+     <width>139</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="scnum">
+   <property name="geometry">
+    <rect>
+     <x>273</x>
+     <y>80</y>
+     <width>73</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="getrBtn">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>121</y>
+     <width>119</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Range Plane On</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="scattBtn">
+   <property name="geometry">
+    <rect>
+     <x>261</x>
+     <y>121</y>
+     <width>84</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Scattering</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="Orient">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>158</y>
+     <width>112</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Rotate :</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="numRot">
+   <property name="geometry">
+    <rect>
+     <x>279</x>
+     <y>158</y>
+     <width>65</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSlider" name="slRot">
+   <property name="geometry">
+    <rect>
+     <x>126</x>
+     <y>160</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>slOri</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>numOri</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>196</x>
+     <y>179</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>311</x>
+     <y>179</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>numOri</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>slOri</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>311</x>
+     <y>179</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>196</x>
+     <y>179</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>scnum</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>scsl</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>91</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>194</x>
+     <y>92</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>scsl</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>scnum</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>194</x>
+     <y>92</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>309</x>
+     <y>91</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>slRot</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>numRot</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>196</x>
+     <y>169</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>311</x>
+     <y>169</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>numRot</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>slRot</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>311</x>
+     <y>169</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>196</x>
+     <y>169</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -1,0 +1,11 @@
+#!/bin/bash
+#move_to_scan.py
+#/core/Linux/APPZ/Python/2.7/bin/python /core/TD/elk3/move_to_scan_new.py
+#/core/Linux/APPZ/Python/2.7/bin/python /core/TD/elk3/move_to_scan_new.py "{'shot': 'Test_0010', 'show': 'HANSAN', 'scan_date': '20210111_test', 'scene': u'', 'just_in': 1001, 'duration': 5, 'time_in': '05:24:19:09', 'thumb': '/show/HANSAN/seq/Test/Test_0010/plate/mp0/Test_0010_mp0_v001.thumb.jpg', 'no': '', 'sequence': 'test', 'version': '1', 'org_scan_link': '/show/HANSAN/management/scan/20210111_test/035895_G003C006_HAK_0840', 'scan_link': '/show/HANSAN/seq/Test/Test_0010/plate/mp0', 'type': 'mp0', 'resolution_plate': '2048x1318', 'reel': '', 'shot_num': '0010', 'shot_name': 'Test_0010_mp0_v001', 'scan_name': '035895_G003C006', 'cam': '', 'just_out': 1005, 'time_out': '05:24:19:13', 'resolution': '2048x1318'}"
+
+
+#bdir="$( cd .. && pwd -P )"
+#bdir="$( cd .. "$(`dirname "$0"` )" && pwd -P )"
+bdir=`dirname "$0"`
+
+echo ${bdir%/*}

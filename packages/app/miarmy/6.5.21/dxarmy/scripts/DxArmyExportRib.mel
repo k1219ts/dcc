@@ -1,0 +1,16 @@
+/*global proc DxArmyExportRib(int $mode, int $start, int $end) {
+    McdInitMiarmy;
+    python("import dxArmy; dxArmy.ExportRib(" + $mode + "," + $start + "," + $end + ")");
+}*/
+
+global proc DxArmyExportRib(int $mode, int $start, int $end, string $outdir) {
+    McdInitMiarmy;
+    python(
+        "import dxArmy; dxArmy.ExportRib("
+        + $mode + ","
+        + $start + ","
+        + $end + ","
+        + "'" + $outdir + "'"
+        + ")"
+    );
+}

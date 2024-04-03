@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=Miarmy Rif Tool
+Comment=Miarmy RenderMan Filter
+Exec="/netapp/backstage/apps/renderman2/MiarmyRiFilter/MiarmyRif"
+Terminal=false
+Type=Application
+Icon=/netapp/backstage/pub/apps/renderman2/MiarmyRiFilter/miarmy_icon.jpg
+Categories=dexter2;

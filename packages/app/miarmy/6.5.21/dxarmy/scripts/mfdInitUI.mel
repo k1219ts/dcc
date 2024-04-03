@@ -1,0 +1,44 @@
+
+
+proc addMenus()
+{
+    global string $gMainWindow;
+
+    setParent $gMainWindow;
+    menu -label "DexterArmy" -to true MfD_MainMenu;
+
+    // Shelf
+    menuItem -label "Reload Shelf" -command ("mfdReloadShelf") MfD_reloadShelfItem;
+
+    // Pipe-line nodes
+    menuItem -label "Pipe-line Nodes" -sm true -to true -aob true;
+        menuItem -label "Create AgentGroup" -command ("createNode AgentGroup");
+    setParent -m ..;
+}
+
+
+global proc mfdReloadShelf()
+{
+    if (`shelfLayout -ex DexterArmy`) {
+        deleteShelfTab DexterArmy;
+    }
+
+    string $dxarmyPath = `getenv REZ_MIARMY_BASE`;
+    loadNewShelf($dxarmyPath + "/dxarmy/scripts/shelf_DexterArmy.mel");
+}
+
+
+global proc MiarmyForDexter_CreateUI()
+{
+    MiarmyForDexter_DeleteUI();
+
+    addMenus();
+}
+
+
+global proc MiarmyForDexter_DeleteUI()
+{
+    if (`menu -ex MfD_MainMenu`) {
+        deleteUI -menu MfD_MainMenu;
+    }
+}

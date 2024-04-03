@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>McdTransit</class>
+ <widget class="QWidget" name="McdTransit">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>168</width>
+    <height>70</height>
+   </rect>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>Transition Set</string>
+  </property>
+  <widget class="QPushButton" name="refBtn">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>6</y>
+     <width>29</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="nodeCmb">
+   <property name="geometry">
+    <rect>
+     <x>7</x>
+     <y>8</y>
+     <width>119</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="regActBtn">
+   <property name="geometry">
+    <rect>
+     <x>7</x>
+     <y>39</y>
+     <width>152</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Register Actions</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

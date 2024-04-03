@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=USD CacheExportTool 2.0
+Comment=USD CacheExportTool 2.0
+Exec="/backstage/apps/Maya/toolkits/dxsUsdUI/usdExportTool/UsdCacheExportTool2"
+Terminal=true
+Type=Application
+Icon=/backstage/share/icons/pxh_gusdIcon.png
+Categories=dexter2

@@ -1,0 +1,83 @@
+
+global proc mfdAgentGroupAdd(string $attr)
+{
+    python("import mfdNodeCommon; mfdNodeCommon.addSelectedAgentsForAgentGroup(\"" + $attr + "\")");
+    mfdAgentGroupReplace($attr);
+}
+global proc mfdAgentGroupClear(string $attr, string $widget)
+{
+    textScrollList -edit -removeAll $widget;
+    setAttr $attr -type Int32Array 0;
+}
+global proc mfdAgentGroupSelect(string $attr)
+{
+    python("import mfdNodeCommon; mfdNodeCommon.selectByAgentGroup(\"" + $attr + "\")");
+}
+
+global proc mfdAgentGroupMenuSelect(string $attr, string $widget)
+{
+    string $items[] = `textScrollList -q -si $widget`;
+    python("import mfdNodeCommon; mfdNodeCommon.selectItemsByAgentGroup(\"" + $attr + "\", \"" + stringArrayToString($items, ",") + "\")");
+}
+global proc mfdAgentGroupMenuRemove(string $attr, string $widget)
+{
+    string $items[] = `textScrollList -q -si $widget`;
+    python("import mfdNodeCommon; mfdNodeCommon.removeItemsByAgentGroup(\"" + $attr + "\", \"" + stringArrayToString($items, ",") + "\")");
+    mfdAgentGroupReplace($attr);
+}
+
+
+
+global proc mfdAgentGroupNew(string $attr)
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 4 -cw4 100 100 100 100;
+            text -l "" -w 100;
+            button -l "Add" -h 18 -w 100 mfdAgentGroupAddWidget;
+            button -l "Clear" -h 18 -w 100 mfdAgentGroupClearWidget;
+            button -l "Select" -h 18 -w 100 mfdAgentGroupSelectWidget;
+        setParent ..;
+        rowLayout -nc 2 -cw2 100 300;
+            text -l "" -w 100;
+            textScrollList -ams true -h 250 -w 300 mfdAgentGroupListWidget;
+            popupMenu -p mfdAgentGroupListWidget -b 3;
+            menuItem -l "Select" mfdAgentGroupMenuSelectWidget;
+            menuItem -l "Remove" mfdAgentGroupMenuRemoveWidget;
+        setParent ..;
+    setUITemplate -ppt;
+    mfdAgentGroupReplace($attr);
+}
+
+global proc mfdAgentGroupReplace(string $attr)
+{
+    string $widget = `textScrollList -e mfdAgentGroupListWidget`;
+
+    button -e -c ("mfdAgentGroupAdd(\"" + $attr + "\")") mfdAgentGroupAddWidget;
+    button -e -c ("mfdAgentGroupClear(\"" + $attr + "\", \"" + $widget + "\")") mfdAgentGroupClearWidget;
+    button -e -c ("mfdAgentGroupSelect(\"" + $attr + "\")") mfdAgentGroupSelectWidget;
+
+    // popupMenu
+    menuItem -e -c ("mfdAgentGroupMenuSelect(\"" + $attr + "\", \"" + $widget + "\")") mfdAgentGroupMenuSelectWidget;
+    menuItem -e -c ("mfdAgentGroupMenuRemove(\"" + $attr + "\", \"" + $widget + "\")") mfdAgentGroupMenuRemoveWidget;
+
+    textScrollList -e -ra $widget;
+    int $ids[] = `getAttr $attr`;
+    int $i;
+    for($i=0; $i<size($ids); $i++) {
+        textScrollList -e -a $ids[$i] $widget;
+    }
+}
+
+
+global proc AEAgentGroupTemplate(string $nodeName)
+{
+    editorTemplate -beginScrollLayout;
+
+        editorTemplate -beginLayout "Agents List" -collapse 0;
+            editorTemplate -callCustom "mfdAgentGroupNew" "mfdAgentGroupReplace" "agentIds";
+        editorTemplate -endLayout;
+
+        editorTemplate -addExtraControls;
+
+    editorTemplate -endScrollLayout;
+}
