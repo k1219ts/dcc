@@ -1,0 +1,163 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'shaderSET3.ui'
+#
+# Created: Tue Sep  4 18:23:04 2018
+#      by: PyQt4 UI code generator 4.10.3
+#
+# WARNING! All changes made in this file will be lost!
+
+from pymodule.Qt import QtCore
+from pymodule.Qt import QtWidgets as QtGui
+import pymodule.Qt as Qt
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
+
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName(_fromUtf8("Form"))
+        Form.resize(254, 440)
+        self.label = QtGui.QLabel(Form)
+        self.label.setGeometry(QtCore.QRect(20, 70, 121, 21))
+        self.label.setObjectName(_fromUtf8("label"))
+        self.label_2 = QtGui.QLabel(Form)
+        self.label_2.setGeometry(QtCore.QRect(20, 30, 91, 21))
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.lineEdit = QtGui.QLineEdit(Form)
+        self.lineEdit.setGeometry(QtCore.QRect(110, 30, 131, 21))
+        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
+        self.comboBox = QtGui.QComboBox(Form)
+        self.comboBox.setGeometry(QtCore.QRect(140, 70, 91, 21))
+        self.comboBox.setObjectName(_fromUtf8("comboBox"))
+        self.comboBox.addItem(_fromUtf8(""))
+        self.comboBox.addItem(_fromUtf8(""))
+        self.pushButton = QtGui.QPushButton(Form)
+        self.pushButton.setGeometry(QtCore.QRect(10, 240, 111, 31))
+        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+        self.label_4 = QtGui.QLabel(Form)
+        self.label_4.setGeometry(QtCore.QRect(10, 290, 131, 21))
+        font = Qt.QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_4.setFont(font)
+        self.label_4.setObjectName(_fromUtf8("label_4"))
+        self.label_6 = QtGui.QLabel(Form)
+        self.label_6.setGeometry(QtCore.QRect(10, 10, 91, 21))
+        font = Qt.QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_6.setFont(font)
+        self.label_6.setObjectName(_fromUtf8("label_6"))
+        self.pushButton_3 = QtGui.QPushButton(Form)
+        self.pushButton_3.setGeometry(QtCore.QRect(130, 240, 101, 31))
+        self.pushButton_3.setObjectName(_fromUtf8("pushButton_3"))
+        self.checkBox = QtGui.QCheckBox(Form)
+        self.checkBox.setGeometry(QtCore.QRect(20, 110, 61, 26))
+        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.checkBox_2 = QtGui.QCheckBox(Form)
+        self.checkBox_2.setGeometry(QtCore.QRect(90, 110, 71, 26))
+        self.checkBox_2.setObjectName(_fromUtf8("checkBox_2"))
+        self.checkBox_3 = QtGui.QCheckBox(Form)
+        self.checkBox_3.setGeometry(QtCore.QRect(170, 110, 71, 26))
+        self.checkBox_3.setObjectName(_fromUtf8("checkBox_3"))
+        self.checkBox_4 = QtGui.QCheckBox(Form)
+        self.checkBox_4.setGeometry(QtCore.QRect(20, 140, 71, 26))
+        self.checkBox_4.setObjectName(_fromUtf8("checkBox_4"))
+        self.checkBox_5 = QtGui.QCheckBox(Form)
+        self.checkBox_5.setGeometry(QtCore.QRect(90, 140, 71, 26))
+        self.checkBox_5.setObjectName(_fromUtf8("checkBox_5"))
+        self.checkBox_6 = QtGui.QCheckBox(Form)
+        self.checkBox_6.setGeometry(QtCore.QRect(170, 140, 71, 26))
+        self.checkBox_6.setObjectName(_fromUtf8("checkBox_6"))
+        self.checkBox_7 = QtGui.QCheckBox(Form)
+        self.checkBox_7.setGeometry(QtCore.QRect(20, 170, 71, 26))
+        self.checkBox_7.setObjectName(_fromUtf8("checkBox_7"))
+        self.checkBox_8 = QtGui.QCheckBox(Form)
+        self.checkBox_8.setGeometry(QtCore.QRect(90, 170, 121, 26))
+        self.checkBox_8.setObjectName(_fromUtf8("checkBox_8"))
+        self.checkBox_9 = QtGui.QCheckBox(Form)
+        self.checkBox_9.setGeometry(QtCore.QRect(20, 200, 121, 26))
+        self.checkBox_9.setObjectName(_fromUtf8("checkBox_9"))
+        self.line_3 = QtGui.QFrame(Form)
+        self.line_3.setGeometry(QtCore.QRect(10, 280, 241, 16))
+        self.line_3.setFrameShape(QtGui.QFrame.HLine)
+        self.line_3.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line_3.setObjectName(_fromUtf8("line_3"))
+        self.lineEdit_2 = QtGui.QLineEdit(Form)
+        self.lineEdit_2.setGeometry(QtCore.QRect(10, 310, 231, 31))
+        font = Qt.QtGui.QFont()
+        font.setPointSize(9)
+        font.setBold(True)
+        font.setWeight(75)
+        self.lineEdit_2.setFont(font)
+        self.lineEdit_2.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
+        self.lineEdit_2.setAcceptDrops(False)
+        self.lineEdit_2.setDragEnabled(True)
+        self.lineEdit_2.setObjectName(_fromUtf8("lineEdit_2"))
+        self.lineEdit_3 = QtGui.QLineEdit(Form)
+        self.lineEdit_3.setGeometry(QtCore.QRect(10, 340, 231, 31))
+        font = Qt.QtGui.QFont()
+        font.setPointSize(9)
+        font.setBold(True)
+        font.setWeight(75)
+        self.lineEdit_3.setFont(font)
+        self.lineEdit_3.setDragEnabled(True)
+        self.lineEdit_3.setObjectName(_fromUtf8("lineEdit_3"))
+        self.lineEdit_4 = QtGui.QLineEdit(Form)
+        self.lineEdit_4.setGeometry(QtCore.QRect(10, 370, 231, 31))
+        font = Qt.QtGui.QFont()
+        font.setPointSize(9)
+        font.setBold(True)
+        font.setWeight(75)
+        self.lineEdit_4.setFont(font)
+        self.lineEdit_4.setDragEnabled(True)
+        self.lineEdit_4.setObjectName(_fromUtf8("lineEdit_4"))
+        self.lineEdit_5 = QtGui.QLineEdit(Form)
+        self.lineEdit_5.setGeometry(QtCore.QRect(10, 400, 231, 31))
+        font = Qt.QtGui.QFont()
+        font.setPointSize(9)
+        font.setBold(True)
+        font.setWeight(75)
+        self.lineEdit_5.setFont(font)
+        self.lineEdit_5.setDragEnabled(True)
+        self.lineEdit_5.setObjectName(_fromUtf8("lineEdit_5"))
+
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
+
+    def retranslateUi(self, Form):
+        Form.setWindowTitle(_translate("Form", "shader SET", None))
+        self.label.setText(_translate("Form", "Dxtexture Mode :", None))
+        self.label_2.setText(_translate("Form", "Shader Name:", None))
+        self.comboBox.setItemText(0, _translate("Form", "Attribute", None))
+        self.comboBox.setItemText(1, _translate("Form", "File", None))
+        self.pushButton.setText(_translate("Form", "Create Shader ", None))
+        self.label_4.setText(_translate("Form", "XPath Examples", None))
+        self.label_6.setText(_translate("Form", "Shader", None))
+        self.pushButton_3.setText(_translate("Form", "Create Node", None))
+        self.checkBox.setText(_translate("Form", "diffC", None))
+        self.checkBox_2.setText(_translate("Form", "specG", None))
+        self.checkBox_3.setText(_translate("Form", "specR", None))
+        self.checkBox_4.setText(_translate("Form", "norm", None))
+        self.checkBox_5.setText(_translate("Form", "bump", None))
+        self.checkBox_6.setText(_translate("Form", "disF", None))
+        self.checkBox_7.setText(_translate("Form", "Alpha", None))
+        self.checkBox_8.setText(_translate("Form", "DxManifold2D", None))
+        self.checkBox_9.setText(_translate("Form", "Double Sided", None))
+        self.lineEdit_2.setText(_translate("Form", "//*[starts-with(name(),\'A\')] ", None))
+        self.lineEdit_3.setText(_translate("Form", "//A//*[starts-with(name(),\'B\')]", None))
+        self.lineEdit_4.setText(_translate("Form", "//*[contains(name(),\'A\')]", None))
+        self.lineEdit_5.setText(_translate("Form", "//*[starts-with(name(),\'A\') and contains(name(),\'B\')]", None))
+

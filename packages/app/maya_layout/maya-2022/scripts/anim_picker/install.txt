@@ -1,0 +1,4 @@
+파이선 스크립트 창에 아래와 같이 입력하고 셀프 만듬
+
+import anim_picker
+anim_picker.load(edit=True)

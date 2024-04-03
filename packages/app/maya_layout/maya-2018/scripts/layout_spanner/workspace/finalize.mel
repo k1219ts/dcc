@@ -1,0 +1,27 @@
+// Dexter Digital Maya Project Definition for finalize task
+// Written by utd, Fri October 26, 2012
+
+// data
+workspace -fr "animImport" "data/anim";
+workspace -fr "animExport" "data/anim";
+workspace -fr "diskCache" "data/geoCache";
+workspace -fr "OBJ" "data/exported";
+workspace -fr "OBJexport" "data/exported";
+
+// preview
+workspace -fr "movie" "preview";
+workspace -fr "images" "preview";
+
+// scenes
+workspace -fr "scene" "scenes";
+workspace -fr "mayaAscii" "scenes";
+workspace -fr "mayaBinary" "scenes";
+
+// sourceimages
+workspace -fr "sourceImages" "sourceimages";
+workspace -fr "textures" "sourceimages";
+
+// tmp
+workspace -fr "offlineEdit" "tmp/edits";
+workspace -fr "autoSave" "tmp/autosave";
+workspace -fr "templates" "tmp/assets";

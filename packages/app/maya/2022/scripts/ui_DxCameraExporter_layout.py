@@ -1,0 +1,303 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'DxCameraExporter_layout.ui'
+#
+# Created: Wed May 24 17:38:14 2017
+#      by: PyQt4 UI code generator 4.10.3
+#
+# WARNING! All changes made in this file will be lost!
+
+from PySide2 import QtCore, QtWidgets
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtWidgets.QApplication.translate(context, text, disambig)
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName(_fromUtf8("Dialog"))
+        Dialog.resize(538, 645)
+        self.gridLayout_5 = QtWidgets.QGridLayout(Dialog)
+        self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.showLabel = QtWidgets.QLabel(Dialog)
+        self.showLabel.setObjectName(_fromUtf8("showLabel"))
+        self.horizontalLayout.addWidget(self.showLabel)
+        self.showCombo = QtWidgets.QComboBox(Dialog)
+        self.showCombo.setObjectName(_fromUtf8("showCombo"))
+        self.horizontalLayout.addWidget(self.showCombo)
+        self.seqLabel = QtWidgets.QLabel(Dialog)
+        self.seqLabel.setObjectName(_fromUtf8("seqLabel"))
+        self.horizontalLayout.addWidget(self.seqLabel)
+        self.seqCombo = QtWidgets.QComboBox(Dialog)
+        self.seqCombo.setObjectName(_fromUtf8("seqCombo"))
+        self.horizontalLayout.addWidget(self.seqCombo)
+        self.shotLabel = QtWidgets.QLabel(Dialog)
+        self.shotLabel.setObjectName(_fromUtf8("shotLabel"))
+        self.horizontalLayout.addWidget(self.shotLabel)
+        self.shotCombo = QtWidgets.QComboBox(Dialog)
+        self.shotCombo.setObjectName(_fromUtf8("shotCombo"))
+        self.horizontalLayout.addWidget(self.shotCombo)
+        self.gridLayout_5.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.groupBox_2 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.groupBox_2)
+        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
+        self.frameRangeLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.frameRangeLabel.setObjectName(_fromUtf8("frameRangeLabel"))
+        self.gridLayout_2.addWidget(self.frameRangeLabel, 2, 0, 1, 1)
+        self.resWidthLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.resWidthLineEdit.setObjectName(_fromUtf8("resWidthLineEdit"))
+        self.gridLayout_2.addWidget(self.resWidthLineEdit, 3, 1, 1, 1)
+        self.userLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.userLabel.setObjectName(_fromUtf8("userLabel"))
+        self.gridLayout_2.addWidget(self.userLabel, 0, 0, 1, 1)
+        self.resLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.resLabel.setObjectName(_fromUtf8("resLabel"))
+        self.gridLayout_2.addWidget(self.resLabel, 3, 0, 1, 1)
+        self.userLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.userLineEdit.setObjectName(_fromUtf8("userLineEdit"))
+        self.gridLayout_2.addWidget(self.userLineEdit, 0, 1, 1, 1)
+        self.frameRangeTo = QtWidgets.QLineEdit(self.groupBox_2)
+        self.frameRangeTo.setObjectName(_fromUtf8("frameRangeTo"))
+        self.gridLayout_2.addWidget(self.frameRangeTo, 2, 2, 1, 1)
+        self.frameRangeFrom = QtWidgets.QLineEdit(self.groupBox_2)
+        self.frameRangeFrom.setObjectName(_fromUtf8("frameRangeFrom"))
+        self.gridLayout_2.addWidget(self.frameRangeFrom, 2, 1, 1, 1)
+        self.resHeightLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.resHeightLineEdit.setObjectName(_fromUtf8("resHeightLineEdit"))
+        self.gridLayout_2.addWidget(self.resHeightLineEdit, 3, 2, 1, 1)
+        self.teamLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.teamLabel.setObjectName(_fromUtf8("teamLabel"))
+        self.gridLayout_2.addWidget(self.teamLabel, 1, 0, 1, 1)
+        self.teamLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.teamLineEdit.setObjectName(_fromUtf8("teamLineEdit"))
+        self.gridLayout_2.addWidget(self.teamLineEdit, 1, 1, 1, 1)
+        self.gridLayout_5.addWidget(self.groupBox_2, 1, 0, 1, 1)
+        self.groupBox = QtWidgets.QGroupBox(Dialog)
+        self.groupBox.setObjectName(_fromUtf8("groupBox"))
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
+        self.dxcameraListWidget = QtWidgets.QListWidget(self.groupBox)
+        self.dxcameraListWidget.setObjectName(_fromUtf8("dxcameraListWidget"))
+        self.gridLayout_3.addWidget(self.dxcameraListWidget, 0, 0, 1, 1)
+        self.groupBox_3 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
+        self.gridLayout = QtWidgets.QGridLayout(self.groupBox_3)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.cameraLabel = QtWidgets.QLabel(self.groupBox_3)
+        self.cameraLabel.setObjectName(_fromUtf8("cameraLabel"))
+        self.gridLayout.addWidget(self.cameraLabel, 0, 0, 1, 1)
+        self.cameraCombo = QtWidgets.QComboBox(self.groupBox_3)
+        self.cameraCombo.setObjectName(_fromUtf8("cameraCombo"))
+        self.gridLayout.addWidget(self.cameraCombo, 0, 1, 1, 1)
+        self.rightCamLabel = QtWidgets.QLabel(self.groupBox_3)
+        self.rightCamLabel.setEnabled(False)
+        self.rightCamLabel.setMinimumSize(QtCore.QSize(0, 0))
+        self.rightCamLabel.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.rightCamLabel.setObjectName(_fromUtf8("rightCamLabel"))
+        self.gridLayout.addWidget(self.rightCamLabel, 1, 0, 1, 1)
+        self.rightCameraCombo = QtWidgets.QComboBox(self.groupBox_3)
+        self.rightCameraCombo.setEnabled(False)
+        self.rightCameraCombo.setMinimumSize(QtCore.QSize(0, 0))
+        self.rightCameraCombo.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.rightCameraCombo.setObjectName(_fromUtf8("rightCameraCombo"))
+        self.gridLayout.addWidget(self.rightCameraCombo, 1, 1, 1, 1)
+        self.stereoCheck = QtWidgets.QCheckBox(self.groupBox_3)
+        self.stereoCheck.setObjectName(_fromUtf8("stereoCheck"))
+        self.gridLayout.addWidget(self.stereoCheck, 2, 1, 1, 1)
+        self.onlyCamCheck = QtWidgets.QCheckBox(self.groupBox_3)
+        self.onlyCamCheck.setObjectName(_fromUtf8("onlyCamCheck"))
+        self.gridLayout.addWidget(self.onlyCamCheck, 3, 0, 1, 1)
+        self.overscanCheck = QtWidgets.QCheckBox(self.groupBox_3)
+        self.overscanCheck.setObjectName(_fromUtf8("overscanCheck"))
+        self.gridLayout.addWidget(self.overscanCheck, 3, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.groupBox_3, 1, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.groupBox, 2, 0, 1, 1)
+        self.groupBox_4 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_4.setObjectName(_fromUtf8("groupBox_4"))
+        self.gridLayout_4 = QtWidgets.QGridLayout(self.groupBox_4)
+        self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
+        self.dxcameraListWidget_2 = QtWidgets.QListWidget(self.groupBox_4)
+        self.dxcameraListWidget_2.setObjectName(_fromUtf8("dxcameraListWidget_2"))
+        self.gridLayout_4.addWidget(self.dxcameraListWidget_2, 0, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.groupBox_4, 3, 0, 1, 1)
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog", None))
+        self.showLabel.setText(_translate("Dialog", "Show", None))
+        self.seqLabel.setText(_translate("Dialog", "Seq", None))
+        self.shotLabel.setText(_translate("Dialog", "Shot", None))
+        self.groupBox_2.setTitle(_translate("Dialog", "Shot Info", None))
+        self.frameRangeLabel.setText(_translate("Dialog", "Frame Range", None))
+        self.userLabel.setText(_translate("Dialog", "User", None))
+        self.resLabel.setText(_translate("Dialog", "Render Res", None))
+        self.teamLabel.setText(_translate("Dialog", "Team", None))
+        self.groupBox.setTitle(_translate("Dialog", "Select Only Main Camera", None))
+        self.groupBox_3.setTitle(_translate("Dialog", "Camera Option", None))
+        self.cameraLabel.setText(_translate("Dialog", "Camera", None))
+        self.rightCamLabel.setText(_translate("Dialog", "Only Stereo", None))
+        self.stereoCheck.setText(_translate("Dialog", "Stereo Camera", None))
+        self.onlyCamCheck.setText(_translate("Dialog", "Only Camera", None))
+        self.overscanCheck.setText(_translate("Dialog", "Overscan", None))
+        self.groupBox_4.setTitle(_translate("Dialog", "Select Sub Camera", None))
+
+"""
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'DxCameraExporter_layout.ui'
+#
+# Created: Mon May 22 18:02:31 2017
+#      by: PyQt4 UI code generator 4.10.3
+#
+# WARNING! All changes made in this file will be lost!
+
+from PySide2 import QtCore, QtWidgets
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtWidgets.QApplication.translate(context, text, disambig)
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName(_fromUtf8("Dialog"))
+        Dialog.resize(478, 687)
+        self.gridLayout_4 = QtWidgets.QGridLayout(Dialog)
+        self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.showLabel = QtWidgets.QLabel(Dialog)
+        self.showLabel.setObjectName(_fromUtf8("showLabel"))
+        self.horizontalLayout.addWidget(self.showLabel)
+        self.showCombo = QtWidgets.QComboBox(Dialog)
+        self.showCombo.setObjectName(_fromUtf8("showCombo"))
+        self.horizontalLayout.addWidget(self.showCombo)
+        self.seqLabel = QtWidgets.QLabel(Dialog)
+        self.seqLabel.setObjectName(_fromUtf8("seqLabel"))
+        self.horizontalLayout.addWidget(self.seqLabel)
+        self.seqCombo = QtWidgets.QComboBox(Dialog)
+        self.seqCombo.setObjectName(_fromUtf8("seqCombo"))
+        self.horizontalLayout.addWidget(self.seqCombo)
+        self.shotLabel = QtWidgets.QLabel(Dialog)
+        self.shotLabel.setObjectName(_fromUtf8("shotLabel"))
+        self.horizontalLayout.addWidget(self.shotLabel)
+        self.shotCombo = QtWidgets.QComboBox(Dialog)
+        self.shotCombo.setObjectName(_fromUtf8("shotCombo"))
+        self.horizontalLayout.addWidget(self.shotCombo)
+        self.gridLayout_4.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.groupBox_2 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.groupBox_2)
+        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
+        self.frameRangeLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.frameRangeLabel.setObjectName(_fromUtf8("frameRangeLabel"))
+        self.gridLayout_2.addWidget(self.frameRangeLabel, 2, 0, 1, 1)
+        self.resWidthLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.resWidthLineEdit.setObjectName(_fromUtf8("resWidthLineEdit"))
+        self.gridLayout_2.addWidget(self.resWidthLineEdit, 3, 1, 1, 1)
+        self.userLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.userLabel.setObjectName(_fromUtf8("userLabel"))
+        self.gridLayout_2.addWidget(self.userLabel, 0, 0, 1, 1)
+        self.resLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.resLabel.setObjectName(_fromUtf8("resLabel"))
+        self.gridLayout_2.addWidget(self.resLabel, 3, 0, 1, 1)
+        self.userLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.userLineEdit.setObjectName(_fromUtf8("userLineEdit"))
+        self.gridLayout_2.addWidget(self.userLineEdit, 0, 1, 1, 1)
+        self.frameRangeTo = QtWidgets.QLineEdit(self.groupBox_2)
+        self.frameRangeTo.setObjectName(_fromUtf8("frameRangeTo"))
+        self.gridLayout_2.addWidget(self.frameRangeTo, 2, 2, 1, 1)
+        self.frameRangeFrom = QtWidgets.QLineEdit(self.groupBox_2)
+        self.frameRangeFrom.setObjectName(_fromUtf8("frameRangeFrom"))
+        self.gridLayout_2.addWidget(self.frameRangeFrom, 2, 1, 1, 1)
+        self.resHeightLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.resHeightLineEdit.setObjectName(_fromUtf8("resHeightLineEdit"))
+        self.gridLayout_2.addWidget(self.resHeightLineEdit, 3, 2, 1, 1)
+        self.teamLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.teamLabel.setObjectName(_fromUtf8("teamLabel"))
+        self.gridLayout_2.addWidget(self.teamLabel, 1, 0, 1, 1)
+        self.teamLineEdit = QtWidgets.QLineEdit(self.groupBox_2)
+        self.teamLineEdit.setObjectName(_fromUtf8("teamLineEdit"))
+        self.gridLayout_2.addWidget(self.teamLineEdit, 1, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.groupBox_2, 1, 0, 1, 1)
+        self.groupBox = QtWidgets.QGroupBox(Dialog)
+        self.groupBox.setObjectName(_fromUtf8("groupBox"))
+        self.gridLayout = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout.setSpacing(0)
+        self.gridLayout.setContentsMargins(0, 9, 0, 0)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.dxcameraTreeWidget = QtWidgets.QTreeWidget(self.groupBox)
+        self.dxcameraTreeWidget.setObjectName(_fromUtf8("dxcameraTreeWidget"))
+        self.dxcameraTreeWidget.headerItem().setText(0, _fromUtf8("1"))
+        self.gridLayout.addWidget(self.dxcameraTreeWidget, 0, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.groupBox, 2, 0, 1, 1)
+        self.groupBox_3 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.groupBox_3)
+        self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
+        self.rightCamLabel = QtWidgets.QLabel(self.groupBox_3)
+        self.rightCamLabel.setEnabled(False)
+        self.rightCamLabel.setMinimumSize(QtCore.QSize(0, 0))
+        self.rightCamLabel.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.rightCamLabel.setObjectName(_fromUtf8("rightCamLabel"))
+        self.gridLayout_3.addWidget(self.rightCamLabel, 1, 0, 1, 1)
+        self.cameraLabel = QtWidgets.QLabel(self.groupBox_3)
+        self.cameraLabel.setObjectName(_fromUtf8("cameraLabel"))
+        self.gridLayout_3.addWidget(self.cameraLabel, 0, 0, 1, 1)
+        self.rightCameraCombo = QtWidgets.QComboBox(self.groupBox_3)
+        self.rightCameraCombo.setEnabled(False)
+        self.rightCameraCombo.setMinimumSize(QtCore.QSize(0, 0))
+        self.rightCameraCombo.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.rightCameraCombo.setObjectName(_fromUtf8("rightCameraCombo"))
+        self.gridLayout_3.addWidget(self.rightCameraCombo, 1, 1, 1, 1)
+        self.cameraCombo = QtWidgets.QComboBox(self.groupBox_3)
+        self.cameraCombo.setObjectName(_fromUtf8("cameraCombo"))
+        self.gridLayout_3.addWidget(self.cameraCombo, 0, 1, 1, 1)
+        self.stereoCheck = QtWidgets.QCheckBox(self.groupBox_3)
+        self.stereoCheck.setObjectName(_fromUtf8("stereoCheck"))
+        self.gridLayout_3.addWidget(self.stereoCheck, 2, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.groupBox_3, 3, 0, 1, 1)
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog", None))
+        self.showLabel.setText(_translate("Dialog", "Show", None))
+        self.seqLabel.setText(_translate("Dialog", "Seq", None))
+        self.shotLabel.setText(_translate("Dialog", "Shot", None))
+        self.groupBox_2.setTitle(_translate("Dialog", "Shot Info", None))
+        self.frameRangeLabel.setText(_translate("Dialog", "Frame Range", None))
+        self.userLabel.setText(_translate("Dialog", "User", None))
+        self.resLabel.setText(_translate("Dialog", "Render Res", None))
+        self.teamLabel.setText(_translate("Dialog", "Team", None))
+        self.groupBox.setTitle(_translate("Dialog", "DxCamera List - Select Only Main Camera", None))
+        self.groupBox_3.setTitle(_translate("Dialog", "Camera Option", None))
+        self.rightCamLabel.setText(_translate("Dialog", "Only Stereo", None))
+        self.cameraLabel.setText(_translate("Dialog", "Camera", None))
+        self.stereoCheck.setText(_translate("Dialog", "Stereo Camera", None))
+"""

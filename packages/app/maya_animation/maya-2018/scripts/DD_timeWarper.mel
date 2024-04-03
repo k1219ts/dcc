@@ -1,0 +1,543 @@
+/* DD_timeWarper.mel
+ *
+ * A script to make and control independent time warps in a 
+ * scene that can be applied to select objects
+ *
+ * Copyright (c) 2011 Robin Scher, Superfad. All Rights Reserved
+ */
+
+ 
+// global variables for the currently selected timewarp
+global string $tw_ActiveNode = "";
+global int $tw_ActiveScriptJob = -1;
+
+
+// helper proc to get the condition node connected with a specific timewarp curve node
+proc string DD_tw_GetConditionNode( string $curveNode )
+{
+	return `substitute "tw_TimeCurve" $curveNode "tw_EnableWarp"`;
+}
+
+
+// helper proc to get the selected items to apply or remove the warp
+proc string[] DD_tw_GetSelection()
+{
+	return stringArrayRemoveDuplicates( stringArrayCatenate( `ls -sl`, `ls -sl -dag -l` ) );
+}
+
+
+// helper proc to handle aborting a long process
+proc DD_tw_Abort( string $message )
+{
+	global string $gMainProgressBar;
+	// reset the global progress bar
+	progressBar -edit -endProgress $gMainProgressBar;
+	// and error to stop script processing
+	error $message;
+}
+
+
+// scriptJob callback that updates the time displays in the UI
+global proc DD_tw_UpdateTime()
+{
+	global string $tw_ActiveNode;
+	if( !size( `ls $tw_ActiveNode` ) )
+	{
+		// no current timewarp selected
+		floatFieldGrp -e -en1 false -v1 0 tw_WarpedTime;
+		floatFieldGrp -e -en1 false -v1 0 tw_UnwarpedTime;
+	}
+	else
+	{
+		// update the times based on the selected timewarp
+		float $time = `currentTime -q`;
+		floatFieldGrp -e -en1 false -v1 $time tw_WarpedTime;
+		string $cond = DD_tw_GetConditionNode( $tw_ActiveNode );
+		float $warp = $time;
+		if( size( `ls $cond` ) && `getAttr ($cond + ".firstTerm")` )
+			$warp = `getAttr ($tw_ActiveNode + ".output")`;
+		floatFieldGrp -e -en1 false -v1 $warp tw_UnwarpedTime;
+	}
+}
+
+
+// helper proc to generate a new timewarp
+proc string DD_tw_NewTimewarp( int $anti )
+{
+	// generate a new animation curve
+	string $node = `createNode -ss -name ($anti ? "tw_TimeCurve_AntiWarp" : "tw_TimeCurve1") animCurveTT`;
+
+	int $min = `playbackOptions -q -minTime`;
+	int $max = `playbackOptions -q -maxTime`;
+
+	if( $anti )
+	{
+		// create an anti-timewarp based on the global scene time warp
+		for( $i = $min; $i <= $max; $i++ )
+			setKeyframe -t `getAttr -t $i time1.outTime` -v $i $node;
+	}
+	else
+	{
+		// default to real time
+		setAttr ($node + ".preInfinity") 1;
+		setAttr ($node + ".postInfinity") 1;
+		setKeyframe -t $min -v $min -itt "spline" -ott "spline" $node;
+		setKeyframe -t $max -v $max -itt "spline" -ott "spline" $node;
+	}
+	// generate a condition
+	string $condname = DD_tw_GetConditionNode( $node );
+	string $cond = `createNode -ss -name $condname condition`;
+	setAttr ($cond + ".firstTerm") 1;
+	setAttr ($cond + ".secondTerm") 1;
+	connectAttr -f ($node + ".output") ($cond + ".colorIfTrueR");
+	// connect real time to the alternate condition
+	connectAttr -f "time1.outTime" ($cond + ".colorIfFalseR");
+
+	// convert float time to integer.
+	// expression -n "tw_IntegerFrame" -s ($cond + ".colorIfTrueG=floor(" + $cond + ".colorIfTrueR + 0.50)");
+	// expression -n "tw_IntegerFrame" -s ($cond + ".colorIfFalseG=" + $cond + ".colorIfFalseR");
+
+	// return the actual curve node name
+	return $node;
+}
+
+
+// helper proc to stop the scriptJob
+proc DD_tw_StopScriptJob()
+{
+	// if there is an active script job
+	global int $tw_ActiveScriptJob;
+	if( $tw_ActiveScriptJob >= 0 )
+	{
+		// kill it and unset the ID
+		scriptJob -k $tw_ActiveScriptJob;
+		$tw_ActiveScriptJob = -1;
+	}	
+}
+
+
+// callback for optionMenu when user selects a timewarp to control
+global proc DD_tw_SelectWarp()
+{
+	global string $tw_ActiveNode;
+	global int $tw_ActiveScriptJob;
+
+	// stop the current update script
+	DD_tw_StopScriptJob;
+	
+	// get the selected warp option	
+	$tw_ActiveNode = `optionMenu -q -v tw_WarpSelector`;
+	int $enable = 0;
+	
+	// update based on what is selected
+	if( $tw_ActiveNode == "" || $tw_ActiveNode == "Select_a_warp" )
+	{
+		// do nothing
+		print "// Timewarp window viewing nothing\n";
+	}
+	else if( $tw_ActiveNode == "Create a new warp" ||
+			 $tw_ActiveNode == "Create anti-warp" )
+	{
+		// create a new timewarp and add it to the menu
+		print "// Creating a new time warp system\n";
+		int $anti = $tw_ActiveNode == "Create anti-warp" ? 1 : 0;
+		menuItem -p "tw_WarpSelector" -l `DD_tw_NewTimewarp $anti`;
+		int $where = `optionMenu -q -ni tw_WarpSelector`;
+		optionMenu -e -sl $where tw_WarpSelector;
+		// call this again to set up script jobs and controls
+		DD_tw_SelectWarp;
+		return;
+	}
+	else
+	{
+		// adjust to show the selected warp
+		print ("// Viewing time warp system " + $tw_ActiveNode + "\n");
+		//$tw_ActiveScriptJob = `scriptJob -e "timeChanged" "DD_tw_UpdateTime" -p "tw_MainWindow"`;
+		$tw_ActiveScriptJob = `scriptJob -ac ($tw_ActiveNode + ".output") "DD_tw_UpdateTime" -p "tw_MainWindow"`;
+		string $condNode = DD_tw_GetConditionNode( $tw_ActiveNode );
+		checkBox -e -v `getAttr ($condNode + ".firstTerm")` tw_EnableWarp;
+		
+		// enable all the buttons
+		$enable = 1;
+	}
+	// call update time once to get the first update
+	DD_tw_UpdateTime;
+	// enable buttons as needed
+	button -e -en $enable tw_b_Select;
+	button -e -en $enable tw_b_Applied;
+	button -e -en $enable tw_b_Apply;
+	button -e -en $enable tw_b_Remove;
+//	button -e -en $enable tw_b_Flatten;
+//	button -e -en $enable tw_b_Bake;
+	button -e -en $enable tw_b_Delete;
+}
+
+
+// callback for enable/disable check box
+global proc DD_tw_DoEnableWarp( int $enable )
+{
+	global string $tw_ActiveNode;
+	// update the condition
+	setAttr (`DD_tw_GetConditionNode $tw_ActiveNode` + ".firstTerm") $enable;
+	// update the display time
+	DD_tw_UpdateTime;
+}
+
+
+// callback for selecting nodes that have a warp applied
+global proc DD_tw_DoSelectApplied()
+{
+	global string $tw_ActiveNode;
+	string $cond = DD_tw_GetConditionNode( $tw_ActiveNode );
+	string $curves[] = `listConnections -s 0 -d 1 -skipConversionNodes 1 $cond`;
+	string $select[];
+	for( $curve in $curves )
+	{
+		string $nodes[] = `listConnections -s 0 -d 1 -skipConversionNodes 1 $curve`;
+		for( $node in $nodes )
+			if( !stringArrayContains( $node, $select ) )
+				$select[ size( $select ) ] = $node;
+	}
+	if( size( $select ) )
+		evalEcho ("select -r " + stringArrayToString( $select, " " ));
+	else
+		evalEcho "select -cl";
+}
+
+proc string[] DD_tw_GetInputs( string $node, string $recursion[], string $current[] )
+{
+	global string $gMainProgressBar;
+	string $result[];
+	// check if we already checked this node
+	if( stringArrayContains( $node, $current ) )
+	{
+		print( "// Stopping check because we already checked node " + $node + "\n" );
+		return $result;
+	}
+	// don't allow the search to get infinitely recursive and crash Maya
+	if( stringArrayContains( $node, $recursion ) )
+	{
+		print( "// Stopping check because it became recursive on node " + $node + "\n" );
+		return $result;		
+	}
+	// update the recursive check set to include this node
+	string $cur[];
+	$cur[ 0 ] = $node;
+	$newRecursion = stringArrayCatenate( $recursion, $cur );
+	print( "// Checking inputs for node: " + stringArrayToString( $newRecursion, " > " ) + "\n" );
+	// add the current node to the list so it doesn't get added recursively
+	$result[ size( $result ) ] = $node;
+	// find all connections into this node
+	string $inputs[] = stringArrayRemoveDuplicates( `listConnections -s 1 -d 0 -skipConversionNodes 1 -type "geometryFilter" $node` );
+	$inputs = stringArrayCatenate( $inputs, stringArrayRemoveDuplicates( `listConnections -s 1 -d 0 -skipConversionNodes 1 -type "animCurve" $node` ) );
+	$inputs = stringArrayCatenate( $inputs, stringArrayRemoveDuplicates( `listConnections -s 1 -d 0 -skipConversionNodes 1 -type "imagePlane" $node` ) );
+	// loop through them all
+	for( $input in $inputs )
+	{
+		// add the connections from this node
+		$result = stringArrayCatenate( DD_tw_GetInputs( $input, $newRecursion, $current ) , $result );
+		if( `progressBar -query -isCancelled $gMainProgressBar` )
+			DD_tw_Abort( "User abort while searching for inputs" );
+	}
+	// remove duplicates before returning
+	return $result;
+}
+
+// recursive helper function to find animation curve nodes in the history of an object
+proc int DD_tw_ConnectToAnimCurves( string $connect, string $node )
+{
+	int $result = 0;
+	string $type = `nodeType $node`;
+	print( "// ... input: " + $node + " (" + $type + ")\n" );
+	if( $type == "animCurveTU" || $type == "animCurveTA" || $type == "animCurveTL" )
+	{
+		// connect this attribute to the warp curve
+		string $cmd = "connectAttr -f \"" + $connect + "\" \"" + $node + ".input\"";
+		if( !catch( `evalEcho $cmd` ) )
+			$result = 1;
+	}
+	return $result;
+}
+
+// recursive helper function to find imageplane nodes in the history of an object
+proc int DD_tw_ConnectToImagePlanes( string $connect, string $node )
+{
+	print "//entering DD_tw_ConnectToImagePlanes()\n";
+	int $result = 0;
+	string $shapeNode[] = `ls -dag -shapes $node`;
+	if ( size($shapeNode) == 0 )
+		return $result;
+	string $shapeNodeFE = $shapeNode[0]+".frameExtension";
+	string $type = `nodeType $shapeNode`;
+	print( "// ... input: " + $shapeNode[0] + " (" + $type + ")\n" );
+	if( $type == "imagePlane" )
+	{
+		// connect this attribute to the warp curve
+		string $cmd = "connectAttr -f \"" + $connect + "\" \"" + $shapeNodeFE + "\"";
+		//string $frameExp[] = `listConnections -s 1 -d 0 -skipConversionNodes 1 $shapeNodeFE`;
+		//string $cmd = "expression -e -s (\"" + $shapeNodeFE + "=" + $connect + "\") " + $frameExp[0];
+		if( !catch( `evalEcho $cmd` ) )
+			$result = 1;
+	}
+	return $result;
+}
+
+proc int DD_tw_DisconnectImagePlanes( string $node )
+{
+	print "//entering DD_tw_DisconnectImagePlanes()\n";
+	int $result = 0;
+	string $shapeNode[] = `ls -dag -shapes $node`;
+	string $shapeNodeFE = $shapeNode[0]+".frameExtension";
+	string $type = `nodeType $shapeNode`;
+	print( "// ... input: " + $shapeNode[0] + " (" + $type + ")\n" );
+	if( $type == "imagePlane" )
+	{
+		// disconnect this attribute to the warp curve
+		string $frameExp[] = `listConnections -s 1 -d 0 -skipConversionNodes 1 $shapeNodeFE`;
+		string $cmd = "expression -e -s (\"" + $shapeNodeFE + "=frame\") " + $frameExp[0];
+		if( !catch( `evalEcho $cmd` ) )
+			$result = 1;
+	}
+	return $result;
+}
+
+// callback for apply warp button
+global proc DD_tw_DoApplyWarp()
+{
+	global string $tw_ActiveNode;
+	global string $gMainProgressBar;
+	int $count = 0;
+	int $ipcount = 0;
+	print( "// Starting to apply time warp: " + $tw_ActiveNode + "\n" );
+	string $connect = DD_tw_GetConditionNode( $tw_ActiveNode ) + ".outColorR";
+	// get the selection
+	string $sel[] = `DD_tw_GetSelection`;
+	string $all[];
+	// build a master list of all nodes to check
+	progressBar -edit
+			-beginProgress
+			-isInterruptable true
+			-status "Finding animation curves on the selected nodes..."
+			-maxValue `size( $sel )`
+			$gMainProgressBar;
+	for( $node in $sel )
+	{
+		string $empty[];
+		$all = stringArrayCatenate( DD_tw_GetInputs( $node, $empty, $all ), $all );
+		progressBar -edit -step 1 $gMainProgressBar;
+	}
+	print( "// Removing duplicate inputs\n" );
+	$all = stringArrayRemoveDuplicates( $all );
+	progressBar -edit -endProgress $gMainProgressBar;
+	// now try to connect any animation curve nodes that were found
+	progressBar -edit
+			-beginProgress
+			-isInterruptable true
+			-status "Applying time warp to animation curves..."
+			-maxValue `size( $all )`
+			$gMainProgressBar;
+	for( $node in $all )
+	{
+		$count += DD_tw_ConnectToAnimCurves( $connect, $node );
+		$ipcount += DD_tw_ConnectToImagePlanes( $connect, $node );
+		if( `progressBar -query -isCancelled $gMainProgressBar` )
+			DD_tw_Abort( "User abort while conneting timewarp to curves... Some nodes may have warp applied!" );
+		progressBar -edit -step 1 $gMainProgressBar;
+	}
+	progressBar -edit -endProgress $gMainProgressBar;
+	// report how many nodes were connected
+	print( "// Finished applying time warp '" + $tw_ActiveNode + "' to " + $count + " new animation curves\n" );
+	print( "// Finished applying time warp '" + $tw_ActiveNode + "' to " + $ipcount + " image planes\n" );
+}
+
+// callback for remove warp button
+global proc DD_tw_DoRemoveWarp()
+{
+	global string $tw_ActiveNode;
+	global string $gMainProgressBar;
+	print( "// Starting to remove time warp '" + $tw_ActiveNode + "' from selected nodes\n" );
+	$cond = DD_tw_GetConditionNode( $tw_ActiveNode );
+	// get the selection
+	string $sel[] = `DD_tw_GetSelection`;
+	string $all[];
+	int $count = 0;
+	// build a master list of all nodes to check
+	progressBar -edit
+			-beginProgress
+			-isInterruptable true
+			-status "Finding animation curves on the selected nodes..."
+			-maxValue `size( $sel )`
+			$gMainProgressBar;
+	for( $node in $sel )
+	{
+		string $empty[];
+		$all = stringArrayCatenate( DD_tw_GetInputs( $node, $empty, $all ), $all );
+		progressBar -edit -step 1 $gMainProgressBar;
+	}
+	print( "// Removing duplicate inputs\n" );
+	$all = stringArrayRemoveDuplicates( $all );
+	progressBar -edit -endProgress $gMainProgressBar;
+	// loop through the selection looking for curves connected to the warp
+	progressBar -edit
+			-beginProgress
+			-isInterruptable true
+			-status "Applying time warp to animation curves..."
+			-maxValue `size( $all )`
+			$gMainProgressBar;
+	for( $node in $all )
+	{
+		// only bother checking animation curves
+		string $type;
+		catchQuiet( $type = `nodeType $node` );
+		DD_tw_DisconnectImagePlanes($node);
+		if( $type == "animCurveTU" || $type == "animCurveTA" || $type == "animCurveTL" )
+		{
+			print( "// Checking animation curve: " + $node + "\n" );
+			// get the inputs to this curve node, skipping convert nodes
+			string $inputs2[] = `listConnections -s 1 -d 0 -skipConversionNodes 1 $node`;
+			for( $input2 in $inputs2 )
+			{
+				// if the curve is connected to the condition
+				if( $input2 == $cond )
+				{
+					// break the connection by deleting the convert node
+					evalEcho ("disconnectAttr \"" + $cond + ".outColorR\" \"" + $node + ".input\"");
+					$count++;
+					// stop looping
+					break;
+				}
+			}
+			$stop = `progressBar -query -isCancelled $gMainProgressBar`;
+			if( $stop )
+				break;
+			progressBar -edit -step 1 $gMainProgressBar;
+		}
+	}
+	progressBar -edit -endProgress $gMainProgressBar;
+	print( "// Finished removing " + $count + " nodes from time warp: " + $tw_ActiveNode + "\n" );
+}
+
+
+// callback for delete button
+global proc DD_tw_DeleteWarp()
+{
+	global string $tw_ActiveNode;
+	// delete the nodes
+	print( "// Deleting warp: " + $tw_ActiveNode + "\n" );
+	string $conditionNode = `DD_tw_GetConditionNode $tw_ActiveNode`;
+	DD_tw_DeleteWarpImagePlanes( $conditionNode );
+	delete $conditionNode;
+	// open the window again
+	DD_timeWarper();
+}
+
+global proc DD_tw_DeleteWarpImagePlanes( string $conditionNode )
+{
+	print "//entering DD_tw_DeleteWarpImagePlanes()\n";
+	string $connList[] = `listConnections -s 0 -d 1 -type "expression" -skipConversionNodes 1 $conditionNode`;
+	for ( $node in $connList )
+	{
+		string $ipList[] = `listConnections -s 0 -d 1 -type "imagePlane" $node`;
+		if ( size($ipList) )
+			expression -e -s ($ipList[0] + ".frameExtension=frame") $node;
+	}
+}
+
+// temporary callback for unfinished commands
+global proc DD_tw_NotDoneYet()
+{
+	$win = `window`;
+	rowLayout;
+	text -l "This command is not yet implemented";
+	showWindow $win;
+}
+
+
+// main entry point
+global proc DD_timeWarper()
+{
+	// delete existing window, if any
+	if( `window -q -ex tw_MainWindow` )
+		deleteUI tw_MainWindow;
+	// create the window
+	window -t "Time Warper(CAM)" tw_MainWindow;
+	//columnLayout -cat "both" 5 -adj 1 -rs 5;
+	$form = `formLayout -numberOfDivisions 2`;
+	$c11 = `optionMenu -cc "DD_tw_SelectWarp" tw_WarpSelector`;
+	    menuItem -l "Select_a_warp";
+	    menuItem -l "Create a new warp";
+		menuItem -l "Create anti-warp";
+	    menuItem -divider true;
+	    $current = `ls -type animCurve "*tw_TimeCurve*"`;
+	    for( $each in $current )
+		    menuItem -l $each;
+	$c12 = `checkBox -l "Enable This Warp" -onc "DD_tw_DoEnableWarp 1" -ofc "DD_tw_DoEnableWarp 0" tw_EnableWarp`;
+	$c21 = `floatFieldGrp -l "Warped Time:" -pre 3 tw_WarpedTime`;
+	$c31 = `floatFieldGrp -l "Unwarped Time:" -pre 3 tw_UnwarpedTime`;
+	$c41 = `button -l "Select This Warp" -c "select -r `optionMenu -q -v tw_WarpSelector`" tw_b_Select`;
+	$c42 = `button -l "Select Applied" -c "DD_tw_DoSelectApplied" tw_b_Applied`;
+	$c51 = `button -l "Apply Warp to Selection" -c "DD_tw_DoApplyWarp" -bgc .2 .5 .2 tw_b_Apply`;
+	$c52 = `button -l "Remove Warp from Selection" -c "DD_tw_DoRemoveWarp" tw_b_Remove`;
+//	$c61 = `button -l "Flatten Warp" -c "DD_tw_NotDoneYet" tw_b_Flatten`;
+//	$c62 = `button -l "Bake Animation" -c "DD_tw_NotDoneYet" tw_b_Bake`;
+	$c71 = `button -l "Delete This Warp" -c "DD_tw_DeleteWarp" -bgc .5 .2 .2 tw_b_Delete`;
+	$c72 = `button -l "Close" -c "deleteUI tw_MainWindow" tw_b_Close`;
+	float $m1 = 3;
+	float $m2 = 6;
+	formLayout -e
+		-attachForm			$c11	"top"	$m2
+		-attachForm			$c11	"left"	$m2
+		-attachPosition		$c11	"right"	$m1 1
+		
+		-attachForm			$c12	"top"	$m2
+		-attachPosition		$c12	"left"	$m1 1
+		-attachForm			$c12	"right"	$m2
+		
+		-attachControl		$c21	"top"	$m2 $c11
+		-attachForm			$c21	"left"	$m2
+		-attachForm			$c21	"right"	$m2
+		
+		-attachControl		$c31	"top"	$m2 $c21
+		-attachForm			$c31	"left"	$m2
+		-attachForm			$c31	"right"	$m2
+		
+		-attachControl		$c41	"top"	$m2 $c31
+		-attachForm			$c41	"left"	$m2
+		-attachPosition		$c41	"right"	$m1 1
+		
+		-attachControl		$c42	"top"	$m2 $c31
+		-attachPosition		$c42	"left"	$m1 1
+		-attachForm			$c42	"right"	$m2
+		
+		-attachControl		$c51	"top"	$m2 $c41
+		-attachForm			$c51	"left"	$m2
+		-attachPosition		$c51	"right"	$m1 1
+		
+		-attachControl		$c52	"top"	$m2 $c41
+		-attachPosition		$c52	"left"	$m1 1
+		-attachForm			$c52	"right"	$m2
+		
+//		-attachControl		$c61	"top"	$m2 $c51
+//		-attachForm			$c61	"left"	$m2
+//		-attachPosition		$c61	"right"	$m1 1
+		
+//		-attachControl		$c62	"top"	$m2 $c51
+//		-attachPosition		$c62	"left"	$m1 1
+//		-attachForm			$c62	"right"	$m2
+		
+		-attachControl		$c71	"top"	$m2 $c51
+		-attachForm			$c71	"left"	$m2
+		-attachPosition		$c71	"right"	$m1 1
+		
+		-attachControl		$c72	"top"	$m2 $c51
+		-attachPosition		$c72	"left"	$m1 1
+		-attachForm			$c72	"right"	$m2
+		$form;
+
+	// update the time now
+	DD_tw_SelectWarp;
+	// show the window
+	showWindow tw_MainWindow;
+	// set up a script job to refresh the window when a new scene is opened
+	scriptJob -e "deleteAll" "DD_timeWarper" -p "tw_MainWindow";
+}

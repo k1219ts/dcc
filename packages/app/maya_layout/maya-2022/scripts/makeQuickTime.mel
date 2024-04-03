@@ -1,0 +1,101 @@
+global proc makeQuickTimeWin()
+{
+    string $windowName = "makeQuickTimeWin";
+
+    if(`window -ex $windowName`) deleteUI $windowName;
+    window -t "QuickTime Preview" -s 0 -mxb 0 -wh 300 300 $windowName;
+
+    frameLayout -l "makeQuickTime ver. 1.0" -mh 10 -mw 10 -w 280;
+
+    rowColumnLayout -numberOfColumns 2
+        -columnWidth 1 80
+        -columnWidth 2 60;
+
+    text -label "Start Frame: ";
+    intField -v (`playbackOptions -q -min`) start;
+    text -label "End Frame: ";
+    intField -v (`playbackOptions -q -max`) end;
+    text -label "Size: ";
+    intField -v 50 size;
+
+    setParent ..;
+
+
+    columnLayout -adjustableColumn true;
+    button -label "Create" -command ("makeQuickTime(`intField -q -v start`, `intField -q -v end`, `intField -q -v size`)");
+
+    setParent ..;
+    showWindow $windowName;
+}
+
+global proc makeQuickTime(int $startTime, int $endTime, float $size)
+{
+    //int $startTime;
+    //int $endTime;
+    //float $size;
+
+    //stores the current render image format and changes it to png (quicktime doesn't know iff)
+    int $renderFormat = `getAttr defaultRenderGlobals.imageFormat`;
+    setAttr defaultRenderGlobals.imageFormat 32;
+
+    int $wRes = `getAttr defaultResolution.width`;
+    int $hRes = `getAttr defaultResolution.height`;
+
+    //stores the result of the playblast into a string
+    string $blastResult = `playblast -startTime $startTime -endTime $endTime -format image -wh $wRes $hRes -clearCache 0 -viewer 0 -showOrnaments 1 -percent $size`;
+
+
+    //slash backslash business
+    string $fBlastResult = `fromNativePath $blastResult`;
+
+    //storing paths and names
+    string $project = `workspace -q -fullName`;
+    string $renderDir = `fromNativePath $project`;
+    string $sceneName = `file -q -sceneName -shortName`;
+    string $movName = `basenameEx $sceneName`;
+
+    int $sizefBlastResult = `size $fBlastResult`;
+    int $subSizefBR = $sizefBlastResult - 9;
+    string $blastSeq = `substring $fBlastResult 1 $subSizefBR`;
+
+    //this will take care of offering later a name for the quicktime movie that is in form of scene_day_month_year_version.mov
+    string $date = `system ("date /T")`;
+    string $day = `substring $date 6 7`;
+    string $month = `substring $date 9 10`;
+    string $year = `substring $date 1 4`;
+    string $tmpDir = `internalVar -userTmpDir`;
+
+    //from here it will create the tcl script, save it to the disc and run it by saving a bat file and executing it from there.
+    string $fileOutTcl = ($tmpDir + "pbRender.tcl");
+
+    float $sizeMult = $size / 100;
+
+    int $tclwRes = $wRes*$sizeMult;
+    int $tclhRes = $hRes*$sizeMult;
+
+    string $tclFile;
+
+    $tclFile = ("package require QuickTimeTcl 3.0" + " \n" + "set lfile [ glob -type f [file join " + $blastSeq + "*.png] ]" + " \n" + "foreach f $lfile {" + " \n" + "    lappend imageList [image create photo -file $f]" + " \n" + "}" + " \n" + "movie .m" + " \n" + ".m new pbHolder.mov" + " \n" + ".m tracks new video" + " " + $tclwRes + " " + $tclhRes + " \n" + "pack .m" + " \n" + "update" + " \n" + "set timeScale 625" + " \n" + "set numFrames 24" + " \n" + "set frameDuration [expr 625 / 24]" + " \n" + ".m tracks add picture 1 0 $frameDuration $imageList -dialog 0 -keyframerate 24" + " \n" + ".m save" + " \n" + ".m export -file " + $renderDir + "/" + $movName + "_" + $year + $day + $month + ".mov" + " -dialog 1" + " \n" + "return;");
+    print $renderDir;
+
+    $fileId =`fopen $fileOutTcl "w"`;
+    fwrite $fileId $tclFile;
+    fclose $fileId;
+
+    string $fileOutBat = ($tmpDir + "pbRender.bat");
+
+    $batFile = ("wish84.exe " + $tmpDir + "pbRender.tcl" + "\r\n");
+    $batFile += "del C:\\Users\\idea\\AppData\\Local\\Temp\\blast*.png\r\n";
+    $batFile += "exit";
+
+
+    $fileId =`fopen $fileOutBat "w"`;
+    fwrite $fileId $batFile;
+    fclose $fileId;
+
+    exec($fileOutBat);
+
+    //sets the render image format to the original one
+    setAttr defaultRenderGlobals.imageFormat $renderFormat;
+};
+makeQuickTimeWin;

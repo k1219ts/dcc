@@ -1,0 +1,53 @@
+//auto key write, modify by kwantae.kim(kkt0525@gmail.com) 2014.09.15
+
+global proc DD_importRetime() {
+    
+	string $selNode[] = `ls -sl`;
+	if (size($selNode) == 1)
+	{
+	    string $type = `nodeType $selNode`;
+	    if( $type == "animCurveTT" )
+	        DD_runImportRetime( $selNode[0] );
+	    else
+	        error "Select a Time Curve.\n";
+	}
+	else
+		error "Select one Node.\n";
+}
+
+global proc DD_runImportRetime(string $node) {
+	string $file = eval ("fileDialog");
+
+	if ($file != "") {
+		string $confirm;
+		int $frame = `currentTime -q`;
+		string $message = "startFrame is ";
+		
+		$message = $message+$frame+"F?";
+        $confirm = `confirmDialog -title "test" -message $message  -button "Yes" -button "No" -defaultButton "Yes" -cancelButton "No" -dismissString "No"`;
+        if ($confirm == "Yes") {
+            float $retimeframe;
+    		int $fp = fopen ($file, "r");
+    
+    		string $line;
+    		$line = fgetline ($fp);
+    
+    		while (size ($line) != 0) {
+    			if ($line == "\n" || $line == "\r" || $line == "\r\n") {
+    				$line = fgetline ($fp);
+    				print $line;
+    				continue;
+    			}
+                
+    			$line = `strip($line)`;
+    			$retimeframe = $line;
+    
+    			setKeyframe -t $frame -v $retimeframe $node;
+    			
+    			$frame++;
+    
+    			$line = fgetline ($fp);
+			}
+    	}
+	}
+}

@@ -1,0 +1,233 @@
+#! /usr/local/Nuke9.0v5/libnuke-9.0.5.so -nx
+#write_info Write1 file:"/home/moonseok.chea/Desktop/venborDexter2/venborDexter_crowdE_texture.%04d.jpg" format:"1920 1080 1" chans:":rgba.red:rgba.green:rgba.blue:" framerange:"1 100" fps:"0" colorspace:"default (sRGB)" datatype:"8 bit" transfer:"unknown" views:"main"
+version 9.0 v5
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="0" w="1920" h="1139" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1257" stretch="1"/>
+            <splitter orientation="2">
+                <split size="634"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="446"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /dexter/Cache_DATA/ASSET/0.1Team/0.1Team_member/moonseok.chea/cms_wrk/geo/vendor_test/nuke/vendor_turnTable_jin_v03_w2.nk
+ format "2200 1100 0 0 2200 1100 1 WEST"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ luts {linear {}
+   sRGB {}
+   rec709 {}
+   Cineon {}
+   Gamma1.8 {}
+   Gamma2.2 {}
+   Gamma2.4 {}
+   Panalog {}
+   REDLog {}
+   ViperLog {}
+   AlexaV3LogC {}
+   PLogLin {}
+   SLog {}
+   SLog1 {}
+   SLog2 {}
+   SLog3 {}
+   CLog {}
+   Protune {}
+   REDSpace {}
+   cineon2 {curve l 0 x0.4156930149 0.1223881245 x0.6968169212 0.7022315264 x0.7599790096 0.821751833 k x1 1.285815954 s1.744879961 t1.700000048}}
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode1
+ label "1-101 frame 으로 이미지 뽑으셔야 합니다.\n\n"
+ note_font_size 20
+ xpos 541
+ ypos -100
+ bdwidth 515
+ bdheight 779
+}
+BackdropNode {
+ inputs 0
+ name outSource
+ tile_color 0x59878eff
+ xpos 718
+ ypos -5
+ bdwidth 131
+ bdheight 221
+}
+BackdropNode {
+ inputs 0
+ name resolution
+ tile_color 0x5d8810ff
+ xpos 714
+ ypos 273
+ bdwidth 135
+ bdheight 78
+}
+Read {
+ inputs 0
+ file /dexter/Cache_DATA/ASSET/0.1Team/0.1Team_member/moonseok.chea/cms_wrk/geo/vendor_test/nuke/dexter_logo_image.jpeg
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ origset true
+ name Read1
+ label "\[value first]-\[value last]"
+ xpos 575
+ ypos 150
+}
+Shuffle {
+ alpha white
+ name Shuffle1
+ xpos 575
+ ypos 254
+}
+Transform {
+ center {960 540}
+ name Transform1
+ xpos 575
+ ypos 280
+}
+Text2 {
+ font_size_toolbar 50
+ font_width_toolbar 100
+ font_height_toolbar 92
+ tracking_toolbar 0.009999999776
+ baseline_toolbar 1
+ message "-vendor name : DexterStudios\n-submission Type : texture\n-date : 2017.12.01\n-fileName_version : crowdE_v0111"
+ old_message {{45 118 101 110 100 111 114 32 110 97 109 101 32 58 32 68 101 120 116 101 114 83 116 117 100 105 111 115 10 45 115 117 98 109 105 115 115 105 111 110 32 84 121 112 101 32 58 32 116 101 120 116 117 114 101 10 45 100 97 116 101 32 58 32 50 48 49 55 46 49 50 46 48 49 10 45 102 105 108 101 78 97 109 101 95 118 101 114 115 105 111 110 32 58 32 99 114 111 119 100 69 95 118 48 49 49 49}
+   }
+ box {884.875 -56.8125 1740 412.8125}
+ transforms {{0 2}
+   }
+ font_size_values {{0 50 1 50 2 50 3 50 4 50 5 50 6 50 7 50 8 50 9 50 10 50 11 50 12 50 13 50 14 50 15 50 16 50 17 50 18 50 19 50 20 50 21 50 22 50 23 50 24 50 25 50 26 50 27 50 28 50 29 50 30 50 31 50 32 50 33 50 34 50 35 50 36 50 37 50 38 50 39 50 40 50 41 50 42 50 43 50 44 50 45 50 46 50 47 50 48 50 49 50 50 50 51 50 52 50 53 50 54 50 55 50 56 50 57 50 58 50 59 50 60 50 61 50 62 50 63 50 64 50 65 50 66 50 67 50 68 50 69 50 70 50 71 50 72 50 73 50 74 50 75 50 76 50 77 50 78 50 79 50 80 50 81 50 82 50 83 50 84 50 85 50 86 50 87 50 88 50 89 50 90 50 91 50 92 50 93 50 94 50 95 50 96 50 97 50 98 50 99 50 100 50 101 50 102 50 103 50 104 50 105 50 106 50}
+   }
+ font_width_values {{0 100 1 100 2 100 3 100 4 100 5 100 6 100 7 100 8 100 9 100 10 100 11 100 13 100 14 100 15 100 16 100 17 100 18 100 19 100 20 100 21 100 22 100 23 100 24 100 25 100 26 100 27 100 12 100 28 100 29 100 30 100 31 100 32 100 33 100 34 100 35 100 36 100 37 100 38 100 39 100 40 100 41 100 42 100 43 100 44 100 45 100 46 100 47 100 48 100 49 100 50 100 51 100 52 100 53 100 54 100 55 100 56 100 57 100 58 100 59 100 60 100 61 100 62 100 63 100 64 100 65 100 66 100 67 100 68 100 69 100 71 100 74 100 75 100 76 100 77 100 78 100 80 100 81 100 82 100 83 100 84 100 85 100 86 100 87 100 88 100 89 100 90 100 91 100 92 100 93 100 94 100 95 100 96 100 97 100 98 100 99 100 100 100 101 100 102 100 103 100 104 100}
+   }
+ font_height_values {{0 92 1 92 2 92 3 92 4 92 5 92 6 92 7 92 8 92 9 92 10 92 11 92 13 92 14 92 15 92 16 92 17 92 18 92 19 92 20 92 21 92 22 92 23 92 24 92 25 92 26 92 27 92 12 92 28 92 29 92 30 92 31 92 32 92 33 92 34 92 35 92 36 92 37 92 38 92 39 92 40 92 41 92 42 92 43 92 44 92 45 92 46 92 47 92 48 92 49 92 50 92 51 92 52 92 53 92 54 92 55 92 56 92 57 92 58 92 59 92 60 92 61 92 62 92 63 92 64 92 65 92 66 92 67 92 68 92 69 92 70 92 71 92 72 92 73 92 74 92 75 92 76 92 77 92 78 92 79 92 80 92 81 92 82 92 83 92 84 92 85 92 86 92 87 92 88 92 89 92 90 92 91 92 92 92 93 92 94 92 95 92 96 92 97 92 98 92 99 92 100 92 101 92 102 92 103 92 104 92 105 92 106 92}
+   }
+ tracking_values {{0 0.02199999988 1 0.01 2 0.01 3 0.01 4 0.01 5 0.01 6 0.01 7 0.01 8 0.01 9 0.01 10 0.01 11 0.01 12 0.01 13 0.01 14 0.01 15 0.01 16 0.01 17 0.01 18 0.01 19 0.01 20 0.01 21 0.01 22 0.01 23 0.01 24 0.01 25 0.01 26 0.01 27 0.01 28 0.01 29 0.01 30 0.01 31 0.01 32 0.01 33 0.01 34 0.01 35 0.01 36 0.01 37 0.01 38 0.01 39 0.01 40 0.01 41 0.01 42 0.01 43 0.01 44 0.01 45 0.01 46 0.01 47 0.01 48 0.01 49 0.009999999776 50 0.009999999776 51 0.009999999776 52 0.009999999776 53 0.009999999776 54 0.009999999776 55 0.01 56 0.01 57 0.01 58 0.01 59 0.01 60 0.01 61 0.01 62 0.01 63 0.01 64 0.01 65 0.01 66 0.01 67 0.01 68 0.01 69 0.01 70 0.009999999776 71 0.01 72 0.009999999776 73 0.009999999776 74 0.01 75 0.01 76 0.01 77 0.01 78 0.01 79 0.009999999776 80 0.01 81 0.01 82 0.01 83 0.01 84 0.01 85 0.01 86 0.01 87 0.01 88 0.01 89 0.01 90 0.01 91 0.01 92 0.01 93 0.01 94 0.01 95 0.01 96 0.01 97 0.01 98 0.01 99 0.01 100 0.01 101 0.01 102 0.01 103 0.01 104 0.01 105 0.009999999776 106 0.009999999776 29 0.02199999988 30 0.02199999988 31 0.02199999988 32 0.02199999988 33 0.02199999988 34 0.02199999988 35 0.02199999988 36 0.02199999988 37 0.02199999988 38 0.02199999988 39 0.02199999988 40 0.02199999988 41 0.02199999988 42 0.02199999988 43 0.02199999988 44 0.02199999988 45 0.02199999988 46 0.02199999988 47 0.02199999988 48 0.02199999988 55 0.02199999988 56 0.02199999988 57 0.02199999988 58 0.02199999988 59 0.02199999988 60 0.02199999988 61 0.02199999988 62 0.02199999988 63 0.02199999988 64 0.02199999988 65 0.02199999988 66 0.02199999988 67 0.02199999988 68 0.02199999988 69 0.02199999988 71 0.02199999988 74 0.02199999988 75 0.02199999988 76 0.02199999988 77 0.02199999988 78 0.02199999988 80 0.02199999988 81 0.02199999988 82 0.02199999988 83 0.02199999988 84 0.02199999988 85 0.02199999988 86 0.02199999988 87 0.02199999988 88 0.02199999988 89 0.02199999988 90 0.02199999988 91 0.02199999988 92 0.02199999988 93 0.02199999988 94 0.02199999988 95 0.02199999988 96 0.02199999988 97 0.02199999988 98 0.02199999988 99 0.02199999988 100 0.02199999988 101 0.02199999988 102 0.02199999988 103 0.02199999988 104 0.02199999988}
+   }
+ baseline_values {{0 1 1 1 2 1 3 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1 11 1 13 1 14 1 15 1 16 1 17 1 18 1 19 1 20 1 21 1 22 1 23 1 24 1 25 1 26 1 27 1 12 1 28 1 29 1 30 1 31 1 32 1 33 1 34 1 35 1 36 1 37 1 38 1 39 1 40 1 41 1 42 1 43 1 44 1 45 1 46 1 47 1 48 1 49 1 50 1 51 1 52 1 53 1 54 1 55 1 56 1 57 1 58 1 59 1 60 1 61 1 62 1 63 1 64 1 65 1 66 1 67 1 68 1 69 1 70 1 71 1 72 1 73 1 74 1 75 1 76 1 77 1 78 1 79 1 80 1 81 1 82 1 83 1 84 1 85 1 86 1 87 1 88 1 89 1 90 1 91 1 92 1 93 1 94 1 95 1 96 1 97 1 98 1 99 1 100 1 101 1 102 1 103 1 104 1 105 1 106 1 12 0 28 0 29 0 30 0 31 0 32 0 33 0 34 0 35 0 36 0 37 0 38 0 39 0 40 0 41 0 42 0 43 0 44 0 45 0 46 0 47 0 48 0 55 0 56 0 57 0 58 0 59 0 60 0 61 0 62 0 63 0 64 0 65 0 66 0 67 0 68 0 69 0 71 0 74 0 75 0 76 0 77 0 78 0 80 0 81 0 82 0 83 0 84 0 85 0 86 0 87 0 88 0 89 0 90 0 91 0 92 0 93 0 94 0 95 0 96 0 97 0 98 0 99 0 100 0 101 0 102 0 103 0 104 0}
+   }
+ cursor_position 80
+ font {{ Nimbus Roman No9 L : Regular : default/Type1/n021003l.pfb : 0 }}
+ font_size 50
+ font_height 92
+ tracking 0.009999999776
+ baseline_shift 1
+ leading 0.4
+ scale {1 1}
+ cursor_initialised true
+ autofit_bbox false
+ initial_cursor_position {{21.5 1058.5}
+   }
+ group_animations {{0} imported: 0 selected: items: "root transform/"}
+ animation_layers {{1 11 1100 550 0 0 1 1 0 0 0 0}
+   }
+ name Text1
+ note_font "DejaVu Sans Mono"
+ xpos 575
+ ypos 316
+}
+Dot {
+ name Dot2
+ xpos 609
+ ypos 465
+}
+Read {
+ inputs 0
+ file /netapp/dexter/show/goe/asset/char/crowdFA/texture/pub/images/vendor_tx_v01_w01/vendor_tx_v01_w01.####.exr
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ last 100
+ origlast 100
+ origset true
+ name Read3
+ label "\[value first]-\[value last]"
+ xpos 737
+ ypos 18
+}
+TimeWarp {
+ lookup {{curve C x2 1 x101 100}}
+ time ""
+ name TimeWarp1
+ xpos 737
+ ypos 141
+}
+Constant {
+ inputs 0
+ channels rgb
+ color 1
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ name Constant1
+ xpos 946
+ ypos 93
+}
+Ramp {
+ p0 {102 1076}
+ p1 {100 -62}
+ color 0.495
+ name Ramp1
+ xpos 946
+ ypos 194
+}
+Dot {
+ name Dot1
+ xpos 980
+ ypos 262
+}
+Merge2 {
+ inputs 2
+ name Merge1
+ xpos 737
+ ypos 258
+}
+Transform {
+ center {960 540}
+ name Transform2
+ xpos 737
+ ypos 325
+}
+TimeDissolve {
+ inputs 2
+ out 1
+ lut {curve {curve x0.5122863054 -0.249751091 s0 x1 1.00348258 s0}}
+ name TimeDissolve1
+ xpos 737
+ ypos 461
+}
+Write {
+ file /home/moonseok.chea/Desktop/venborDexter2/venborDexter_crowdE_texture.####.jpg
+ file_type jpeg
+ _jpeg_quality 1
+ checkHashOnRead false
+ version 15
+ name Write1
+ xpos 737
+ ypos 520
+}
+Viewer {
+ frame_range 1-100
+ name Viewer1
+ xpos 737
+ ypos 603
+}

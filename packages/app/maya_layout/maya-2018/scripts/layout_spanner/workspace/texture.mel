@@ -1,0 +1,16 @@
+// Dexter Digital Maya Project Definition for texture task
+// Written by utd, Fri January 18, 2013
+
+// data
+workspace -fr "OBJ" "obj";
+workspace -fr "OBJexport" "obj";
+
+// scenes
+workspace -fr "scene" "scenes";
+workspace -fr "mayaAscii" "scenes";
+workspace -fr "mayaBinary" "scenes";
+
+// tmp
+workspace -fr "offlineEdit" "tmp/edits";
+workspace -fr "autoSave" "tmp/autosave";
+workspace -fr "templates" "tmp/assets";

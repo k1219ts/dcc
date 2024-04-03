@@ -1,0 +1,35 @@
+//
+//	RND
+//		daeseok.chae
+//
+//	2017.08.31	$1
+//
+
+proc addLayoutMenu()
+{
+	global string $dxLayoutMenu;
+
+	setParent -m $dxLayoutMenu;
+
+	//menu -e -deleteAllItems $dxAssetMenu;
+
+	menuItem -divider true;
+    /*
+        menuItem -l "Create DisplayLayer by Texture Attributes"
+                         -c ("python(\"import dxTexture; dxTexture.create_TextureDisplayLayer()\")");
+
+
+	menuItem -l "Test1" -c ("python(\"print 'hello world'\")");
+
+	menuItem -divider true;
+        menuItem -l "Test2" -c ("python(\"print 'hello test2'\")");
+
+
+	menuItem -divider true;
+    */
+}
+
+global proc backstageLayoutMenu()
+{
+	addLayoutMenu();
+}

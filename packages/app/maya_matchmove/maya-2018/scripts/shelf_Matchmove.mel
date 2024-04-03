@@ -1,0 +1,1736 @@
+global proc shelf_Matchmove () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Create dxCamera"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Create dxCamera"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "dxCam"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "group.png"
+        -image1 "group.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "createNode dxCamera"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export Camera"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Export Camera"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "PubMM"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "exportSmoothSkin.png"
+        -image1 "exportSmoothSkin.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "python(\"import dxCameraExporter; reload(dxCameraExporter); dxCameraExporter.showUI()\")"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import Camera"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Import Camera"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "SubMM"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "importSmoothSkin.png"
+        -image1 "importSmoothSkin.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "python(\"import dxCameraImporter; dxCameraImporter.showUI()\")"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Retime Animation."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "DD_timeWarper"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "DD_timeWarper.bmp"
+        -image1 "DD_timeWarper.bmp"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "DD_timeWarper;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import Retime from Ascii Format."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "DD_importRetime"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "DD_importRetime.png"
+        -image1 "DD_importRetime.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "DD_importRetime;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+        -mi "importRetimeMaunal" ( "DD_importRetimeM;" )
+        -mi "import JSON retime" ( "import site \nsite.addsitedir('/netapp/backstage/pub/apps/maya/2016.5/team/animation/linux/scripts/') \n\nimport maya.cmds as cmds \nimport ANI_common \n\n\n\nreload(ANI_common) \n\nfileName = cmds.fileDialog2(fileFilter=\"*.json\",fm=1, dialogStyle=2, okCaption=\"open\")[0] \nif fileName: \n    ANI_common.SetTimewarpKey(fileName) " )
+        -mip 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export Retime to Nuke."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "DD_exportRetime2Nuke"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "DD_exportRetime2Nuke.png"
+        -image1 "DD_exportRetime2Nuke.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import DD_exportRetime2Nuke\nDD_exportRetime2Nuke.DD_exportRetime2Nuke()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Source mel script that is exported from 3dequalizer4."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Source mel script that is exported from 3dequalizer4."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "import3descene.png"
+        -image1 "import3descene.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "# source mel script that is exported from 3dequalizer4.\n\nimport maya.mel as mel\nfrom shotDB_common import *\n\ntry:\n    f = open(\"/tmp/tde4_exported_mel.txt\")\n    b = f.readline()\n    mel.eval('source \"%s\";'%b)\nexcept:\n    pass\nfinally:\n    f.close()\n    renewImagePlane()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import a survey data from Total Station."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Import a survey data from total station."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "importTs.png"
+        -image1 "importTs.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "string $file;\n$file = eval (\"fileDialog\");\nprint $file;\nif ($file != \"\") {\n string $line;\n string $values[];\n int $fp = fopen ($file, \"r\");\n $line = fgetline ($fp);\n string $nn[];\n while (size ($line) != 0) {\n   \n   if ($line == \"\\n\" || $line == \"\\r\" || $line == \"\\r\\n\") {\n        $line = fgetline ($fp);\n        continue;\n        }\n   \n   $line = `strip($line)`;\n   tokenize $line \",\" $values;\n   \n   //$values[3] = substring($values[3], 1, int(size($values[3])-1));\n \n  //  \n  // need to flip coord system\n  //\n\n   float $x = float($values[1]) * 10.0;\n   float $y = float($values[3]) * 10.0;\n   float $z = -(float($values[2])* 10.0);\n   $nn = `spaceLocator`;\n   move $x $y $z $nn;\n   string $name;\n   $name =\"\";\n\n  //\n  // get rid of spaces and periods\n  //\n   for($i=1 ; $i<=size($values[0]) ; $i++) {\n    string $ch = substring($values[0], $i, $i);\n    if ($ch == \" \" || $ch == \".\") {\n      $name += \"_\";\n    } else {\n      $name += $ch;\n    }\n   }\n   rename $nn $name;\n   $line = fgetline ($fp);\n }\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import a survey data from 3DE4."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Import a survey data from 3DE4."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "import3de.png"
+        -image1 "import3de.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "string $file;\n$file = eval (\"fileDialog\");\nprint $file;\nif ($file != \"\") {\n string $line;\n string $values[];\n int $fp = fopen ($file, \"r\");\n $line = fgetline ($fp);\n string $nn[];\n while (size ($line) != 0) {\n   \n   if ($line == \"\\n\" || $line == \"\\r\" || $line == \"\\r\\n\") {\n        $line = fgetline ($fp);\n        continue;\n        }\n   \n   $line = `strip($line)`;\n   tokenize $line \" \" $values;\n   \n   //$values[3] = substring($values[3], 1, int(size($values[3])-1));\n \n  //  \n  // need to flip coord system\n  //\n\n   float $x = float($values[1]);\n   float $y = float($values[2]);\n   float $z = float($values[3]);\n   $nn = `spaceLocator`;\n   move $x $y $z $nn;\n   string $name;\n   $name =\"p\";\n\n  //\n  // get rid of spaces and periods\n  //\n   for($i=1 ; $i<=size($values[0]) ; $i++) {\n    string $ch = substring($values[0], $i, $i);\n    if ($ch == \" \" || $ch == \".\" || $ch == \",\" || $ch == \")\" || $ch == \"(\" || $ch == \"+\") {\n      $name += \"_\";\n    } else {\n      $name += $ch;\n    }\n   }\n   rename $nn $name;\n   $line = fgetline ($fp);\n }\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export a survey data to 3DE4."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Export a survey data to 3DE4."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "export3de.png"
+        -image1 "export3de.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\n\nlist = cmds.ls(sl=1)\nfilename = cmds.fileDialog2(fileFilter=\"*.txt\", dialogStyle=2)\n\nf\t= open(filename[0], \"w\")\nif not f.closed:\n    for data in list:\n        pos = cmds.xform(data, q=1, ws=1, t=1)\n        f.write(\"%s %.6f %.6f %.6f\\n\"%(data, pos[0], pos[1], pos[2]))\n    f.close()\n    print \"Export succeeded.\\n\" "
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export a camera to 3DEqualizer4."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Export a camera to 3DEqualizer4."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "exportcamto3de.png"
+        -image1 "exportcamto3de.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "def maya2tde4():\n    import maya.cmds as cmds\n\n    list = cmds.ls(sl=1)\n    selectedCamera = cmds.ls(sl=True, dag=True)\n    if len(list) != 1:\n        print \"Select only one object.\\n\"\n        return\n\n    min = int(cmds.playbackOptions(q=1, min=1))\n    max = int(cmds.playbackOptions(q=1, max=1))+1\n\n    filename = cmds.fileDialog2(fileFilter=\"*.txt\", dialogStyle=2)\n    f\t= open(filename[0], \"w\")\n    if not f.closed:\n        for time in range(min, max):\n            cmds.currentTime(time, e=1)\n            pos = cmds.xform(list[0], q=1, ws=1, t=1)\n            rot = cmds.xform(list[0], q=1, ws=1, ro=1)\n            focalLength = cmds.camera(selectedCamera[0], q=True, fl=True)\n            f.write(\"%.15f %.15f %.15f %.15f %.15f %.15f %.15f\\n\"%(pos[0], pos[1], pos[2], rot[0], rot[1], rot[2], focalLength))      \n        f.write(\"<EOF>\")\n        f.close()\n        print \"Export succeeded.\\n\" \n\nmaya2tde4()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export 2D Track to 3DEqualizer4."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Export 2D Track to 3DEqualizer4."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "exportlocto3de.png"
+        -image1 "exportlocto3de.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "// Build Window\n//================================\nstring $myWin = `window -widthHeight 300 300 -title \"Umi\"`;\ncolumnLayout -adjustableColumn true;\ntext -label \"Select the object, then select the camera below.\\nHit RUN when ready\";\nseparator -height 10 -style \"single\";\n// Get P Cameras\nstring $myCams[] = `listCameras -p`;\nint $numCam = size($myCams);\n// Build list\n$myList = `textScrollList -height 100 -numberOfRows 1 -allowMultiSelection false`;\nint $i;\nfor ($i = 0; $i < $numCam; $i++) {\n  textScrollList -edit -append $myCams[$i] $myList;\n}\ntextScrollList -edit -selectIndexedItem 1 $myList;\nseparator -height 10 -style \"single\";\n// Run button\n$myButton = `button -label \"RUN\" -height 50 -align \"center\"`;\nbutton -edit -command (\"string $cSelection[1] = `textScrollList -query -selectItem $myList`; screenSpace $cSelection[0];\") $myButton;\nshowWindow $myWin;\n\n//================================\n// Following code by Rob Bredow\n// rob (at) 185vfx.com\n// http://www.185vfx.com/\n// Copyright 3/2002 Rob Bredow, All Rights Reserved\n//================================\n\n// Modified by Daehwan Jang\n// 2012.10.17\n// Added exporting multiple data\n\nglobal proc int screenSpace(string $sCam)\n{\n  // get current selected points\n  string $dumpList[] = `ls -sl`;\n  int $argc = size($dumpList);\n\n  if ($argc < 1)\n  {\n    confirmDialog -t \"screenSpace Usage\" -m \"To use, select points on a geometry or objects to write\";\n    return -1;\n  }\n\n  int $camW = `getAttr defaultResolution.width`;\n  int $camH = `getAttr defaultResolution.height`;\n  float $dar = `getAttr defaultResolution.deviceAspectRatio`;\n  float $car = `camera -q -ar $sCam`;\n  float $chfv = `getAttr ($sCam+\"Shape.horizontalFilmAperture\")`;\n  //if ($car != $dar) {\n    //setAttr ($sCam+\"Shape.verticalFilmAperture\") ($chfv/$dar);\n  //}\n\n  // Find the frame range\n  float $fs = `playbackOptions -q -min`;\n  float $fe = `playbackOptions -q -max`;\n  string $verify = \"frame range: \" + $fs + \"-\" + $fe + \"\\n\" +\n                   \"camera: \"+$sCam+\"\\n\" +\n                   \"resolution: \"+$camW+\"x\"+$camH+\"\\n\";\n\n  if (`confirmDialog -t \"screenSpace Verify\" -m $verify -b \"Dump\" -b \"Cancel\"` == \"Cancel\")\n    return -2;\n\n  print (\"Dumping selection...\\n\");\n\n  string $pointWsFile = `fileDialog -m 1 -dm \"*.txt\"`;\n\n  int $outFileId = fopen($pointWsFile,\"w\");\n\n  if ($outFileId == 0) {\n    print (\"Could not open output file \" + $pointWsFile);\n    return -1;\n  }\n\n  int $f;\n  string $n;\n  \n  fprint $outFileId ($argc + \"\\n\");\n  \n  for ($n in $dumpList)\n  {\n    string $dumpPt = $n;\n    fprint $outFileId ($dumpPt + \"\\n\");\n    fprint $outFileId \"0\\n\";\n    fprint $outFileId ($fe-$fs+1 + \"\\n\");\n    \n    for ($f=$fs;$f<=$fe;$f++)\n    {\n      currentTime $f;\n\n      // get the world space position of the point into a vector\n      float $ptPosWs[] = `xform -q -ws -t $dumpPt`;\n      vector $ptVecWs = <<$ptPosWs[0],$ptPosWs[1],$ptPosWs[2]>>;\n\n      // Grab the worldInverseMatrix from cam\n      matrix $cam_mat[4][4] = screenSpaceGetMatrix($sCam+\".worldInverseMatrix\");\n\n      // Multiply the point by that matrix\n      vector $ptVecCs = screenSpaceVecMult($ptVecWs,$cam_mat);\n\n      // Adjust the point's position for the camera perspective\n      float $hfv = `camera -q -hfv $sCam`;\n      float $ptx = (($ptVecCs.x/(-$ptVecCs.z))/tand($hfv/2))/2.0+.5;\n      float $vfv = `camera -q -vfv $sCam`;\n      float $pty = (($ptVecCs.y/(-$ptVecCs.z))/tand($vfv/2))/2.0+.5;\n\n      float $ptz = $ptVecCs.z;\n      \n      int $cnt = $f - $fs + 1;\n\n      string $line = $cnt + \" \" + ($ptx*$camW) + \" \" + ( (1-(1-$pty))*$camH ) + \" \\n\";\n      fprint $outFileId $line;\n    }\n  }\n\n  fclose $outFileId;\n  print (\"...done!\");\n  return 1;\n}\n\n// Get a matrix\nproc matrix screenSpaceGetMatrix(string $attr){\n  float $v[]=`getAttr $attr`;\n  matrix $mat[4][4]=<<$v[0], $v[1], $v[2], $v[3];\n             $v[4], $v[5], $v[6], $v[7];\n             $v[8], $v[9], $v[10], $v[11];\n             $v[12], $v[13], $v[14], $v[15]>>;\n return $mat;\n}\n\n// Multiply the vector v by the 4x4 matrix m, this is probably\n// already in mel but I cant find it.\nproc vector screenSpaceVecMult(vector $v, matrix $m){\n  matrix $v1[1][4]=<<$v.x, $v.y, $v.z, 1>>;\n  matrix $v2[1][4]=$v1*$m;\n  return <<$v2[0][0], $v2[0][1],  $v2[0][2]>>;\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Reallity capture setAttr Imageplane"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "RCimpAttr"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "RCimp"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "imagePlane.svg" 
+        -image1 "imagePlane.svg"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import setImpAttrs\nreload(setImpAttrs)\nform = setImpAttrs.MainForm(None)\nform.show()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export a project to Nuke."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Export a project to Nuke."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "maya2nuke.png"
+        -image1 "maya2nuke.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import os\nimport os.path\nimport math\nimport re\n\nimport maya.cmds as cmds\nimport maya.mel\n\n\n# Default Nuke Camera Vert Aperture\nDNCVA = 18.672\nMODULUS = 25.39999962\n\n\n# ##################################################################################################################################################################################\n\ndef getdata(camList=[]):\n    if len(camList)==0:\n        cam=cmds.ls(ca=1)\n        for i in cam:\n            c = cmds.listRelatives (i,p=1)[0]\n            camList.append(c)\n    global camDataDic\n    camDataDic = {}\n    \n    global meshDataDic\n    meshDataDic={}\n    \n    min = int(cmds.playbackOptions(q=1,min=1))\n    max = int(cmds.playbackOptions(q=1,max=1))+1\n    camDataDic['timeRange'] = [min,max]\n    for cam in camList:\n        # camDataDic[cam]={'translate':[[],[],[]],'rotate':[[],[],[]],'focal':[[]],'haperture':[[]],'vaperture':[[]],'rotateOrder':\"\"} # edited by daehwanj(2011.12.17)\n        camDataDic[cam]={'translate':[[],[],[]],'rotate':[[],[],[]],'focal':[[]],'haperture':[[]],'vaperture':[[]],'rotateOrder':\"\", 'filmOffset':[[],[]]} # edited by daehwanj(2013.01.03)\n    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')\n    cmds.progressBar( gMainProgressBar,\n                    edit=True,\n                    beginProgress=True,\n                    isInterruptable=True,\n                    status='Camera Calculation ...',\n                    maxValue=(max-min+1) )\n    for time in range(min,max):\n        cmds.currentTime(time,e=1)\n        if cmds.progressBar(gMainProgressBar, query=True, isCancelled=True ) :\n            break\n        cmds.progressBar(gMainProgressBar, edit=True, step=1)\n        for cam in camList:\n            t = cmds.xform(cam,q=1,ws=1,t=1)\n            r = cmds.xform(cam,q=1,ws=1,ro=1)\n            f = cmds.camera (cam,q=1,fl=1)\n            hfa = cmds.camera (cam,q=1,hfa=1)*MODULUS\n            vfa = cmds.camera (cam,q=1,vfa=1)*MODULUS\n            hfo = cmds.camera (cam,q=1,hfo=1) # added by daehwanj(2013.01.03)\n            vfo = cmds.camera (cam,q=1,vfo=1) # added by daehwanj(2013.01.03)\n\n            # added by daehwanj(2011.12.17)\n            ro = cmds.getAttr(cam + '.rotateOrder')\n            \"\"\"\n            - list of rotate order and order.\n            xyz == 0\n            yzx == 1\n            zxy == 2\n            xzy == 3\n            yxz == 4\n            zyx == 5\n            \"\"\"\n            if ro == 0:\n                ros = \"XYZ\"\n            elif ro == 1:\n                ros = \"YZX\"\n            elif ro == 2:\n                ros = \"ZXY\"\n            elif ro == 3:\n                ros = \"XZY\"\n            elif ro == 4:\n                ros = \"YXZ\"\n            elif ro == 5:\n                ros = \"ZYX\"\n            else:\n                ros = \"XYZ\"\n            ########################################\n        \n##          nukeFocalLength = DNCVA/2/math.tan(math.atan(vfa*MODULUS/(2*f)))\n            for i in range(len(t)):\n                camDataDic[cam]['translate'][i].append(' %s'%t[i])\n            for i in range(len(r)):\n                camDataDic[cam]['rotate'][i].append(' %s'%r[i])\n            camDataDic[cam]['focal'][0].append(' %s'%f)\n            camDataDic[cam]['haperture'][0].append(' %s'%hfa)\n            camDataDic[cam]['vaperture'][0].append(' %s'%vfa)\n            camDataDic[cam]['rotateOrder'] = ros # added by daehwanj(2011.12.17)\n            win_trans_u = hfo / hfa * 25.4 * 2 # added by daehwanj(2013.01.03)\n            win_trans_v = vfo / hfa * 25.4 * 2 # added by daehwanj(2013.01.03)\n            camDataDic[cam]['filmOffset'][0].append(' %.16f'%win_trans_u) # added by daehwanj(2013.01.03)\n            camDataDic[cam]['filmOffset'][1].append(' %.16f'%win_trans_v) # added by daehwanj(2013.01.03)\n\n    cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)\nclass CNuke:\n    def __init__(self):\n        self.nukeFile = ''\n        self.setOption ()\n        self.getMayaInfo()\n        self.setCameraList()\n        self.setMeshList()\n        self.setLocatorList() # added by daehwanj(2011.12.17)\n    def setScene(self,scene='maya2nuke'): # edited by daehwanj(2011.12.17)\n        self.scene = scene\n\n    def setObj(self):\n        cam = cmds.ls(sl=1,dag=1,typ='camera')\n        mesh = cmds.ls(sl=1,dag=1,typ='mesh')\n        locator = cmds.ls(sl=1,dag=1,typ='locator') # added by daehwanj(2011.12.17)\n        cameraList = []\n        meshList = []\n        locatorList = [] # added by daehwanj(2011.12.17)\n        for i in cam:\n            c = cmds.listRelatives (i,p=1)[0]\n            cameraList.append(c)\n        for i in mesh :\n            m = cmds.listRelatives (i,p=1,f=1)[0]\n            meshList.append(m)\n        for i in locator : # added by daehwanj(2011.12.17)\n            m = cmds.listRelatives (i,p=1,f=1)[0] # added by daehwanj(2011.12.17)\n            locatorList.append(m) # added by daehwanj(2011.12.17)\n\n        if 'Camera' in self.option['type']:\n            self.setCameraList( cameraList)\n        if 'Mesh' in self.option['type']:\n            self.setMeshList( meshList)\n        if 'Locator' in self.option['type']: # added by daehwanj(2011.12.17)\n            self.setLocatorList(locatorList) # added by daehwanj(2011.12.17)\n\n    def setCameraList(self,camera=[]):\n        self.camera =  camera\n        self.camera.reverse()\n\n    def setOption (self,option= {'type':['Camera','Mesh','Locator'],'anim':['Camera'],'net':'Bace'}):  # edited by daehwanj(2011.12.17)\n        # net:None,Bace,ContactSheet\n        self.option =     option\n    \n    def setLocatorList(self, locator=[]): # added by daehwanj(2011.12.17)\n        self.locator = locator # added by daehwanj(2011.12.17)\n\n    def setMeshList(self,mesh=[]):\n        'filter mesh list and set class mesh '\n        removeIndex  = []\n        self.mesh = {}\n        if not 'Mesh' in self.option['type']:\n            return\n##        filter mesh\n\n        for i in range(len(mesh)):\n            for j in range(len(mesh)):\n                if i ==j or j in removeIndex:\n                    continue\n                ad = cmds.listRelatives(mesh[i],f=1,ad=1)\n                if mesh[j] in ad:\n                    removeIndex.append(j)\n                    \n        for i in range(len(mesh)):\n            if i not in removeIndex:\n                    continue\n            ad = cmds.listRelatives(mesh[i],f=1,ad=1)\n            if mesh[j] in ad:\n                    removeIndex.append(j)\n                    \n        for i in range(len(mesh)):\n            if i not in removeIndex:\n##              get image\n                try:\n                    shape = cmds.ls(mesh[i],dag=1,typ='mesh')[0]\n                    sg = cmds.listConnections(shape,s=0,d=1,type=\"shadingEngine\")[0]\n                    shading = cmds.listConnections('%s.ss'%sg,s=1,d=0)[0]\n                    imageNodeName = cmds.listConnections('%s.c'%shading,s=1,d=0,type=\"file\")[0]\n                except:\n                    imageNodeName = ''     \n                try:\n                    imagePath = cmds.getAttr('%s.fileTextureName '%imageNodeName)\n                    if not isAscii(imagePath):imagePath = ''\n                except:\n                    imagePath = ''\n                self.mesh[mesh[i]]={'path':'','imageNodeName':imageNodeName,'imagePath':imagePath}                    \n    def expObj(self):\n        'export mesh,return export info'\n        \n        if not 'Mesh' in self.option['type'] :\n            return\n        \n        if len(self.mesh)==0 :\n            return\n        global meshDataDic\n\n##      adjust  frame  by animation option\n        isAnim = 0\n        if 'Mesh' in self.option['anim'] :\n            isAnim = 1\n        if  isAnim:\n            min = self.min\n            max = self.max+1\n        else:\n            min = self.frame\n            max = self.frame+1\n        gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')\n        cmds.progressBar( gMainProgressBar,\n                        edit=True,\n                        beginProgress=True,\n                        isInterruptable=True,\n                        status='Camera Calculation ...',\n                        maxValue=(max-min+1) )\n        \n        for frame in range(min,max):\n            cmds.currentTime(frame,update =1)\n            if cmds.progressBar(gMainProgressBar, query=True, isCancelled=True ) :\n                break\n            cmds.progressBar(gMainProgressBar, edit=True, step=1)\n            \n            for obj in self.mesh:\n                shortName  =  cmds.ls(obj)[0]\n                fileName = '%s/%s.%04d.obj'%(self.dirName,shortName,frame)\n                if not  meshDataDic.has_key(obj):\n                    meshDataDic [obj]=[]\n            \n                if not self.mesh[obj]['path']:\n                    if isAnim:\n                        self.mesh[obj]['path']='%s/%s.%%04d.obj'%(self.dirName,shortName)\n                    else:\n                        self.mesh[obj]['path']=fileName\n##                 export obj\n\n                if not frame in meshDataDic [obj]:\n                    if os.path.exists(fileName):\n                        try:\n                            os.remove(fileName)\n                        except:\n                            continue                    \n                    cmds.select(obj,r=1)\n                    try:\n                        cmds.file(fileName,op=\"groups=0;ptgroups=0;materials=0;smoothing=0;normals=1\",typ=\"OBJexport\",pr=1,es=1)\n                    except:\n                        if not 'objExport' in  cmds.pluginInfo (q=1,ls=1):\n                            cmds.loadPlugin('objExport')\n                        try:\n                            cmds.file(fileName,op=\"groups=0;ptgroups=0;materials=0;smoothing=0;normals=1\",typ=\"OBJexport\",pr=1,es=1)\n                        except:\n                            continue\n                    meshDataDic [obj].append(frame)\n                    \n                    \n        cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)\n        \n    def getMayaInfo(self):\n        'get data from maya'\n        try:\n            self.frame = int (cmds.currentTime(q=1))\n        except:\n            self.frame = 1\n            \n        try:\n            self.w= cmds.getAttr (\"defaultResolution.width\")\n            self.h = cmds.getAttr (\"defaultResolution.height\")\n        except:\n            self.w= 640\n            self.h = 480\n            \n        try:\n            self.min = int(cmds.playbackOptions(q=1,min=1))\n            self.max = int(cmds.playbackOptions(q=1,max=1))\n        except:\n            self.min = 1\n            self.max = 24\n        try:\n            filePath = cmds.file(q=1,sn=1)\n            if filePath:\n                self.dirName ,self.scene = os.path.split(filePath)\n                self.dirName+='/maya2nuke'\n            else:\n                self.dirName = 'd:/maya2nuke'\n                self.scene = 'maya2nuke'\n        except:\n            self.dirName = 'd:/maya2nuke'\n            self.scene = 'maya2nuke'\n            \n        if not os.path.exists(self.dirName):\n            try:\n                os.makedirs(self.dirName)\n            except:\n                pass\n    def setStack(self):\n        nukeNode = '\\nset SCENE3D [stack 0]' # edited by daehwanj(2011.12.18)\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def pushStack(self):\n        nukeNode = '\\npush $SCENE3D' # edited by daehwanj(2011.12.18)\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def pushStack0(self):\n        nukeNode = '\\npush 0' # edited by daehwanj(2011.12.18)\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def addCam(self,name='',pos=[0,0]):\n        if  name =='' :return '\\nCamera2 {\\n inputs 0\\n selected true\\n xpos %s\\n ypos %s\\n}'%pos\n        global camDataDic\n        if not camDataDic.has_key(name) : return '\\nCamera2 {\\n inputs 0\\n name \"%s\"\\n selected true\\n xpos %s\\n ypos %s\\n}'%(name,pos[0],pos[1])\n        data = camDataDic[name]\n        nukeNode =  '\\nCamera2 {\\n inputs 0\\n name \"%s\"\\n selected true\\n xpos %s\\n ypos %s\\n'%(name,pos[0],pos[1]) # edited by daehwanj(2011.12.17)\n        min = camDataDic['timeRange'][0]\n        \n        isAnim = 0\n        frameIndex  = 0\n        if 'Camera' in self.option['anim'] :\n            isAnim = 1\n            frameIndex  = self.frame - min\n        try:\n            translate = data['translate']            \n            if isAnim :\n\n                tx = ''\n                ty = ''\n                tz = ''\n                for i in translate[0] :\n                    tx+=i\n                for i in translate[1]:\n                    ty+=i\n                for i in translate[2]:\n                    tz+=i\n                nukeNode += ' translate {{curve x%d%s} {curve x%d%s} {curve x%d%s}}\\n'%(min,tx,min,ty,min,tz)\n            else:\n                nukeNode += ' translate {%s %s %s}\\n'%(translate[0][frameIndex],translate[1][frameIndex],translate[2][frameIndex])\n        except:\n            pass\n        \n##        set rotate\n        try:\n            rotate = data['rotate']\n            if isAnim :\n                rx = ''\n                ry = ''\n                rz = ''\n                for i in rotate[0] :\n                    rx+=i\n                for i in rotate[1]:\n                    ry+=i\n                for i in rotate[2]:\n                    rz+=i\n                nukeNode += ' rotate {{curve x%d%s} {curve x%d%s} {curve x%d%s}}\\n'%(min,rx,min,ry,min,rz)\n            else:\n                nukeNode += ' rotate {%s %s %s}\\n'%(rotate[0][frameIndex],rotate[1][frameIndex],rotate[2][frameIndex])\n        except:\n            pass\n\n        try:\n            filmOffset = data['filmOffset']\n            if isAnim:\n                hf = ''\n                vf = ''\n                for i in filmOffset[0]:\n                    hf+=i\n                for i in filmOffset[1]:\n                    vf+=i\n                nukeNode += ' win_translate {{curve x%d%s} {curve x%d%s}}\\n'%(min, hf, min, vf)\n            else:\n                nukeNode += ' win_translate {%s %s}\\n'%(filmOffset[0][frameIndex], filmOffset[1][frameIndex])\n        except:\n            pass\n        try:\n            focal = data['focal']\n            if isAnim :\n                fo= ''\n                for i in focal[0] :\n                    fo+=i\n                nukeNode += ' focal {{curve x%d%s}}\\n'%(min,fo)\n            else:\n                nukeNode += ' focal %s\\n'%focal[0][frameIndex]\n        except:\n            pass\n\n        try:\n            haperture = data['haperture']\n            if isAnim :\n                \n                ha= ''\n                for i in haperture[0] :\n                    ha+=i\n                nukeNode += ' haperture {{curve x%d%s}}\\n'%(min,ha)\n            else:\n                \n                nukeNode += ' haperture %s\\n'%haperture[0][frameIndex]\n        except:\n            pass\n\n        try:\n            vaperture = data['vaperture']\n            if isAnim :\n                \n                va= ''\n                for i in vaperture[0] :\n                    va+=i\n                nukeNode += ' vaperture {{curve x%d%s}}\\n'%(min,va)\n            else:\n                nukeNode += ' vaperture %s\\n'%vaperture[0][frameIndex]\n        except:\n            pass\n\n        # added by daehwanj(2011.12.17)\n        try:\n            ros = data['rotateOrder']\n            nukeNode += ' rot_order %s\\n'%ros\n        except:\n            pass\n        ##############################\n\n        nukeNode +='}'\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def addRoot (self,name=''):\n        nukeNode = '''\nRoot {\n inputs 0\n frame %s\n first_frame %s\n last_frame %s\n format \"%s %s 0 0 %s %s 1 %s_%s(%s)\"\n}'''%(self.frame,self.min,self.max,self.w,self.h,self.w,self.h,self.w,self.h,name)\n        self.nukeFile +=nukeNode\n        return nukeNode\n\n    # added by daehwanj(2011.12.17)\n    def addLocator(self, name=''):\n        # Create Locator Group\n        nukeNode = '''\nGroup {\n inputs 0\n name Locators\n xpos 100\n ypos 150\n}'''\n        self.nukeFile += nukeNode\n\n        # Create constant node for reference geometry node\n        nukeNode = '''\nConstant {\ninputs 0\ncolor {1 0 0 1}\n format \"%s %s 0 0 %s %s 1 %s_%s(%s)\"\nxpos 0\nypos -442\n}'''%(self.w,self.h,self.w,self.h,self.w,self.h,name)\n        self.nukeFile += nukeNode\n\n        # Create reference geometry node and assign a variable name to it - needed for pushing it on the top of the stack later\n        nukeNode = '''\nSphere {\n rows 9\n columns 9\n radius 0.5\n xpos 0\n ypos -346\n}\nset LOCATORREFNODE [stack 0]'''\n        self.nukeFile += nukeNode\n\n        # Create the locators themselfes\n        nodePos = 0\n        numLoc = len(self.locator)\n        for l in self.locator:\n            locPosition = cmds.xform(l,q=1,ws=1,t=1)\n            # TransformGeo Node has 3 inputs, the third is our locator mesh so push NULL twice on the stack and then our geometry reference\n            nukeNode = '''\npush 0\npush 0\npush $LOCATORREFNODE\nTransformGeo {\n inputs 3\n translate {%f %f %f}\n name %s\n xpos %d\n ypos -250\n}'''%(locPosition[0], locPosition[1], locPosition[2], l, nodePos)\n            nodePos += 100\n            self.nukeFile += nukeNode\n\n        # Merge all the geometry to one geo node using the last \"number of point\" stack entries\n        nukeNode = '''\nMergeGeo {\n inputs %d\n xpos 0\n ypos -154\n}\nOutput {\nxpos 0\nypos -60\n}'''%numLoc\n        self.nukeFile += nukeNode\n\n        # finish locator group\n        nukeNode = '''\nend_group\nset LOCATOR [stack 0]\npush $LOCATOR'''\n        self.nukeFile += nukeNode\n\n        return nukeNode\n    ##############################\n\n    def addScenes(self,name='',inputs  = 0 ,pos=[0,0]):\n        nukeNode =  '\\nScene {\\n inputs %s\\n name \"%s\"\\n selected true\\n xpos %s\\n ypos %s\\n}'%(inputs,name,pos[0],pos[1])\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def addScanlineRender(self,name='',pos=[0,0]):\n        nukeNode =   '\\nScanlineRender {\\n inputs 3\\n name \"render_%s\"\\n selected true\\n xpos %s\\n ypos %s\\n}'%(name,pos[0],pos[1])\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def addContactSheet(self,size=1,pos=[0,0]):                 \n        nukeNode =  '\\nContactSheet {\\n inputs %s\\n width %s\\n height %s\\n rows %s\\n columns %s\\n center true\\n selected true\\n xpos %s\\n ypos %s\\n}'%(size,size*self.w,self.h,1,size,pos[0],pos[1])\n        self.nukeFile +=nukeNode\n        return nukeNode  \n    def addRead(self,name='',file = '',pos=[0,0]):\n        nukeNode =   '\\nRead {\\n inputs 0\\n name \"%s\"\\n selected true\\n file \"%s\"\\n xpos %s\\n ypos %s\\n}'%(name,file,pos[0],pos[1])\n        self.nukeFile +=nukeNode\n        return nukeNode \n    def addReadGeo2(self,name='',file = '',pos=[0,0],inputs  = 0):\n        nukeNode =   '\\nReadGeo2 {\\n name \"%s\"\\n inputs %s\\n selected true\\n file \"%s\"\\n xpos %s\\n ypos %s\\n}'%(name,inputs,file,pos[0],pos[1])\n        self.nukeFile +=nukeNode\n        return nukeNode\n    def generatorScenes(self,yPos=0):\n        self.expObj()\n        size = len(self.mesh)\n        num = 0\n        xStart = size*-50+50\n        #if self.option['net']!='None': # edited by daehwanj(2011.12.17)\n        #    self.pushStack0() # edited by daehwanj(2011.12.17)\n        for obj in self.mesh:\n            meshName = cmds.ls(obj)[0]\n            path = self.mesh[obj]['path'].replace('\\\\','/')\n            imageNodeName = self.mesh[obj]['imageNodeName']\n            imagePath = self.mesh[obj]['imagePath'].replace('\\\\','/')\n            xPos = xStart+num*100\n            if imagePath:\n                self.addRead(imageNodeName,imagePath,[xPos,yPos])\n                self.addReadGeo2(meshName,path,[xPos,yPos+100],1)\n            else:\n                self.addReadGeo2(meshName,path,[xPos,yPos+100],0)\n            num +=1\n        if len(self.locator) != 0:\n            num += 1\n        if self.option['net']!='None':\n            self.addScenes(self.scene,num,[0,yPos+200])\n        return yPos+300\n    def generator(self,yPos=0):\n        self.addRoot(self.scene)\n        if len(self.locator) != 0:\n            self.addLocator(self.scene) # added by daehwanj(2011.12.17)\n        size = len(self.camera)\n        xStart = size*-50+50\n        if size==0:\n            self.generatorScenes(yPos)\n        else:\n            for i in range(size):\n                ip = cmds.listConnections(cmds.ls(self.camera[i], dag=1, shapes=1), t=\"imagePlane\") # added by daehwanj(2011.12.17)\n                print ip\n                xPos = xStart+i*100\n                if(i==0):\n                    self.generatorScenes(yPos)\n                    if self.option['net']!='None':\n                        self.setStack()\n                self.addCam(self.camera[i],[xPos,yPos+300])\n\n                if self.option['net']!='None':\n                    self.pushStack()\n                    if ip != None: # added by daehwanj(2011.12.17)\n                        self.addRead(\"\", cmds.getAttr(ip[0]+\".imageName\"), [xPos+100,yPos+400]) # added by daehwanj(2011.12.17)\n                    else: # added by daehwanj(2011.12.17)\n                        self.pushStack0()\n                    self.addScanlineRender(self.camera[i],[xPos,yPos+400])\n            if self.option['net']=='ContactSheet':\n                self.addContactSheet(size,[0,yPos+500])\n\ndef maya2nuke():\n    window = \"maya2nuke\"\n    if cmds.window(window,ex=1) : cmds.deleteUI(window)\n    cmds.window(window,menuBar=1)\n    cmds.menu(tearOff = 1,l='Edit')\n    cmds.menuItem(l='Calculate Maya Data',c=getAllCamera)\n    cmds.menuItem(divider =1)\n    cmds.menuItem(l='Generator Nuke Script',c=generator)\n    cmds.menuItem(l='Show Nuke Script',c = m2nShowText)    \n    cmds.menuItem(l='Save Nuke Script As',c=saveNukeScript)\n    cmds.menuItem(divider =1)\n    cmds.menuItem(l='Rest Setings',c=restSetings)\n    cmds.menuItem(l='Exit',c='cmds.deleteUI(\"maya2nuke\")')\n        \n    cmds.menu(tearOff = 1,l='Type')\n    cmds.menuItem('typeAll',l='All',checkBox=1,c=adjOption)\n    cmds.menuItem(divider =1)\n    cmds.menuItem('typeCamera',l='Camera',checkBox=1,c=setOption)\n    cmds.menuItem('typeMesh',l='Mesh',checkBox=1,c=setOption)\n    cmds.menuItem('typeLocator',l='Locator',checkBox=1,c=setOption) # added by daehwanj(2011.12.17)\n    cmds.menu(tearOff = 1,l='Animation')\n    cmds.menuItem('animAll',l='All',checkBox=1,c=adjOption)\n    cmds.menuItem(divider =1)\n    cmds.menuItem('animCamera',l='Camera',checkBox=1,c=setOption)\n    cmds.menuItem('animMesh',l='Mesh',checkBox=0,c=setOption)\n    cmds.menu(tearOff = 1,l='Networks')\n    cmds.radioMenuItemCollection()\n    cmds.menuItem('netNone',l='Only Cam',radioButton=0,c=setOption) # edited by daehwanj(2011.12.17)\n    cmds.menuItem('netBace',l='3D Scene',radioButton=1,c=setOption) # edited by daehwanj(2011.12.17)\n    cmds.menuItem('netContactSheet',l='3D Scene with ContactSheet',radioButton=0,c=setOption) # edited by daehwanj(2011.12.17)\n\n    cmds.menu(l='Help')\n    cmds.menuItem(l='Help',c = 'm2nShowText(\"help\")') \n    cmds.menuItem(l='About',c = aboutThis)\n    mianLayout=cmds.formLayout(nd=1000)\n    b1 = cmds.outlinerEditor('dirList')\n    cmds.outlinerEditor('dirList',\n                        e=1,\n                        mainListConnection=\"worldList\",\n                        selectionConnection=\"modelList\",\n                        showShapes=0,\n                        showAttributes=0,\n                        showConnected=0,\n                        showAnimCurvesOnly=0,\n                        autoExpand=0,\n                        showDagOnly=1,\n                        ignoreDagHierarchy=0,\n                        expandConnections=0,\n                        showNamespace=1,\n                        showCompounds=1,\n                        showNumericAttrsOnly=0,\n                        highlightActive=1,\n                        autoSelectNewObjects=0,\n                        doNotSelectNewObjects=0,\n                        transmitFilters=0,\n                        showSetMembers=1,\n##                      setFilter=\"DefaultAllLightsFilter\"\n                        )\n    cmds.cmdScrollFieldExecuter('copytext',vis=0)\n    b2 = cmds.textField('filterText',cc=setFilterName,ec = setFilterName)\n    b3 = cmds.button(l=\"Generator\",c=generator)\n    cmds.formLayout(mianLayout,\n                    e=1,\n                    attachControl=[(b1,\"top\",3 ,b2),\n                                   (b1,\"bottom\",3 ,b3)],\n                    attachForm=[(b1 ,\"left\",3),\n                                (b1 ,\"right\",3),\n                                (b2 ,\"top\",3),\n                                (b2 ,\"left\",3),\n                                (b2 ,\"right\",3),\n                                (b3 ,\"bottom\",3),\n                                (b3 ,\"left\",3),\n                                (b3 ,\"right\",3),],\n                    attachNone=[(b2 ,\"bottom\" ),\n                                (b3 ,\"top\" )])\n    cmds.window(window,e=1,t=\"maya2nuke(iMaya version)\",widthHeight=(300, 700)) # edited by daehwanj(2011.12.17)\n    cmds.showWindow(window)\n    getOption()\ndef adjOption (*args):\n    typeAll = cmds.menuItem('typeAll',q=1,cb=1)\n    animAll = cmds.menuItem('animAll',q=1,cb=1)\n    if typeAll :\n        cmds.menuItem('typeCamera',e=1,cb=1)\n        cmds.menuItem('typeMesh',e=1,cb=1)\n        cmds.menuItem('typeLocator',e=1,cb=1) # added by daehwanj(2011.12.17)\n    else:\n        cmds.menuItem('typeCamera',e=1,cb=0)\n        cmds.menuItem('typeMesh',e=1,cb=0)\n        cmds.menuItem('typeLocator',e=1,cb=0) # added by daehwanj(2011.12.17)\n    if animAll :\n        cmds.menuItem('animCamera',e=1,cb=1)\n        cmds.menuItem('animMesh',e=1,cb=1)\n    else:\n        cmds.menuItem('animCamera',e=1,cb=0)\n        cmds.menuItem('animMesh',e=1,cb=0)\n    setOption(*args)\ndef restSetings (*args):\n    cmds.optionVar( remove='m2nType' )\n    cmds.optionVar( sva=('m2nType', 'Camera') )\n    cmds.optionVar( sva=('m2nType', 'Mesh') )\n    cmds.optionVar( sva=('m2nType', 'Locator') ) # added by daehwanj(2011.12.17)\n    cmds.optionVar( remove='m2nAnim' )\n    cmds.optionVar( sva=('m2nAnim', 'Camera') )\n    cmds.optionVar( sv=('m2nNet', 'Bace') )\n    getOption()\n    cmds.confirmDialog( title='Rest Setings', message='Succeed!',button = ['Ok'] )\ndef setOption (*args):    \n    typeCamera = cmds.menuItem('typeCamera',q=1,cb=1)\n    typeMesh = cmds.menuItem('typeMesh',q=1,cb=1)\n    typeLocator = cmds.menuItem('typeLocator',q=1,cb=1) # added by daehwanj(2011.12.17)\n    if typeCamera and  typeMesh and typeLocator: # added by daehwanj(2011.12.17)\n        cmds.menuItem('typeAll',e=1,cb=1)\n    else:\n        cmds.menuItem('typeAll',e=1,cb=0)\n    m2nType = []\n    if typeCamera:\n        m2nType.append('Camera')\n    if typeMesh:\n        m2nType.append('Mesh')\n    if typeLocator: # added by daehwanj(2011.12.17)\n        m2nType.append('Locator') # added by daehwanj(2011.12.17)\n    cmds.optionVar( remove='m2nType' )\n    for i in m2nType:\n        cmds.optionVar( sva=('m2nType', i) )\n    animCamera = cmds.menuItem('animCamera',q=1,cb=1)\n    animMesh = cmds.menuItem('animMesh',q=1,cb=1)\n    if animCamera and  animMesh:\n        cmds.menuItem('animAll',e=1,cb=1)\n    else:\n        cmds.menuItem('animAll',e=1,cb=0)\n    m2nAnim = []\n    if animCamera:\n        m2nAnim.append('Camera')\n    if animMesh:\n        m2nAnim.append('Mesh')\n    cmds.optionVar( remove='m2nAnim' )\n    for i in m2nAnim:\n        cmds.optionVar( sva=('m2nAnim', i) )\n    netNone = cmds.menuItem('netNone',q=1,radioButton=1)\n    netBace = cmds.menuItem('netBace',q=1,radioButton=1)\n    netCont = cmds.menuItem('netContactSheet',q=1,radioButton=1)\n\n    m2nNet = 'Bace'\n    if netNone:\n        m2nNet = 'None'\n    elif netBace :\n        m2nNet = 'Bace'\n    elif netCont:\n        m2nNet = 'ContactSheet'\n    cmds.optionVar( sv=('m2nNet', m2nNet) )\n    \n##  print cmds.optionVar( q='m2nNet' )\n    setFilter()\ndef setFilter(nameFilter=''):\n    m2nType = cmds.optionVar( q='m2nType' )\n    types = []\n    try:\n        for i in m2nType:\n            type = i.lower()\n            types.append(type)\n        filter = cmds.itemFilter  (byType =types )\n    except:\n        filter = cmds.itemFilter  (byType =['unknown'] )\n        \n    if not nameFilter:\n        nameFilter = cmds.textField('filterText',q=1,tx=1)\n    if nameFilter:\n        name = '*%s*'%nameFilter\n        nFilter = cmds.itemFilter  (byName =name )\n        filter = cmds.itemFilter  (intersect = (nFilter,filter) )\n        \n    cmds.outlinerEditor ('dirList',e=1,filter=filter)\n    \ndef setFilterName(*args):\n    setFilter(args[0])\ndef getOption():\n    type = ['Camera','Mesh','Locator'] # added by daehwanj(2011.12.17)\n    animType = ['Camera','Mesh'] # added by daehwanj(2011.12.17)\n    m2nType = cmds.optionVar( q='m2nType' )\n    for i in type:\n        name = 'type%s'%i\n        try:    \n            cmds.menuItem(name,e=1,checkBox=(i in m2nType))         \n        except:\n            cmds.menuItem(name,e=1,checkBox=0)       \n    \n    m2nAnim = cmds.optionVar( q='m2nAnim' )\n    for i in animType:  # added by daehwanj(2011.12.17)\n        name = 'anim%s'%i\n        try:\n            cmds.menuItem(name,e=1,checkBox=(i in m2nAnim))         \n        except:\n            cmds.menuItem(name,e=1,checkBox=0)\n            \n    \n    m2nNet = cmds.optionVar( q='m2nNet' )\n    try:\n        menuItemName = 'net%s'%m2nNet\n        cmds.menuItem(menuItemName,e=1,radioButton=1)\n    except:\n        cmds.menuItem('netBace',e=1,radioButton=1)\n    setOption ()\n    global camDataDic\n    try:\n        temp = camDataDic\n    except:\n        getdata()\ndef aboutThis(*args):\n    msg = '''This is  maya python script.\nAble to translate maya data to nuke.\n\nversion 2.0.1\n\npzhaojing@163.com\n'''\n    cmds.confirmDialog( title='maya2nuke', message=msg, button=['OK'] )\n\ndef m2nShowText(*args):\n    window = \"help\"\n    if cmds.window(window,ex=1) : cmds.deleteUI(window)\n    cmds.window(window)\n    mianLayout=cmds.formLayout(nd=1000)\n    control1 = cmds.scrollField()\n    cmds.formLayout(mianLayout,e=1,\n                    attachPosition = [(control1,\"left\",0 ,0),\n                                      (control1,\"right\",0 ,1000),\n                                      (control1,\"top\",0 ,0),\n                                      (control1,\"bottom\",0 ,1000)]\n                    )\n    cmds.window(window,e=1,t=\"Nuke Script\",widthHeight=(500, 500))\n    cmds.showWindow(window)\n    text =cmds.cmdScrollFieldExecuter('copytext' ,q=1,t=1) \n    if args[0] ==\"help\":\n        text =r'''maya2nuke v2.0.1(iMaya version)\n# edited by daehwanj\n\nNow! Geometry can be exported. Usage is as simple as ever.\n\nFeatures:\n\nExport Geometry\nExport Camera\nExport Locator(new)\nAuto Export texture\nAnimation switch\nSave as \". Nk\" file\nImproved interface\nSmart Filter\n\nWorkflow:\n    1. Copy maya2nuke.py to \"My Documents\\maya\\20XX\\scripts\"\n    2. In python command port.Type \"from maya2nuke import *\". Open maya2nuke UI.\n    3. In Type menu. Select export type. Camera, mesh or all.\n    4. In Animation menu. Select animation type. Camera, mesh or all.\n    5. in Networks menu.Choose nuke networks type.\n         None: Only the original node\n         Base: Build basic 3d scene\n         ContactSheet: Contact camera\n    6. Select the object you want to export.\n    8. Click Generator Button.\n    9. into nuke press ctr + v.\n\nNote:\n\nWhen the maya scene is changed. You need to update maya2nuke data. Click \"edit / Calculate Maya Data\".\nYou can view and save nukeScript. Click \"edit / Show Nuke Script\", \"edit / Save Nuke Script As\".\n\nGood luck.\n\n2010.6.17\n2011.12.18(edited)'''\n        cmds.window(window,e=1,t=\"Help\")\n    cmds.scrollField(control1,e=1,tx = text)\ndef saveNukeScript(*args):\n    text =cmds.cmdScrollFieldExecuter('copytext' ,q=1,t=1)\n    if not text :\n        cmds.confirmDialog( title='Save Nuke Script', message='Nothing script to be saved!',button = ['Ok'] )\n        return\n    fileName  = cmds.fileDialog(m=1,t = 'Save Nuke Script As',dm = '*.nk',dfn='maya2nuke.nk')\n    f = file(fileName,'w')\n    f.write(text)\n    f.close()\ndef getAllCamera(*args):\n    camera=[]\n    cam=cmds.ls(ca=1)\n    for i in cam:\n        c = cmds.listRelatives (i,p=1)[0]\n        camera.append(c)\n    if args:\n        getdata(camera)\n    else:\n        global camDataDic\n        try:     \n            if not camDataDic :getdata(camera)\n        except:\n            getdata(camera)\ndef generator(*args):\n    nuke = CNuke()\n    m2nType = cmds.optionVar( q='m2nType' )\n    if m2nType ==0: m2nType = []\n    m2nAnim = cmds.optionVar( q='m2nAnim' )\n    if m2nAnim ==0:m2nAnim = []\n    m2nNet = cmds.optionVar( q='m2nNet' )\n    if m2nNet ==0: m2nNet = 'None'\n    nuke.setOption({'type':m2nType,'anim':m2nAnim,'net':m2nNet})\n    nuke.setObj()\n    nuke.generator()\n    \n    cmds.cmdScrollFieldExecuter('copytext' ,e=1,clr=1)\n    cmds.cmdScrollFieldExecuter('copytext' ,e=1,t=nuke.nukeFile)\n    cmds.cmdScrollFieldExecuter('copytext' ,e=1,selectAll=1)\n    cmds.cmdScrollFieldExecuter('copytext' ,e=1,copySelection=1)\n    msg = '''Succeed!\\nTo Nuke and press ctr+v.'''\n    cmds.confirmDialog( title='maya2nuke', message=msg, button=['OK'] ) \n    \ndef isAscii(s):\n    try:\n        return s == re.findall(r'^[\\x00-\\x7f]+$',s)[0]\n    except:\n        return False\n\nmaya2nuke()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export 2D Pan/Zoom to Nuke."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Export 2D Pan/Zoom to Nuke."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "export2dpz.png"
+        -image1 "export2dpz.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as mc\n\ndef export2DPanZoom2nuke():\n\tcam = mc.ls(sl=1, dag=1, ca=1)\n\tif len(cam) == 1:\n\t\tmin = int(mc.playbackOptions(q=1, min=1))\n\t\tmax = int(mc.playbackOptions(q=1, max=1))\n\n\t\tresWidth = mc.getAttr('defaultResolution.width')\n\t\tresHeight = mc.getAttr('defaultResolution.height')\n\t\t\n\t\tfilename = mc.fileDialog2(fileFilter=\"*.nk\", dialogStyle=2)\n\t\tf = open(filename[0], \"w\")\n\t\tif not f.closed:\n\t\t\t# hide all objects.\n\t\t\tfor panName in mc.getPanel(all=True):\n\t\t\t\tif 'modelPanel' in panName:mc.isolateSelect(panName, state=1)\n\t\t    \n\t\t\t# nuke's transform node for 2d pan\n\t\t\tf.write(\"Transform {\\n\")\n\t\t\tf.write(\" translate {{curve x1\")\n\t\t\tfor frame in range(min, max+1):\n\t\t\t\tmc.currentTime(frame, e=1)\n\t\t\t\tsrnx = mc.getAttr(cam[0]+\".horizontalPan\") / mc.getAttr(cam[0]+\".hfa\") * resWidth * -1.0\n\t\t\t\tf.write(\" %.8f\"%srnx)\n\t\t\tf.write(\"} {curve x1\")\n\t\t\tfor frame in range(min, max+1):\n\t\t\t\tmc.currentTime(frame, e=1)\n\t\t\t\tsrny = mc.getAttr(cam[0]+\".verticalPan\") / mc.getAttr(cam[0]+\".vfa\") * resHeight * -1.0\n\t\t\t\tf.write(\" %.8f\"%srny)\n\t\t\tf.write(\"}}\\n\")\n\t\t\tf.write(\" center {%.8f %.8f}\\n\"%(resWidth/2, resHeight/2))\n\t\t\tf.write(\"}\\n\")\n\n\t\t\t# nuke's transform node for 2d zoom\n\t\t\tf.write(\"Transform {\\n\")\n\t\t\tf.write(\" scale {{curve x1\")\n\t\t\tfor frame in range(min, max+1):\n\t\t\t\tmc.currentTime(frame, e=1)\n\t\t\t\tsrny = 1.0 / mc.getAttr(cam[0]+\".zoom\")\n\t\t\t\tf.write(\" %.8f\"%srny)\n\t\t\tf.write(\"}}\\n\")\n\t\t\tf.write(\" center {%.8f %.8f}\\n\"%(resWidth/2, resHeight/2))\n\t\t\tf.write(\"}\\n\")\n\n\t\t\tf.close()\n\t\t\t\n\t\t\t# show all objects.\n\t\t\tfor panName in mc.getPanel(all=True):\n\t\t\t\tif 'modelPanel' in panName:mc.isolateSelect(panName, state=0)\n\telse:\n\t\tmc.confirmDialog(title=\"export2DPanZoom2Nuke\", message=\"Select a Camera First!\", button=[\"Ok\"], defaultButton=\"Ok\")\nexport2DPanZoom2nuke()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Convert 2D Pan/Zoom to Nuke Window."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Convert 2D Pan/Zoom to Nuke Window."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "export2dpzwin.png"
+        -image1 "export2dpzwin.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as mc\ndef convert2DPanZoom2nukeWindow():\n\tcam = mc.ls(sl=1, dag=1, ca=1)\n\tif len(cam) == 1:\n\t\tmin = int(mc.playbackOptions(q=1, min=1))\n\t\tmax = int(mc.playbackOptions(q=1, max=1))\n\t\thfa = mc.getAttr(cam[0]+\".hfa\")\n\t\tvfa = mc.getAttr(cam[0]+\".vfa\")\n\n\t\tresWidth = mc.getAttr('defaultResolution.width')\n\t\tresHeight = mc.getAttr('defaultResolution.height')\n\t\t\n\t\tfilename = mc.fileDialog2(fileFilter=\"*.nk\", dialogStyle=2)\n\t\tf = open(filename[0], \"w\")\n\t\tif not f.closed:\n\t\t\t# hide all objects.\n\t\t\tfor panName in mc.getPanel(all=True):\n\t\t\t\tif 'modelPanel' in panName:mc.isolateSelect(panName, state=1)\n\t\t    \n\t\t\twtu = \"\"\n\t\t\twtv = \"\"\n\t\t\twsu = \"\"\n\t\t\twsv = \"\"\n\n\t\t\t# create nuke's transform node for 2d pan\n\t\t\tfor frame in range(min, max+1):\n\t\t\t\tmc.currentTime(frame, e=1)\n\n\t\t\t\twtu += \" x%d %.8f\"%(frame, mc.getAttr(cam[0]+\".horizontalPan\") / mc.getAttr(cam[0]+\".hfa\") * 2)\n\t\t\t\twtv += \" x%d %.8f\"%(frame, mc.getAttr(cam[0]+\".verticalPan\") / mc.getAttr(cam[0]+\".hfa\") * 2)\n\t\t\t\twsu += \" x%d %.8f\"%(frame, mc.getAttr(cam[0]+\".zoom\"))\n\t\t\t\twsv += \" x%d %.8f\"%(frame, mc.getAttr(cam[0]+\".zoom\"))\n\n\t\t\tf.write(\"Camera {\\n\")\n\t\t\tf.write(\" win_translate {{curve%s} {curve%s}}\\n\"%(wtu, wtv))\n\t\t\tf.write(\" win_scale {{curve%s} {curve%s}}\\n\"%(wsu, wsv))\n\t\t\tf.write(\"}\\n\")\n\n\t\t\tf.close()\n\t\t\t\n\t\t\t# show all objects.\n\t\t\tfor panName in mc.getPanel(all=True):\n\t\t\t\tif 'modelPanel' in panName:mc.isolateSelect(panName, state=0)\n\telse:\n\t\tmc.confirmDialog(title=\"export2DPanZoom2Nuke\", message=\"Select a Camera First!\", button=[\"Ok\"], defaultButton=\"Ok\")\nconvert2DPanZoom2nukeWindow()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Convert ImagePlane to PolyPlane."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Convert ImagePlane to PolyPlane."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "polyimageplane.png"
+        -image1 "polyimageplane.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from shotDB_common import *\n\n# hide all objects.\nfor panName in cmds.getPanel( all=True ):\n    if 'modelPanel' in panName:cmds.isolateSelect(panName, state=1)\n\nipList = cmds.ls(type=\"imagePlane\")\nconvertPolyImagePlane(ipList)\n\n# show all objects.\nfor panName in cmds.getPanel( all=True ):\n    if 'modelPanel' in panName:cmds.isolateSelect(panName, state=0)"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+        -mi "old mel" ( "polyImagePlane()" )
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Switch S3D Camera."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Switch S3D Camera."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "IconswitchS3Dcam.png"
+        -image1 "IconswitchS3Dcam.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\n\ndef switchS3DCamCore():\n    # get current camera\n    switchCamList = cmds.optionVar(q='switchCamList')\n    currentPanel = cmds.getPanel(withFocus=True)\n    currentCamera = cmds.modelPanel(currentPanel, query=True, camera=True)\n    \n    if(currentCamera == switchCamList[0] or switchCamList[1]):\n        if(currentCamera == switchCamList[0]):\n            cmds.modelPanel(currentPanel, edit=True, camera=switchCamList[1])\n        else:\n            cmds.modelPanel(currentPanel, edit=True, camera=switchCamList[0])            \n    else:\n        print (\"Cam is not %s or %s\"%(switchCamList[0], switchCamList[1]))\n        cmds.modelPanel(currentPanel, edit=True, camera=switchCamList[0])\n            \ndef switchS3DCam():\n\tcamList = cmds.ls(sl=True)\n\tcmds.optionVar(remove='switchCamList')\n\tcmds.optionVar(sva=('switchCamList', camList[0]))\n\tcmds.optionVar(sva=('switchCamList', camList[1]))\n\tcmds.nameCommand(\"LRswitch\", annotation = \"L R Camera Switch\", c = 'python(\"switchS3DCamCore()\")')\n\tcmds.hotkey(k='9', name=\"LRswitch\")\n\tprint \"This script does not work with stereoCamera.\"\n\nswitchS3DCam()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Connect 2D pan and zoom attritubes of first selected camera to selected cameras."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Connect 2D pan and zoom attritubes of first selected camera to selected cameras."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "connPanZoom.png"
+        -image1 "connPanZoom.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "# connect pan and zoom attritubes of first selected camera to selected cameras.\n\nimport maya.cmds as cmds\n\nstr = cmds.ls(sl=1, dag=1, ca=1)\n\nfor i in range(len(str)-1):\n    cmds.connectAttr(str[0]+'.panZoomEnabled', str[i+1]+'.panZoomEnabled', f=1)\n    cmds.connectAttr(str[0]+'.horizontalPan', str[i+1]+'.horizontalPan', f=1)\n    cmds.connectAttr(str[0]+'.verticalPan', str[i+1]+'.verticalPan', f=1)\n    cmds.connectAttr(str[0]+'.zoom', str[i+1]+'.zoom', f=1)"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Disonnect 2D pan and zoom attritubes of selected cameras."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Disonnect 2D pan and zoom attritubes of selected cameras."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "disconnPanZoom.png"
+        -image1 "disconnPanZoom.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "# disconnect pan and zoom attritubes of selected cameras.\nimport maya.cmds as cmds\nstr = cmds.ls(sl=1, dag=1, ca=1)\n\nfor i in range(len(str)):\n    if cmds.connectionInfo(str[i]+\".panZoomEnabled\", sfd=True):\n        cmds.disconnectAttr(cmds.connectionInfo(str[i]+\".panZoomEnabled\", sfd=True), str[i]+\".panZoomEnabled\")\n    if cmds.connectionInfo(str[i]+\".horizontalPan\", sfd=True):\n        cmds.disconnectAttr(cmds.connectionInfo(str[i]+\".horizontalPan\", sfd=True), str[i]+\".horizontalPan\")\n    if cmds.connectionInfo(str[i]+\".verticalPan\", sfd=True):\n        cmds.disconnectAttr(cmds.connectionInfo(str[i]+\".verticalPan\", sfd=True), str[i]+\".verticalPan\")\n    if cmds.connectionInfo(str[i]+\".zoom\", sfd=True):\n        cmds.disconnectAttr(cmds.connectionInfo(str[i]+\".zoom\", sfd=True), str[i]+\".zoom\")\n    \n    cmds.setAttr(str[i]+\".panZoomEnabled\", 0.0);\n    cmds.setAttr(str[i]+\".horizontalPan\", 0.0);\n    cmds.setAttr(str[i]+\".verticalPan\", 0.0);\n    cmds.setAttr(str[i]+\".zoom\", 1.0);"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Create S3D Camera."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Create S3D Camera."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "viewStereo.png"
+        -image1 "viewStereo.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "#-------------------------------------------------------------------------------\n#\n#   RenderMan TD\n#\n#       Sanghun Kim, rman.td@gmail.com\n#\n#\tfor alembic pipe-line\n#\n#\t2015.12.12 $3\n#-------------------------------------------------------------------------------\n\nimport os, sys\nimport math\nimport re\n\nimport maya.cmds as cmds\nimport maya.mel as mel\n\ndef duplicateImagePlane( sourceShape, targetShape ):\n\ttargetTrans = cmds.listRelatives( targetShape, p=True )[0]\n\timagePlaneAttrs = ['displayMode', 'type', 'textureFilter', 'imageName',\n\t\t\t\t\t   'offsetX', 'offsetY', 'useFrameExtension',\n\t\t\t\t\t   'frameOffset', 'frameCache',\n\t\t\t\t\t   'fit', 'displayOnlyIfCurrent', 'depth',\n\t\t\t\t\t   'frameExtension', 'coverageX', 'coverageY',\n\t\t\t\t\t   'coverageOriginX', 'coverageOriginY',\n\t\t\t\t\t   'imageCenterX', 'imageCenterY', 'imageCenterZ',\n\t\t\t\t\t   'width', 'height', 'maintainRatio']\n\tconnectedImagePlanes = cmds.listConnections( sourceShape, d=False, type='imagePlane' )\n\tif not connectedImagePlanes:\n\t\treturn\n\n\tnewImagePlanes = list()\n\tfor i in list(set(connectedImagePlanes)):\n\t\tcmds.select( i )\n\t\tif not cmds.about( batch=True ):\n\t\t\tmel.eval( 'autoUpdateAttrEd;' )\n\t\tattrResult = dict()\n\t\timg = cmds.getAttr( '%s.imageName' % i )\n\t\tif img:\n\t\t\tfor a in imagePlaneAttrs:\n\t\t\t\tgv = cmds.getAttr( '%s.%s' % (i, a) )\n\t\t\t\tgt = cmds.getAttr( '%s.%s' % (i, a), type=True )\n\t\t\t\tattrResult[a] = {'value':gv, 'type':gt}\n\n\t\t\timageplane, imageplaneShape = cmds.imagePlane( camera=targetShape )\n\t\t\tfor a in attrResult:\n\t\t\t\tobj = attrResult[a]\n\t\t\t\tif obj['type'] == 'string':\n\t\t\t\t\tcmds.setAttr( '%s.%s' % (imageplaneShape, a), obj['value'], type='string' )\n\t\t\t\telse:\n\t\t\t\t\tcmds.setAttr( '%s.%s' % (imageplaneShape, a), obj['value'] )\n\n\t\t\tif attrResult['useFrameExtension']['value']:\n\t\t\t\tcmds.expression( n='frame_ext_expression', s='%s.frameExtension=frame;' % imageplaneShape )\n\t\t\tif attrResult['displayOnlyIfCurrent']['value'] and not cmds.about( batch=True ):\n\t\t\t\ttry:\n\t\t\t\t\tmel.eval( 'source AEimagePlaneTemplate.mel; optionMenu -edit -enable true AELookThroughCameraMenu; AEchangeLookThroughCamera %s;' % imageplaneShape )\n\t\t\t\texcept:\n\t\t\t\t\tpass\n\n\t\t\t# copy key\n\t\t\tishape = cmds.ls( i, dag=True, s=True )[0]\n\t\t\tif cmds.listConnections( ishape, p=True, type='animCurve' ):\n\t\t\t\tcmds.copyKey( ishape )\n\t\t\t\tcmds.pasteKey( imageplaneShape )\n\t\t\tnewImagePlanes.append( imageplaneShape )\n\ndef createStereoCam():\n\tif not cmds.pluginInfo('stereoCamera', q=True, l=True):\n\t\tcmds.loadPlugin( 'stereoCamera' )\n\n\t# Get left, right camera\n\tselectedCamShapes = cmds.ls( sl=True, dag=True, type='camera' )\n\tif not selectedCamShapes:\n\t\tprint '# Error : selected cameras'\n\t\treturn\n\tselectedCamShapes.sort()\n\tselectedCam       = cmds.listRelatives( selectedCamShapes, p=True )\n\n\t# Create a stereo camera\n\timport maya.app.stereo.stereoCameraRig as stereoCameraRig\n\tstereoCam = stereoCameraRig.createStereoCameraRig()\n\tstereoCamShapes = cmds.ls( stereoCam, dag=True, type='camera' )\n\tstereoCam       = cmds.listRelatives( stereoCamShapes, p=True )\n#\tcmds.setAttr( '%s.stereo' % stereoCamShapes, 1 )\n\n\tcmds.parentConstraint( selectedCam[0], selectedCam[1], stereoCam[0], mo=False )\n\n\tfor i in stereoCam[1:]:\n\t\tcmds.setAttr( '%s.t' % i, lock=False )\n\t\tcmds.setAttr( '%s.r' % i, lock=False )\n\t\tif i.find('Right') > -1:\n\t\t\tcmds.disconnectAttr( '%s.stereoRightAngle' % stereoCam[0], '%s.rotateY' % i )\n\t\t\tcmds.disconnectAttr( '%s.stereoRightOffset' % stereoCam[0], '%s.translateX' % i )\n\t\tif i.find('Left') > -1:\n\t\t\tcmds.disconnectAttr( '%s.stereoLeftAngle' % stereoCam[0], '%s.rotateY' % i )\n\t\t\tcmds.disconnectAttr( '%s.stereoLeftOffset' % stereoCam[0], '%s.translateX' % i )\n\n\tcmds.parentConstraint( selectedCam[0], stereoCam[1], mo=False )\n\tcmds.parentConstraint( selectedCam[1], stereoCam[2], mo=False )\n\n\t# stereo camera disconnect\n\tconnectAttrs = ['focalLength', 'nearClipPlane', 'farClipPlane',\n\t\t\t\t\t'horizontalFilmAperture', 'verticalFilmAperture',\n\t\t\t\t\t'lensSqueezeRatio', 'filmFit', 'shutterAngle']\n\tfor a in connectAttrs:\n\t\tcmds.disconnectAttr( '%s.%s' % (stereoCamShapes[0], a), '%s.%s' % (stereoCamShapes[1], a) )\n\t\tcmds.disconnectAttr( '%s.%s' % (stereoCamShapes[0], a), '%s.%s' % (stereoCamShapes[2], a) )\n\tcmds.disconnectAttr( '%s.filmBackOutputLeft' % stereoCam[0], '%s.horizontalFilmOffset' % stereoCamShapes[1] )\n\tcmds.disconnectAttr( '%s.filmBackOutputRight' % stereoCam[0], '%s.horizontalFilmOffset' % stereoCamShapes[2] )\n\n\t# stereo camera connect\n\tconnectAttrs.append( 'horizontalFilmOffset' )\n\tconnectAttrs.append( 'verticalFilmOffset' )\n\tfor a in connectAttrs:\n\t\tcmds.connectAttr( '%s.%s' % (selectedCamShapes[0], a), '%s.%s' % (stereoCamShapes[1], a), lock=True )\n\t\tcmds.connectAttr( '%s.%s' % (selectedCamShapes[1], a), '%s.%s' % (stereoCamShapes[2], a), lock=True )\n\n\t# duplicate imagePlane\n\tduplicateImagePlane( selectedCamShapes[0], stereoCamShapes[1] )\n\tduplicateImagePlane( selectedCamShapes[1], stereoCamShapes[2] )\n\ncreateStereoCam()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+        -mi "old_stereo" ( "##################################################\n# Description: Create a Stereoscopic camera.\n# Version: 1.0\n# Written by Daehwan Jang\n# Last updated: Jan 3, 2012\n##################################################\n\nimport maya.cmds as cmds\nimport maya.mel as mel\n\ndef createS3DCam():\n    # Make sure the stereo plug-in is loaded\n    cmds.loadPlugin(\"stereoCamera\", quiet=True)\n    mel.eval(\"source channelBoxCommand\")\n    from maya.app.stereo import stereoCameraRig\n    \n    # Get left, right camera\n    selCams = cmds.ls(sl=True)\n    selCamsShapeList = cmds.ls(selCams, dag=True, shapes=True)\n    \n    # Create a stereo camera\n    s3dCam = stereoCameraRig.createStereoCameraRig()\n    s3dShapeList = cmds.ls(s3dCam, dag=True, shapes=True)\n    cmds.setAttr(s3dShapeList[0] + \".stereo\", 1)\n    \n    # Connect \"rotateOrder\" attribute from matchmove camera to stereo camera.\n    cmds.setAttr(s3dCam[0] + \".rotateOrder\", cmds.getAttr(selCams[0] + \".rotateOrder\"), lock=True)\n    cmds.setAttr(s3dCam[1] + \".rotateOrder\", cmds.getAttr(selCams[0] + \".rotateOrder\"), lock=True)\n    cmds.setAttr(s3dCam[2] + \".rotateOrder\", cmds.getAttr(selCams[0] + \".rotateOrder\"), lock=True)\n\n    cmds.parentConstraint(selCams[0], selCams[1], s3dCam[0], mo=False)\n    \n    cmds.setAttr(s3dCam[1] + \".t\", lock=False)\n    cmds.setAttr(s3dCam[1] + \".r\", lock=False)\n    mel.eval(\"CBdeleteConnection %s.tx\"%s3dCam[1])\n    mel.eval(\"CBdeleteConnection %s.ry\"%s3dCam[1])\n    cmds.setAttr(s3dCam[2] + \".t\", lock=False)\n    cmds.setAttr(s3dCam[2] + \".r\", lock=False)\n    mel.eval(\"CBdeleteConnection %s.tx\"%s3dCam[2])\n    mel.eval(\"CBdeleteConnection %s.ry\"%s3dCam[2])\n    \n    cmds.parentConstraint(selCams[0], s3dCam[1], mo=False)\n    cmds.parentConstraint(selCams[1], s3dCam[2], mo=False)\n\n    for i in range(2):\n        mel.eval(\"CBdeleteConnection %s.focalLength\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".focalLength\", s3dCam[i+1] + \".focalLength\", lock=True)\n        mel.eval(\"CBdeleteConnection %s.nearClipPlane\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".nearClipPlane\", s3dCam[i+1] + \".nearClipPlane\", force=True, lock=True)\n        mel.eval(\"CBdeleteConnection %s.farClipPlane\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".farClipPlane\", s3dCam[i+1] + \".farClipPlane\", force=True, lock=True)\n\n        mel.eval(\"CBdeleteConnection %s.horizontalFilmAperture\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".horizontalFilmAperture\", s3dCam[i+1] + \".horizontalFilmAperture\", lock=True)\n        mel.eval(\"CBdeleteConnection %s.verticalFilmAperture\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".verticalFilmAperture\", s3dCam[i+1] + \".verticalFilmAperture\", lock=True)\n        mel.eval(\"CBdeleteConnection %s.lensSqueezeRatio\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".lensSqueezeRatio\", s3dCam[i+1] + \".lensSqueezeRatio\", lock=True)\n        mel.eval(\"CBdeleteConnection %s.filmFit\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".filmFit\", s3dCam[i+1] + \".filmFit\", lock=True)    \n        mel.eval(\"CBdeleteConnection %s.horizontalFilmOffset\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".horizontalFilmOffset\", s3dCam[i+1] + \".horizontalFilmOffset\", lock=True)\n        mel.eval(\"CBdeleteConnection %s.verticalFilmOffset\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".verticalFilmOffset\", s3dCam[i+1] + \".verticalFilmOffset\", lock=True)\n\n        mel.eval(\"CBdeleteConnection %s.shutterAngle\"%s3dCam[i+1])\n        cmds.connectAttr(selCams[i] + \".shutterAngle\", s3dCam[i+1] + \".shutterAngle\", lock=True)\n\n\n    s3dCamNo = 1\n    imagePlanecount = 0\n    for r in selCamsShapeList:\n        connList = cmds.listConnections(r)\n        if connList == None:\n        \tbreak\n        for i in connList:\n            if(cmds.nodeType(i) == \"imagePlane\"):\n                cmds.connectAttr(i + \".message\", s3dCam[s3dCamNo] + \".imagePlane[%d]\" % imagePlanecount )\n                imagePlanecount += 1\n        s3dCamNo += 1\n\ncreateS3DCam()" )
+        -mip 0
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "shows previous camera on selected viewer"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "shows previous camera on selected viewer."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "pre"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "preCamera.png"
+        -image1 "preCamera.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "string $cameraC;\nstring $panel = `getPanel -wf`;\nif ( \"modelPanel\" == `getPanel -to $panel` )\n{\n$cameraC = `modelEditor -q -camera $panel`;\n}\n\tstring $allCam[];\n\tstring $camera;\n\tstring $cameraM;\n\tint $count;\n\tint $i;\n\t\n\t$allCam = `listCameras -p`;\n\t\nfor ( $camara in $allCam )\n\t{\n\t $count=$count+1;\n\t\n\t}\nfor ( $i=0;$i<$count;$i++ )\n\t{\n\t if($allCam[$i] == $cameraC)\n\t {\n\t\n\t if ($i>=1)\n\t {\n\t $cameraM=$allCam[$i-1];\n\t }\n\t else\n\t {\n\t $cameraM=$allCam[$count-1];\n\t }\n\t\n\t }\n\t }\n//print $cameraM;\nstring $panel = `getPanel -wf`;\nif ( \"modelPanel\" == `getPanel -to $panel` )\n{\n$camera = `modelEditor -e -camera $cameraM $panel`;\n}\nelse\n{\n$panel = \"modelPanel4\";\n$camera = `modelEditor -e -camera $cameraM $panel`;\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "shows next camera on selected viewer."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "shows next camera on selected viewer."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "fwd"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "frwCamera.png"
+        -image1 "frwCamera.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "string $cameraC;\nstring $panel = `getPanel -wf`;\nif ( \"modelPanel\" == `getPanel -to $panel` )\n{\n$cameraC = `modelEditor -q -camera $panel`;\n}\n\tstring $allCam[];\n\tstring $camera;\n\tstring $cameraM;\n\tint $count;\n\tint $i;\n\t\n\t$allCam = `listCameras -p`;\n\t\nfor ( $camara in $allCam )\n\t{\n\t $count=$count+1;\n\t\n\t}\nfor ( $i=0;$i<$count;$i++ )\n\t{\n\t if($allCam[$i] == $cameraC)\n\t {\n\t\n\t if ($i<$count-1)\n\t {\n\t $cameraM=$allCam[$i+1];\n\t }\n\t else\n\t {\n\t $cameraM=$allCam[0];\n\t }\n\t\n\t }\n\t }\n//print $cameraM;\nstring $panel = `getPanel -wf`;\nif ( \"modelPanel\" == `getPanel -to $panel` )\n{\n$camera = `modelEditor -e -camera $cameraM $panel`;\n}\nelse\n{   \n$panel = \"modelPanel4\";\n$camera = `modelEditor -e -camera  $cameraM $panel`;\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "stablize camera 2d panning with selected locator"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "stablize camera 2d panning with selected locator"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "DD_tacker.png"
+        -image1 "DD_tacker.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import DD_tacker\nreload(DD_tacker)\nDD_tacker.run()\n "
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Photomodeling Tool"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Photomodeling Tool"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "P/M"
+        -overlayLabelColor 1 1 1
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "azimuthElevation.png"
+        -image1 "azimuthElevation.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nfrom math import sqrt, pow\nimport pymel.core as pm\n\ndef pmwindow():\n\n    if cmds.window ( 'PMwindow', ex=True ):\n        cmds.deleteUI ( 'PMwindow' )\n    cmds.window ( 'PMwindow', t='PhotoModeling', h=100, w=400 )\n    cmds.columnLayout ()\n    cmds.separator ( st='in' )\n    cmds.frameLayout ( l='Create Object', w=450, cll=True, cl=False )   \n    cmds.rowColumnLayout ( nc=7, cw=[(1, 33), (2, 100), (3, 20), (4, 20), (5, 90), (6, 20), (7, 100)], co=[(1, 'left', 10), (7, 'left', 30)] )\n    cmds.picture ( image='polyPlane.xpm' )\n    cmds.text ( l='  Divisions  W / H :' )\n    cmds.textField ( 'pdwidth', tx='1' )\n    cmds.textField ( 'pdheight', tx='1' )\n    cmds.text ( l='    Plane Scale:' )\n    cmds.textField ( 'pscale', tx='5' )\n    cmds.button ( l='Create ! ', c='polyplane()' )\n    cmds.setParent ('..')\n\n\n    cmds.columnLayout ()\n    cmds.frameLayout ( l='Guide Modeling Tool', w=450, cll=True, cl=False )   \n    cmds.rowColumnLayout ( nc=5, cw=[(1, 100)], co=[(1, 'left', 10), (7, 'left', 30)] )\n    cmds.text ( l='Select two locator  ' )\n    cmds.button ( l='Add locator', c='Addlocator()' )\n    cmds.setParent ('..')\n    cmds.rowColumnLayout ( nc=5, cw=[(1, 100)], co=[(1, 'left', 10), (7, 'left', 30)] )\n    cmds.text ( l='Select one locator  ' )\n    cmds.button ( l='Line Move', c='linemove()' )\n    cmds.button ( l='Aim to Cam', c='aimtoCam()' )\n    cmds.showWindow ( 'PMwindow' )\n    \n\ndef polyplane():\n\n    locatorT = cmds.xform ( q=True, ws=True, t=True )\n    pdwidth = cmds.textField ( 'pdwidth', q=True, tx=True )\n    pdheight = cmds.textField ( 'pdheight', q=True, tx=True )\n    pscale = cmds.textField ( 'pscale', q=True, tx=True )    \n    pPlane = cmds.polyPlane ( w=pscale, h=pscale, sx=int(pdwidth), sy=int(pdheight) )\n    cmds.setAttr ( pPlane[0]+'.tx', locatorT[0] )\n    cmds.setAttr ( pPlane[0]+'.ty', locatorT[1] )\n    cmds.setAttr ( pPlane[0]+'.tz', locatorT[2] )\n    \ndef Addlocator():\n\n    list = cmds.ls(sl=1)\n    S_a = cmds.xform ( list[0], q=True, ws=True, t=True )\n    S_b = cmds.xform ( list[1], q=True, ws=True, t=True )\n    dist = sqrt(pow(S_a[0]-S_b[0], 2) + pow(S_a[1]-S_b[1], 2) + pow(S_a[2]-S_b[2], 2))\n    pPlane = cmds.polyPlane ( sx=2, sy=2, w=dist, h=dist )\n    Xdis = abs(abs(S_a[0])-abs(S_b[0]))\n    Ydis = abs(abs(S_a[1])-abs(S_b[1]))\n    Zdis = abs(abs(S_a[2])-abs(S_b[2]))\n\n    if S_a[0] + S_b[0] > 0 :\n        if S_a[0] > 0 and S_b[0] > 0 :           \n            cmds.setAttr ( pPlane[0]+'.tx', (S_a[0] + S_b[0]) / 2 )\n        else :\n            cmds.setAttr ( pPlane[0]+'.tx', 0 + Xdis / 2 )\n    else :\n        if S_a[0] < 0 and S_b[0] < 0 :\n            cmds.setAttr ( pPlane[0]+'.tx', (S_a[0] + S_b[0]) / 2 )\n        else :    \n            cmds.setAttr ( pPlane[0]+'.tx', 0 - Xdis / 2 )\n    if S_a[1] + S_b[1] > 0 :\n        if S_a[1] > 0 and S_b[1] > 0 :           \n            cmds.setAttr ( pPlane[0]+'.ty', (S_a[1] + S_b[1]) / 2 )\n        else :\n            cmds.setAttr ( pPlane[0]+'.ty', 0 + Ydis / 2 )\n    else :\n        if S_a[1] < 0 and S_b[1] < 0 :\n            cmds.setAttr ( pPlane[0]+'.ty', (S_a[1] + S_b[1]) / 2 )\n        else :    \n            cmds.setAttr ( pPlane[0]+'.ty', 0 - Ydis / 2 )\n    if S_a[2] + S_b[2] > 0 :\n        if S_a[2] > 0 and S_b[2] > 0 :           \n            cmds.setAttr ( pPlane[0]+'.tz', (S_a[2] + S_b[2]) / 2 )\n        else :\n            cmds.setAttr ( pPlane[0]+'.tz', 0 + Zdis / 2 )\n    else :\n        if S_a[2] < 0 and S_b[2] < 0 :\n            cmds.setAttr ( pPlane[0]+'.tz', (S_a[2] + S_b[2]) / 2 )\n        else :    \n            cmds.setAttr ( pPlane[0]+'.tz', 0 - Zdis / 2 )         \n    \n    cmds.aimConstraint( list[0] , pPlane[0] , o=[0,0,90] )\n    cmds.delete( pPlane[0]+'_aimConstraint1')\n    #cmds.setAttr ( pPlane[0]+'.visibility' , 0 )\n    allTR = ['tx','ty','tz','rx','ry','rz']\n    for atr in allTR :\n        cmds.setAttr( pPlane[0]+'.%s'%atr, lock=True )\n\n                   \n    locator = cmds.spaceLocator()\n    locatorT = '%s.t' % locator[0]\n    pPlaneT = '%s.t' % pPlane[0]\n    \n    cmds.connectAttr(pPlaneT, locatorT)\n    cmds.disconnectAttr(pPlaneT, locatorT)\n    cmds.geometryConstraint( pPlane[0] , locator[0] )\n    \ndef linemove():    \n\n    pan = pm.getPanel(withFocus=True)\n    viewCam = pm.windows.modelPanel(pan, query=True, camera=True)\n\n    locatorN = cmds.ls(sl=1)\n    locatorT = cmds.xform ( q=True, ws=True, t=True )\n    viewCamT = cmds.xform( viewCam, q=True, ws=True, t=True )\n    \n    line = cmds.curve( editPoint=[(viewCamT[0], viewCamT[1], viewCamT[2]), (locatorT[0], locatorT[1], locatorT[2])] )\n    cmds.xform( piv = [viewCamT[0],viewCamT[1],viewCamT[2]], s = [4,4,4] )\n    cmds.geometryConstraint( line , locatorN[0] )\n    \n    cmds.select( locatorN[0] )\n    \ndef aimtoCam():\n\n    pan = pm.getPanel(withFocus=True)\n    viewCam = pm.windows.modelPanel(pan, query=True, camera=True)\n    locatorN = cmds.ls(sl=1)\n\n    cmds.aimConstraint( viewCam , locatorN[0] , o=[0,0,90] )\n    cmds.delete( locatorN[0]+'_aimConstraint1')\n\n\npmwindow()\n"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Modify Camera Filmback."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Modify Camera Filmback."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "filmbacksize.png"
+        -image1 "filmbacksize.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc mmv_modify_fb_win()\n{\n    if(`window -q -exists mmv_modify_fb_win`)\n    {\n        deleteUI mmv_modify_fb_win;\n        return;\n    }\n\n    window -wh 300 100 -rtf true -tb true -title \"Modify Camera FilmBack\" mmv_modify_fb_win;\n    columnLayout;\n    \n    rowLayout -nc 2 -cw2 200 100;\n        text -l \"Original Resolution Width\" -w 200;\n        textField -tx \"\" -w 50 tf_mmv_modify_fb_org_res_width;\n        setParent..;\n\n    rowLayout -nc 2 -cw2 200 100;\n        text -l \"Original Resolution Height\" -w 200;\n        textField -tx \"\" -w 50 tf_mmv_modify_fb_org_res_height;\n        setParent..;\n        \n    rowLayout -nc 2 -cw2 200 100;\n        text -l \"Overscan Resolution Width\" -w 200;\n        textField -tx \"\" -w 50 tf_mmv_modify_fb_new_res_width;\n        setParent..;\n        \n    rowLayout -nc 2 -cw2 200 100;\n        text -l \"Overscan Resolution Height\" -w 200;\n        textField -tx \"\" -w 50 tf_mmv_modify_fb_new_res_height;\n        setParent..;\n        \n    button -l \"Ok\" -w 100 -al \"center\" -c \"mmv_modify_fb_do\";\n    \n    showWindow mmv_modify_fb_win;\n}\n\nglobal proc mmv_modify_fb_do()\n{\n    float $org_res_width;\n    float $org_res_height;\n    float $new_res_width;\n    float $new_res_height;\n    string $target_camera[] = `ls -sl -type camera -dag`;\n    string $conn_list[] = `listConnections -type \"imagePlane\" $target_camera[0]`;\n    \n    // get data\n    $org_res_width = `textField -q -tx tf_mmv_modify_fb_org_res_width`;\n    $org_res_height = `textField -q -tx tf_mmv_modify_fb_org_res_height`;\n    $new_res_width = `textField -q -tx tf_mmv_modify_fb_new_res_width`;    \n    $new_res_height = `textField -q -tx tf_mmv_modify_fb_new_res_height`;\n    \n    float $org_fb_width = `getAttr ($target_camera[0] + \".horizontalFilmAperture\")`;\n    float $org_fb_height = `getAttr ($target_camera[0] + \".verticalFilmAperture\")`;\n    float $new_fb_width = $org_fb_width * ($new_res_width / $org_res_width);\n    float $new_fb_height = $org_fb_height * ($new_res_height / $org_res_height);\n    \n    setAttr ($target_camera[0] + \".horizontalFilmAperture\") $new_fb_width;\n    setAttr ($target_camera[0] + \".verticalFilmAperture\") $new_fb_height;\n\n    setAttr ($conn_list[0] + \".sizeX\") $new_fb_width;\n    setAttr ($conn_list[0] + \".sizeY\") $new_fb_height;\n}\n\nmmv_modify_fb_win()"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "togglefilmFit"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "toggle filmFit"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "filmFit"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "view.png"
+        -image1 "view.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc mmv_filmFit_toggle()\n{\n    string $target_camera[] = `ls -sl -type camera -dag`;\n \n    int $camfilmFit = `getAttr ($target_camera[0] + \".filmFit\")`;\n    \n    if ( $camfilmFit == 1 )\n        $camfilmFit = 3;\n    else \n        $camfilmFit = 1;\n        \n    setAttr ($target_camera[0] + \".filmFit\") $camfilmFit;\n}\n\nmmv_filmFit_toggle();"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Add camera key for motion blur."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Add camera key for motion blur."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "addkey.png"
+        -image1 "addkey.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import addCameraKey as camKey\ncamKey.offsetKey()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "smooth keys"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "oaSmoothKeys"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "tinyBoldLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "smoothCurve.png"
+        -image1 "smoothCurve.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "oaSmoothKeys"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Bake a Camera."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Bake a Camera."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "bakecam.png"
+        -image1 "bakecam.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport bakeCam as bc\nreload(bc)\n\nfor panName in cmds.getPanel(all=True):\n    if 'modelPanel' in panName: cmds.isolateSelect(panName, state=1)\nbc.bakeCam()\nfor panName in cmds.getPanel(all=True):\n    if 'modelPanel' in panName: cmds.isolateSelect(panName, state=0)"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Set up hidden line view. double click to un-transparent imageplane."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Set up hidden line view."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "Hiddenlinerender.png"
+        -image1 "Hiddenlinerender.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as mc\n\nselList = mc.ls(g=True)\n\nif len(selList) != 0:\n    for shape in selList:\n        try:\n            mc.setAttr(\"hardwareRenderingGlobals.lineAAEnable\", 1)\n            mc.setAttr(\"hardwareRenderingGlobals.multiSampleEnable\", 1)\n            mc.setAttr(shape + '.holdOut', 1)\n        except:\n            pass"
+        -sourceType "python"
+        -doubleClickCommand "import maya.cmds as mc\n\nselList = mc.ls(g=True)\n\nif len(selList) != 0:\n    for shape in selList:\n        try:\n            mc.setAttr(\"hardwareRenderingGlobals.lineAAEnable\", 1)\n            mc.setAttr(\"hardwareRenderingGlobals.multiSampleEnable\", 1)\n            mc.setAttr(shape + '.holdOut', 0)\n        except:\n            pass"
+        -commandRepeatable 1
+        -flat 1
+        -mi "old_mel" ( "file -import -type \"mayaAscii\" -rpr \"_clashing_\" -options \"v=0\" \"/dexter/Cache_DATA/MMV/tmp/hlShader_v01MR.ma\";" )
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Make preview using DDPM"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Make Preview"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0 1 0
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "LearningMovies.png"
+        -image1 "LearningMovies.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import DDPM.main as ddpm_ani\nreload(ddpm_ani)\nddpm_ani.showUI()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Create cones from locators."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Create cones from locators."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "locToCone.png"
+        -image1 "locToCone.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "string $allLoc[];\nstring $loc;\nint $total =0;\nstring $temp;\n$allLoc = `ls -sl`;\nvector $v0;\n\n//string $tempShade;\n//$tempShade =\"tS\" + endString(`rand 0 1`, 2);\n//shadingNode -asShader lambert -n $tempShade;\n//sets -renderable true -noSurfaceShader true -empty -name ($tempShade+\"SG\");\n//connectAttr -f ($tempShade +\".outColor\") ($tempShade+\"SG\" +\".surfaceShader\");\n//setAttr ($tempShade+\".color\") -type double3 1 0 0 ;\n//sets -e -forceElement ($tempShade+\"SG\");\n\nfor($loc in $allLoc)\n{\n$v0 =`xform -query -worldSpace -translation $loc`;\n$temp=\"pC_\"+$loc;\n\npolyCone -sx 4 -h 3 -n $temp;\n   \n//sets -e -forceElement ($tempShade+\"SG\");\n\nsetAttr ($temp + \".rotateX\") 180;\nsetAttr ($temp + \".tx\") ($v0.x);\nsetAttr ($temp + \".ty\") ($v0.y+1.5);\nsetAttr ($temp + \".tz\") ($v0.z);\nmove -r 0 -1.5 0 ($temp + \".scalePivot\") ($temp + \".rotatePivot\") ;\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Create Locator objects on selected vertices."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Create Locator objects on selected vertices."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "locVx"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "locator1lc.png"
+        -image1 "locator1lc.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc MM_createLoc()\n{\nstring $allVert[];\nstring $vert,$temp,$temp1;\nfloat $pos[3];\nfloat $rnd;\n$allVert= `ls -sl -fl`;\nint $a=0;\n\n\nfor ($vert in $allVert)\n{\n$pos = `pointPosition -world $vert`;\n$temp=endString($vert, 5);\n$temp =\"cP\" + endString(`rand 0 1`, 5);\n\n spaceLocator -n $temp;\n  \n      setAttr ($temp + \".tx\") $pos[0];\n      setAttr ($temp + \".ty\") ($pos[1]);\n      setAttr ($temp + \".tz\") $pos[2];\n\n\n}\n}\n\nMM_createLoc();"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Calculate distance between two objects."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Calculate distance between two objects."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "Dist"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "render_distanceBetween.png"
+        -image1 "render_distanceBetween.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nfrom math import sqrt, pow\nimport sys\n\nlist = cmds.ls(sl=1)\n\nif not len(list) == 2:\n  cmds.error(\"Select only two object.\")\nelse:\n  a = cmds.xform(list[0], q=1, ws=1, t=1)\n  b = cmds.xform(list[1], q=1, ws=1, t=1)\n  \n  dist = sqrt(pow(a[0]-b[0], 2) + pow(a[1]-b[1], 2) + pow(a[2]-b[2], 2))\n\n  sys.stdout.write(\"Distance: %s\"%dist)"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "cloud2Mesh"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Cloud2Mesh"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "mesh"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "clusterHandle.svg"
+        -image1 "clusterHandle.svg"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "/**********************************************************************************\ncloud2mesh\nA.K.A.: Michael's Holy Grail Script\n\nWritten by:\tMichael Lester\n\t\tmichael.lester@theorphanage.com\n\nDescription:\tMake geometry out of a point cloud, such as a terrain.\n\nUsage:\t\tSelect a cloud of locators.  Looking through a perspective camera\n\t\tthrough a view that looks perpendicular to the plane of the mesh,\n\t\trun cloud2mesh.  THIS MAY TAKE AS LONG AS A MINUTE!  You will\n\t\tlikely need to clean it up manually afterwards, with polyFlipEdge\n\t\tand polyAppend.\n\nKnown Issues:\t1.\tWhen iterating through the edges and looking for closest\n\t\t\tvert, it uses a distance from the center of the edge,\n\t\t\trather than perpendicular distance from the line to point.\n\t\t\tThis can cause verts to be overlooked.\n\t\t2.\tOccasionally an edge will try to connect to a vert on the\n\t\t\topposite side of the geometry.  This will fail (no error)\n\t\t\tand usually be filled in by another edge later.  If it is\n\t\t\tnot, a fissure will be created in the mesh.\n\nVersion History:\t1.00\tBuggy, but better than doing it by hand.\n\t\t\t1.01\tAdded random noise to the 2d positions so there are\n\t\t\t\tnot any errors\n\n**********************************************************************************/\n\nglobal proc cloud2mesh(){\n\n\t// Turn off construction history\n\tint $constructionHistory=`constructionHistory -q -tgl`;\n\tconstructionHistory -tgl 0;\n\n\tstring $array[];\n\tfloat $arrayf[];\n\n\t// GET SELECTION\n\tstring $selection[];\n\t$selection=`ls -l -typ locator`;\n\t$selection=`listRelatives -f -p $selection`;\n\t$selection=`ls -l -sl $selection`;\n\n\tif (size($selection)<3){\n\t\terror \"You must select at least three locators.\";\n\t}\n\t\n\tstring $panel=`getPanel -wf`;\n\tif (`getPanel -typeOf $panel`!=\"modelPanel\"){\n\t\terror \"A model panel must have focus, as the triangulation is performed in two dimensions relative to that view\";\n\t}\n\tstring $camTrans=`modelPanel -q -camera $panel`;\n\tif (`objectType $camTrans`!=\"transform\"){\n\t\t$array=`listRelatives -p $camTrans`;\n\t\t$camTrans=$array[0];\n\t}\n\t$array=`listRelatives -s $camTrans`;\n\tstring $camShape=$array[0];\n\tint $ortho=0;\n\tif ((attributeExists(\"orthographic\",$camShape))&&(`getAttr ($camShape+\".orthographic\")`)){\n\t\t$ortho=1;\n\t}\n\n\t// STORE LOCATOR POSITIONS\n\t$array=`spaceLocator`;\n\tstring $tempLoc=$array[0];\n\t$array=`parent -r $tempLoc $camTrans`;\n\t$tempLoc=$array[0];\n\tfloat $locatorsX[];\n\tfloat $locatorsY[];\n\tfloat $locatorsZ[];\n\tfloat $locatorsCamX[];\n\tfloat $locatorsCamY[];\n\tint $i;\n\tfor ($i=0;$i<size($selection);$i++){\n\t\t$arrayf=`xform -q -ws -t $selection[$i]`;\n\t\t$locatorsX[$i]=$arrayf[0];\n\t\t$locatorsY[$i]=$arrayf[1];\n\t\t$locatorsZ[$i]=$arrayf[2];\n\t\txform -ws -wd -t $arrayf[0] $arrayf[1] $arrayf[2] $tempLoc;\n\t\t$arrayf=`xform -q -t $tempLoc`;\n\t\tif ($ortho) $arrayf[2]=1;\n\t\t$locatorsCamX[$i]=$arrayf[0]/$arrayf[2]+`rand .00001`;\n\t\t$locatorsCamY[$i]=$arrayf[1]/$arrayf[2]+`rand .00001`;\n\t}\n\tdelete $tempLoc;\n\t\n\t// FIND EDGES\n\tint $a;\n\tint $b;\n\tfloat $dist;\n\tint $minA;\n\tint $minB;\n\tint $lineDrawn[];\n\tfloat $mindist=0;\n\n\t//first edge\n\tfor ($a=0;$a<size($locatorsX);$a++){\n\t\tfor ($b=$a+1;$b<size($locatorsX);$b++){\n\t\t\t$x1=$locatorsX[$a];\n\t\t\t$y1=$locatorsY[$a];\n\t\t\t$z1=$locatorsZ[$a];\n\t\t\t$x2=$locatorsX[$b];\n\t\t\t$y2=$locatorsY[$b];\n\t\t\t$z2=$locatorsZ[$b];\n\t\t\t$dist=pow(($x2-$x1),2)+pow(($y2-$y1),2)+pow(($z2-$z1),2);\n\t\t\tif ((($dist<$mindist)||($mindist==0))){\n\t\t\t\t$minA=$a;\n\t\t\t\t$minB=$b;\n\t\t\t\t$mindist=$dist;\n\t\t\t}\n\t\t}\n\t}\n\t$a=$minA;\n\t$b=$minB;\n\t$x1=$locatorsX[$a];\n\t$y1=$locatorsY[$a];\n\t$z1=$locatorsZ[$a];\n\t$x2=$locatorsX[$b];\n\t$y2=$locatorsY[$b];\n\t$z2=$locatorsZ[$b];\n\t$lineDrawn[$a*size($locatorsX)+$b]=1;\n\t$lineDrawn[$b*size($locatorsX)+$a]=1;\n\n\t//first poly\n\t$xAB=($locatorsX[$a]+$locatorsX[$b])/2;\n\t$yAB=($locatorsY[$a]+$locatorsY[$b])/2;\n\t$zAB=($locatorsZ[$a]+$locatorsZ[$b])/2;\n\tint $c;\n\tint $minC;\n\t$mindist=0;\n\tfor ($c=0;$c<size($locatorsX);$c++){\n\t\tif ($c==$a || $c==$b) continue;\n\t\t\t$x3=$locatorsX[$c];\n\t\t\t$y3=$locatorsY[$c];\n\t\t\t$z3=$locatorsZ[$c];\n\t\t\t$dist=pow(($xAB-$x3),2)+pow(($yAB-$y3),2)+pow(($zAB-$z3),2);\n\t\t\tif (($dist<$mindist)||($mindist==0)){\n\t\t\t\t$minC=$c;\n\t\t\t\t$mindist=$dist;\n\t\t\t}\n\t}\n\t$c=$minC;\n\n\tint $locatorVertex[];\n\tfor ($i=0;$i<size($locatorsX);$i++){\n\t\t$locatorVertex[$i]=-1;\n\t}\n\tint $vertexFinished[];\n\n\tint $edgeVertexA[];\n\tint $edgeVertexB[];\n\tint $edgeFinished[];\n\n\tif (((($locatorsCamY[$c]-$locatorsCamY[$a])/($locatorsCamX[$c]-$locatorsCamX[$a])>($locatorsCamY[$b]-$locatorsCamY[$a])/($locatorsCamX[$b]-$locatorsCamX[$a]))!=($locatorsCamX[$c]<$locatorsCamX[$a]))!=($locatorsCamX[$a]<$locatorsCamX[$b])){\n\t\t$minA=$b;\n\t\t$b=$a;\n\t\t$a=$minA;\n\t}\n\t$x1=$locatorsX[$a];\n\t$y1=$locatorsY[$a];\n\t$z1=$locatorsZ[$a];\n\t$x2=$locatorsX[$b];\n\t$y2=$locatorsY[$b];\n\t$z2=$locatorsZ[$b];\n\t$x3=$locatorsX[$c];\n\t$y3=$locatorsY[$c];\n\t$z3=$locatorsZ[$c];\n\n\t$array=`polyCreateFacet -ch 0 -tx 1 -p $x1 $y1 $z1 -p $x2 $y2 $z2 -p $x3 $y3 $z3`;\n\tstring $geo=$array[0];\n\n\t$locatorVertex[$a]=0;\n\t$locatorVertex[$b]=1;\n\t$locatorVertex[$c]=2;\n\t$vertexCount=3;\n\n\t$edgeVertexA[0]=$a;\n\t$edgeVertexB[0]=$b;\n\t$edgeFinished[0]=0;\n\n\t$edgeVertexA[1]=$b;\n\t$edgeVertexB[1]=$c;\n\t$edgeFinished[1]=0;\n\n\t$edgeVertexA[2]=$c;\n\t$edgeVertexB[2]=$a;\n\t$edgeFinished[2]=0;\n\n\t// expand!\n\tint $min;\n\t$mindist=0;\n\t$loop=0;\n\tdo{\n\t\t$loop=0;\n\t\t//$s=14;\n\t\t//if ($s>size($edgeVertexA))\n\t\t$s=size($edgeVertexA);\n\t\tfor ($e=0;$e<$s;$e++){\n\t\t\tif (!$edgeFinished[$e]){\n\t\t\t\t$a=$edgeVertexA[$e];\n\t\t\t\t$b=$edgeVertexB[$e];\n\t\t\t\t$xAB=($locatorsX[$a]+$locatorsX[$b])/2;\n\t\t\t\t$yAB=($locatorsY[$a]+$locatorsY[$b])/2;\n\t\t\t\t$zAB=($locatorsZ[$a]+$locatorsZ[$b])/2;\n//\t\t\t\t$xAB=($locatorsCamX[$a]+$locatorsCamX[$b])/2;\n//\t\t\t\t$yAB=($locatorsCamY[$a]+$locatorsCamY[$b])/2;\n\t\t\t\t$mindist=0;\n\t\t\t\tfor ($v=0;$v<size($locatorsX);$v++){\n\t\t\t\t\tif (($v!=$edgeVertexA[$e])&&($v!=$edgeVertexB[$e])&&(!$vertexFinished[$v])){\n\t\t\t\t\t\t$x3=$locatorsX[$v];\n\t\t\t\t\t\t$y3=$locatorsY[$v];\n\t\t\t\t\t\t$z3=$locatorsZ[$v];\n\t\t\t\t\t\t$dist=pow(($x3-$xAB),2)+pow(($y3-$yAB),2)+pow(($z3-$zAB),2);\n//\t\t\t\t\t\t$x3=$locatorsCamX[$v];\n//\t\t\t\t\t\t$y3=$locatorsCamY[$v];\n//\t\t\t\t\t\t$dist=pow(($x3-$xAB),2)+pow(($y3-$yAB),2);\n\t\t\t\t\t\tif ((($dist<$mindist)||($mindist==0))){\n\t\t\t\t\t\t\tif (!(($locatorsCamY[$v]-$locatorsCamY[$a])/($locatorsCamX[$v]-$locatorsCamX[$a])<($locatorsCamY[$b]-$locatorsCamY[$a])/($locatorsCamX[$b]-$locatorsCamX[$a]))!=($locatorsCamX[$a]<$locatorsCamX[$b])!=($locatorsCamX[$v]<$locatorsCamX[$a])){\n\t\t\t\t\t\t\t\t$min=$v;\n\t\t\t\t\t\t\t\t$mindist=$dist;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tif ($mindist!=0){\n\t\t\t\t\t$v=$min;\n\t\t\t\t\tif ($locatorVertex[$v]==-1){\n\t\t\t\t\t\tpolyAppend -ch 0 -ed $e -p $locatorsX[$v] $locatorsY[$v] $locatorsZ[$v] $geo;\n\n\t\t\t\t\t\t$locatorVertex[$v]=$vertexCount;\n\t\t\t\t\t\t$vertexCount=$vertexCount+1; \n\n\t\t\t\t\t\t$edgeFinished[$e]=1;\n\t\t\t\t\t\t\n\t\t\t\t\t\t$edgeVertexA[size($edgeVertexA)]=$a;\n\t\t\t\t\t\t$edgeVertexB[size($edgeVertexB)]=$v;\n\t\t\t\t\t\t$edgeFinished[size($edgeFinished)]=0;\n\t\t\t\t\t\t$edgeVertexA[size($edgeVertexA)]=$v;\n\t\t\t\t\t\t$edgeVertexB[size($edgeVertexB)]=$b;\n\t\t\t\t\t\t$edgeFinished[size($edgeFinished)]=0;\n\t\t\t\t\t\t\n\t\t\t\t\t\t$loop=1;\n\t\t\t\t\t}else{\n\t\t\t\t\t\t$edgeA=-1;\n\t\t\t\t\t\t$edgeB=-1;\n\t\t\t\t\t\tfor ($i=0;$i<size($edgeVertexA);$i++){\n\t\t\t\t\t\t\tif (($edgeVertexA[$i]==$v)&&($edgeFinished[$i]==0)) $edgeA=$i;\n\t\t\t\t\t\t\tif (($edgeVertexB[$i]==$v)&&($edgeFinished[$i]==0)) $edgeB=$i;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (($edgeA!=-1)&&($edgeB!=-1)){\n\n\t\t\t\t\t\t\tif (($edgeVertexB[$edgeA]==$a)&&($edgeVertexA[$edgeB]==$b)){\n\t\t\t\t\t\t\t\t$edgeFinished[$edgeA]=1;\n\t\t\t\t\t\t\t\t$edgeFinished[$edgeB]=1;\n\t\t\t\t\t\t\t\t$edgeFinished[$e]=1;\n\t\t\t\t\t\t\t\tpolyAppend -ch 0 -ed $e -ed $edgeA $geo;\n\t\t\t\t\t\t\t\t$vertexFinished[$a]=1;\n\t\t\t\t\t\t\t\t$vertexFinished[$b]=1;\n\t\t\t\t\t\t\t\t$vertexFinished[$v]=1;\n\t\t\t\t\t\t\t\t$loop=1;\n\t\t\t\t\t\t\t}else if ($edgeVertexB[$edgeA]==$a){\n\t\t\t\t\t\t\t\tpolyAppend -ch 0 -ed $e -ed $edgeA $geo;\n\t\t\t\t\t\t\t\t$edgeFinished[$e]=1;\n\t\t\t\t\t\t\t\t$edgeFinished[$edgeA]=1;\n\t\t\t\t\t\t\t\t$edgeVertexA[size($edgeVertexA)]=$v;\n\t\t\t\t\t\t\t\t$edgeVertexB[size($edgeVertexB)]=$b;\n\t\t\t\t\t\t\t\t$edgeFinished[size($edgeFinished)]=0;\n\t\t\t\t\t\t\t\t$vertexFinished[$a]=1;\n\t\t\t\t\t\t\t\t$loop=1;\n\t\t\t\t\t\t\t}else if ($edgeVertexA[$edgeB]==$b){\n\t\t\t\t\t\t\t\tpolyAppend -ch 0 -ed $e -ed $edgeB $geo;\n\t\t\t\t\t\t\t\t$edgeFinished[$e]=1;\n\t\t\t\t\t\t\t\t$edgeFinished[$edgeB]=1;\n\t\t\t\t\t\t\t\t$edgeVertexA[size($edgeVertexA)]=$a;\n\t\t\t\t\t\t\t\t$edgeVertexB[size($edgeVertexB)]=$v;\n\t\t\t\t\t\t\t\t$edgeFinished[size($edgeFinished)]=0;\n\t\t\t\t\t\t\t\t$vertexFinished[$b]=1;\n\t\t\t\t\t\t\t\t$loop=1;\n\t\t\t\t\t\t\t}else{\t\t// NOT ADJACENT\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}else{\n//\t\t\t\t\t\t\tprint (\"ack when trying to connect edge \"+$e+\" to vert \"+$v+\"!\\n\");\n//\t\t\t\t\t\t\tprint (\"edgeA is \"+$edgeA+\" and edgeB is \"+$edgeB+\"\\n\");\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}else{\t\t// Border Edge\n\t\t\t\t\t$edgeFinished[$e]=1;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}while ($loop==1);\n\t// show border edges\n\tpolyOptions -ae  -sb 3  -db 1  -dmb 0  -dv 0  -dn 0 -facet  -dc 0  -dt 0  -dw 0  -din 0 0 0 0  -sn 0.4 -bc  -duv 0  -uvt 0  -cs 1  -cm diffuse  -mb overwrite  -bcv 1;\n\t\n/*\t// flip bad edges\n\tint $flips=0;\n\tpolyMapSew;\n\tPolySelectConvert 2;\t\t\t// Edge\n\tstring $edges[]=`ls -l -fl -sl`;\n\tfor ($i=0;$i<size($edges);$i++){\n\t\tselect -r $edges[$i];\n\t\tPolySelectConvert 3;\t\t// Vertex\n\t\tstring $oldVerts[]=sort(`ls -l -fl -sl`);\n\t\tselect -r $edges[$i];\n\t\tPolySelectConvert 1;\t\t// Face\n\t\tstring $polys[]=sort(`ls -l -fl -sl`);\n\n\t\tPolySelectConvert 3;\t// Vertex\n\t\tselect -d $oldVerts;\n\t\tstring $newVerts[]=sort(`ls -l -fl -sl`);\n\t\t\n\t\tif ((size($polys)==2)&&size($newVerts)==2){\n\n\t\t\tfloat $pt1[]=`xform -q -t $oldVerts[0]`;\n\t\t\tfloat $pt2[]=`xform -q -t $oldVerts[1]`;\n\n\t\t\t$oldD=pow($pt1[0]-$pt2[0],2)+pow($pt1[1]-$pt2[1],2)+pow($pt1[2]-$pt2[2],2);\n\n\t\t\tfloat $pt1[]=`xform -q -t $newVerts[0]`;\n\t\t\tfloat $pt2[]=`xform -q -t $newVerts[1]`;\n\n\t\t\t$newD=pow($pt1[0]-$pt2[0],2)+pow($pt1[1]-$pt2[1],2)+pow($pt1[2]-$pt2[2],2);\n\n\t\t\tif ($newD<$oldD){\n\t\t\t\tpolyFlipEdge $edges[$i];\n\t\t\t\t$flips=$flips+1;\n\t\t\t}\n\t\t}\n\t}\n\tselect -r $geo;\n\tprint (\"Flipped \"+$flips+\" edges.\\n\");\n*/\n\t// Turn on construction history\n\tconstructionHistory -tgl $constructionHistory;\n}\ncloud2mesh();"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 1
+        -flexibleWidthValue 32
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Rivet"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Rivet"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "pin.png"
+        -image1 "pin.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "// Copyright (C) 2000-2001 Michael Bazhutkin - Copyright (C) 2000 studio Klassika\n// www.geocites.com/bazhutkin\n// bazhutkin@mail.ru\n//\n//  Rivet (button) 1.0\n//  Script File\n//  MODIFY THIS AT YOUR OWN RISK\n//\n//  Creation Date:  April 13, 2001\n//\n//\n//  Description:\n//\tUse \"Rivet\" to constrain locator to polygon or NURBS surfaces\n//\tSelect two edges on polygon object\n//\tor select one point on NURBS surface and call rivet\n//\tParent your rivets and buttons to this locator\n\nglobal proc string rivet ( )\n{\n\nstring $nameObject;\nstring $namePOSI;\n\nstring $parts[];\nstring $list[] = `filterExpand -sm 32`;\nint $size = size($list);\nif ($size > 0)\n{\n\tif ($size != 2)\n\t{\terror(\"No two edges selected\");\n\t\treturn \"\";\n\t}\n\n\ttokenize($list[0],\".\",$parts);\n\t$nameObject = $parts[0];\n\ttokenize($list[0],\"[]\",$parts);\n\tfloat $e1 = $parts[1];\n\ttokenize($list[1],\"[]\",$parts);\n\tfloat $e2 = $parts[1];\n\n\tstring $nameCFME1 = `createNode curveFromMeshEdge -n \"rivetCurveFromMeshEdge1\"`;\n\t\tsetAttr \".ihi\" 1;\n\t\tsetAttr \".ei[0]\"  $e1;\n\tstring $nameCFME2 = `createNode curveFromMeshEdge -n \"rivetCurveFromMeshEdge2\"`;\n\t\tsetAttr \".ihi\" 1;\n\t\tsetAttr \".ei[0]\"  $e2;\n\tstring $nameLoft = `createNode loft -n \"rivetLoft1\"`;\n\t\tsetAttr -s 2 \".ic\";\n\t\tsetAttr \".u\" yes;\n\t\tsetAttr \".rsn\" yes;\n\n\t$namePOSI = `createNode pointOnSurfaceInfo -n \"rivetPointOnSurfaceInfo1\"`;\n\t\tsetAttr \".turnOnPercentage\" 1;\n\t\tsetAttr \".parameterU\" 0.5;\n\t\tsetAttr \".parameterV\" 0.5;\n\n\tconnectAttr -f ($nameLoft + \".os\") ($namePOSI + \".is\");\n\tconnectAttr ($nameCFME1 + \".oc\") ($nameLoft + \".ic[0]\");\n\tconnectAttr ($nameCFME2 + \".oc\") ($nameLoft + \".ic[1]\");\n\tconnectAttr ($nameObject + \".w\") ($nameCFME1 + \".im\");\n\tconnectAttr ($nameObject + \".w\") ($nameCFME2 + \".im\");\n}\nelse\n{\t$list = `filterExpand -sm 41`;\n\t$size = size($list);\n\n\tif ($size > 0)\n\t{\n\t\tif ($size != 1)\n\t\t{\terror(\"No one point selected\");\n\t\t\treturn \"\";\n\t\t}\n\t\ttokenize($list[0],\".\",$parts);\n\t\t$nameObject = $parts[0];\n\t\ttokenize($list[0],\"[]\",$parts);\n\t\tfloat $u = $parts[1];\n\t\tfloat $v = $parts[2];\n\t\t$namePOSI = `createNode pointOnSurfaceInfo -n \"rivetPointOnSurfaceInfo1\"`;\n\t\t\t\tsetAttr \".turnOnPercentage\" 0;\n\t\t\t\tsetAttr \".parameterU\" $u;\n\t\t\t\tsetAttr \".parameterV\" $v;\n\t\tconnectAttr -f ($nameObject + \".ws\") ($namePOSI + \".is\");\n\t}\n\telse\n\t{\terror(\"No edges or point selected\");\n\t\treturn \"\";\n\t}\n}\n\nstring $nameLocator = `createNode transform -n \"rivet1\"`;\ncreateNode locator -n ($nameLocator + \"Shape\") -p $nameLocator;\n\nstring $nameAC = `createNode aimConstraint -p $nameLocator -n ($nameLocator + \"_rivetAimConstraint1\")`;\n\tsetAttr \".tg[0].tw\" 1;\n\tsetAttr \".a\" -type \"double3\" 0 1 0;\n\tsetAttr \".u\" -type \"double3\" 0 0 1;\n\tsetAttr -k off \".v\";\n\tsetAttr -k off \".tx\";\n\tsetAttr -k off \".ty\";\n\tsetAttr -k off \".tz\";\n\tsetAttr -k off \".rx\";\n\tsetAttr -k off \".ry\";\n\tsetAttr -k off \".rz\";\n\tsetAttr -k off \".sx\";\n\tsetAttr -k off \".sy\";\n\tsetAttr -k off \".sz\";\n\nconnectAttr ($namePOSI + \".position\") ($nameLocator + \".translate\");\nconnectAttr ($namePOSI + \".n\") ($nameAC + \".tg[0].tt\");\nconnectAttr ($namePOSI + \".tv\") ($nameAC + \".wu\");\nconnectAttr ($nameAC + \".crx\") ($nameLocator + \".rx\");\nconnectAttr ($nameAC + \".cry\") ($nameLocator + \".ry\");\nconnectAttr ($nameAC + \".crz\") ($nameLocator + \".rz\");\n\nselect -r $nameLocator;\nreturn ($nameLocator);\n\n}\n\nrivet;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Reparent object."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Reparent object."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "reparent.png"
+        -image1 "reparent.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "// Performs parenting on each object n the childArray;\n// keeps old transforms intact\nglobal proc populateChildField(string $childField) {\n\n    string $selArray[] = `ls -sn -sl`;\n    string $childFieldString = \"{\";\n    int $i = 0;\n    for ($i = 0; $i < (size($selArray) - 1); $i++) {\n        $childFieldString = ($childFieldString + \"\\\"\" + $selArray[$i] + \"\\\", \");\n    }    \n    $childFieldString = ($childFieldString + \"\\\"\" + $selArray[$i] +\"\\\"}\");\n    \n    print(\">>>\" + $childFieldString + \"<<<\\n\");\n    textField -e -tx $childFieldString $childField;\n}\n\nglobal proc populateParentField(string $parentField) {\n\n    string $selArray[] = `ls -sn -sl`;\n    if (size($selArray) == 0) {\n        return;\n    }\n    if (size($selArray) > 1) {\n        confirmDialog -title \"Pick one...\" -message\n        \"Please choose only one new parent object.\" -button \"Ok\" -defaultButton \"Ok\"\n        -cancelButton \"Ok\";\n        return;\n    }\n    \n    textField -e -tx (\"\\\"\" + $selArray[0] + \"\\\"\") $parentField;\n}\n\nglobal proc reparentReset() {\n    \n    reparentGui;\n}\n\nglobal proc reparentDoIt(string $childField, string $parentField) {\n    \n    string $child = `textField -q -tx $childField`;\n    if ($child == \"\") {\n        confirmDialog -title \"No children?\" -message\n        \"Please choose a child object(s).\" -button \"Ok\" -defaultButton \"Ok\"\n        -cancelButton \"Ok\";\n    }\n    string $parent = `textField -q -tx $parentField`;\n    if ($parent == \"<World> (i.e., unparent)\") {\n        $parent = \"\\\"\\\"\";\n    }\n    string $cmdStr = (\"reparent(\" + $child + \", \" + $parent + \")\");\n    \n    print($cmdStr + \"\\n\");\n    eval $cmdStr;\n}\n\nglobal proc reparentGui() {\n\n    if ( `window -exists reparentGui` ) {\n        deleteUI -window reparentGui;\n    }\n    \n    window -rtf 1 -t \"Reparent, baking transforms\" -s true reparentGui;\n    string $form = `formLayout`;\n        string $applyButton = `button -l \"Reparent\"`;\n        string $resetButton = `button -l \"Reset\"`;\n        \n        string $childText = `text -label \"Child object(s):\"`;\n        string $childField = `textField -tx \"\"`;\n        string $childButton = `button -l \"< currentSel\"`;\n        string $parentText = `text -label \"(New) Parent object:\"`;\n        string $parentField = `textField -tx \"<World> (i.e., unparent)\"`;\n        string $parentButton = `button -l \"< currentSel\"`;\n    setParent ..;\n    \n    button -e -c (\n        \"reparentReset\"\n        ) $resetButton;\n\n    button -e -c (\n        \"reparentDoIt(\\\"\" + $childField + \"\\\", \\\"\" + $parentField + \"\\\")\"\n        ) $applyButton;\n\n    button -e -c (\n        \"populateChildField(\\\"\" + $childField + \"\\\")\"\n        ) $childButton;\n        \n    button -e -c (\n        \"populateParentField(\\\"\" + $parentField + \"\\\")\"\n        ) $parentButton;\n        \n    ////////\n    \n    formLayout -edit\n        -attachForm $childText top 4\n        -attachForm $childText left 4\n        -attachControl $childField left 34 $childText\n        -attachControl $childField right 4 $childButton\n        -attachForm $childField top 4\n        -attachForm $childButton right 4\n        -attachForm $childButton top 2\n        \n        -attachControl $parentText top 4 $childText\n        -attachForm $parentText left 4\n        -attachControl $parentField left 4 $parentText\n        -attachControl $parentField right 4 $parentButton\n        -attachControl $parentField top 4 $childText\n        -attachForm $parentButton right 4\n        -attachControl $parentButton top 2 $childText\n        \n        -attachForm $applyButton right 4\n        -attachForm $applyButton bottom 4\n        \n        -attachControl $resetButton right 4 $applyButton\n        -attachForm $resetButton bottom 4\n        \n        $form;\n\n    \n    showWindow;\n\n}\n\nglobal proc reparent(string $childArray[], string $parent) {\n    \n    string $child = \"\";\n    for ($child in $childArray) {\n    \n        string $loc[] = `spaceLocator`;\n        pointConstraint $child $loc[0];\n        orientConstraint $child $loc[0];\n        scaleConstraint $child $loc[0];\n\n        int $startTime = `playbackOptions -q -min`;\n        int $endTime = `playbackOptions -q -max`;\n        bakeResults  -t ($startTime + \":\" + $endTime) \n            -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true\n            -sparseAnimCurveBake true -controlPoints true -shape true\n            {$loc[0]};\n\n        delete -cn $loc[0];\n\n        cutKey -time \":\" -attribute translateX $child;\n        cutKey -time \":\" -attribute translateY $child;\n        cutKey -time \":\" -attribute translateZ $child;\n\n        cutKey -time \":\" -attribute rotateX $child;\n        cutKey -time \":\" -attribute rotateY $child;\n        cutKey -time \":\" -attribute rotateZ $child;\n\n        cutKey -time \":\" -attribute scaleX $child;\n        cutKey -time \":\" -attribute scaleY $child;\n        cutKey -time \":\" -attribute scaleZ $child;\n        \n        string $newChild[] = {};\n        if ($parent != \"\") {\n            pointConstraint $parent $child;\n            orientConstraint $parent $child;\n            scaleConstraint $parent $child;\n\n            delete -cn $child;\n\n            $newChild = `parent $child $parent`;\n        }\n        else {\n            $newChild = `parent -w $child`;\n        }\n\n        pointConstraint $loc[0] $newChild[0];\n        orientConstraint $loc[0] $newChild[0];\n        scaleConstraint $loc[0] $newChild[0];\n\n        bakeResults -t ($startTime + \":\" + $endTime) \n            -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true\n            -sparseAnimCurveBake true -controlPoints true -shape true\n            {$newChild[0]};\n        delete -cn $newChild[0];\n        delete $loc[0];\n    }  \n\n}\n \nreparentGui()"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "parentConstraint with offset"
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "parentConstraint -mo -weight 1;"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "tinyBoldLabelFont"
+        -imageOverlayLabel "+"
+        -overlayLabelColor 1 0 0
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "parentConstraint.png"
+        -image1 "parentConstraint.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "parentConstraint -mo -weight 1;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "parentConstraint with no offset"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "parentConstraint -weight 1;"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "tinyBoldLabelFont"
+        -imageOverlayLabel "-"
+        -overlayLabelColor 1 1 0
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "parentConstraint.png"
+        -image1 "parentConstraint.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "parentConstraint -weight 1;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "change timeRange between  playbackOptions and  RenderGlobal"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "change timeRange"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "time"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "menuIconReset.png"
+        -image1 "menuIconReset.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "int $minTime = `playbackOptions -q -minTime`;\nsetAttr \"defaultRenderGlobals.startFrame\" $minTime;\nint $maxTime = `playbackOptions -q -maxTime`;\nsetAttr \"defaultRenderGlobals.endFrame\" $maxTime;"
+        -sourceType "mel"
+        -doubleClickCommand "int $sf = `getAttr defaultRenderGlobals.startFrame`;\nint $ef = `getAttr defaultRenderGlobals.endFrame`;\nplaybackOptions -ast $sf -aet $ef -min $sf -max $ef;"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Search and replace"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "jStringAttSearchReplace"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "Search"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "menuIconFocus.png"
+        -image1 "menuIconFocus.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "source jDoStringAttSearchReplace.mel;\njStringAttSearchReplace();\n"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import dummy man."
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Import dummy man."
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "dummy.png"
+        -image1 "dummy.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "file -import -type \"OBJ\" -ra true -rpr \"dummy_man\" -options \"mo=1\" -loadReferenceDepth \"all\" \"/stdrepo/MMV/asset/model/baseman/baseMan_170cm.obj\";\n"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Outliner window"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "OutlinerWindow;"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "tinyBoldLabelFont"
+        -imageOverlayLabel "Outliner"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "menuIconListed.png"
+        -image1 "menuIconListed.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "OutlinerWindow;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "GraphEditor"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "GraphEditor"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "Graph"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "menuIconKeys.png"
+        -image1 "menuIconKeys.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "GraphEditor;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "namespaceEditor"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "namespaceEditor"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "tinyBoldLabelFont"
+        -imageOverlayLabel "Name"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "menuIconNames.png"
+        -image1 "menuIconNames.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "namespaceEditor;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Render Settings Window: Change rendering attributes"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Render Settings Window"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "renderGlobals.png"
+        -image1 "renderGlobals.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "unifiedRenderGlobalsWindow"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "HypershadeWindow: Display and edit connections in shading networks"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "HypershadeWindow"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "hypershade1.png"
+        -image1 "hypershade1.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "tearOffPanel \"Hypershade\" \"hyperShadePanel\" true;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Hypergraph: Display and edit relationships among nodes in your scene graphically"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "Hypergraph"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "hypergraph.png"
+        -image1 "hypergraph.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "HypergraphWindow"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 1
+        -flexibleWidthValue 32
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "ReferenceEditor"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "ReferenceEditor"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "RefEdit"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "referenceProxySharedEdits.png"
+        -image1 "referenceProxySharedEdits.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "ReferenceEditor"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+}

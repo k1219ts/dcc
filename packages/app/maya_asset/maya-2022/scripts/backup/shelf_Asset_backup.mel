@@ -1,0 +1,666 @@
+global proc shelf_Asset () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "// alignPivotToSelection Tool for Maya 2010, 2011 & 2012\n// Auth..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "alignPivotToSelection_icon.PNG"
+        -image1 "alignPivotToSelection_icon.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "// alignPivotToSelection Tool for Maya 2010, 2011 & 2012\n// Author: Daniel Brkovic\n// Thanks to: Tom Ferstl\n// Date: 10-12-2011\n//\n// Descritption: \n//\t\tYou can align the pivot along a selected normal which can be defined by vertices, edges or a face.\n// Commands: \n//\t\talignPivotToSelection(0),alignPivotToSelection(1)\n// Installation: \n// \t\t1. \tCopy alignPivotToSelection.mel to C:\\Users\\[USER]\\Documents\\maya\\[MAYAVERSION]\\scripts\n// \t\t2. \tRestart maya\n// Instructions: \n// \t\t1. \tSelect at least 3 vertices(best), 2 edges or 1 face. \n// \t\t2. \tRun alignPivotToSelection(0) to affect rotations only and alignPivotToSelection(1) for rotation and translation.\n// \t\t\tNote: Best results with 3 vertices, triangle or quad face selected.\n\nglobal proc alignPivotToSelection( int $option )\n{\n\tif ($option == 0)\n\t{\n\t\tConvertSelectionToVertices;\n\t\tstring $vtxSel[] = `ls -sl -fl`;\n\t\tstring $selectedObjectStore[] = `ls -sl -o`;\n\t\t$objectSelectionStore = `listRelatives -p $selectedObjectStore[0]`;\n\n\t\tif (size($vtxSel) < 3)\n\t\t\terror \"Please select at least 3 Vertices, 2 Edges or 1 Face\";\n\n\t\t// create and align helperPlane\n\t\tstring $plane[] = `polyPlane -w 1 -h 1 -sx 1 -sy 1 -ax 0 1 0 -cuv 2 -ch 1 -n rotationPlane`;\n\n\t\tselect ( $plane[0] + \".vtx[0:2]\") $vtxSel[0] $vtxSel[1] $vtxSel[2];\n\t\tsnap3PointsTo3Points(0);\n\t\n\t\t// parent object to helperPlane\n\t\tparent $objectSelectionStore $plane[0];\n\n\t\t// freeze transformations on object    \n\t\tmakeIdentity -apply true -t 0 -r 1 -s 0 -n 0 $objectSelectionStore;\n    \n\t\t// unparent object\n\t\tparent -world $objectSelectionStore;\n\n\t\t// cleanup\n\t\tdelete $plane;\n\t}\n    \n\telse if ($option == 1)\n\t{\n\t\tsetToolTo Move;\n\t\tfloat $getPivotPos[] = `manipMoveContext -q -p Move`;  \n\t\tConvertSelectionToVertices;\n\t\tstring $vtxSel[] = `ls -sl -fl`;\n\t\tstring $selectedObjectStore[] = `ls -sl -o`;\n\t\t$objectSelectionStore = `listRelatives -p $selectedObjectStore[0]`;\n\n\t\tif (size($vtxSel) < 3)\n\t\t\terror \"Please select at least 3 Vertices, 2 Edges or 1 Face\";\n\n\t\t// create and align helperPlane\n\t\tstring $plane[] = `polyPlane -w 1 -h 1 -sx 1 -sy 1 -ax 0 1 0 -cuv 2 -ch 1 -n rotationPlane`;\n\n\t\tselect ( $plane[0] + \".vtx[0:2]\") $vtxSel[0] $vtxSel[1] $vtxSel[2];\n\t\tsnap3PointsTo3Points(0);\n\n\t\t// parent object to helperPlane\n\t\tparent $objectSelectionStore $plane[0];\n\n\t\t// freeze transformations on object\n\t\tmakeIdentity -apply true -t 0 -r 1 -s 0 -n 0 $objectSelectionStore;\n\n\t\t// move pivot\n\t\txform -ws -piv $getPivotPos[0] $getPivotPos[1] $getPivotPos[2];\n\n\t\t// unparent object\n\t\tparent -world $objectSelectionStore;\n\n\t\t// cleanup\n\t\tdelete $plane;\n\t}\n}"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "#  1. First select any faces or any object and click the Get che..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "UV_Check_size_icons.PNG"
+        -image1 "UV_Check_size_icons.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "#  1. First select any faces or any object and click the Get checker size button. The checker size is now stored.\n#  2. If you want to set the checker size of the whole object click the 'Set Checker size of object(s)' button.\n#  3. Otherwise if you want to set the checker size of shells, click the 'Set Checker size of shells' button\n\n#  If 'Face shells' option is selected it will scale the UVs of a face shell as a whole, for all the face shells\n#  If 'UV Shells' option selected it will scale all the UV shells\n\n#  Made by Varun Bondwal. Sr Tech Artist. Exigent Game Art Pvt Ltd.\n#  varun.bondwal@yahoo.com. Please report any bugs or suggestions.\n\n\nimport maya.cmds as cmds\nimport maya.mel as mel\nimport maya.OpenMaya as om\nimport string\nimport math\n\ndef chk_str_in_str_array(S1,S2):    \n\tflag=0    \n\tfor i in range(0,len(S2)):        \n\t\tif S1==S2[i]:            \n\t\t\tflag=1    \n\treturn flag\n\ndef get_sel_faces_UV_ratio(set_active):\n\tglobal active_ratio\n\ttotalUVArea = 0\n\ttotalFaceArea =0\n\torig_sele=cmds.ls(sl=True, fl=True)\n\tareaParam = om.MScriptUtil()\n\tareaParam.createFromDouble(0.0)\n\tareaPtr = areaParam.asDoublePtr() \n\t    \n\tmel.eval(\"PolySelectConvert 1\")      \n\tsele=om.MSelectionList()\n\tom.MGlobal.getActiveSelectionList(sele)\n\tit=om.MItSelectionList(sele)\n\twhile not it.isDone():\n\t\tdagPath=om.MDagPath()\n\t\tcomponent=om.MObject()\n\t\tit.getDagPath(dagPath,component)\n\t\tfn=om.MFnDependencyNode(dagPath.node())\n\t\tif not component.isNull():\n\t\t\tif component.apiType()==om.MFn.kMeshPolygonComponent:\n\t\t\t\titPoly=om.MItMeshPolygon(dagPath,component)\n\t\t\t\twhile not itPoly.isDone():\n\t\t\t\t\t\n\t\t\t\t\titPoly.getUVArea(areaPtr)\n\t\t\t\t\tarea = om.MScriptUtil(areaPtr).asDouble()\n\t\t\t\t\ttotalUVArea += area\n\t\t\t\t\t\n\t\t\t\t\titPoly.getArea(areaPtr,om.MSpace.kWorld)\n\t\t\t\t\tarea = om.MScriptUtil(areaPtr).asDouble()\n\t\t\t\t\ttotalFaceArea += area\n\t\t\t\t\t\n\t\t\t\t\titPoly.next()\n\t\tit.next()\n\tUV_ratio=totalUVArea/totalFaceArea\n\tif set_active==1:\n\t\tactive_ratio=UV_ratio\n\t\tif (len(orig_sele)>3):\n\t\t\tcmds.text(current_obj, edit=True , l = 'Objects : ' + 'Multiple objects')\n\t\telif (len(orig_sele)==1):\n\t\t\tcmds.text(current_obj, edit=True , l = 'Object : ' + orig_sele[0])\n\t\telif (len(orig_sele)==2):\n\t\t\tcmds.text(current_obj, edit=True , l = 'Objects : ' + orig_sele[0] + ', ' + orig_sele[1])\n\t\telif (len(orig_sele)==3):\n\t\t\tcmds.text(current_obj, edit=True , l = 'Objects : ' + orig_sele[0] + ', ' + orig_sele[1] + ', ' + orig_sele[2])\n\t\tmel.eval(\"select -cl\")\n\t\tfor i in range(0,len(orig_sele)):\n\t\t\tmel.eval(\"select -add \" + orig_sele[i])\n\treturn UV_ratio\n\ndef collect_shells():     # returns a list containing one UV from all UV shells of the selected object\n\tmel.eval(\"ConvertSelectionToUVs\")\n\tmain_list=cmds.ls(sl=True,fl=True)\n\tUV=cmds.ls(sl=True, fl=True)\n\tnew_list=[\" \"]\n\twhile (len(main_list)>0):\n\t\t#cmds.select(cl=True)\n\t\tnew_list.append(main_list[0])\n\t\tmel.eval(\"select \"+ main_list[0])\n\t\tmel.eval(\"SelectUVShell\")\n\t\ttemp_shell=cmds.ls(sl=True,fl=True)\n\t\tfor j in range(0,len(temp_shell)):\n\t\t\tmain_list.remove(temp_shell[j])\n\tnew_list.remove(\" \")\n\treturn new_list\n\t\n\t\n\ndef get_UV_ratio(set_active):                        #returns uv ratio of selected object\n\tglobal active_ratio\n\tsList = om.MSelectionList()\n\tdagp = om.MDagPath()\n\tmobj = om.MObject()\t\t\t\n\n\tsele=cmds.ls(sl=True, fl=True)\n\n\tsList.add(sele[0])\t\n\tsIter = om.MItSelectionList(sList)\n\tsIter.getDagPath(dagp, mobj)\n\tpIter = om.MItMeshPolygon(dagp)    \n\n\tareaParam = om.MScriptUtil()\n\tareaParam.createFromDouble(0.0)\n\tareaPtr = areaParam.asDoublePtr() \n\ttotalUVArea = 0\n\ttotalFaceArea =0\n\twhile not pIter.isDone():\n\t\tpIter.getUVArea(areaPtr)\n\t\tarea = om.MScriptUtil(areaPtr).asDouble()\n\t\ttotalUVArea += area\n\t\t\n\t\tpIter.getArea(areaPtr,om.MSpace.kWorld)\n\t\tarea = om.MScriptUtil(areaPtr).asDouble()\n\t\ttotalFaceArea += area\n\t\t\n\t\tpIter.next()\n\tUV_ratio=totalUVArea/totalFaceArea\n\tprint \"UV area\"\n\tprint totalUVArea\n\tprint \"total face area\"\n\tprint totalFaceArea\n\tif set_active==1:\n\t\tactive_ratio=UV_ratio\n\treturn UV_ratio\n\t\t\ndef set_UV_ratio(obj):\n\torig_sele=cmds.ls(sl=True, fl=True)\n\tif len(orig_sele)==0:\n\t\tprint \"\\nPlease select something\"\n\tprog=0.00\n\t\n\tfor i in range(0,len(orig_sele)):\n\t\tif (len(orig_sele)!=0):\n\t\t\tif (obj==1):\n\t\t\t\tprog+=(i*1.000/len(orig_sele)*1.000)*20\n\t\t\t\tcmds.progressBar(progressControl, edit=True, pr=prog)\n\t\t\telse:\n\t\t\t\tprog+=(i*1.000/len(orig_sele)*1.000)*15\n\t\t\t\tcmds.progressBar(progressControl, edit=True, pr=4+prog)\n\t\tcmds.select(cl=True)\n\t\tmel.eval(\"select \" + orig_sele[i])\n\t\tcurrent_ratio=get_sel_faces_UV_ratio(0)\n\t\tif current_ratio==0:\n\t\t\tcurrent_ratio=1\n\t\tscale_factor=active_ratio/current_ratio\n\t\tscale_factor=math.sqrt(scale_factor)\n\t\tmel.eval(\"PolySelectConvert 4\")     \n\t\tUV_bounds=cmds.polyEvaluate(bc2=True)\n\t\tu_pivot = (UV_bounds[0][0]+UV_bounds[0][1])/2\n\t\tv_pivot = (UV_bounds[1][0]+UV_bounds[1][1])/2\n\t\t\t\t\t\t\n\t\tcmds.polyEditUV(pu=u_pivot, pv=v_pivot, su=scale_factor, sv=scale_factor)\n\t\t\t\t\t\t\n\tcmds.select(cl=True)\n\tfor i in range(0,len(orig_sele)):\n\t\tmel.eval(\"select -add \" + orig_sele[i])\n\tif (obj==1):\n\t\tcmds.progressBar(progressControl, edit=True, pr=0)\n\t\t\t\t\t\t\t\t\ndef collect_shells_and_set_shells_UV_ratio():\n\torig_sele=cmds.ls(sl=True, fl=True)\n\n\tmel.eval(\"ConvertSelectionToUVs\")\n\tmain_list=cmds.ls(sl=True,fl=True)\n\tUV=cmds.ls(sl=True, fl=True)\n\tnew_list=[\" \"]\n\n\torig_len=len(main_list)\n\n\twhile (len(main_list)>0):\n\t\tmel.eval(\"select \"+ main_list[0])\n\t\tmel.eval(\"SelectUVShell\")\n\t\tprog=((1.000*orig_len-1.000*len(main_list))/(1.000*orig_len))*20\n\t\tcmds.progressBar(progressControl, edit=True, pr=prog)\n        \n\n\tcurrent_ratio=get_sel_faces_UV_ratio(0)\n\tif current_ratio==0:\n\t\tcurrent_ratio=1\n\tscale_factor=active_ratio/current_ratio\n\tscale_factor=math.sqrt(scale_factor)\n\tmel.eval(\"PolySelectConvert 4;\")   #to UVs\n\tUV_bounds=cmds.polyEvaluate(bc2=True)\n\tu_pivot = (UV_bounds[0][0]+UV_bounds[0][1])/2\n\tv_pivot = (UV_bounds[1][0]+UV_bounds[1][1])/2\n\t\n\tcmds.polyEditUV(pu=u_pivot, pv=v_pivot, su=scale_factor, sv=scale_factor)\n\t\n\ttemp_shell=cmds.ls(sl=True,fl=True)\n\tfor j in range(0,len(temp_shell)):\n\t\tmain_list.remove(temp_shell[j])\n\t\t\n\tnew_list.remove(\" \")\n\tcmds.select(cl=True)\n\tfor i in range(0,len(orig_sele)):\n\t\tmel.eval(\"select -add \" + orig_sele[i])\n\tcmds.progressBar(progressControl, edit=True, pr=0)\n\t\t\t\n\treturn new_list\n\t\t\t\n\t\t\t\ndef set_shells_UV_ratio():\n\torig_sele=cmds.ls(sl=True, fl=True)\n\t\n\tsele=cmds.ls(sl=True, fl=True)\n\tif (len(sele)>1):\n\t\tprint(\"Select only one object\")\n\tshells=collect_shells()\n\tfor i in range(0, len(shells)):\n\t\tcmds.select(cl=True)\n\t\tmel.eval(\"select \"+ shells[i])\n\t\tmel.eval(\"SelectUVShell\")\n\t\t#mel.eval(\"PolySelectConvert 1\")  # to faces\n\t\t\n\t\tcurrent_ratio=get_sel_faces_UV_ratio(0)\n\t\tscale_factor=active_ratio/current_ratio\n\t\tscale_factor=math.sqrt(scale_factor)\n\t\tmel.eval(\"PolySelectConvert 4;\")   #to UVs\n\t\tUV_bounds=cmds.polyEvaluate(bc2=True)\n\t\tu_pivot = (UV_bounds[0][0]+UV_bounds[0][1])/2\n\t\tv_pivot = (UV_bounds[1][0]+UV_bounds[1][1])/2\n\n\t\tcmds.polyEditUV(pu=u_pivot, pv=v_pivot, su=scale_factor, sv=scale_factor)\n\n\tcmds.select(cl=True)\n\tfor i in range(0,len(orig_sele)):\n\t\tmel.eval(\"select -add \" + orig_sele[i])\n\t\t#\n\t\t#\ndef show_window():\n\tglobal progressControl\n\tglobal current_obj\n\tglobal radio_col\n\tUV_window = 'Checker_Size_Too_windowname' # usr add\n\t#UV_window = cmds.window( title=\"Checker Size Tool\", iconName='Short Name', rtf = 1, s=1, widthHeight=(120, 100), mxb = 0 ) # usr sub\n\n\tif cmds.window(UV_window, ex = True ):\n\t\tcmds.deleteUI( UV_window,window=True)\n\t#UV_window = cmds.window( title=\"Checker Size Tool\", iconName='Short Name', rtf = 1, s=1, widthHeight=(120, 100), mxb = 0 ) # usr sub\n\tcmds.window(UV_window, title=\"Checker Size Tool\", iconName='Short Name', rtf = 1, s=1, widthHeight=(120, 100), mxb = 0 )\n\tcmds.columnLayout( adjustableColumn=True )\n\t#cmds.frameLayout(label =\"Get Size\", la= \"center\",  w = 30 , h = 64 , mh = 5, mw = 5, bs = \"etchedOut\" )\n\tcmds.frameLayout(label =\"Get Size\", w = 30 , h = 74 , mh = 5, mw = 5, bs = \"etchedOut\" )\n\tcmds.columnLayout( adjustableColumn=True )\n\tUV_get_but = cmds.button( label='Pick Checker Size',en=True, annotation='Store the checker size', command = 'get_sel_faces_UV_ratio(1)' )\n\tcurrent_obj= cmds.text(w = 175 , l = '' , al =  'center')\n\tcmds.setParent( '..' )\n\tcmds.setParent( '..' )\n\t#cmds.frameLayout(label =\"Set Size\", la= \"center\",  w = 30 , h = 90 , mh = 5, mw = 5, bs = \"etchedOut\" )\n\tcmds.frameLayout(label =\"Set Size\", w = 30 , h = 100 , mh = 5, mw = 5, bs = \"etchedOut\" )\n\tcmds.columnLayout( adjustableColumn=True )\n\tUV_set_but = cmds.button( label='Set Checker Size of object(s)',en=True,annotation='Change checker size of one or more meshes', command='set_UV_ratio(1)')\n\tUV_shell_but = cmds.button( label='Set Checker Size of shells', en = True,annotation='Change checker size of object with several shells', command='set_shell_button()')\n\tcmds.rowLayout( numberOfColumns=2, columnWidth2=(100, 100))\n\tradio_col=cmds.radioCollection()\n\tcmds.radioButton('radio_Face', label = 'Face shells',  al =  'left')\n\tcmds.radioButton('radio_UV', label = 'UV shells',al =  'left')\n\tcmds.setParent( '..' )\n\tcmds.setParent( '..' )\n\tcmds.setParent( '..' )\n\tcmds.columnLayout( adjustableColumn=True )\n\tprogressControl = cmds.progressBar(maxValue=20, width=300)\n\tcmds.setParent( '..' )\n\t\"\"\"\n\tcmds.setParent( '..' )\n\t\"\"\"\n\tcmds.text(w = 175 , l = 'varun.bondwal@yahoo.com  ' , al =  'right')\n\tcmds.showWindow( UV_window ) \t\n\ndef set_shell_button():\n\ttmp_sele=cmds.ls(sl=True, fl=True)\n\n\tif(len(tmp_sele)==1):\n\t\tmel.eval(\"constructionHistory -toggle false\")\n\t\tmel.eval(\"autoUpdateAttrEd\")\n\t\tmel.eval(\"updateConstructionHistory\")\n\t\tselected_button = cmds.radioCollection(radio_col,query=1,sl=1)\n\t\tif (selected_button==\"radio_UV\"):\n\t\t\tcollect_shells_and_set_shells_UV_ratio()\n\t\telse:\n\t\t\tshell_UV_scaler()\n\t\tmel.eval(\"constructionHistory -toggle false\")\n\t\tmel.eval(\"autoUpdateAttrEd\")\n\t\tmel.eval(\"updateConstructionHistory\")\n\telse:\n\t\tom.MGlobal.displayError(\"Select only one object\")\n\t\t\t\n\t\t\t\ndef shell_UV_scaler():\n\tglobal sele\n\tsele=cmds.ls(sl=True, fl=True)\n\tif len(sele)>1:\n\t\tprint \"select only one object\" \n\tmel.eval(\"select \" + sele[0])\n\told_mesh_dupe=cmds.duplicate()\n\ttry:\n\t\tseparated = cmds.polySeparate(ch=True)\n\t\tcmds.progressBar(progressControl, edit=True, pr=5)\n\t\tset_UV_ratio(0);\n\t\tcombined_mesh=cmds.polyUnite(ch=True) \n\t\tmel.eval(\"polyTransfer -uv 1 -ch off -ao \\\"\" + combined_mesh[0] +  \"\\\" \\\"\" + sele[0] +  \"\\\"\");\n\t\tcmds.delete(combined_mesh[0])\n\t\tmel.eval(\"select \"+ sele[0])\n\t\tcmds.progressBar(progressControl, edit=True, pr=0)\n\texcept:\n\t\tcmds.delete(old_mesh_dupe)\n\t\tmel.eval(\"select \" + sele[0])\n\t\tom.MGlobal.displayError(\"The object has only one face shell\")\n\t\n\t\nshow_window()\n"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "global proc UVcheck()\n{\n//If the shader already exists, assign t..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "UV_Check_icons.PNG"
+        -image1 "UV_Check_icons.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc UVcheck()\n{\n//If the shader already exists, assign the current shader to the selected objects.\nif (`objExists \"cbUVcShader\"`)\n{\n   $sel = `ls -sl`;\n\n   if (size($sel) == 0)\n      {\n      error \"No objects selected for shader assignment.\";\n      }\n\n   for ($i in $sel)\n       {\n\n       $type = `pickWalk -d down $i`;\n\n       if (objectType($type) == \"mesh\" || objectType($type) == \"nurbsSurface\" || objectType($type) == \"subdiv\")\n          {\n\n           string $nodes[] = (`listHistory -future true \"cbUVcShader\"`);\n\n           for ($node in $nodes)\n               {\n               if (`nodeType $node` == \"shadingEngine\" )\n               sets -e -forceElement $node $type;\n               }\n          }\n\n       }\n   select $sel;\n\n/////////////////////////////////////////////////////\n     string $cbUVcheckWin = \"cbUVcheckWin\";\n\n     if(`window -exists $cbUVcheckWin`)\n     \tdeleteUI -window $cbUVcheckWin;\n\n     window -title \"UVcheck v1.0\" -wh 269 234 -mb 1 $cbUVcheckWin;\n\n           columnLayout -rs 5;\n                optionMenuGrp -label \"Type\" -cw 1 70 -cat 1 \"right\" 8 -cc (\"cbUVc_uiChange();\") cbUVcType;\n                        menuItem -label \"Image File\";\n                        menuItem -label \"Texture\";\n                separator -width 260;\n\n                rowColumnLayout -numberOfRows 1;\n                textFieldGrp -label \"Image\" -text `optionVar -q cbUVcRememberImg` -cw 1 70 -cw 2 157 cbUVcImgCtrl;\n                symbolButton -image \"navButtonBrowse.xpm\" -w 30 -c (\"cbUVc_getImg();\") cbUVcImgIcon;\n           setParent \"..\";\n\n                rowColumnLayout -numberOfRows 2;\n                colorSliderGrp -cw 1 72 -cw 2 60 -cw 3 130 -label \"Color1\" -rgb 0.902 1 0.847 -en 0 cbUVcChecker1;\n                colorSliderGrp -cw 1 72 -cw 2 60 -cw 3 130 -label \"Color2\" -rgb 0.651 0.757 0.592 -en 0 cbUVcChecker2;\n           setParent \"..\";\n\n                separator -width 260;\n\n                floatFieldGrp -numberOfFields 2 -label \"Repeat UV\" -cw 1 70 -cw 2 60 -cw 3 60 -v1 5 -v2 5 cbUVcRepeats;\n\n                rowColumnLayout -numberOfRows 1;\n                        button -l \"OK\" -w 160 -c (\"cbCreateUVcheck (); deleteUI -window \" + $cbUVcheckWin + \";\");\n                        button -l \"Cancel\" -w 100 -c (\"deleteUI -window \" + $cbUVcheckWin + \";\");\n                setParent \"..\";\n\n     showWindow $cbUVcheckWin;\n/////////////////////////////////////////////////////\n}\nelse\n   {\n\n        if (!`optionVar -exists cbUVcRememberImg`)\n           {\n           optionVar -stringValue cbUVcRememberImg \"Browse for an image..\";\n           }\n\n     string $cbUVcheckWin = \"cbUVcheckWin\";\n\n     if(`window -exists $cbUVcheckWin`)\n     \tdeleteUI -window $cbUVcheckWin;\n\n     window -title \"UVcheck v1.0\" -wh 269 234 -mb 1 $cbUVcheckWin;\n\n           columnLayout -rs 5;\n                optionMenuGrp -label \"Type\" -cw 1 70 -cat 1 \"right\" 8 -cc (\"cbUVc_uiChange();\") cbUVcType;\n                        menuItem -label \"Image File\";\n                        menuItem -label \"Texture\";\n                separator -width 260;\n\n                rowColumnLayout -numberOfRows 1;\n                textFieldGrp -label \"Image\" -text `optionVar -q cbUVcRememberImg` -cw 1 70 -cw 2 157 cbUVcImgCtrl;\n                symbolButton -image \"navButtonBrowse.xpm\" -w 30 -c (\"cbUVc_getImg();\") cbUVcImgIcon;\n           setParent \"..\";\n\n                rowColumnLayout -numberOfRows 2;\n                colorSliderGrp -cw 1 72 -cw 2 60 -cw 3 130 -label \"Color1\" -rgb 0.902 1 0.847 -en 0 cbUVcChecker1;\n                colorSliderGrp -cw 1 72 -cw 2 60 -cw 3 130 -label \"Color2\" -rgb 0.651 0.757 0.592 -en 0 cbUVcChecker2;\n           setParent \"..\";\n\n                separator -width 260;\n\n                floatFieldGrp -numberOfFields 2 -label \"Repeat UV\" -cw 1 70 -cw 2 60 -cw 3 60 -v1 5 -v2 5 cbUVcRepeats;\n\n                rowColumnLayout -numberOfRows 1;\n                        button -l \"OK\" -w 160 -c (\"cbCreateUVcheck (); deleteUI -window \" + $cbUVcheckWin + \";\");\n                        button -l \"Cancel\" -w 100 -c (\"deleteUI -window \" + $cbUVcheckWin + \";\");\n                setParent \"..\";\n\n     showWindow $cbUVcheckWin;\n   }\n}\n\nglobal proc int cbUVc_saveImg( string $filename,\n                                 string $fileType )\n{\n        optionVar -stringValue cbUVcRememberImg $filename;\n        textFieldGrp -e -tx $filename cbUVcImgCtrl;\n\tstring $currentDir = `workspace -q -dir`;\n    retainWorkingDirectory ($currentDir);\n\n\treturn true;\n}\n\nglobal proc cbUVc_getImg ()\n{\n    string  $workspace = `workspace -q -fn`;\n    setWorkingDirectory $workspace \"image\" \"textures\";\n\nfileBrowser (\"cbUVc_saveImg\", \"Get_Image\", \"image\", 0);\n}\n\n\n\nglobal proc cbUVc_uiChange()\n{\n\n                int $uvType = `optionMenuGrp -query -select cbUVcType`;\n                \tswitch($uvType)\n                \t{\n                \t\tcase 1:\n                                        textFieldGrp -e -en 1 cbUVcImgCtrl;\n                                        symbolButton -e -en 1 cbUVcImgIcon;\n\n                                        colorSliderGrp -e -en 0 cbUVcChecker1;\n                                        colorSliderGrp -e -en 0 cbUVcChecker2;\n                                break;\n                \t\tcase 2:\n                                        textFieldGrp -e -en 0 cbUVcImgCtrl;\n                                        symbolButton -e -en 0 cbUVcImgIcon;\n\n                                        colorSliderGrp -e -en 1 cbUVcChecker1;\n                                        colorSliderGrp -e -en 1 cbUVcChecker2;\n                                break;\n                        }\n\n}\n\nglobal proc cbCreateUVcheck ()\n{\n\t//Get info from UI.\n\tint $shdrType = `optionMenuGrp -query -select cbUVcType`;\n\tfloat $cbCheckerColorOne[] = `colorSliderGrp -q -rgb cbUVcChecker1`;\n\tfloat $cbCheckerColorTwo[] = `colorSliderGrp -q -rgb cbUVcChecker2`;\n\tfloat $cbrepUVOne = `floatFieldGrp -q -v1 cbUVcRepeats`;\n\tfloat $cbrepUVTwo = `floatFieldGrp -q -v2 cbUVcRepeats`;\n\n\t//Remember the selected objects.\n\t$sel = `ls -sl`;\n\n\t//Create and select the shader.\n\t// If cbUVcShader1SG exists.. increase # by 1.\n\tfor ($sgNum = 1; objExists (\"cbUVcShader\"+$sgNum+\"SG\"); $sgNum++ ){}\n\n\t    global string $shadername;\n\t    $shdr = `shadingNode -asShader \"lambert\"`;// -n \"cbUVcShader\"`;\n\t    $shdrSG = `sets -renderable true -noSurfaceShader true -empty -name (\"cbUVcShader\"+$sgNum+\"SG\")`;\n\t    connectAttr -f ($shdr+\".outColor\") ($shdrSG+\".surfaceShader\");\n\n\n\tif ($shdrType == 1)\n\t   {\n\t   $file = `shadingNode -asTexture file -n ($shdr + $sgNum + \"File\")`;\n\t   $placement = `shadingNode -asUtility place2dTexture -n ($shdr + $sgNum + \"place2d\")`;\n\n\t   connectAttr -f ($placement + \".outUV\") ($file + \".uvCoord\");\n\t   connectAttr -f ($placement + \".outUvFilterSize\") ($file + \".uvFilterSize\");\n\t   connectAttr -f ($placement + \".coverage\") ($file + \".coverage\");\n\t   connectAttr -f ($placement + \".translateFrame\") ($file + \".translateFrame\");\n\t   connectAttr -f ($placement + \".rotateFrame\") ($file + \".rotateFrame\");\n\t   connectAttr -f ($placement + \".mirrorU\") ($file + \".mirrorU\");\n\t   connectAttr -f ($placement + \".mirrorV\") ($file + \".mirrorV\");\n\t   connectAttr -f ($placement + \".stagger\") ($file + \".stagger\");\n\t   connectAttr -f ($placement + \".wrapU\") ($file + \".wrapU\");\n\t   connectAttr -f ($placement + \".wrapV\") ($file + \".wrapV\");\n\t   connectAttr -f ($placement + \".repeatUV\") ($file + \".repeatUV\");\n\t   connectAttr -f ($placement + \".vertexUvOne\") ($file + \".vertexUvOne\");\n\t   connectAttr -f ($placement + \".vertexUvTwo\") ($file + \".vertexUvTwo\");\n\t   connectAttr -f ($placement + \".vertexUvThree\") ($file + \".vertexUvThree\");\n\t   connectAttr -f ($placement + \".vertexCameraOne\") ($file + \".vertexCameraOne\");\n\t   connectAttr -f ($placement + \".noiseUV\") ($file + \".noiseUV\");\n\t   connectAttr -f ($placement + \".offset\") ($file + \".offset\");\n\t   connectAttr -f ($placement + \".rotateUV\") ($file + \".rotateUV\");\n\n\t   //connectAttr -f ($file + \".outColor\") cbUVcShader.color;\n\t   connectAttr -f ($file + \".outColor\") ($shdr + \".color\");\n\n\t   $imgFile = `textFieldGrp -q -tx cbUVcImgCtrl`;\n\t   setAttr -type \"string\" ($file + \".fileTextureName\") $imgFile;\n\n\t   setAttr ($placement + \".repeatU\") $cbrepUVOne;\n\tsetAttr ($placement + \".repeatV\") $cbrepUVTwo;\n\n\t}\n\tif ($shdrType == 2)\n\t   {\n\t   $checker = `shadingNode -asTexture checker -n ($shdr + $sgNum + \"Checker\")`;\n\t   $placement = `shadingNode -asUtility place2dTexture -n ($shdr + $sgNum + \"place2dChecker\")`;\n\n\t   connectAttr ($placement + \".outUV\") ($checker + \".uv\");\n\t   connectAttr ($placement + \".outUvFilterSize\") ($checker + \".uvFilterSize\");\n\n\t   setAttr ($checker + \".color1\") -type double3 $cbCheckerColorOne[0] $cbCheckerColorOne[1] $cbCheckerColorOne[2];\n\t   setAttr ($checker + \".color2\") -type double3 $cbCheckerColorTwo[0] $cbCheckerColorTwo[1] $cbCheckerColorTwo[2];\n\n\t   setAttr ($placement + \".repeatU\") $cbrepUVOne;\n\t   setAttr ($placement + \".repeatV\") $cbrepUVTwo;\n\n\t   //connectAttr -force ($checker + \".outColor\") cbUVcShader.color;\n\t   connectAttr -force ($checker + \".outColor\") ($shdr + \".color\");\n\n\t}\n\n\t    for ($i in $sel)\n\t\t{\n\t\t$type = `pickWalk -d down $i`;\n\n\t\tif (objectType($type) == \"mesh\" || objectType($type) == \"nurbsSurface\" || objectType($type) == \"subdiv\")\n\t\t   {\n\t\t   sets -e -forceElement $shdrSG $type;\n\t\t   }\n\t\t}\n\t    select $sel;\n}\n\nUVcheck();"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "global string $target_Obj[];\n\n\nproc targetSelect(){\n    global s..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "randomTool.png"
+        -image1 "randomTool.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "global string $target_Obj[];\n\n\nproc targetSelect(){\n    global string $target_Obj[];\n    string $sel[]=`ls -sl`;\n    $target_Obj = $sel;\n}\n\nproc randSelct(){\n    string $sel[] = `ls -sl`;\n    string $selObj[];\n    int $userValue = `intSliderGrp -q -v userPer`;\n    int $valueSize = size($sel) * ($userValue * 0.01), $i, $j, $randNum;\n\n    for($i = 0; $i < $valueSize; $i++){\n        $randNum = rand(0,size($sel));\n        $selObj[$i] = $sel[$randNum];\n        for($j = 0; $j < $i; $j++){\n            if($selObj[$j] == $sel[$randNum])\n            $i--;\n        }\n    select $selObj;\n    }\n}\n\nproc randApply(){\n    global string $target_Obj[];\n    string $selobj[];\n    $selobj = $target_Obj;\n    string $selvtx[] = `ls -sl -fl`;\n    for ($s in $selvtx){\n        float $pos[] = `xform -q -absolute -ws -piv $s`;\n        int $rand = rand(0,size($selobj));\n        select $selobj[$rand];\n        duplicate -rr;        \n        move -a $pos[0] $pos[1] $pos[2] $selobj[$rand];        \n        }        \n    }\n    \nproc UVCopy(){\n    global string $target_Obj[];\n    string $targetObj[];\n    $targetObj = $target_Obj;        \n    string $followerObj[] = `ls -sl`;\n    int $i, $j;\n    \n    for($i = 0; $i < size($followerObj); $i++){\n        $j = rand(0,size($targetObj));\n        polyTransfer -vc 0 -uv 1 -v 0 -ao $targetObj[$j] $followerObj[$i];\n    }\n}\n\n\nproc randomMoveOnVertex_window(){\n\tif (`window -exists win_randt`)\n\t\t    deleteUI win_randt;\n\n    window -title \"Random Tool\"\n           -maximizeButton 0\n\t\t   win_randt;\n    columnLayout -adj 1;\n                 intSliderGrp -label \"Random Select %\" -field true\n                        -minValue 0 -maxValue 99\n                        -fieldMinValue 0 -fieldMaxValue 10\n                        -value 20 userPer;                        \n                 button -label \"Random Select\" -c \"randSelct()\";                      \n                 button -label \"Target Select\" -c \"targetSelect()\";\n                 button -label \"Random Move On Vertex\" -c \"randApply()\";\n                 button -label \"Random UV Copy\" -c \"UVCopy()\";\n          \n\t\t\t\t\t\n    showWindow win_randt;\n}\n\nrandomMoveOnVertex_window ();"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "/* This file downloaded from Highend3d.com\n''  \n''  Highend3d.co..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "uvmover.PNG"
+        -image1 "uvmover.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "/* This file downloaded from Highend3d.com\n''  \n''  Highend3d.com File Information:\n''  \n''    Script Name: ks_UVTextureMover\n''    Author: knight.siy \n''    Last Updated: Jun 11, 2008\n''    Update/Change this file at:\n''    http://Highend3d.com/maya/downloads/plugins/texturing/2204.html\n''  \n''  Please do not alter any information above this line\n''  it is generated dynamically by Highend3d.com and will\n''  be changed automatically on any updates.\n*/\n//////////////////////////////////////////////\n//\t\t\t\t\t\t\t\t\t\t\t//\n//\tScript Name :\tks_UVTextureMover v1.0\t//\n//\t\t\t\t\t\t\t\t\t\t\t//\n//////////////////////////////////////////////\n//\n//\tCreation :\tJune, 2008\n//\tAuthor :\tK.S\n//\tContact :\tKnight.siy@hotmail.com\n//\n//\tDescription: \t1.This script could help you move the UV and textureImage in the textureEditWindow easily.\n//\t\t\t\t\t2.This script can help you create the snapshotUV in different UV range,and it will be auto count.\n//\t\t\t\t\t3.It is a simple script,not too much function in it.I realy want to make a easy tools to get the\n// \t\t\t\t balance between usability and function.\n//\n//\tUse: Put it in your maya script directory,and typing \"ks_UVTextureMover\" in the script editor.\n//\n///////////////////////////////////////////////\n//SnapshotNumber\nglobal int $ks_UTM_snapNumber = 0;\n//Function\nglobal proc ks_UVTextureMoverAction(int $comNumber){\n\tint $currentMode = `radioButtonGrp -q -select \"ks_UTM_rBG\"`;\n\tfloat $moveStep[] = `floatFieldGrp -q -v \"ks_UTM_fFG\"`;\n\tif($currentMode == 1){\n\t\tPolySelectConvert 4;\n\t\tswitch ($comNumber){\n\t\t\tcase 0://Up\n\t\t\t\tpolyEditUV -u 0 -v $moveStep[1];\n\t\t\tbreak;\n\t\t\tcase 1://Down\n\t\t\t\tpolyEditUV -u 0 -v (-1 * $moveStep[1]);\n\t\t\tbreak;\n\t\t\tcase 2://Left\n\t\t\t\tpolyEditUV -u (-1 * $moveStep[0]) -v 0;\n\t\t\tbreak;\n\t\t\tcase 3://Right\n\t\t\t\tpolyEditUV -u $moveStep[0] -v 0;\n\t\t\tbreak;\n\t\t\tcase 4://Center\n\t\t\t\tpolyNormalizeUV -normalizeType 1 -preserveAspectRatio on ;\n\t\t\t\tPolySelectConvert 4;\n\t\t\tbreak;\n\t\t}\n\t}\n\telse if($currentMode == 2){\n\t\tstring $texWinName[] = `getPanel -sty polyTexturePlacementPanel`;\n\t\tfloat $orgUV[] = `textureWindow -q -imageTileRange $texWinName[0]`;\n\t\tswitch ($comNumber){\n\t\t\tcase 0://Up\n\t\t\t\ttextureWindow -e -imageTileRange $orgUV[0] ($orgUV[1] + $moveStep[1]) $orgUV[2] ($orgUV[3] + $moveStep[1]) $texWinName[0];\n\t\t\tbreak;\n\t\t\tcase 1://Down\n\t\t\t\ttextureWindow -e -imageTileRange $orgUV[0] ($orgUV[1] - $moveStep[1]) $orgUV[2] ($orgUV[3] - $moveStep[1]) $texWinName[0];\n\t\t\tbreak;\n\t\t\tcase 2://Left\n\t\t\t\ttextureWindow -e -imageTileRange ($orgUV[0] - $moveStep[0]) $orgUV[1] ($orgUV[2] - $moveStep[0]) $orgUV[3] $texWinName[0];\n\t\t\tbreak;\n\t\t\tcase 3://Right\n\t\t\t\ttextureWindow -e -imageTileRange ($orgUV[0] + $moveStep[0]) $orgUV[1] ($orgUV[2] + $moveStep[0]) $orgUV[3] $texWinName[0];\n\t\t\tbreak;\n\t\t\tcase 4://Center\n\t\t\t\ttextureWindow -e -imageTileRange  0 0 1 1 $texWinName[0];\n\t\t\tbreak;\n\t\t\tcase 5://Snapshot\n\t\t\tglobal int $ks_UTM_snapNumber;\n\t\t\t\tint $snapReslu = `intField -q -v \"ks_UTM_iF\"`;\n\t\t\t\tstring $savePath = `workspace -q -rd` + \"sourceimages/\";\n\t\t\t\tstring $selUV[] = `ls -sl`;\n\t\t\t\tstring $UVNameString = \"\";\n\t\t\t\tstring $selObjArray[];\n\t\t\t\tfor($selUVSt in $selUV){\n\t\t\t\t\tstring $nameTokens[];\n\t\t\t\t\t$numTokens = `tokenize $selUVSt \".\" $nameTokens`;\n\t\t\t\t\tif($numTokens > 2){\n\t\t\t\t\t\twarning \"You NameSpace Is Illegal,Please Check It.\";\n\t\t\t\t\t}\n\t\t\t\t\t\t$UVNameString += ($nameTokens[0] + \" \");\n\t\t\t\t}\n\t\t\t\t$selObjArray = stringArrayRemoveDuplicates(stringToStringArray($UVNameString, \" \"));\n\t\t\t\tselect -r $selObjArray;\n\t\t\t\tuvSnapshot -aa -uMin $orgUV[0] -uMax $orgUV[2] -vMin $orgUV[1] -vMax $orgUV[3] -n ($savePath + \"snapshotUV_\" + $ks_UTM_snapNumber + \".tga\") -xr $snapReslu -yr $snapReslu -r 255 -g 255 -b 255 -o -ff tga;\n\t\t\t\t$ks_UTM_snapNumber ++;\n\t\t\tbreak;\n\t\t}\n\t\tfloat $orgUV[] = `textureWindow -q -imageTileRange $texWinName[0]`;\n\t\tprint (\"CurrentUVRange is \" + $orgUV[0] + \" \" + $orgUV[1] + \" \" + $orgUV[2] + \" \" + $orgUV[3] + \"\\n\");\n\t}\n}\n//UI\nglobal proc ks_UVTextureMover(){\n\tif (`window -q -ex ks_UVTextureMoverWin`) deleteUI ks_UVTextureMoverWin;\n\twindow -title \"ks_UVTextureMover v1.0\" -width 170 -h 190 ks_UVTextureMoverWin;\n\tstring $form = `formLayout`;\n\tradioButtonGrp -numberOfRadioButtons 2 -columnWidth2 50 50 -select 1 -labelArray2 \"UV\" \"Image\" \"ks_UTM_rBG\";\n\tstring $butUp = `button -l \"Up\" -c \"ks_UVTextureMoverAction 0\" -w 40\t-h 40`;\n\tstring $butDown = `button -l \"Down\" -c \"ks_UVTextureMoverAction 1\" -w 40\t-h 40`;\n\tstring $butLeft = `button -l \"Left\" -c \"ks_UVTextureMoverAction 2\" -w 40\t-h 40`;\n\tstring $butRight = `button -l \"Right\" -c \"ks_UVTextureMoverAction 3\" -w 40 -h 40`;\n\tstring $butCenter = `button -l \"O\" -c \"ks_UVTextureMoverAction 4\" -w 30 -h 30`;\n\tfloatFieldGrp -numberOfFields 2 -label \"Move Step\" -value1 1.0 -value2 1.0 -columnWidth3 70 40 40 \"ks_UTM_fFG\";\n\tintField -vis 0 -minValue 64 -maxValue 4096 -value 1024 \"ks_UTM_iF\";\n\tbutton -l \"Snapshot\" -vis 0 -c \"ks_UVTextureMoverAction 5\" \"ks_UTM_but\";\n\t//\n\tradioButtonGrp -e\n\t\t-onCommand1 \"floatFieldGrp -e -vis 1 ks_UTM_fFG;intField -e -vis 0 ks_UTM_iF;button -e -vis 0 ks_UTM_but;\"\n\t\t\t-onCommand2 \"floatFieldGrp -e -vis 0 ks_UTM_fFG;intField -e -vis 1 ks_UTM_iF;button -e -vis 1 ks_UTM_but;\"\n\t\t\t\t\"ks_UTM_rBG\";\n\t//\n\t\tformLayout -edit\n\t\t//$radChcoose\n\t\t\t-attachForm \"ks_UTM_rBG\" \"top\" 5\n\t\t\t-attachForm \"ks_UTM_rBG\" \"left\" 5\n\t\t//$butUp\n\t\t\t-attachForm $butUp \"top\" 25\n\t\t\t-attachForm $butUp \"left\" 70\n\t\t//$butDown\n\t\t\t-attachForm $butDown \"top\" 105\n\t\t\t-attachForm $butDown \"left\" 70\n\t\t//$butLeft\n\t\t\t-attachForm $butLeft \"top\" 65\n\t\t\t-attachForm $butLeft \"left\" 30\n\t\t//$butRight\n\t\t\t-attachForm $butRight \"top\" 65\n\t\t\t-attachForm $butRight \"left\" 110\n\t\t//$butCenter\n\t\t\t-attachForm $butCenter \"top\" 70\n\t\t\t-attachForm $butCenter \"left\" 75\n\t\t//$floatStep\n\t\t\t-attachForm \"ks_UTM_fFG\" \"top\" 155\n\t\t\t-attachForm \"ks_UTM_fFG\" \"left\" 5\n\t\t//$snapRes\n\t\t\t-attachForm \"ks_UTM_iF\" \"top\" 155\n\t\t\t-attachForm \"ks_UTM_iF\" \"left\" 20\n\t\t//$snapButton\n\t\t\t-attachForm \"ks_UTM_but\" \"top\" 155\n\t\t\t-attachForm \"ks_UTM_but\" \"left\" 100\n\t\t\t$form;\n\tshowWindow;\n}\n\nks_UVTextureMover()\n"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "polyEditUV -pu 0.5 -pv 0.5 -su -1 -sv 0 ;"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "uv_vu.PNG"
+        -image1 "uv_vu.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "polyEditUV -pu 0.5 -pv 0.5 -su -1 -sv 0 ;"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "Zebruv Unwrap UV Tool"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "ZUUT"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "zebruv_icon.PNG"
+        -image1 "zebruv_icon.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "zebruvUI()"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "global proc meshReorder_UI()\n{\n    string $winMemName = \"meshReo..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "meshRemap_icons.PNG"
+        -image1 "meshRemap_icons.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc meshReorder_UI()\n{\n    string $winMemName = \"meshReorder_UI\";\n    string $winTitle = \"Mesh Remap UI\";\n        \n    if(`window -exists $winMemName`)\n        deleteUI $winMemName;\n    else if(`windowPref -exists $winMemName`)\n        windowPref -r $winMemName;\n           \n    window -width 380 -height 100\n           -title $winTitle\n           -sizeable false $winMemName;\n    \n    frameLayout -w 380 -h 300\n                -label \"3 Source Vertices and 3 Target Vertices\";\n    \n        columnLayout -adjustableColumn true -rowSpacing 0;                 \n            textFieldButtonGrp -width 400 -height 70 \n                               -label \"Source Vertices : \"\n                               -buttonLabel \" Pick \"\n                               -buttonCommand \"pickSelect_source\"\n                               -columnWidth3 100 350 90\n                               pickedSourceName;\n                    \n            textFieldButtonGrp -width 400 -height 50\n                               -label \"Target Vertices : \"\n                               -buttonLabel \" Pick \"\n                               -buttonCommand \"pickSelect_target\"\n                               -columnWidth3 100 350 90\n                               pickedTargetName;   \n        \n        button -width 520 -height 30\n               -label \"Apply\"\n               -align \"center\"\n               -command \"meshRemapProc\";\n        \n    showWindow $winMemName;\n}\n\nproc pickSelect_source()\n{\n\tstring $sel_source[] = `ls -sl -fl`;\n\ttextFieldButtonGrp -e -tx ($sel_source[0]+\",\"+$sel_source[1]+\",\"+$sel_source[2]) pickedSourceName;\n\tselect -cl;\n}\n\nproc pickSelect_target()\n{\n\tstring $sel_target[] = `ls -sl -fl`;\n\ttextFieldButtonGrp -e -tx ($sel_target[0]+\",\"+$sel_target[1]+\",\"+$sel_target[2]) pickedTargetName;\n\tselect -cl;\n}\n\nproc meshRemapProc()\n{\n    string $sMeshVtx = `textFieldButtonGrp -q -tx pickedSourceName`;   \n    string $tMeshVtx = `textFieldButtonGrp -q -tx pickedTargetName`;\n    string $resultSource[];\n    string $resultTarget[];\n    string $tokeNum = `tokenize $sMeshVtx \",\" $resultSource`;    \n    string $tokeNum = `tokenize $tMeshVtx \",\" $resultTarget`;    \n    meshRemap $resultSource[0] $resultSource[1] $resultSource[2] $resultTarget[0] $resultTarget[1] $resultTarget[2];\n}\nmeshReorder_UI;\n"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "import sys\n\nscriptpath = 'N:/backstage/pub/apps/maya/2014/team/m..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "subtag.PNG"
+        -image1 "subtag.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import sys\n\nscriptpath = 'N:/backstage/pub/apps/maya/2014/team/modeling/win64/scripts'\n\nif not scriptpath in sys.path:\n\n    sys.path.append(scriptpath)\n\nimport dxSubdivTag\n\ndxSubdivTag.show_ui()\n"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "/*\n * stringReplace() - Given a main string str, looks for ALL o..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "name.PNG"
+        -image1 "name.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "/*\n * stringReplace() - Given a main string str, looks for ALL occurances\n *\tof $search, and replaces them with $replace.\n *\n *\tThis properly handles the replace string being similar or a part\n *\tof the search string, and handling multiple matches.\n */\nproc string stringReplace(string $str, string $search, string $replace)\n{\n    string $retstr = \"\";\n\n    \t// Sanity check please!\n    if ($search == \"\")\n        return $str;\n    \n    if ($str == \"\")\n        return $str;\n        \n        \n    int $len = size($str);\n    int $lenS = size($search);\n    \n    int $i, $j;\n    int $match;\n    \n    for ($i=1; $i <= $len; ++$i)\n        {\n\t$match = 0;\n\n\t// Now get substring from where we are currently\n\t// to the number of letters past of the length\n\t// of the search string.  Basically the same\n\t// length as the search string.  So if it is identical\n\t// we know we have a match.\n\t//\n\t// If not, we don't.  We also make sure we aren't\n\t// trying to look past the end of the string...\n\t//\n\t$j = $i + ($lenS - 1);\n\n\tif ($j <= $len)\n\t    {\n\t    string $part = `substring $str $i $j`;\n\t    if ($part == $search)\n\t        $match = 1;\n\t    }\n\t\n\tif ($match == 1)\n\t    {\n\t    $retstr += $replace; // we did it, so insert replace str\n\t    $i = $j;\t// skip forward\n\t    }\n\telse\n\t    {\n\t    string $char = `substring $str $i $i`;\n\t    $retstr += $char;\n\t    }\n\t}\n\n    return $retstr;\n\t\n}\n\n// --------------------------------------------------------------------------\n\n/*\n * getShortName() - Given a string, get last part after last | pipe.\n */\nproc string getShortName(string $obj)\n{\n    string $ret = \"\";\n    \n    if ($obj == \"\")\n        return $ret;\n        \n    string $parts[];\n    int $cnt = tokenize($obj, \"|\", $parts);\n    \n    if ($cnt <= 0)\n        $ret = $obj;\n    else\n        $ret = $parts[($cnt-1)];\n    \n    return $ret;\n}\n\n// --------------------------------------------------------------------------\n\n/*\n * chop() - Removes last char\n */\nproc string chop(string $str)\n{\n    string $ret = \"\";\n\n    int $cnt = size($str);\n    \n    if ($cnt <= 1)\n        return $ret;\n    \n    $ret = `substring $str 1 ($cnt-1)`;\n\n    return $ret;\n}\n\n// --------------------------------------------------------------------------\n\n/*\n * cR_doRename() - Does real work of renaming selected objects\n *\n *    $mode:  0=S&R 1=Pre 2=Suf 3=R&N\n */\nglobal proc cR_doRename(int $mode)\n{\n    string $objs[] = `ls -sl -long`;\n    int $objCnt = size($objs);\n    int $i;\n\n\t// Get all UI data...\n\t//\n    string $search = `textField -q -tx tfSearch`;\n    string $replace = `textField -q -tx tfReplace`;\n    string $prefix = `textField -q -tx tfPrefix`;\n    string $suffix = `textField -q -tx tfSuffix`;\n    string $rename = `textField -q -tx tfRename`;\n    int $start = `intField -q -v ifNumber`;\n    int $padding = `intField -q -v ifPadding`;\n    \n    string $shortName;\n    string $newShortName;\n    string $newName;\n\n\t// Now do it\n\t//\n    for ($i=0; $i < $objCnt; ++$i)\n        {\n\t$obj = $objs[$i];\n\t\n\t$shortName = getShortName($obj);\n\t\t\n\tswitch ($mode)\n\t    {\n\t    case 0:\n\t        if ($search == \"\")\n\t            {\n\t            warning -sl 0 (\"Can't search and replace, search entry field is blank!\");\n\t            return;\n\t            }\n\t        $newShortName = stringReplace($shortName, $search, $replace);\n\t        break;\n\n\t    case 1:\n\t        if ($prefix == \"\")\n\t            {\n\t            warning -sl 0 (\"Can't add prefix, prefix entry field is blank!\");\n\t            return;\n\t    \t    }\n\t        $newShortName = ($prefix + $shortName);\n\t        break;\n\n\t    case 2:\n\t        if ($suffix == \"\")\n\t            {\n\t            warning -sl 0 (\"Can't add suffix, suffix entry field is blank!\");\n\t            return;\n\t    \t    }\n\t        $newShortName = ($shortName + $suffix);\n\t        break;\n\n\t    case 3:\n\t        if ($rename == \"\")\n\t            {\n\t            warning -sl 0 (\"Can't rename and number, rename entry field is blank!\");\n\t            return;\n\t            }\n\t    \t\t// get index of string as user wants\n\t    \tint $n = $i + $start;\n\t    \t\t// pad of 0's\n\t    \tstring $padStr = \"\";\n\t    \t\n\t    \t\t// Add padding as needed\n\t    \tfor ($p=1; $p < $padding; ++$p)\n\t    \t    {\n\t\t    if ($n < pow(10, $p) )\n\t\t        $padStr += \"0\";\n\t\t    }\n\t    \t\n\t    \t$newShortName = ($rename+$padStr+$n);\n\t        break;\n\n\t    } // end of switch\n\t\t\n\t\n\t$newName = `rename $obj $newShortName`;\n\tselect -r $newName;\n\tstring $newLongNames[] = `ls -sl -long`;\n\tstring $newLongName = $newLongNames[0];\n\t\n\t    // Now update rest of stuff in list in case |long|names\n\t    // required it\n\tfor ($j=0; $j < $objCnt; ++$j)\n\t    {\n\t    string $tmp = $objs[$j];\n\n\t    $tmp += \"|\";\t// add to end for easy replacing\n\t    $tmp = `substitute ($obj+\"|\") $tmp (\"|\"+$newLongName+\"|\")`;\n\t    $tmp = chop($tmp);\n\t    \n\t    $objs[$j] = $tmp;\n\t    }\n\t\n\n\t}  // end of for all objs\n\n    select $objs;\n    \n}\n\n\n// --------------------------------------------------------------------------\n\n/*\n * cometRename() - Main UI entry.\n */\nglobal proc cometRename()\n{\n    if (`window -ex cometRenameWin` != true)\n        {\n\twindow -w 310 -h 360 -t (\"cometRename - 1.20\") -in \"cometRename\" -s true -tb true cometRenameWin;\n\n\tcolumnLayout cr_mainCol;\n\n\tseparator -style \"in\" -w 300 -h 8;\n\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 250;\n\t    text -l \"Search: \" -al \"right\";\n\t    textField -tx \"\" tfSearch;\n\t    setParent \"..\";\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 250;\n\t    text -l \"Replace: \" -al \"right\";\n\t    textField -tx \"\" tfReplace;\n\t    setParent \"..\";\n\tseparator -style \"none\" -w 300 -h 4;\n\tbutton -l \"Search And Replace\" -al \"center\" -w 300 -c (\"cR_doRename(0);\") -ann \"Searches for Search text and replaecs with Replace text.  Replace CAN be blank to remove text, or CAN be a part of or contain search string in it.\" butSearchReplace;\n\n\tseparator -style \"none\" -w 300 -h 10;\n\tseparator -style \"in\" -w 300 -h 8;\n\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 250;\n\t    text -l \"Prefix: \" -al \"right\";\n\t    textField -tx \"\" tfPrefix;\n\t    setParent \"..\";\n\tseparator -style \"none\" -w 300 -h 4;\n\tbutton -l \"Add Prefix\" -al \"center\" -w 300 -c (\"cR_doRename(1);\") -ann \"Adds prefix text in before current name of each object\" butPrefix;\n\n\n\tseparator -style \"none\" -w 300 -h 10;\n\tseparator -style \"in\" -w 300 -h 8;\n\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 250;\n\t    text -l \"Suffix: \" -al \"right\";\n\t    textField -tx \"\" tfSuffix;\n\t    setParent \"..\";\n\tseparator -style \"none\" -w 300 -h 4;\n\tbutton -l \"Add Suffix\" -al \"center\" -w 300 -c (\"cR_doRename(2);\") -ann \"Adds suffix text in after current name of each object\" butSuffix;\n\n\tseparator -style \"none\" -w 300 -h 10;\n\tseparator -style \"in\" -w 300 -h 8;\n\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 250;\n\t    text -l \"Rename: \" -al \"right\";\n\t    textField -tx \"\" tfRename;\n\t    setParent \"..\";\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 60;\n\t    text -l \"Start #: \" -al \"right\";\n\t    intField -v 1 -w 60 -min 0 ifNumber;\n\t    setParent \"..\";\n\trowColumnLayout -nc 2 -cw 1 50 -cw 2 60;\n\t    text -l \"Padding: \" -al \"right\";\n\t    intField -v 3 -w 60 -min 0 ifPadding;\n\t    setParent \"..\";\n\tseparator -style \"none\" -w 300 -h 4;\n\tbutton -l \"Rename And Number\" -al \"center\" -w 300 -c (\"cR_doRename(3);\") -ann \"Renames each object with the base rename text, then adds a number after each, with the specfied number of zero padding in front of the number\" butRenameNumber;\n\n\tseparator -style \"in\" -w 300 -h 8;\n\n\n\tshowWindow cometRenameWin;\n\t}\n    else\t// else just pop it up from being minimized again\n    \t{\n\tshowWindow cometRenameWin;\n\t}\n\n}\n\n\n// --------------------------------------------------------------------------\ncometRename;\n"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "string $selectedCurve[] = `ls -sl`;\nfor($x in $selectedCurve)\n{ ..."
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "/home/dayoung.lee/maya/2014-x64/prefs/icons/hair_cv.PNG"
+        -image1 "/home/dayoung.lee/maya/2014-x64/prefs/icons/hair_cv.PNG"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "string $selectedCurve[] = `ls -sl`;\nfor($x in $selectedCurve)\n{ \n    select ($x+\".cv[0]\");\n    float $position[3] = `pointPosition -w`;\n    move $position[0] $position[1] $position[2] ($x+\".scalePivot\") ($x+\".rotatePivot\");\n}\n"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "Export Mesh"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "EM"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "pythonFamily.png"
+        -image1 "pythonFamily.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "python(\"import dxAssetExport; dxAssetExport.show_ui()\")"
+        -sourceType "mel"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "AssetTool"
+        -enableBackground 0
+        -align "center"
+        -label "AssetTool"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "Asse"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.25
+        -image "pythonFamily.png"
+        -image1 "pythonFamily.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "python(\"import dxAssetTool; dxAssetTool.show_ui()\")"
+        -sourceType "mel"
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -align "center"
+        -label "LookdevTool"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "LkT"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "LookdevTool.png"
+        -image1 "LookdevTool.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import AssetLookdevTool.Main as Main; reload(Main); Main.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "AsR"
+        -enableBackground 0
+        -align "center"
+        -label "Asset_Renamer"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "AsR"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "AssetReName.png"
+        -image1 "AssetReName.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "scriptPath = '/dexter/Cache_DATA/ASSET/asset_scripts/dev/Asset_rename'\n\nimport sys\nif not scriptPath in sys.path:\n    sys.path.append(scriptPath)\n\nimport Asset_Rename\n\nAsset_Rename.Asset_Rename()\n"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "AsR"
+        -enableBackground 0
+        -align "center"
+        -label "GpuCache To ZGpuCache"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "ZpU"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "AssetReName.png"
+        -image1 "AssetReName.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import ConvertGPU; ConvertGPU.ChangeNode()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "AMS"
+        -enableBackground 0
+        -align "center"
+        -label "Append Material Set"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "AMS"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "AddMaterialSet.png"
+        -image1 "AddMaterialSet.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import MaterialSet; MaterialSet.autoAddMaterialSet()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "AMS"
+        -enableBackground 0
+        -align "center"
+        -label "Append Material Set"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -imageOverlayLabel "AMS"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "AddMaterialSet.png"
+        -image1 "AddMaterialSet.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import MaterialSet; MaterialSet.removeMaterialSet()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "DAC"
+        -enableBackground 0
+        -align "center"
+        -label "DxTexture Attribute Change"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "DxChangeIcon.jpeg"
+        -image1 "DxChangeIcon.jpeg"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import DXChange_final; DXChange_final.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "NPK"
+        -enableBackground 0
+        -align "center"
+        -label "UV Layout"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "PuzzlePieces.png"
+        -image1 "PuzzlePieces.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "import AutoUVLayout; AutoUVLayout.createUI('NPK_UV_LAYOUT_V.1.0')"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "NPK"
+        -enableBackground 0
+        -align "center"
+        -label "gpuControl"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "gpuControl.png"
+        -image1 "gpuControl.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from yeojin.Asset_gpuControlTool import Asset_gpuControlTool_v01; Asset_gpuControlTool_v01.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "NPK"
+        -enableBackground 0
+        -align "center"
+        -label "TaneControl"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "TaneControl.png"
+        -image1 "TaneControl.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from yeojin.Asset_TaneControlTool import Asset_TaneControlTool_v01; Asset_TaneControlTool_v01.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "NPK"
+        -enableBackground 0
+        -align "center"
+        -label "shaderSET"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "shaderSET.png"
+        -image1 "shaderSET.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from yeojin.Asset_shaderSET import Asset_shaderSET; Asset_shaderSET.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "NPK"
+        -enableBackground 0
+        -align "center"
+        -label "lightControl"
+        -labelOffset 0
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.2
+        -image "lightControl.png"
+        -image1 "lightControl.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from yeojin.Asset_RendermanLightControl import Asset_RendermanLightControl; Asset_RendermanLightControl.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "TextureVersionSetup"
+        -enableBackground 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "TextureVersionSetup"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -imageOverlayLabel "TvSet"
+        -overlayLabelColor 0 1 0
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "Mari.png"
+        -image1 "Mari.png"
+        -style "iconOnly"
+        -marginWidth 1
+        -marginHeight 1
+        -command "from TxVerSet import MainForm\nMainForm.main()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+}

@@ -1,0 +1,174 @@
+{
+    "DxTexture_common" :
+    {
+        "diffC" : {
+            "linearize" : 1,
+            "txchannel" : "diffC",
+            "output" : ".resultRGB",
+            "connections" : ["DxGrade"],
+            "color" : [1.0, 0.0, 1.0],
+            "arrive" : {
+                        "PxrSurface" : [".diffuseColor"]
+                        }
+        },
+
+        "specG" : {
+            "linearize" : 0,
+            "txchannel" : "specG",
+            "output": ".resultRGB",
+            "connections" : ["DxGrade"],
+            "color" : [1.0, 0.0, 1.0],
+            "arrive" : {
+                        "PxrSurface" : [".specularFaceColor", ".specularEdgeColor"]
+
+                        }
+        },
+
+        "specC" : {
+            "linearize" : 0,
+            "txchannel" : "specC",
+            "output": ".resultRGB",
+            "connections" : ["DxGrade"],
+            "color" : [1.0, 0.0, 1.0],
+            "arrive" : {
+                        "PxrSurface" : [".specularFaceColor", ".specularEdgeColor"]
+
+                        }
+        },
+
+        "trans" : {
+            "linearize" : 0,
+            "txchannel" : "trans",
+            "output": ".resultRGB",
+            "connections" : ["DxGrade", "PxrToFloat"],
+            "color" : [1.0, 0.0, 1.0],
+            "arrive" : {
+                        "PxrSurface" : [".presence"]
+                        }
+        },
+
+        "specR" : {
+            "linearize" : 0,
+            "txchannel" : "specG",
+            "output" : ".resultRGB",
+            "connections" : ["DxGrade", "PxrToFloat"],
+            "color" : [1.0, 0.0, 1.0],
+            "arrive" : {
+                        "PxrSurface" : [".specularRoughness", ".roughSpecularRoughness" ]
+                        }
+        },
+
+        "norm" : {
+            "linearize" : 0,
+            "txchannel" : "norm",
+            "output" : ".resultRGB",
+            "connections" : ["PxrNormalMap"],
+            "color" : [0.5, 0.5, 1.0],
+            "arrive" : {
+                        "PxrSurface" : [".bumpNormal"]
+                        }
+
+        },
+
+        "bump" : {
+            "linearize" : 0,
+            "txchannel" : "bump",
+            "output" : ".resultRGB",
+            "connections" : ["DxGrade", "PxrToFloat", "PxrBump"],
+            "color" : [0.0, 0.0, 0.0],
+            "arrive" : {
+                        "PxrSurface" : [".diffuseBumpNormal", ".specularBumpNormal", ".roughSpecularBumpNormal"]
+                        }
+
+        },
+
+        "disF" : {
+            "linearize" : 0,
+            "txchannel" : "disF",
+            "output" : ".resultRGB",
+            "connections" : ["PxrToFloat", "PxrDisplace"],
+            "color" : [0.0, 0.0, 0.0],
+            "arrive" : {
+                        "SG" : ["_SG.displacementShader"]
+                        }
+        },
+
+        "disI" : {
+            "linearize" : 0,
+            "txchannel" : "disI",
+            "output" : ".resultRGB",
+            "connections" : ["PxrToFloat", "PxrDispTransform", "PxrDisplace"],
+            "color" : [0.0, 0.0, 0.0],
+            "arrive" : {
+                        "SG" : ["_SG.displacementShader"]
+                        }
+        },
+        
+        "disV" : {
+            "linearize" : 0,
+            "txchannel" : "disV",
+            "output" : ".resultRGB",
+            "connections" : ["PxrDispTransform", "PxrDisplace"],
+            "color" : [0.0, 0.0, 0.0],
+            "arrive" : {
+                        "SG" : ["_SG.displacementShader"]
+                        }
+        }
+    },
+
+    "Utility_common" : {
+
+        "DxGrade" : {
+            "default" : {
+                "input" : ".inputRGB",
+                "output" : ".resultRGB"
+            }
+        },
+
+        "PxrToFloat" : {
+            "default" : {
+                "input" : ".input",
+                "output" : ".resultF"
+            }
+        },
+        
+        "PxrDisplace" : {
+            "disV" : {
+                "input" : ".dispVector",
+                "output" : ".outColor"
+            },
+            "default" : {
+                "input" : ".dispScalar",
+                "output" : ".outColor"
+            }
+        },
+        
+        "PxrDispTransform" : {
+            "disV" : {
+                "dispType" : 3,
+                "input" : ".dispVector",
+                "output" : ".resultXYZ"
+            },
+            "default" : {
+                "input" : ".dispScalar",
+                "output" : ".resultF"
+            }
+        },
+
+        "PxrNormalMap" : {
+            "default" : {
+                "input" : ".inputRGB",
+                "output" : ".resultN"
+            }
+        },
+
+        "PxrBump" : {
+            "default" : {
+                "input" : ".inputBump",
+                "output" : ".resultN"
+            }
+        }
+    }
+
+
+}

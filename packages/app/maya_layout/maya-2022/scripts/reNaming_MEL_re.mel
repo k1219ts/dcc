@@ -1,0 +1,460 @@
+//shortName = reN
+//scriptExplain = renaming
+//priority = 0520
+
+
+// by Kyounan
+// kgncj@nate.com
+// reNaming_MEL
+
+
+
+global proc KNF_reNaming_MEL(){
+
+	string $KNF_reNaming_n = "RE_NAMING";
+
+	if(`window -exists $KNF_reNaming_n`)
+	deleteUI $KNF_reNaming_n;
+
+	window -t "Re Naming MEL" $KNF_reNaming_n;
+
+
+	string $form = `formLayout`;
+	
+	
+	string $KNF_reN_textField	= `textFieldGrp -label "Input String : " -text "" reNaming_UI`;
+	
+	
+	string $KNF_reN_radioButtonGrpA = `radioButtonGrp -numberOfRadioButtons 4 
+//								-cat 1 left 5
+								-cc KNF_ccOptionMenu
+								-labelArray4 "Re Name" "Replace" "Add prefix" "Add postfix" -sl 1 KNF_reN_radioButtonGrp1`;
+		
+	string $KNF_reN_buttonA = `button -h 30 -w 250 -label "EXCUTE" -c KNF_reN_Excute`;
+		
+	string $KNF_reN_buttonB = `button -h 30 -w 250 -label "CANCLE" -command ("deleteUI -window " + $KNF_reNaming_n)`;
+
+	string $KNF_reN_checkBoxA = `checkBox -label "AutoGroup(Just Rename in BF)"  -align "left" -enable 0 -v 0 KNF_reN_checkboxAUI`;
+	string $KNF_reN_checkBoxB = `checkBox -label "Fix Padding Number"   -align "left" -cc KNF_reN_ccCheckboxB -v 1 KNF_reN_checkboxBUI`;
+	string $KNF_reN_intSliderA = `intSliderGrp -field true -minValue 3 -maxValue 8 -value 3 -enable 1 KNF_reN_intSliderAUI`;
+
+
+	optionMenu -label "Name Type :" -cc KNF_ccOptionMenu KNF_whichNameType;
+		menuItem -label "Done";
+		menuItem -label "geo";
+		menuItem -label "shp";
+		menuItem -label "lgt";
+		menuItem -label "anm";
+		menuItem -label "bon";
+		menuItem -label "cam";
+		menuItem -label "grp";
+		menuItem -label "con";
+		menuItem -label "msc";
+		
+
+	
+	string $fgtextA = `text -label "By KKN                                        5:36pm, 17/06/10"	-align "left"	-font "smallPlainLabelFont"`;
+	string $fgtextB = `text -label "V 0.3.0"   						-align "right"	-font "smallPlainLabelFont"`;
+	string $fgseparatorA = `separator`;
+
+
+	formLayout -edit
+		-attachForm     $KNF_reN_textField	"top"	10
+		-attachForm     $KNF_reN_textField	"left"		1
+		
+		-attachForm		KNF_whichNameType	"top"	10
+		-attachControl		KNF_whichNameType	"left"		10	$KNF_reN_textField
+		
+		
+		
+ 		-attachControl     $KNF_reN_radioButtonGrpA	"top"	10	$KNF_reN_textField
+		-attachForm     $KNF_reN_radioButtonGrpA	"left"		70
+		
+		
+		
+		-attachControl     $KNF_reN_buttonA	"top"	10	$KNF_reN_radioButtonGrpA
+		-attachForm     $KNF_reN_buttonA	"left"		20
+//		-attachForm     $KNF_reN_buttonA	"right"	20
+		
+		
+		-attachControl     $KNF_reN_buttonB	"top"	10	$KNF_reN_buttonA
+		-attachForm     $KNF_reN_buttonB	"left"		20
+//		-attachForm     $KNF_reN_buttonB	"right"	20
+		
+		-attachControl     $KNF_reN_checkBoxA	"top"	10	$KNF_reN_radioButtonGrpA
+		-attachControl     $KNF_reN_checkBoxA	"left"		20	$KNF_reN_buttonA
+
+		-attachControl     $KNF_reN_checkBoxB	"top"	5	$KNF_reN_checkBoxA
+		-attachControl     $KNF_reN_checkBoxB	"left"		20	$KNF_reN_buttonA
+
+		-attachControl     $KNF_reN_intSliderA	"top"	5	$KNF_reN_checkBoxB
+		-attachForm     $KNF_reN_intSliderA		"right"	20	
+
+
+		-attachForm     $fgtextA			"bottom"	2
+		-attachForm     $fgtextA			"left"		5
+		-attachForm     $fgtextB			"bottom"	2
+		-attachForm     $fgtextB			"right"	5
+		-attachForm     $fgseparatorA		"bottom"	20
+		-attachForm     $fgseparatorA		"left"		5
+		-attachForm     $fgseparatorA		"right"	5
+
+	$form;
+
+	showWindow $KNF_reNaming_n;
+	
+	window -e -wh 550 180 $KNF_reNaming_n;
+	
+}
+
+global proc KNF_reN_ccCheckboxB(){
+	
+	intSliderGrp -edit -enable `checkBox -q -v KNF_reN_ccCheckboxBUI` KNF_reN_intSliderAUI;
+}
+
+
+global proc KNF_ccOptionMenu(){
+
+	if(`radioButtonGrp -q -sl KNF_reN_radioButtonGrp1` != 1 || `optionMenu -q -v KNF_whichNameType` == "Done" || `optionMenu -q -v KNF_whichNameType` == "grp" || `optionMenu -q -v KNF_whichNameType` == "bon")
+	{
+		checkBox -edit -v 0 -enable 0 KNF_reN_checkboxAUI;
+	}
+	else
+	{
+		checkBox -edit -enable 1 KNF_reN_checkboxAUI;
+	}
+
+	if(`radioButtonGrp -q -sl KNF_reN_radioButtonGrp1` != 1)
+	{
+		checkBox -edit -enable 0 KNF_reN_checkboxBUI;
+		intSliderGrp -edit -enable 0 KNF_reN_intSliderAUI;
+	}
+	else
+	{
+		checkBox -edit -enable 1 KNF_reN_checkboxBUI;
+		intSliderGrp -edit -enable 1 KNF_reN_intSliderAUI;
+	}
+}
+
+global proc KNF_reN_Excute(){
+
+	int $copy_what_number = `radioButtonGrp -q -sl KNF_reN_radioButtonGrp1`;
+	
+	string $KNF_inputString = `textFieldGrp -q -tx  reNaming_UI`;
+
+  	if ($copy_what_number == 0)
+	{
+		error_window_notSelectWhat();
+	}
+
+	else
+	{
+		switch ($copy_what_number)
+		{
+			case 1:
+				KNF_reNaming($KNF_inputString);
+				break;
+			case 2:
+				KNF_substituteName($KNF_inputString);
+				break;
+			case 3:
+				KNF_addPrefix($KNF_inputString);
+				break;
+			case 4:
+				KNF_addPostfix($KNF_inputString);
+				break;	
+
+		}
+	}
+}
+
+global proc KNF_addPrefix(string $KNF_change_Name){
+
+	string $KNF_ori_Name[] = `ls -l -sl`;
+	int $KNF_obj_number = size($KNF_ori_Name);
+
+//	$KNF_change_Name = `textFieldGrp -q -tx  reNaming_UI`;
+
+	string $KNF_temp_Name[];
+	
+	
+	if ($KNF_change_Name == "")
+	{
+		KNF_error_window_rename();
+	}
+	
+	else
+	{
+		
+		for ($j = $KNF_obj_number ; $j > 0 ; $j--)
+		{
+
+			string $KNF_reN_tempArr[];
+			$KNF_reN_tempArr = stringToStringArray($KNF_ori_Name[$j-1], "|");
+			
+
+			int $KNF_reN_tempInt = size($KNF_reN_tempArr)-1;
+	
+			$KNF_temp_Name[$j] = $KNF_reN_tempArr[$KNF_reN_tempInt];
+			
+			rename $KNF_ori_Name[$j-1] ($KNF_change_Name + $KNF_temp_Name[$j]);
+			
+		}
+
+		clear $KNF_ori_Name;
+		clear $KNF_temp_Name;
+
+	}
+}
+
+
+global proc KNF_addPostfix(string $KNF_change_Name){
+
+	string $KNF_ori_Name[] = `ls -l -sl`;
+	int $KNF_obj_number = size($KNF_ori_Name);
+
+//	string $KNF_change_Name = `textFieldGrp -q -tx  reNaming_UI`;
+
+	string $KNF_temp_Name[];
+	
+	
+	if ($KNF_change_Name == "")
+	{
+		KNF_error_window_rename();
+	}
+	
+	else
+	{
+		
+		for ($j = $KNF_obj_number ; $j > 0 ; $j--)
+		{
+
+			string $KNF_reN_tempArr[];
+			$KNF_reN_tempArr = stringToStringArray($KNF_ori_Name[$j-1], "|");
+			
+
+			int $KNF_reN_tempInt = size($KNF_reN_tempArr)-1;
+	
+			$KNF_temp_Name[$j] = $KNF_reN_tempArr[$KNF_reN_tempInt];
+			
+			rename $KNF_ori_Name[$j-1] ($KNF_temp_Name[$j] + $KNF_change_Name);
+			
+		}
+
+		clear $KNF_ori_Name;
+		clear $KNF_temp_Name;
+
+	}
+}
+
+global proc KNF_substituteName(string $KNF_change_Name){
+
+	string $KNF_ori_Name[] = `ls -l -sl`;
+	int $KNF_obj_number = size($KNF_ori_Name);
+
+//	string $KNF_change_Name = `textFieldGrp -q -tx  reNaming_UI`;
+
+	string $KNF_temp_Name[];
+	
+	
+	if ($KNF_change_Name == "")
+	{
+		KNF_error_window_rename();
+	}
+	
+	else
+	{
+		
+		for ($j = $KNF_obj_number ; $j > 0 ; $j--)
+		{
+
+			string $KNF_reN_tempArrA[];
+			string $KNF_reN_tempArrB[];
+			
+			$KNF_reN_tempArrA = stringToStringArray($KNF_ori_Name[$j-1], "|");
+			
+
+			int $KNF_reN_tempInt = size($KNF_reN_tempArrA)-1;
+			$KNF_temp_Name[$j] = $KNF_reN_tempArrA[$KNF_reN_tempInt];
+
+
+			$KNF_reN_tempArrB = stringToStringArray($KNF_change_Name, " ");	
+			
+			string $KNF_reN_result = substituteAllString($KNF_temp_Name[$j] , $KNF_reN_tempArrB[0], $KNF_reN_tempArrB[1]);
+			
+			rename $KNF_ori_Name[$j-1] $KNF_reN_result;
+			
+		}
+
+		clear $KNF_ori_Name;
+		clear $KNF_temp_Name;
+
+	}
+
+}
+
+
+
+global proc KNF_reNaming(string $KNF_change_Name){
+
+	string $KNF_ori_Name[] = `ls -sl`;
+	int $KNF_obj_number = size($KNF_ori_Name);
+	string $KNF_temp_Name[];
+	string $KNF_nameType = `optionMenu -q -v KNF_whichNameType`;
+
+
+
+
+	if($KNF_nameType != "Done")
+	{
+		$KNF_change_Name = $KNF_nameType + "_" + $KNF_change_Name;
+	}
+
+
+
+
+	string $Kyou_existsNameTemp[];
+	string $Kyou_removedSelection[];
+	string $Kyou_existsName[];
+	string $Kyou_lastName[];
+
+
+
+	if ($KNF_change_Name == "")
+	{
+		KNF_error_window_rename();
+	}
+	
+	else
+	{
+		if ($KNF_obj_number == 1)
+		{
+			rename $KNF_ori_Name[0] $KNF_change_Name;
+		}
+		else
+		{
+			int $Kyou_lastNumber;
+
+			if (`objExists ($KNF_change_Name+ "*")` == 1)
+			{
+				$Kyou_existsNameTemp = `ls ($KNF_change_Name+ "*")`;
+				$Kyou_existsNameTemp = stringArrayRemove(`ls -s ($KNF_change_Name+ "*")`, $Kyou_existsNameTemp);
+								
+				$Kyou_removedSelection = stringArrayRemove($KNF_ori_Name, $Kyou_existsNameTemp);
+				$Kyou_existsName = sort($Kyou_removedSelection);
+				$Kyou_lastName  = stringToStringArray($Kyou_existsName[size($Kyou_existsName)-1], "_");
+
+				$Kyou_lastNumber = $Kyou_lastName[size($Kyou_lastName)-1];
+				
+				
+			}
+			else
+			{
+				$Kyou_lastNumber = 0;
+			}
+
+	
+			for ($j = ($KNF_obj_number+$Kyou_lastNumber) ; $j > $Kyou_lastNumber  ; $j--)
+			{
+				int $KNF_reN_numberA;
+				string $KNF_zeroNum;
+				
+				if (`checkBox -q -v KNF_reN_checkboxBUI` == 0)
+				{
+					string $KNF_reN_numStringA = $KNF_obj_number;
+					$KNF_reN_numberA = sizeBytes($KNF_reN_numStringA);
+					$KNF_zeroNum = "0";
+				}
+				else
+				{
+					$KNF_reN_numberA = `intSliderGrp -q -v KNF_reN_intSliderAUI`;
+					$KNF_zeroNum = "";
+				}
+								
+				string $KNF_reN_numStringB = $j;
+				
+				int $KNF_reN_numberB = sizeBytes($KNF_reN_numStringB);			
+				
+		
+				
+				int $KNF_reN_numberC = $KNF_reN_numberA - $KNF_reN_numberB;
+				
+				for($KNF_temp_i = 0 ; $KNF_temp_i < $KNF_reN_numberC ; $KNF_temp_i++)
+				{
+					$KNF_zeroNum = $KNF_zeroNum + "0";
+				}
+
+
+				
+				if ($KNF_ori_Name[$j-$Kyou_lastNumber-1] != ($KNF_change_Name+ "*"))
+				{
+					rename $KNF_ori_Name[$j-$Kyou_lastNumber-1] ($KNF_change_Name + "_" + $KNF_zeroNum + $KNF_reN_numStringB);
+				}
+			}
+		}
+		
+		clear $KNF_ori_Name;
+		clear $KNF_temp_Name;
+
+	}
+	
+// Auto Grouping	
+	if (`checkBox -q -v KNF_reN_checkboxAUI` == 1)
+	{
+	
+		string $tempSSS[] = stringToStringArray($KNF_change_Name , "_");
+		
+		group -name ("grp_" + $tempSSS[1]);
+		
+	}
+	
+}
+
+
+global proc KNF_error_window_rename(){
+
+
+	string $KNF_NULL_Error = "null_Error";
+
+	if(`window -exists $KNF_NULL_Error`)
+		deleteUI $KNF_NULL_Error;
+
+	window -w 100 -h 100 -t "ERROR" $KNF_NULL_Error;
+	columnLayout -adjustableColumn true -rowSpacing 5;
+
+		text -label "Not entered Name" -align "center" -bgc 1 0 0;
+
+		button -w 50 -h 30 -label "O    K" -command ("deleteUI -window " + $KNF_NULL_Error);
+	
+	window -e -w 150 -h 90 -t "ERROR" $KNF_NULL_Error;
+
+	showWindow $KNF_NULL_Error;
+
+}
+
+
+
+
+global proc error_window_notSelectWhat(){
+
+
+	string $NS_what_Error = "NS_what_Error";
+
+	if(`window -exists $NS_what_Error`)
+		deleteUI $NS_what_Error;
+
+	window -w 100 -h 100 -t "ERROR" $NS_what_Error;
+	columnLayout -adjustableColumn true -rowSpacing 5;
+
+		text -label "Select Type" -align "center" -bgc 1 0 0;
+
+		button -w 50 -h 30 -label "O    K" -command "deleteUI NS_what_Error";
+
+	window -e -s 0 -w 150 -h 70 -t "ERROR" $NS_what_Error;
+
+	showWindow $NS_what_Error;
+
+}
+
+
+KNF_reNaming_MEL();

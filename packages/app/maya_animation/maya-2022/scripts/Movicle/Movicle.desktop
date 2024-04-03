@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Encoding=UTF-8
+Name=Movicle
+Comment=convertMovies
+Exec="/netapp/backstage/pub/apps/maya2/versions/2016.5/team/animation/linux/scripts/Movicle/Movicle.sh"
+Type=Application
+Terminal=true
+Categories=Utility;AudioVideo
+Name[en_US]=Movicle

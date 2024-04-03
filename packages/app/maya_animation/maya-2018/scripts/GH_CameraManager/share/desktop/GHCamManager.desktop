@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=CameraManager
+Comment=CameraManager
+Icon=/backstage/dcc/packages/app/maya_animation/maya-2018/scripts/GH_CameraManager/icons/camera.svg
+Exec="/backstage/dcc/packages/app/maya_animation/maya-2018/scripts/GH_CameraManager/bin/GHCamManager"
+Type=Application
+Terminal=false
+Categories=dexter

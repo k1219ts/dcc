@@ -1,0 +1,252 @@
+// ============================
+// MENUS
+// ============================
+
+proc addBackstageMenus()
+{
+    global string $gMainWindow;
+
+    string $backstageMainMenu       = "backstage_mainMenu";
+    string $commonMenu              = "backstage_commonMenu";
+    string $layoutMenu              = "backstage_layoutMenu";
+    string $previsMenu              = "backstage_previsMenu";
+    string $matchmoveMenu           = "backstage_matchmoveMenu";
+    string $assetMenu				= "backstage_assetMenu";
+    string $riggingMenu             = "backstage_riggingMenu";
+    string $animationMenu           = "backstage_animationMenu";
+    string $lightingMenu            = "backstage_lightingMenu";
+    string $fxMenu                  = "backstage_fxMenu";
+
+    // main menu
+    setParent $gMainWindow;
+    menu -label (uiRes("m_backstageInitUI.kBackstageMenuTitle")) -to true -familyImage "menuIconBackstage.png" $backstageMainMenu;
+
+    menuItem -label "Open FileBrowser"
+             -command ("python(\"import dplCommon; dplCommon.openNautilus()\")");
+    // submenu
+    menuItem -subMenu true -label (uiRes("m_backstageInitUI.kCommon")) -to true -familyImage "backstage_common.png" $commonMenu;
+        menuItem -label "Spanner2"
+                 -command ("python(\"import Spanner2.main as main; main.main()\")");
+        menuItem -label "AnimBrowser"
+                 -command ("python(\"import AnimBrowser.Main as Main; Main.main()\")");
+
+    setParent -m ..;
+
+    menuItem -divider 1;
+
+	//-----------------------------------------------------------------------------
+	// for pipe-line menu
+	/*
+    menuItem -label "USD xBlock" -sm true -to true -aob true;
+        menuItem -label "Import ReferenceAssembly" -command ("python(\"import xbUtils; xbUtils.ImportPxrReferenceDialog()\")");
+        menuItem -label "Import PxrProxy" -command ("python(\"import xbUtils; xbUtils.ImportPxrProxyDialog()\")");
+        menuItem -label "ReferenceAssembly Collapsed" -command ("python(\"import xbUtils; xbUtils.extra.pxrCollapsed()\")");
+        menuItem -label "ReferenceAssembly Reload" -command ("python(\"import dxsUsd.dxsMayaUtils; dxsUsd.dxsMayaUtils.ReloadReferenceAssembly()\")");
+        menuItem -divider 1;
+        menuItem -label "Import UsdGeom" -command ("python(\"import xbUtils; xbUtils.UsdImportDialog()\")");
+        menuItem -label "Merge UsdGeom" -command ("python(\"import xbUtils; xbUtils.UsdMergeDialog()\")");
+        menuItem -divider 1;
+        menuItem -label "Update Attribute" -command ("python(\"import xbUtils; xbUtils.extra.updateAttribute()\")");
+        menuItem -label "Setup TimeOffset" -command ("python(\"from dxsUsdUI.timeOffsetTool import OffsetSetupMain; OffsetSetupMain.main()\")");
+        menuItem -label "Add TimeOffset" -command ("python(\"import dxsUsd.dxsMayaUtils; dxsUsd.dxsMayaUtils.ConnectTimeOffset()\")");
+        menuItem -label "Connection Clips" -command ("python(\"import dxsUsd; dxsUsd.ClipEdit().doIt()\")");
+    setParent -m ..;
+    */
+
+	menuItem -label "SceneGraph" -sm true -to true -aob true;
+		menuItem -label "Export Alembic"
+				 -command ("python(\"import sgUI; sgUI.exportAlembicFileDialog()\")");
+		menuItem -divider 1;
+		menuItem -label "Merge Alembic"
+				 -command ("python(\"import sgUI; sgUI.mergeAlembicFileDialog()\")");
+		menuItem -label "Import Component by Files"
+				 -command ("python(\"import sgUI; sgUI.importComponentFileDialog()\")");
+		menuItem -label "Import Component by Directory"
+				 -command ("python(\"import sgUI; sgUI.importComponentDirDialog()\")");
+		menuItem -label "Import Component by JSON"
+				 -command ("python(\"import sgUI; sgUI.importComponentJsonDialog()\")");
+		menuItem -divider 1;
+		menuItem -label "Import Assembly"
+				 -command ("python(\"import sgUI; sgUI.importAssemblyFileDialog()\")");
+		menuItem -label "Export Assembly"
+				 -command ("python(\"import sgUI; sgUI.exportAssemblyFileDialog()\")");
+//		menuItem -label "Export ZENV to Assembly"
+//				 -command ("python(\"import sgUI; sgUI.exportZEnvToAssemblyFileDialog()\")");
+		menuItem -label "Export ZENN to Assembly"
+				 -command ("python(\"import sgUI; sgUI.exportZennToAssemblyFileDialog()\")");
+		menuItem -divider 1;
+//		menuItem -label "Import Camera"
+//				 -command ("python(\"import dxCameraUI; dxCameraUI.importCameraDialog()\")");
+		menuItem -label "Import Camera"
+				 -command ("python(\"import dxCameraImporter; dxCameraImporter.showUI()\")");
+//		menuItem -label "Export Camera"
+//				 -command ("python(\"import dxCameraUI; dxCameraUI.exportCameraDialog()\")");
+		menuItem -label "Export Camera"
+				 -command ("python(\"import dxCameraExporter; dxCameraExporter.showUI()\")");
+	setParent -m ..;
+	menuItem -divider 1;
+	//-----------------------------------------------------------------------------
+
+
+    menuItem -subMenu true -label (uiRes("m_backstageInitUI.kPrevis")) -to true -familyImage "backstage_previs.png" $previsMenu;
+    menuItem -label (uiRes("m_backstageInitUI.kPrevisShelf"))
+        -annotation (uiRes("m_backstageInitUI.kPrevisShelfAnnot"))
+        -command ( "reloadShelf(\"Previs\")" )
+        -image "backstage_previsShelf.png"
+        backstage_previsShelfItem;
+    setParent -m ..;
+
+
+	//-----------------------------------------------------------------------------
+	// Asset
+	global string $dxAssetMenu;
+	$dxAssetMenu = `menuItem
+						-subMenu true
+						-label (uiRes("m_backstageInitUI.kAsset"))
+						-to true
+						-familyImage "backstage_asset.png"
+						$assetMenu`;
+	menuItem -label (uiRes("m_backstageInitUI.kAssetShelf"))
+			 -annotation (uiRes("m_backstageInitUI.kAssetShelfAnnot"))
+			 -command ( "reloadShelf(\"Asset\")" )
+			 -image "backstage_assetShelf.png"
+			 backstage_assetShelfItem;
+	setParent -m ..;
+
+
+	//-----------------------------------------------------------------------------
+	// Matchmove
+	global string $dxMatchmoveMenu;
+	$dxMatchmoveMenu = `menuItem
+						-subMenu true
+						-label (uiRes("m_backstageInitUI.kMatchmove"))
+						-to true
+						-familyImage "backstage_matchmove.png"
+						$matchmoveMenu`;
+	menuItem -label (uiRes("m_backstageInitUI.kMatchmoveShelf"))
+		-annotation (uiRes("m_backstageInitUI.kMatchmoveShelfAnnot"))
+		-command ( "reloadShelf(\"Matchmove\")" )
+		-image "backstage_matchmoveShelf.png"
+		backstage_matchmoveShelfItem;
+	setParent -m ..;
+
+
+	//-----------------------------------------------------------------------------
+	//	Rigging
+    global string $dxRiggingMenu;
+	$dxRiggingMenu = `menuItem
+						-subMenu true
+						-label (uiRes("m_backstageInitUI.kRigging"))
+						-to true
+						-familyImage "backstage_rigging.png"
+						$riggingMenu`;
+    menuItem -label (uiRes("m_backstageInitUI.kRiggingShelf"))
+        -annotation (uiRes("m_backstageInitUI.kRiggingShelfAnnot"))
+        -command ( "reloadShelf(\"Rigging\")" )
+        -image "backstage_riggingShelf.png"
+        backstage_riggingShelfItem;
+    setParent -m ..;
+
+
+	//-----------------------------------------------------------------------------
+	//	Animation
+	global string $dxAnimationMenu;
+	$dxAnimationMenu = `menuItem
+							-subMenu true
+							-label (uiRes("m_backstageInitUI.kAnimation"))
+							-to true
+							-familyImage "backstage_animation.png"
+							$animationMenu`;
+    menuItem -label (uiRes("m_backstageInitUI.kAnimationShelf"))
+        -annotation (uiRes("m_backstageInitUI.kAnimationShelfAnnot"))
+        -command ( "reloadShelf(\"Animation\")" )
+        -image "backstage_animationShelf.png"
+        backstage_animationShelfItem;
+    menuItem -label (uiRes("m_backstageInitUI.kGolaemUtilsShelf"))
+        -annotation (uiRes("m_backstageInitUI.kGolaemUtilsShelfAnnot"))
+        -command ( "reloadShelf(\"GolaemUtils\")" )
+        -image "backstage_animationShelf.png"
+        backstage_golaemUtilsShelfItem;
+    setParent -m ..;
+
+    //-----------------------------------------------------------------------------
+    //  Layout
+    global string $dxLayoutMenu;
+    $dxLayoutMenu = `menuItem -subMenu true
+                              -label (uiRes("m_backstageInitUI.kLayout"))
+                              -to true
+                              -familyImage "backstage_layout.png"
+                              $layoutMenu`;
+    menuItem -label (uiRes("m_backstageInitUI.kLayoutShelf"))
+             -annotation (uiRes("m_backstageInitUI.kLayoutShelfAnnot"))
+             -image "backstage_layoutShelf.png"
+             -command ( "reloadShelf(\"Layout\")" )
+             backstage_layoutShelfItem;
+    setParent -m ..;
+
+    setParent -m ..; // for main menu
+}
+
+proc removeBackstageMenus()
+{
+    // Delete menu if it exists
+    if (`menu -ex backstage_MainMenu`) {
+        deleteUI -menu backstage_MainMenu;
+    }
+}
+
+global proc reloadShelf(string $shelfName)
+{
+    // Delete shelf if it exists
+    if(`shelfLayout -ex $shelfName`){
+        deleteShelfTab $shelfName;
+    }
+
+    string $rootPath;
+    string $REZ_ROOT_NAME = "";
+    if($shelfName == "GolaemUtils"){
+      $REZ_ROOT_NAME = "REZ_MAYA_ANIMATION_ROOT";
+    }
+    else{
+      $REZ_ROOT_NAME = "REZ_MAYA_" + `toupper($shelfName)` + "_ROOT";
+    }
+    $rootPath = `getenv $REZ_ROOT_NAME`;
+    print($rootPath + "/scripts/shelf_" + $shelfName + ".mel");
+    loadNewShelf($rootPath + "/scripts/shelf_" + $shelfName + ".mel");
+}
+
+// ============================
+// Called on plug-in load.
+// ============================
+
+global proc backstage_CreateUI()
+{
+    // Make sure that the UI is deleted before creating it
+    backstage_DeleteUI();
+
+    // Create Backstage Menu
+    addBackstageMenus();
+
+	// team menu
+    if (`exists backstageMatchmoveMenu`)
+        backstageMatchmoveMenu();
+    if (`exists backstageAssetMenu`)
+        backstageAssetMenu();
+    if (`exists backstageAnimationMenu`)
+        backstageAnimationMenu();
+    if (`exists backstageRiggingMenu`)
+        backstageRiggingMenu();
+    // if (`exists backstageLightingMenu`)
+    //     backstageLightingMenu();
+    if (`exists backstageLayoutMenu`)
+        backstageLayoutMenu();
+}
+
+// ============================
+// Called on plug-in unload.
+// ============================
+
+global proc backstage_DeleteUI()
+{
+    removeBackstageMenus();
+}

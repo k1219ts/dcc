@@ -1,0 +1,122 @@
+global proc jDoStringAttSearchReplace ( string $att, string $search, string $replace, int $scope) {
+
+
+    print "****************** String Attribute Find and Replace *************************\n";
+    string $nodes[];
+    switch ($scope) {
+        case 1: //  All
+
+        print  "Scope: All\n"; 
+        $nodes = `ls -l`;
+        break;
+
+        case 2: //  All Dag
+        print  "Scope: All Dag\n"; 
+        $nodes = `ls -as -l`; 
+        break;
+        case 3: 
+            /////////////////////////////////
+        print  "Scope: Selected\n"; 
+        $nodes = `ls -sl -l`;
+        break;
+        case 4: 
+        print  "Scope: Selected & below\n"; 
+        $nodes = `ls -sl -tr -s -l`;    
+        break;
+    }
+    ////////////////////////////////
+
+
+    print ("Attribute: " + $att +"\n");
+    print ("Find String: " + $search +"\n");
+    print ("Replace String: " + $replace +"\n");
+
+
+    for ($o in $nodes) {
+        if (`attributeQuery -exists -n $o $att`) {
+            string $val = `getAttr ($o +"."+$att)`;
+
+            // string $new = `eval("substitute  \""+$search+"\" \""+ $val+"\" \""+  $replace+"\"")`;
+            string $new = `eval("substituteAllString \""+  $val +"\" \""+$search+"\" \""+  $replace+"\"")`;
+            if ($new != $val) {
+                evalEcho ("setAttr -type \"string\"  \"" +$o +"."+$att+"\" \""+ $new+"\"");
+            }
+        }
+    }
+    print "*******************************************************************************\n";
+}
+
+global proc jCallStringAttSearchReplaceFromUI (  string $att_entry, string $find_entry, string $replace_entry, string $scopeRB, int $exec) {
+
+
+    string $attStr = `textFieldGrp -q -text $att_entry`;
+    string $findStr = `textFieldGrp -q -text $find_entry`;
+    string $repStr = `textFieldGrp -q -text $replace_entry`;
+    int    $scope = `radioButtonGrp -q -sl $scopeRB`;
+
+    string $cmd = ("jDoStringAttSearchReplace \"" + $attStr + "\"  \"" +$findStr + "\"  \"" + $repStr + "\"  \"" +$scope+"\" " );
+    if ($exec) {
+        eval($cmd);
+    } else {
+        print ("source jStringAttSearchReplace;\n" + $cmd+";\n");
+    }
+}
+
+
+global proc jStringAttSearchReplace() {
+
+
+    $win = `window -t "String Attribute Search & Replace" ` ;
+
+    formLayout -nd 100 form1;
+
+    frameLayout -lv 0 frame1;
+
+    columnLayout;
+
+    string $att_entry = `textFieldGrp -cw2 100 500  -label "Attribute" -text "imageName"`;
+    string $find_entry = `textFieldGrp  -cw2 100 500  -label "Find" -text  "find string"`;
+    string $replace_entry = `textFieldGrp -cw2 100 500  -label "Replace" -text "replace string"`;
+
+    string $scopeRB =  `radioButtonGrp -numberOfRadioButtons 4  -label "Scope" -labelArray4 "All" "All Dag" "Selected" "Below"  -sl 1`;
+
+
+    string $go_cmd = ("jCallStringAttSearchReplaceFromUI "+ $att_entry + " " + $find_entry + "  " + $replace_entry+ " "+ $scopeRB +" 1");
+    string $print_cmd = ("jCallStringAttSearchReplaceFromUI "+ $att_entry + " " + $find_entry + "  " + $replace_entry+ " "+ $scopeRB +" 0");
+    string $cancel_cmd = ("deleteUI " + $win);
+
+    setParent ..;
+    setParent ..;
+
+    $go_button = `button -label "Go!" -rs 1 -c $go_cmd`;
+    $print_button = `button -label "Print Command" -rs 1 -c $print_cmd`;
+
+    $cancel_button = `button -label "Cancel" -rs 1 -c $cancel_cmd`;
+
+    formLayout -e
+
+        -af frame1 "left" 5
+        -af frame1 "right" 5
+        -af frame1 "top" 5
+        -af frame1 "bottom" 35
+
+        -af $go_button "bottom" 5
+        -af $go_button "left" 5
+        -ap $go_button "right" 0 33
+
+        -af $print_button "bottom" 5
+        -ap $print_button "left" 0 33
+        -ap $print_button "right" 0 66
+
+
+        -af $cancel_button "bottom" 5
+        -ap $cancel_button "left" 0 66
+        -af $cancel_button "right" 5
+
+        form1;
+
+    showWindow;
+    window -e -w 550 -h 200 $win;
+}
+
+

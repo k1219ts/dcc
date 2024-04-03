@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>refreshBtn.png</file>
+    <file>refreshGreyBtn.png</file>
+  </qresource>
+</RCC>

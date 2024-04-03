@@ -1,0 +1,54 @@
+//a****FX (neomiojio)
+//2009.1.6
+//command :offsetKeyUI()
+//
+//select object(s) animCurve data offsetFrame;
+
+
+
+global proc offsetKey(){
+	string $ls[]=`ls -sl`;
+	float $offset=`floatField -q -v field`;
+	float $add=1.0;
+	for($x in $ls){
+		string $ta[]=`listConnections  -t "animCurve"   $x`;
+		for($c in $ta){
+			keyframe -e -iub true -r -o over -tc ($offset*$add) $c;	
+		}
+	$add++;
+	}
+}
+global proc offsetKeyUI(){
+
+	string $window = "offsetKey.mel";
+	string $window_name = "offsetKey";
+ 
+	if(`window -exists $window_name` == true)
+	  deleteUI $window_name;
+	window 
+   -t $window
+   -w 300
+   -h 200
+    $window_name;
+                
+  
+  
+  columnLayout -adj 1;
+    rowColumnLayout -nc 2 ;
+			text -l "offsetFrame	:";
+      floatField
+        -w 200
+        -v  1.0
+        field;
+       
+    setParent..;      
+  columnLayout -adj 1;           
+  	button
+      -w 200 
+      -l "offsetKey"
+      -c "offsetKey";                
+showWindow $window_name;
+}
+offsetKeyUI();
+
+

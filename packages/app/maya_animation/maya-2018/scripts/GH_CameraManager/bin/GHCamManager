@@ -1,0 +1,3 @@
+#!/bin/bash
+RELATIVE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
+/backstage/dcc/DCC rez-env pylibs-2.7 baselib-2.5 -- python ${RELATIVE_DIR%/*}/GHcmUI.py

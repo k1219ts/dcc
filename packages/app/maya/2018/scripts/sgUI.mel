@@ -1,0 +1,390 @@
+//--------------------------------------------------------------------------------
+//
+//	Dexter Pipe-line SceneGraph Nodes Dialog
+//
+//	CG-Supervisor
+//		Sanghun Kim, rman.td@gmail.com
+//
+//	rman.td 2017.02.03	$3
+//
+//	optoinVar :
+//		dxCompoImportMode
+//		dxCompoDisplayMode
+//		dxCompoWorldAnim
+//		dxCompoFitTime
+//
+//		dxExportFrameMode
+//		dxExportFrameStart
+//		dxExportFrameEnd
+//		dxJustFrame
+//		dxFrameStep
+//
+//		dxSelectionMode
+//--------------------------------------------------------------------------------
+
+global proc sgnImportOptionUI()
+{
+	frameLayout -collapse 0 -collapsable true
+				-marginWidth 20 -marginHeight 4
+				-label "Import Options";
+
+		columnLayout -adjustableColumn true -rs 4;
+			rowLayout -w 300 -nc 3 -cw3 100 60 60;
+				text -label "Mode : " -align "right" -width 100;
+				radioCollection importModeWidget;
+				radioButton -label "GPU" gpumode;
+				radioButton -label "Mesh" meshmode;
+			setParent ..;
+			rowLayout -w 200 -nc 2 -cw2 100 100;
+				text -label "Display : " -align "right" -width 100;
+				optionMenu -label "" -width 100 importDisplayWidget;
+					menuItem -label "BoundingBox";
+					menuItem -label "Render";
+					menuItem -label "Mid";
+					menuItem -label "Low";
+					menuItem -label "Simulation";
+			setParent ..;
+		setParent ..;
+
+	setParent ..;
+}
+
+global proc sgnWorldAnimationUI()
+{
+	frameLayout -collapse 0 -collapsable true
+				-marginWidth 20 -marginHeight 4
+				-label "World Animation";
+
+		rowLayout -w 200 -nc 2 -cw2 100 100;
+			text -label "Option : " -align "right" -width 100;
+			optionMenu -label "" -width 80 importWorldWidget;
+				menuItem -label "None";
+				menuItem -label "Baked";
+				menuItem -label "Separate";
+		setParent ..;
+		rowLayout -w 200 -nc 2 -cw2 100 100;
+
+		setParent ..;
+
+	setParent ..;
+}
+
+global proc sgnFitFrameUI()
+{
+	frameLayout -collapse 0 -collapsable true
+				-marginWidth 20 -marginHeight 4
+				-label "Fit Frame";
+
+		rowLayout -w 200 -nc 2 -cw2 100 100;
+			text -label "" -width 100;
+			checkBox -label "Fit Time Range" importFitRangeWidget;
+		setParent ..;
+
+	setParent ..;
+}
+
+
+
+//--------------------------------------------------------------------------------
+//
+//	Export Selection Mode
+//
+//--------------------------------------------------------------------------------
+global proc sgnSelectionModeUI()
+{
+	frameLayout -collapse 0 -collapsable true
+				-marginWidth 20 -marginHeight 4
+				-label "Selection";
+		columnLayout -adjustableColumn true;
+			radioCollection sgSelectionModeWidget;
+			radioButton -label "All" sgnall;
+			radioButton -label "Selected" sgnselected;
+		setParent ..;
+	setParent ..;
+}
+
+global proc sgnSelectionModeUI_Init()
+{
+	if( !`optionVar -exists "dxSelectionMode"` ) {
+		optionVar -stringValue "dxSelectionMode" "sgnall";
+	}
+	string $mode = `optionVar -query "dxSelectionMode"`;
+	radioCollection -edit -select $mode sgSelectionModeWidget;
+}
+
+global proc sgnSelectionModeUI_Commit()
+{
+	$mode = `radioCollection -query -select sgSelectionModeWidget`;
+	optionVar -stringValue "dxSelectionMode" $mode;
+}
+
+
+//--------------------------------------------------------------------------------
+//
+//	Export FrameRange
+//
+//--------------------------------------------------------------------------------
+global proc sgnFrameStatus()
+{
+	$gv = `radioCollection -query -select sgFrameModeWidget`;
+	if( $gv == "sgnrangetime" ) {
+		textField -edit -enable 1 sgFrameStartWidget;
+		textField -edit -enable 1 sgFrameEndWidget;
+	} else {
+		textField -edit -enable 0 sgFrameStartWidget;
+		textField -edit -enable 0 sgFrameEndWidget;
+	}
+}
+
+global proc sgnFrameRangeUI()
+{
+	frameLayout -collapse 0 -collapsable true
+				-marginWidth 20 -marginHeight 4
+				-label "Frame Range";
+		columnLayout -adjustableColumn true;
+			radioCollection sgFrameModeWidget;
+			rowLayout -w 200 -nc 2 -cw2 100 50;
+				radioButton -label "Current Frame" -cc "sgnFrameStatus" sgncurrenttime;
+				text -label "";
+			setParent ..;
+			rowLayout -w 300 -nc 3 -cw3 100 50 50;
+				radioButton -label "Start/End Frame" -cc "sgnFrameStatus" sgnrangetime;
+				textField -w 50 -ed 1 sgFrameStartWidget;
+				textField -w 50 -ed 1 sgFrameEndWidget;
+			setParent ..;
+		setParent ..;
+	setParent ..;
+}
+
+global proc sgnFrameRangeUI_Init()
+{
+	if( !`optionVar -exists "dxExportFrameMode"` ) {
+		optionVar -stringValue "dxExportFrameMode" "sgnrangetime";
+	}
+	string $mode = `optionVar -query "dxExportFrameMode"`;
+	radioCollection -edit -select $mode sgFrameModeWidget;
+
+	$start = `playbackOptions -q -min`;
+	if( !`optionVar -exists "dxExportFrameStart"` ) {
+		optionVar -stringValue "dxExportFrameStart" $start;
+	}
+	textField -edit -tx $start sgFrameStartWidget;
+
+	$end = `playbackOptions -q -max`;
+	if( !`optionVar -exists "dxExportFrameEnd"` ) {
+		optionVar -stringValue "dxExportFrameEnd" $end;
+	}
+	textField -edit -tx $end sgFrameEndWidget;
+}
+
+global proc sgnFrameRangeUI_Commit()
+{
+	$mode = `radioCollection -query -select sgFrameModeWidget`;
+	optionVar -stringValue "dxExportFrameMode" $mode;
+
+	$start = `textField -q -tx sgFrameStartWidget`;
+	optionVar -stringValue "dxExportFrameStart" $start;
+
+	$end = `textField -q -tx sgFrameEndWidget`;
+	optionVar -stringValue "dxExportFrameEnd" $end;
+}
+
+
+//--------------------------------------------------------------------------------
+//
+//	Export FrameOption
+//
+//--------------------------------------------------------------------------------
+global proc sgnFrameOptionUI()
+{
+	frameLayout -collapse 0 -collapsable true
+				-marginWidth 20 -marginHeight 4
+				-label "Frame Option";
+		columnLayout -adjustableColumn true;
+			rowLayout -w 300 -nc 3 -cw3 100 50 50;
+				checkBox -label "Just Frame" sgnFrameJustWidget;
+				text -label "       Step" -align "left";
+				textField -w 50 -ed 1 sgnFrameStepWidget;
+			setParent ..;
+		setParent ..;
+	setParent ..;
+}
+
+global proc sgnFrameOptionUI_Init()
+{
+	if( !`optionVar -exists "dxJustFrame"` ) {
+		optionVar -intValue "dxJustFrame" 1;
+	}
+	int $just = `optionVar -query "dxJustFrame"`;
+	checkBox -edit -value $just sgnFrameJustWidget;
+
+	if( !`optionVar -exists "dxFrameStep"` ) {
+		optionVar -stringValue "dxFrameStep" "1.0";
+	}
+	string $step = `optionVar -query "dxFrameStep"`;
+	textField -edit -tx $step sgnFrameStepWidget;
+}
+
+global proc sgnFrameOptionUI_Commit()
+{
+	$just = `checkBox -query -value sgnFrameJustWidget`;
+	optionVar -intValue "dxJustFrame" $just;
+
+	$step = `textField -q -tx sgnFrameStepWidget`;
+	optionVar -stringValue "dxFrameStep" $step;
+}
+
+
+
+
+//--------------------------------------------------------------------------------
+// Import Dialog
+global proc dxsgnImportComponent_UICreate( string $parent )
+{
+	setParent $parent;
+	columnLayout -adjustableColumn true;
+		sgnImportOptionUI();
+		sgnWorldAnimationUI();
+		sgnFitFrameUI();
+}
+
+global proc dxsgnImportComponent_UIInit( string $parent, string $filterType )
+{
+	if( !`optionVar -exists "dxCompoImportMode"` ) {
+		optionVar -stringValue "dxCompoImportMode" "gpumode";
+	}
+	$mode = `optionVar -query "dxCompoImportMode"`;
+	radioCollection -edit -select $mode importModeWidget;
+
+	if( !`optionVar -exists "dxCompoDisplayMode"` ) {
+		optionVar -stringValue "dxCompoDisplayMode" "BoundingBox";
+	}
+	$disp = `optionVar -query "dxCompoDisplayMode"`;
+	optionMenu -edit -value $disp importDisplayWidget;
+
+	if( !`optionVar -exists "dxCompoWorldAnim"` ) {
+		optionVar -stringValue "dxCompoWorldAnim" "Baked";
+	}
+	$wrd = `optionVar -query "dxCompoWorldAnim"`;
+	optionMenu -edit -value $wrd importWorldWidget;
+
+	if( !`optionVar -exists "dxCompoFitTime"` ) {
+		optionVar -intValue "dxCompoFitTime" 1;
+	}
+	int $fit = `optionVar -query "dxCompoFitTime"`;
+	checkBox -edit -value $fit importFitRangeWidget;
+}
+
+global proc dxsgnImportComponent_UICommit( string $parent )
+{
+	$mode = `radioCollection -query -select importModeWidget`;
+	optionVar -stringValue "dxCompoImportMode" $mode;
+
+	$disp = `optionMenu -query -value importDisplayWidget`;
+	optionVar -stringValue "dxCompoDisplayMode" $disp;
+
+	$wrd = `optionMenu -query -value importWorldWidget`;
+	optionVar -stringValue "dxCompoWorldAnim" $wrd;
+
+	$fit = `checkBox -query -value importFitRangeWidget`;
+	optionVar -intValue "dxCompoFitTime" $fit;
+}
+
+
+//--------------------------------------------------------------------------------
+global proc dxsgnFile_UICreate( string $parent )
+{
+	setParent $parent;
+
+	columnLayout -adjustableColumn true;
+		frameLayout -collapse 0 -collapsable true
+					-marginWidth 20 -marginHeight 4
+					-label "Options";
+			rowLayout -w 200 -nc 2 -cw2 100 100;
+				text -label "World Animation : " -align "right" -width 100;
+				optionMenu -label "" -width 80 dxsgnWorldWidget;
+					menuItem -label "None";
+					menuItem -label "Baked";
+					menuItem -label "Separate";
+			setParent ..;
+			rowLayout -w 200 -nc 2 -cw2 100 100;
+				text -label "" -width 100;
+				checkBox -label "Fit Time Range" dxsgnFitRangeWidget;
+			setParent ..;
+		setParent ..;
+	setParent ..;
+}
+
+global proc dxsgnFile_UIInit( string $parent, string $filterType )
+{
+	if( !`optionVar -exists "dxCompoWorldAnim"` ) {
+		optionVar -stringValue "dxCompoWorldAnim" "Baked";
+	}
+	$wrd = `optionVar -query "dxCompoWorldAnim"`;
+	optionMenu -edit -value $wrd dxsgnWorldWidget;
+
+	if( !`optionVar -exists "dxCompoFitTime"` ) {
+		optionVar -intValue "dxCompoFitTime" 1;
+	}
+	$fit = `optionVar -query "dxCompoFitTime"`;
+	checkBox -edit -value $fit dxsgnFitRangeWidget;
+}
+
+global proc dxsgnFile_UICommit( string $parent )
+{
+	$wrd = `optionMenu -query -value dxsgnWorldWidget`;
+	optionVar -stringValue "dxCompoWorldAnim" $wrd;
+
+	$fit = `checkBox -query -value dxsgnFitRangeWidget`;
+	optionVar -intValue "dxCompoFitTime" $fit;
+}
+
+
+
+//--------------------------------------------------------------------------------
+// Assembly Export
+global proc dxsgnExportFrame_UICreate( string $parent )
+{
+	setParent $parent;
+	columnLayout -adjustableColumn true;
+		sgnFrameRangeUI();
+}
+
+global proc dxsgnExportFrame_UIInit( string $parent, string $filterType )
+{
+	setParent $parent;
+	sgnFrameRangeUI_Init();
+}
+
+global proc dxsgnExportFrame_UICommit( string $parent )
+{
+	setParent $parent;
+	sgnFrameRangeUI_Commit();
+}
+
+//--------------------------------------------------------------------------------
+// Alembic Export
+global proc dxsgnAbcExport_UICreate( string $parent )
+{
+	setParent $parent;
+	columnLayout -adjustableColumn true;
+		sgnFrameRangeUI();
+		sgnFrameOptionUI();
+		sgnSelectionModeUI();
+}
+
+global proc dxsgnAbcExport_UIInit( string $parent, string $fileType )
+{
+	setParent $parent;
+	sgnFrameRangeUI_Init();
+	sgnFrameOptionUI_Init();
+	sgnSelectionModeUI_Init();
+}
+
+global proc dxsgnAbcExport_UICommit( string $parent )
+{
+	setParent $parent;
+	sgnFrameRangeUI_Commit();
+	sgnFrameOptionUI_Commit();
+	sgnSelectionModeUI_Commit();
+}

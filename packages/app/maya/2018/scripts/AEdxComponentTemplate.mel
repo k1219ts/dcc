@@ -1,0 +1,257 @@
+//--------------------------------------------------------------------------------
+//
+//	Dexter Pipe-line customNodes
+//
+//	Dexter CG Supervisor
+//		Sanghun Kim, rman.td@gmail.com
+//
+//		dxComponent
+//
+//	2017.09.09	$10
+//
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+global proc dxcmpFileDialog( string $attr )
+{
+    string $current = `textField -q -tx dxcmpFileWidget`;
+    string $loc[] = `fileDialog2 -caption "Import Alembic File"
+                     -fm 1
+                     -okc "import"
+                     -ocr "dxsgnFile_UICreate"
+                     -oin "dxsgnFile_UIInit"
+                     -ocm "dxsgnFile_UICommit"
+                     -dir $current
+                     -ff "Alembic (*.abc)"`;
+    if( size($loc) > 0 ) {
+        python( "import sgComponent as sgc; sgc.componentImport(\"" + $attr + "\", \"" + $loc[0] + "\")" );
+        dxcmpFileReplace $attr;
+    }
+}
+
+global proc dxcmpFileChange( string $attr )
+{
+    string $fn = `textField -q -tx dxcmpFileWidget`;
+    python( "import sgComponent as sgc; sgc.componentImport(\"" + $attr + "\", \"" + $fn + "\")" );
+}
+
+global proc dxcmpFileNew( string $attr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 3;
+        text -label "Alembic File";
+        textField -ed 1 dxcmpFileWidget;
+        symbolButton -image "navButtonBrowse.xpm" dxcmpFileButtonWidget;
+        setParent ..;
+    setUITemplate -ppt;
+    dxcmpFileReplace $attr;
+}
+
+global proc dxcmpFileReplace( string $attr )
+{
+    button -e -c ("dxcmpFileDialog(\"" + $attr + "\")") dxcmpFileButtonWidget;
+    string $fn = `getAttr $attr`;
+    textField -e -tx $fn -cc ("dxcmpFileChange(\"" + $attr + "\")") dxcmpFileWidget;
+}
+
+//--------------------------------------------------------------------------------
+global proc dxcmpRFileDialog( string $attr )
+{
+    string $current = `textField -q -tx dxcmpRFileWidget`;
+    string $loc[] = `fileDialog2 -caption "Set Render File"
+                     -fm 1
+                     -okc "set"
+                     -dir $current
+                     -ff "Alembic (*.abc);;RIB (*.rib)"`;
+    if( size($loc) > 0 ) {
+        setAttr $attr -type "string" $loc[0];
+        dxcmpRFileReplace $attr;
+    }
+}
+
+global proc dxcmpRFileChange( string $attr )
+{
+    string $fn = `textField -q -tx dxcmpRFileWidget`;
+    setAttr $attr -type "string" $fn;
+}
+
+global proc dxcmpRFileNew( string $attr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 3;
+        text -label "Render File";
+        textField dxcmpRFileWidget;
+        symbolButton -image "navButtonBrowse.xpm" dxcmpRFileButtonWidget;
+        setParent ..;
+    setUITemplate -ppt;
+    dxcmpRFileReplace $attr;
+}
+
+global proc dxcmpRFileReplace( string $attr )
+{
+    button -e -c ("dxcmpRFileDialog(\"" + $attr + "\")") dxcmpRFileButtonWidget;
+    string $fn = `getAttr $attr`;
+    textField -e -tx $fn -cc ("dxcmpRFileChange(\"" + $attr + "\")") dxcmpRFileWidget;
+}
+
+//--------------------------------------------------------------------------------
+global proc dxcmpWorldDialog( string $attr )
+{
+    string $current = `textField -q -tx dxcmpWorldWidget`;
+    string $loc[] = `fileDialog2 -caption "Import World Animation File"
+                     -fm 1
+                     -okc "import"
+                     -dir $current
+                     -ff "World (*.world)"`;
+    if( size($loc) > 0 ) {
+        setAttr $attr -type "string" $loc[0];
+        dxcmpWorldReplace $attr;
+    }
+}
+
+global proc dxcmpWorldChange( string $attr )
+{
+    string $fn = `textField -q -tx dxcmpWorldWidget`;
+    setAttr $attr -type "string" $fn;
+}
+
+global proc dxcmpWorldNew( string $attr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 3;
+        text -label "World File";
+        textField dxcmpWorldWidget;
+        symbolButton -image "navButtonBrowse.xpm" dxcmpWorldButtonWidget;
+        setParent ..;
+    setUITemplate -ppt;
+    dxcmpWorldReplace $attr;
+}
+
+global proc dxcmpWorldReplace( string $attr )
+{
+    button -e -c ("dxcmpWorldDialog(\"" + $attr + "\")") dxcmpWorldButtonWidget;
+    string $fn = `getAttr $attr`;
+    textField -e -tx $fn -cc ("dxcmpWorldChange(\"" + $attr + "\")") dxcmpWorldWidget;
+}
+
+//--------------------------------------------------------------------------------
+global proc dxcmpReloadNew( string $attr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 2 -cw2 145 30;
+        text -h 30 -label "";
+        symbolButton -h 30 -w 30 -image "dxReload.png" dxcmpReloadWidget;
+    setUITemplate -ppt;
+    dxcmpReloadReplace $attr;
+}
+
+global proc dxcmpReloadReplace( string $attr )
+{
+    button -e -c ("dxcmpReloadProcess(\"" + $attr + "\")") dxcmpReloadWidget;
+}
+
+global proc dxcmpReloadProcess( string $attr )
+{
+    python( "import sgComponent as sgc; sgc.componentReload(\"" + $attr + "\")" );
+}
+
+//--------------------------------------------------------------------------------
+global proc dxcmpJsonFileDialog(string $attr)
+{
+    string $current = `textField -q -tx dxcmpJsonFileWidget`;
+    string $loc[] = `fileDialog2 -caption "Override Attributes JsonFile"
+                     -fm 1 -okc "set" -dir $current -ff "JSON (*.json)"`;
+    if(size($loc) > 0) {
+        setAttr $attr -type "string" $loc[0];
+        dxcmpJsonFileReplace $attr;
+    }
+}
+
+global proc dxcmpJsonFileChange(string $attr)
+{
+    string $fn = `textField -q -tx dxcmpJsonFileWidget`;
+    setAttr $attr -type "string" $fn;
+}
+
+global proc dxcmpJsonFileNew(string $attr)
+{
+    setUITemplate -pst attributeEditorTemplate;
+        rowLayout -nc 3;
+        text -label "Json File";
+        textField dxcmpJsonFileWidget;
+        symbolButton -image "navButtonBrowse.xpm" dxcmpJsonFileButtonWidget;
+        setParent ..;
+    setUITemplate -ppt;
+    dxcmpJsonFileReplace $attr;
+}
+
+global proc dxcmpJsonFileReplace(string $attr)
+{
+    button -e -c ("dxcmpJsonFileDialog(\"" + $attr + "\")") dxcmpJsonFileButtonWidget;
+    string $fn = `getAttr $attr`;
+    textField -e -tx $fn -cc ("dxcmpJsonFileChange(\"" + $attr + "\")") dxcmpJsonFileWidget;
+}
+
+
+//--------------------------------------------------------------------------------
+// Main
+global proc AEdxComponentTemplate( string $nodeName )
+{
+    editorTemplate -beginScrollLayout;
+
+        editorTemplate -beginLayout "Archive" -collapse 0;
+            editorTemplate -label "Action" -addControl "action";
+            editorTemplate -label "Mode" -addControl "mode";
+            editorTemplate -label "Display" -addControl "display";
+            editorTemplate -label "Shape Drawing" -addControl "shapeDrawing";
+            editorTemplate -ccu "dxcmpReloadNew" "dxcmpReloadReplace" "";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "File" -collapse 0;
+            editorTemplate -ccu "dxcmpFileNew" "dxcmpFileReplace" "abcFileName";
+            editorTemplate -ccu "dxcmpWorldNew" "dxcmpWorldReplace" "worldFileName";
+            editorTemplate -ccu "dxcmpRFileNew" "dxcmpRFileReplace" "renderFile";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Alembic Attributes" -collapse 1;
+            editorTemplate -label "Velocity Delta Time" -addControl "dt";
+            editorTemplate -label "Attribute Subdiv" -addControl "subdiv";
+            editorTemplate -addControl "";
+            editorTemplate -label "Object ID" -addControl "objectid";
+            editorTemplate -addControl "";
+            editorTemplate -label "Group ID" -addControl "groupid";
+            editorTemplate -addControl "";
+            editorTemplate -label "Index of Primitive" -addControl "primid";
+            editorTemplate -label "Custom Primvar" -addControl "primvar";
+            editorTemplate -addControl "";
+            editorTemplate -label "Texture Variation" -addControl "txvariation";
+            editorTemplate -addControl "";
+            editorTemplate -label "Object Instance" -addControl "objectInstance";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Alembic Attributes Override" -collapse 1;
+            editorTemplate -ccu "dxcmpJsonFileNew" "dxcmpJsonFileReplace" "jsonFile";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Alembic Curve Render Attributes" -collapse 1;
+            editorTemplate -label "Dice Hair" -addControl "dicehair";
+            editorTemplate -addControl "";
+            editorTemplate -label "Round Curve" -addControl "roundcurve";
+            editorTemplate -label "Root Width Scale" -addControl "curveRoot";
+            editorTemplate -label "Tip Width Scale" -addControl "curveTip";
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Render Visibility" -collapse 1;
+            editorTemplate -label "Primary Visibility" -addControl "cameraVisibility";
+            editorTemplate -addControl "";
+            editorTemplate -label "Indirect Visibility" -addControl "indirectVisibility";
+            editorTemplate -addControl "";
+            editorTemplate -label "Casts Shadows" -addControl "transmissionVisibility";
+        editorTemplate -endLayout;
+
+        AEdagNodeInclude $nodeName;
+
+    editorTemplate -addExtraControls;
+    editorTemplate -endScrollLayout;
+}

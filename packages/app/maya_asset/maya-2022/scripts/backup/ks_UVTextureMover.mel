@@ -1,0 +1,154 @@
+/* This file downloaded from Highend3d.com
+''  
+''  Highend3d.com File Information:
+''  
+''    Script Name: ks_UVTextureMover
+''    Author: knight.siy 
+''    Last Updated: Jun 11, 2008
+''    Update/Change this file at:
+''    http://Highend3d.com/maya/downloads/plugins/texturing/2204.html
+''  
+''  Please do not alter any information above this line
+''  it is generated dynamically by Highend3d.com and will
+''  be changed automatically on any updates.
+*/
+//////////////////////////////////////////////
+//											//
+//	Script Name :	ks_UVTextureMover v1.0	//
+//											//
+//////////////////////////////////////////////
+//
+//	Creation :	June, 2008
+//	Author :	K.S
+//	Contact :	Knight.siy@hotmail.com
+//
+//	Description: 	1.This script could help you move the UV and textureImage in the textureEditWindow easily.
+//					2.This script can help you create the snapshotUV in different UV range,and it will be auto count.
+//					3.It is a simple script,not too much function in it.I realy want to make a easy tools to get the
+// 				 balance between usability and function.
+//
+//	Use: Put it in your maya script directory,and typing "ks_UVTextureMover" in the script editor.
+//
+///////////////////////////////////////////////
+//SnapshotNumber
+global int $ks_UTM_snapNumber = 0;
+//Function
+global proc ks_UVTextureMoverAction(int $comNumber){
+	int $currentMode = `radioButtonGrp -q -select "ks_UTM_rBG"`;
+	float $moveStep[] = `floatFieldGrp -q -v "ks_UTM_fFG"`;
+	if($currentMode == 1){
+		PolySelectConvert 4;
+		switch ($comNumber){
+			case 0://Up
+				polyEditUV -u 0 -v $moveStep[1];
+			break;
+			case 1://Down
+				polyEditUV -u 0 -v (-1 * $moveStep[1]);
+			break;
+			case 2://Left
+				polyEditUV -u (-1 * $moveStep[0]) -v 0;
+			break;
+			case 3://Right
+				polyEditUV -u $moveStep[0] -v 0;
+			break;
+			case 4://Center
+				polyNormalizeUV -normalizeType 1 -preserveAspectRatio on ;
+				PolySelectConvert 4;
+			break;
+		}
+	}
+	else if($currentMode == 2){
+		string $texWinName[] = `getPanel -sty polyTexturePlacementPanel`;
+		float $orgUV[] = `textureWindow -q -imageTileRange $texWinName[0]`;
+		switch ($comNumber){
+			case 0://Up
+				textureWindow -e -imageTileRange $orgUV[0] ($orgUV[1] + $moveStep[1]) $orgUV[2] ($orgUV[3] + $moveStep[1]) $texWinName[0];
+			break;
+			case 1://Down
+				textureWindow -e -imageTileRange $orgUV[0] ($orgUV[1] - $moveStep[1]) $orgUV[2] ($orgUV[3] - $moveStep[1]) $texWinName[0];
+			break;
+			case 2://Left
+				textureWindow -e -imageTileRange ($orgUV[0] - $moveStep[0]) $orgUV[1] ($orgUV[2] - $moveStep[0]) $orgUV[3] $texWinName[0];
+			break;
+			case 3://Right
+				textureWindow -e -imageTileRange ($orgUV[0] + $moveStep[0]) $orgUV[1] ($orgUV[2] + $moveStep[0]) $orgUV[3] $texWinName[0];
+			break;
+			case 4://Center
+				textureWindow -e -imageTileRange  0 0 1 1 $texWinName[0];
+			break;
+			case 5://Snapshot
+			global int $ks_UTM_snapNumber;
+				int $snapReslu = `intField -q -v "ks_UTM_iF"`;
+				string $savePath = `workspace -q -rd` + "sourceimages/";
+				string $selUV[] = `ls -sl`;
+				string $UVNameString = "";
+				string $selObjArray[];
+				for($selUVSt in $selUV){
+					string $nameTokens[];
+					$numTokens = `tokenize $selUVSt "." $nameTokens`;
+					if($numTokens > 2){
+						warning "You NameSpace Is Illegal,Please Check It.";
+					}
+						$UVNameString += ($nameTokens[0] + " ");
+				}
+				$selObjArray = stringArrayRemoveDuplicates(stringToStringArray($UVNameString, " "));
+				select -r $selObjArray;
+				uvSnapshot -aa -uMin $orgUV[0] -uMax $orgUV[2] -vMin $orgUV[1] -vMax $orgUV[3] -n ($savePath + "snapshotUV_" + $ks_UTM_snapNumber + ".tga") -xr $snapReslu -yr $snapReslu -r 255 -g 255 -b 255 -o -ff tga;
+				$ks_UTM_snapNumber ++;
+			break;
+		}
+		float $orgUV[] = `textureWindow -q -imageTileRange $texWinName[0]`;
+		print ("CurrentUVRange is " + $orgUV[0] + " " + $orgUV[1] + " " + $orgUV[2] + " " + $orgUV[3] + "\n");
+	}
+}
+//UI
+global proc ks_UVTextureMover(){
+	if (`window -q -ex ks_UVTextureMoverWin`) deleteUI ks_UVTextureMoverWin;
+	window -title "ks_UVTextureMover v1.0" -width 170 -h 190 ks_UVTextureMoverWin;
+	string $form = `formLayout`;
+	radioButtonGrp -numberOfRadioButtons 2 -columnWidth2 50 50 -select 1 -labelArray2 "UV" "Image" "ks_UTM_rBG";
+	string $butUp = `button -l "Up" -c "ks_UVTextureMoverAction 0" -w 40	-h 40`;
+	string $butDown = `button -l "Down" -c "ks_UVTextureMoverAction 1" -w 40	-h 40`;
+	string $butLeft = `button -l "Left" -c "ks_UVTextureMoverAction 2" -w 40	-h 40`;
+	string $butRight = `button -l "Right" -c "ks_UVTextureMoverAction 3" -w 40 -h 40`;
+	string $butCenter = `button -l "O" -c "ks_UVTextureMoverAction 4" -w 30 -h 30`;
+	floatFieldGrp -numberOfFields 2 -label "Move Step" -value1 1.0 -value2 1.0 -columnWidth3 70 40 40 "ks_UTM_fFG";
+	intField -vis 0 -minValue 64 -maxValue 4096 -value 1024 "ks_UTM_iF";
+	button -l "Snapshot" -vis 0 -c "ks_UVTextureMoverAction 5" "ks_UTM_but";
+	//
+	radioButtonGrp -e
+		-onCommand1 "floatFieldGrp -e -vis 1 ks_UTM_fFG;intField -e -vis 0 ks_UTM_iF;button -e -vis 0 ks_UTM_but;"
+			-onCommand2 "floatFieldGrp -e -vis 0 ks_UTM_fFG;intField -e -vis 1 ks_UTM_iF;button -e -vis 1 ks_UTM_but;"
+				"ks_UTM_rBG";
+	//
+		formLayout -edit
+		//$radChcoose
+			-attachForm "ks_UTM_rBG" "top" 5
+			-attachForm "ks_UTM_rBG" "left" 5
+		//$butUp
+			-attachForm $butUp "top" 25
+			-attachForm $butUp "left" 70
+		//$butDown
+			-attachForm $butDown "top" 105
+			-attachForm $butDown "left" 70
+		//$butLeft
+			-attachForm $butLeft "top" 65
+			-attachForm $butLeft "left" 30
+		//$butRight
+			-attachForm $butRight "top" 65
+			-attachForm $butRight "left" 110
+		//$butCenter
+			-attachForm $butCenter "top" 70
+			-attachForm $butCenter "left" 75
+		//$floatStep
+			-attachForm "ks_UTM_fFG" "top" 155
+			-attachForm "ks_UTM_fFG" "left" 5
+		//$snapRes
+			-attachForm "ks_UTM_iF" "top" 155
+			-attachForm "ks_UTM_iF" "left" 20
+		//$snapButton
+			-attachForm "ks_UTM_but" "top" 155
+			-attachForm "ks_UTM_but" "left" 100
+			$form;
+	showWindow;
+}

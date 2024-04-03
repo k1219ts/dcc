@@ -1,0 +1,27 @@
+//
+//	RenderMan TD
+//		Sanghun Kim	rman.td@gamil.com
+//
+//	2016.05.02	$1
+//
+
+proc addAnimationMenu()
+{
+	global string $dxAnimationMenu;
+
+	setParent -m $dxAnimationMenu;
+
+	menuItem -divider true;
+	menuItem -l "Selected KeyOffset"
+			 -c ("python(\"import sgCommon; sgCommon.selectedOffsetKey()\")");
+	menuItem -l "Export Camera"
+			 -c ("python(\"import dexcmd; dexcmd.exportCameraDialog()\")");
+    menuItem -l "Import Layout"
+             -c ("python(\"import aniLayoutImport; reload(aniLayoutImport); aniLayoutImport.importLayoutFileDialog()\")");
+
+}
+
+global proc backstageAnimationMenu()
+{
+	addAnimationMenu();
+}

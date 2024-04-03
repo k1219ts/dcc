@@ -1,0 +1,26 @@
+// Dexter Digital Maya Project Definition for model task
+// Written by utd, Fri October 26, 2012
+
+// data
+workspace -fr "OBJ" "data/obj";
+workspace -fr "OBJexport" "data/obj";
+workspace -fr "FBX" "data/fbx";
+workspace -fr "FBXexport" "data/fbx";
+
+// preview
+workspace -fr "movie" "preview";
+workspace -fr "images" "preview";
+
+// scenes
+workspace -fr "scene" "scenes";
+workspace -fr "mayaAscii" "scenes";
+workspace -fr "mayaBinary" "scenes";
+
+// sourceimages
+workspace -fr "sourceImages" "sourceimages";
+workspace -fr "textures" "sourceimages";
+
+// tmp
+workspace -fr "offlineEdit" "tmp/edits";
+workspace -fr "autoSave" "tmp/autosave";
+workspace -fr "templates" "tmp/assets";

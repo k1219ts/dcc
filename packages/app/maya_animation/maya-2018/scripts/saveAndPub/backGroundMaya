@@ -1,0 +1,18 @@
+#!/bin/bash
+
+fileName=$1
+
+export MAYA_VER=2016.5
+export MAYA_LOCATION=/usr/autodesk/maya${MAYA_VER}
+
+export BACKSTAGE_MAYA_PATH=/netapp/backstage/pub/apps/maya
+export ShellScriptPath=${BACKSTAGE_MAYA_PATH}/bin
+#export AniScriptPath=/home/gyeongheon.jeong/maya_dev/2016.5/team/animation/linux/scripts/
+export AniScriptPath=${BACKSTAGE_MAYA_PATH}/2016.5/team/animation/linux/scripts/
+export MayaScriptPath=${BACKSTAGE_MAYA_PATH}/global/dexcmd
+
+. ${BACKSTAGE_MAYA_PATH}/backstageMaya.env
+
+#echo ${MAYA_SCRIPT_PATH}
+
+${MAYA_LOCATION}/bin/mayapy ${AniScriptPath}/saveAndPub/backgroundMaya.py $fileName

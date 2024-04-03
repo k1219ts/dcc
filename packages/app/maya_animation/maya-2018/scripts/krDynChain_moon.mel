@@ -1,0 +1,1832 @@
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								dynJointChain procedure
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+global proc string[] krDynChain_dynJointChain (string $handle_names[])
+{
+
+/////////// add by moon
+    int $num = size($handle_names);
+    string $Joint1 = $handle_names[0] + "_JNT";
+    string $Joint2 = $handle_names[$num-1] + "_JNT";
+
+    select -r $Joint1;
+    select -add $Joint2;
+
+
+////////////////////////////////
+
+	//Store the current selection into an string array.
+	string $sel[] = `ls -sl`;
+	//Store the name of the base and end joints into strings.
+	string $baseJoint = $sel[0];
+	string $endJoint = $sel[1];
+	
+
+	//Create a vector array to store the world space coordinates of the joints.
+	vector $jointPos[];
+	//String variable to house current joint being queried in the while loop.
+	string $currentJoint;
+	//Counter integer used in the while loop to determine the proper index in the vector array.
+	int $counter = 0;
+	
+	
+	//Check to ensure proper selection
+	if (!((`objectType -isType "joint" $baseJoint`) && (`objectType -isType "joint" $endJoint`)))
+		error "Please select a base and tip joint to make dynamic.";
+	
+
+	//Initial selection going into the while loop
+	select -r $baseJoint;
+	//Will loop through all the joints between the base and end by pickwalking through them.
+	//The loop stores the world space of each joint into $jointPos as it iterates over them.
+	do
+	{
+		$currentJoint = $sel[0];
+		//Check to make sure object is a joint,
+		//if not, skip it and keep pickwalking.
+		if (`objectType -isType "joint" $currentJoint`)
+		{
+			$jointPos[$counter] = `joint -q -p -a $currentJoint`;
+			$counter++;
+		}
+		pickWalk -d down;
+		$sel = `ls -sl`;
+	} while($currentJoint != $endJoint);
+	
+	/*
+	//Theses 3 lines store the position of the end joint that the loop will miss.
+	$sel = `ls -sl`;
+	$currentJoint = $sel[0];
+	$jointPos[$counter] = `joint -q -p -a $currentJoint`;
+	*/
+		
+	//Now that $jointPos[] holds the world space coords of our joints, we need to build a cv curve
+	//with points at each XYZ coord.
+	
+	//This string will house the command to create our curve.
+	string $buildCurve = "curve -d 1 ";
+	//Another counter integer for the for loop
+	int $cvCounter = 0;
+	
+	//Loops over and adds the position of each joint to the buildCurve string.
+	while ($cvCounter < $counter)
+	{
+		$buildCurve = ($buildCurve + " -p " + $jointPos[$cvCounter]);
+		$cvCounter++;
+	}
+	
+	//Adds the end terminator to the build curve command
+	$buildCurve = $buildCurve + ";";
+	//Evaluates the $buildCurve string as a Maya command. (creates the curve running through the joints)
+	string $nameOfCurve = `eval ($buildCurve)`;
+	
+	//Make curve dynamic.
+	select $nameOfCurve;  
+	makeCurvesDynamicHairs 0 0 1;
+	
+	//Determine what the name of the dynamic curve is
+	string $nameOfDynCurve;
+	int $sizeOfString = `size($nameOfCurve)`;
+	$sizeOfString++;
+	$nameOfDynCurve = `substring $nameOfCurve 6 $sizeOfString` ;
+	$sizeOfString = $nameOfDynCurve;
+	$sizeOfString++;
+	$nameOfDynCurve = ("curve" + $sizeOfString);
+	
+	//Create Tip Constraint
+	string $nameOfHairConstraint[];
+
+
+	if (`checkBoxGrp -q -value1 tipConstraintCheckbox`)
+	{
+		select -r ($nameOfDynCurve + ".cv[" + $cvCounter + "]");
+		createNConstraint transform 0;
+		string $selection[] = `pickWalk -d up`;
+		$nameOfHairConstraint[0] = $selection[0];
+		$nameOfHairConstraint[0] = `rename $nameOfHairConstraint[0] ($baseJoint + "TipConstraint")`;
+	}
+
+
+	//Make Joint Chain Stretchy
+	string $curveInfoNode;
+	string $nameOfUtilityNode;
+	
+	if (`checkBoxGrp -q -value1 stretchCheckbox`)
+	{
+		//Create curve info node
+		$curveInfoNode = `arclen -ch 1 $nameOfDynCurve`;
+		$curveInfoNode = `rename $curveInfoNode ($baseJoint + "CurveInfoNode")`;
+		//Create mult/div node
+		$nameOfUtilityNode = `shadingNode -asUtility multiplyDivide`;
+		$nameOfUtilityNode = `rename $nameOfUtilityNode ($baseJoint + "MultiDivNode")`;
+		//Create condition node
+		$nameOfConditionNode = `shadingNode -asUtility condition`;
+		$nameOfConditionNode = `rename $nameOfConditionNode ($baseJoint + "ConditionNode")`;
+		
+		//Setup multi/div node
+		setAttr ($nameOfUtilityNode + ".operation") 2;
+		connectAttr -force ($curveInfoNode + ".arcLength") ($nameOfUtilityNode + ".input1X");
+		setAttr ($nameOfUtilityNode + ".input2X") (`getAttr ($curveInfoNode + ".arcLength")`);
+		//Setup condition node
+		connectAttr -force ($nameOfUtilityNode + ".outputX") ($nameOfConditionNode + ".firstTerm");
+		connectAttr -force ($nameOfUtilityNode + ".outputX") ($nameOfConditionNode + ".colorIfFalseR");
+		setAttr ($nameOfConditionNode + ".operation") 4;
+		setAttr ($nameOfConditionNode + ".secondTerm") 1.0;
+		setAttr ($nameOfConditionNode + ".colorIfTrueR") 1.0;
+		
+		//Initial selection going into the while loop
+		select $baseJoint;
+		$currentJoint = $baseJoint;
+		//Will loop through all the joints between the base and end by pickwalking through them.
+		//The loop connects the scaleX of each joint to the output of the multi/div node.
+		while ($currentJoint != $endJoint)
+		{
+			connectAttr -f ($nameOfConditionNode + ".outColorR") ($currentJoint + ".scaleX");
+			pickWalk -d down;
+			$sel = `ls -sl`;
+			$currentJoint = $sel[0];
+		} 
+	}
+
+	//Display Current Position of Hair
+	select $nameOfDynCurve;
+	displayHairCurves "current" 1;
+	
+	//Determine name of follicle node
+	select $nameOfCurve;
+	string $nameOfFollicle[] = `pickWalk -d up`;
+
+
+
+	//Create Joint Chain Controller Object
+	string $jointCtrlObjArray[];
+	$jointCtrlObjArray[0] = `createNode implicitSphere`;
+	$jointCtrlObjArray = `pickWalk -d up`;
+	
+	string $jointCtrlObj = $jointCtrlObjArray[0];
+	
+	//Point Constrain Control Object to the end joint
+	//pointConstraint $endJoint $jointCtrlObj;
+
+	pointConstraint $handle_names[$num-1] $jointCtrlObj;
+	
+	
+	//Add attributes to controller for the dynamics
+	
+
+    addAttr -ln "Dynamic_Enable" -at bool  -dv 1 -keyable true  $jointCtrlObj;
+   	addAttr -ln "DynamicSetUpIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" -at double -dv 0 -keyable 1  $jointCtrlObj;
+    setAttr -e -channelBox true ($jointCtrlObj +".DynamicSetUpIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
+	addAttr -ln stiffness -at double -min 0 -max 10 -dv 0.3 -keyable true  $jointCtrlObj;
+	addAttr -ln baseStiffness -at double  -min 0 -max 3 -dv 1 -keyable true $jointCtrlObj;
+	addAttr -ln tipStiffness -at double  -min 0 -max 3 -dv 1 -keyable true $jointCtrlObj;
+	addAttr -ln damping -at double -min 0 -max 100 -dv 0 -keyable true  $jointCtrlObj;
+	addAttr -ln "drag" -at double -min 0 -max 100 -dv .05 -keyable true  $jointCtrlObj;
+	addAttr -ln friction -at double -min 0 -max 1 -dv 0.5 -keyable true  $jointCtrlObj;
+	//addAttr -ln "gravity" -at double  -dv 1 -keyable true  $jointCtrlObj;
+	addAttr -ln "ControlerSetUpIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" -at double -dv 0 -keyable 1  $jointCtrlObj;
+    setAttr -e -channelBox true ($jointCtrlObj +".ControlerSetUpIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
+
+
+
+
+	addAttr -ln "controllerSize" -at double -min 0 -max 100 -dv 1 -keyable true  $jointCtrlObj;
+	//addAttr -ln "turbulenceCtrl" -at bool -keyable true  $jointCtrlObj;
+	//setAttr -lock on ($jointCtrlObj + ".turbulenceCtrl");
+	//addAttr -ln "strength" -at double -min 0 -max 1 -dv 0 -keyable true  $jointCtrlObj;
+	//addAttr -ln "frequency" -at double -min 0 -max 2 -dv 0.2 -keyable true  $jointCtrlObj;
+	//addAttr -ln "speed" -at double -min 0 -max 2 -dv 0.2 -keyable true  $jointCtrlObj;
+	
+	//Determine what the name of the hair system is
+	string $nameOfHairSystem;
+	int $sizeOfString_follicle = `size($nameOfFollicle[0])`;
+	$sizeOfString_follicle++;
+	int $follicle_num = `substring $nameOfFollicle[0] 9 $sizeOfString_follicle`;
+	$HairSystemTransform = ("hairSystem" + $follicle_num);
+    string $hairShapeName[] = `listRelatives -shapes $HairSystemTransform`;
+    $nameOfHairSystem = $hairShapeName[0];
+	
+	//Add message attribute to house name of hairSystem
+	addAttr -ln nameOfHairShapeNode -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($nameOfHairSystem+".message") ($jointCtrlObj+".nameOfHairShapeNode");
+	
+	//Add message attribute to house name of follicle
+	addAttr -ln nameOfFollicleNode -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($nameOfFollicle[0]+".message") ($jointCtrlObj+".nameOfFollicleNode");
+	
+	//Add message attribute to house name of dynamic curve
+	addAttr -ln nameOfDynCurve -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($nameOfDynCurve+".message") ($jointCtrlObj+".nameOfDynCurve");
+	
+	//Add message attribute to house name of tip constraint
+	addAttr -ln nameOfTipConstraint -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($nameOfHairConstraint[0]+".message") ($jointCtrlObj+".nameOfTipConstraint");
+	
+	//Add message attribute to house name of multi/div node
+	addAttr -ln nameOfMultiDivNode -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($nameOfUtilityNode+".message") ($jointCtrlObj+".nameOfMultiDivNode");
+	
+	//Add message attribute to base and end joint names
+	addAttr -ln baseJoint -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($baseJoint+".message") ($jointCtrlObj+".baseJoint");
+	addAttr -ln endJoint -at message -multi -im false $jointCtrlObj;
+	connectAttr -f -na ($endJoint+".message") ($jointCtrlObj+".endJoint");
+	
+	//Add special attribute to house baking state
+	addAttr -ln bakingState -at bool $jointCtrlObj;
+	
+	//Add special attribute to house stretchy state
+	addAttr -ln isStretchy -at bool $jointCtrlObj;
+	if (`checkBoxGrp -q -value1 stretchCheckbox`)
+	setAttr ($jointCtrlObj + ".isStretchy") 1;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // add script by moon
+    string $conditionName = $nameOfHairSystem + "_condition";
+    shadingNode -asUtility -n $conditionName condition;
+    setAttr ($conditionName + ".firstTerm") 0;
+    setAttr ($conditionName + ".colorIfTrueR") 2;
+    setAttr ($conditionName + ".colorIfFalseR") 0;
+	
+	connectAttr -force ($jointCtrlObj + ".Dynamic_Enable") ($conditionName + ".secondTerm");
+	connectAttr -force ($conditionName + ".outColor.outColorR") ($nameOfHairSystem + ".nodeState");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	
+	/*
+	//Overide the Hair dynamics so that the follicle controls the curve dynamics
+	select $nameOfFollicle;
+	$nameOfFollicle = `pickWalk -d down`;
+	setAttr ($nameOfFollicle[0] + ".overrideDynamics") 1;
+	*/
+	
+	//Set the dynamic chain to hang from the base joint (not both ends)
+	setAttr ($nameOfFollicle[0] + ".pointLock") 1;
+	
+	//Turn stiffness off
+	setAttr ($nameOfHairSystem + ".stiffness") 0;
+	
+	//Setup stiffness scale
+	setAttr ($nameOfHairSystem + ".stiffnessScale[1].stiffnessScale_Position") 1;
+	setAttr ($nameOfHairSystem + ".stiffnessScale[1].stiffnessScale_FloatValue") 1;
+	setAttr ($nameOfHairSystem + ".stiffnessScale[0].stiffnessScale_Position") 0;
+	setAttr ($nameOfHairSystem + ".stiffnessScale[0].stiffnessScale_FloatValue") 1;
+	
+	//Connect attribute on the controller sphere to the hair system node
+	connectAttr -f ($jointCtrlObj +".tipStiffness") ($nameOfHairSystem + ".stiffnessScale[1].stiffnessScale_FloatValue");
+	connectAttr -f ($jointCtrlObj +".baseStiffness") ($nameOfHairSystem + ".stiffnessScale[0].stiffnessScale_FloatValue");
+	connectAttr -f ($jointCtrlObj +".damping") ($nameOfHairSystem + ".damp");
+	connectAttr -f ($jointCtrlObj +".stiffness") ($nameOfHairSystem + ".startCurveAttract");
+	connectAttr -f ($jointCtrlObj +".drag") ($nameOfHairSystem + ".drag");
+	connectAttr -f ($jointCtrlObj +".friction") ($nameOfHairSystem + ".friction");
+	//connectAttr -f ($jointCtrlObj +".gravity") ($nameOfHairSystem + ".gravity");
+	//connectAttr -f ($jointCtrlObj +".strength") ($nameOfHairSystem + ".turbulenceStrength");
+	//connectAttr -f ($jointCtrlObj +".frequency") ($nameOfHairSystem + ".turbulenceFrequency");
+	//connectAttr -f ($jointCtrlObj +".speed") ($nameOfHairSystem + ".turbulenceSpeed");
+	
+	//Connect scale of controller to the size attr
+	connectAttr -f ($jointCtrlObj +".controllerSize") ($jointCtrlObj +".scaleX");
+	connectAttr -f ($jointCtrlObj +".controllerSize") ($jointCtrlObj +".scaleY");
+	connectAttr -f ($jointCtrlObj +".controllerSize") ($jointCtrlObj +".scaleZ");
+	
+	//Lock And Hide Attributes on Control Object.
+	setAttr -lock true -keyable false ($jointCtrlObj + ".tx");
+	setAttr -lock true -keyable false ($jointCtrlObj + ".ty");
+	setAttr -lock true -keyable false ($jointCtrlObj + ".tz");
+	setAttr -lock true -keyable false ($jointCtrlObj + ".rx");
+	setAttr -lock true -keyable false ($jointCtrlObj + ".ry");
+	setAttr -lock true -keyable false ($jointCtrlObj + ".rz");
+	setAttr -lock false -keyable false ($jointCtrlObj + ".sx");
+	setAttr -lock false -keyable false ($jointCtrlObj + ".sy");
+	setAttr -lock false -keyable false ($jointCtrlObj + ".sz");
+	
+	//Build the splineIK handle using the dynamic curve.
+	select $baseJoint $endJoint $nameOfDynCurve;
+	string $nameOfIKHandle[];
+	catchQuiet ($nameOfIKHandle = `ikHandle -sol ikSplineSolver -ccv false`);
+	catchQuiet ($nameOfIKHandle[0] = `rename $nameOfIKHandle[0] ($baseJoint + "ikHandle")`);
+	
+	//Rename Ctrl Obj
+	$jointCtrlObj = `rename $jointCtrlObj ($baseJoint + "DynChainControl")`;
+	
+	//Parent follicle node to the parent of the base joint
+	//This will attach the joint chain to the rest of the heirarchy if there is one.
+	select $nameOfFollicle[0];
+	pickWalk -d up;
+	string $follicleGrpNode[] = `pickWalk -d up`;
+	//Determine parent of base joint
+	select $baseJoint;
+	string $parentOfBaseJoint[] = `pickWalk -d up`;
+	
+	if ($parentOfBaseJoint[0] == $baseJoint)
+	{
+		warning "No parent hierarchy was found for the dynamic chain.\n";
+	}else
+	{
+		//Parent the follicle into heirarchy
+		parent $follicleGrpNode $parentOfBaseJoint;
+		parent -w $nameOfDynCurve;
+	}
+	
+
+/*
+	//Set dynamic chain attributes according to creation options
+	float $sliderStiffness = `floatSliderGrp -query -value sliderStiffness`;
+	float $sliderDamping = `floatSliderGrp -query -value sliderDamping`;
+	float $sliderDrag = `floatSliderGrp -query -value sliderDrag`;
+	setAttr ($baseJoint + "DynChainControl.stiffness") $sliderStiffness;
+	setAttr ($baseJoint + "DynChainControl.damping") $sliderDamping;
+	setAttr ($baseJoint + "DynChainControl.drag") $sliderDrag;
+*/
+
+	setAttr ($baseJoint + "DynChainControl.stiffness") 0.01;
+	setAttr ($baseJoint + "DynChainControl.damping") 0.05;
+	setAttr ($baseJoint + "DynChainControl.drag") 0;
+
+
+	//Group the dynamic chain nodes
+	string $nameOfGroup = `group -name ($baseJoint + "DynChainGroup") $jointCtrlObj $nameOfDynCurve $nameOfIKHandle[0] $nameOfHairSystem`;
+	
+	//If the chain has a tip constraint, then parent this under the main group to keep things tidy.
+	if (`checkBoxGrp -q -value1 tipConstraintCheckbox`)
+	{ 
+		parent $nameOfHairConstraint[0] $nameOfGroup;
+	}
+	
+	//Turn the visibility of everything off to reduce viewport clutter.
+	setAttr ($nameOfDynCurve + ".visibility") 0;
+	setAttr ($nameOfIKHandle[0] + ".visibility") 0;
+	setAttr ($nameOfDynCurve + ".visibility") 0;
+	setAttr ($follicleGrpNode[0] + ".visibility") 0;
+	setAttr ($nameOfHairSystem + ".visibility") 0;
+	
+	//Delete useless 'hairsystemoutputcurves' group node
+	select $nameOfHairSystem;
+	string $nameOfGarbageGrp[] = `pickWalk -d up`;
+	delete ($nameOfGarbageGrp[0] + "OutputCurves");
+	
+	//Select dynamic chain controller for user
+	select ($baseJoint + "DynChainControl");
+	
+
+    //#####################################    
+    //#####################################
+    //add script - moon
+
+    select -r $nameOfFollicle[0];
+    $follicle_groupNode = `pickWalk -d up`;
+
+    float $pst_baseJoint[] = `xform -q -t -ws $baseJoint`;
+    float $pst_endJoint[] = `xform -q -t -ws $endJoint`;
+
+    string $parentNode = $baseJoint + "_parentNode";
+    spaceLocator -n $parentNode  -p 0 0 0 ;
+    move -r $pst_baseJoint[0]  $pst_baseJoint[1]  $pst_baseJoint[2];
+    parent $follicle_groupNode $parentNode;
+
+
+
+    
+
+    for($i=1;$i<$num;$i++)
+    {
+        string $constAtt_nam = $handle_names[$i] + "_Dyn_constraint"; 
+    	//connectAttr -f ($jointCtrlObj +".Dynamic_Enable") ($constAtt_nam);
+        string $conditionName = $constAtt_nam + "_condition";
+
+        shadingNode -asUtility -n $conditionName condition;
+        setAttr ($conditionName + ".firstTerm") 0;
+        setAttr ($conditionName + ".colorIfTrueR") 2;
+        setAttr ($conditionName + ".colorIfFalseR") 0;
+	
+    	connectAttr -force ($jointCtrlObj + ".Dynamic_Enable") ($conditionName + ".secondTerm");
+    	connectAttr -force ($conditionName + ".outColor.outColorR") ($constAtt_nam + ".nodeState");
+
+    }        
+
+
+
+
+
+
+
+
+ 
+    //Get the name of the hair shape node
+    string $connections[] = `listConnections -p false -s true ($jointCtrlObj + ".nameOfHairShapeNode")`;
+    string $hairShape = $connections[0];
+    string $hairShapeName[] = `listRelatives -s -path $hairShape`;
+    string $nucleus[] = `listConnections -p false -s true -t "nucleus" $hairShapeName`;
+
+
+
+    
+    string $nucleusCtrl = "Master_nucleus_loc";
+
+    if(!`objExists $nucleusCtrl`)
+    {
+        spaceLocator -n $nucleusCtrl  -p 0 0 0 ;
+
+
+        addAttr -ln "dynSetUpIIIIIIIIIIIIIIIIIII"  -at double  -dv 0 $nucleusCtrl;
+        setAttr -e -channelBox true ($nucleusCtrl +".dynSetUpIIIIIIIIIIIIIIIIIII");
+
+        addAttr -ln "startFrame" -at double  -dv 1 -keyable true  $nucleusCtrl;
+        connectAttr -f ($nucleusCtrl +".startFrame") ($nucleus[0] + ".startFrame");
+
+        addAttr -ln "gravity" -at double  -dv 9.8 -keyable true  $nucleusCtrl;
+        connectAttr -f ($nucleusCtrl +".gravity") ($nucleus[0] + ".gravity");                
+
+        addAttr -ln "spaceScale" -at double  -dv 0.1 -keyable true  $nucleusCtrl;
+        connectAttr -f ($nucleusCtrl +".spaceScale") ($nucleus[0] + ".spaceScale"); 
+        
+        addAttr -ln "timeScale" -at double  -dv 1 -keyable true  $nucleusCtrl;
+        connectAttr -f ($nucleusCtrl +".timeScale") ($nucleus[0] + ".timeScale");         
+
+
+
+
+        addAttr -ln "locScale" -at double  -dv 1 -keyable true  $nucleusCtrl;
+        connectAttr -f ($nucleusCtrl +".locScale") ($nucleusCtrl + ".sx"); 
+        connectAttr -f ($nucleusCtrl +".locScale") ($nucleusCtrl + ".sy"); 
+        connectAttr -f ($nucleusCtrl +".locScale") ($nucleusCtrl + ".sz"); 
+
+
+        parent $nucleus[0] $nucleusCtrl;
+        setAttr ($nucleus[0]+".v") 0;
+    }
+
+    move -ws ($pst_endJoint[0]+1)  ($pst_endJoint[1]+1)  ($pst_endJoint[2]+1) $nucleusCtrl;
+
+
+    setAttr -k off ($nucleusCtrl+".rotateX");
+    setAttr -k off ($nucleusCtrl+".rotateY");
+    setAttr -k off ($nucleusCtrl+".rotateZ");
+    setAttr -k off ($nucleusCtrl+".sx");
+    setAttr -k off ($nucleusCtrl+".sy");
+    setAttr -k off ($nucleusCtrl+".sz");
+    setAttr -k off ($nucleusCtrl+".v");
+
+
+    addAttr -ln "parentNodeSize" -at double  -dv 1 -keyable true  $jointCtrlObj;
+    connectAttr -f ($jointCtrlObj +".parentNode Size") ($parentNode + ".localScaleX");
+    connectAttr -f ($jointCtrlObj +".parentNode Size") ($parentNode + ".localScaleY");
+    connectAttr -f ($jointCtrlObj +".parentNode Size") ($parentNode + ".localScaleZ");
+
+    float $startTime = `playbackOptions -q -min`;
+    setAttr ($nucleusCtrl + ".startFrame")  $startTime;
+    parent -w $jointCtrlObj;
+
+
+    addAttr -ln "dynJoint_vis" -at bool  -dv 0 -keyable true  $jointCtrlObj;
+    connectAttr -f ($jointCtrlObj +".dynJoint_vis") ($baseJoint + ".v");
+
+    setAttr ($nucleusCtrl + "Shape.overrideEnabled") 1;
+    setAttr ($nucleusCtrl + "Shape.ovc") 6;
+
+    if(!`objExists("dynChain____CONTROLERS")`)
+    {
+        group -n "dynChain____CONTROLERS" -em;
+    }
+
+    parent $jointCtrlObj "dynChain____CONTROLERS";
+
+    select -r $jointCtrlObj;
+
+	 print ("Dynamic chain created from " + $baseJoint + " to " + $endJoint + ".");
+	
+    string $baseEnd_jnt[] = {$baseJoint, $endJoint};
+    return $baseEnd_jnt;
+
+
+	//return 1;
+
+
+
+
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								Collisions Procedure
+/////////////////////////////////////////////////////////////////////////////////////////
+global proc krDynChain_collideWithChain ()
+{
+
+
+
+	string $sel[] = `ls -sl`;
+	string $controllers[];
+	string $colliders[];
+
+	//Progress Window Amount
+	int $amount;
+	int $numberOfObjects = size($sel);
+	int $i = 0;
+	
+	progressWindow
+		-title "Factor 5's Dyn Chain Collisions:"
+		-progress $amount
+		-status "Preparing: 0%"
+		-minValue 0
+		-maxValue 100
+		-isInterruptable true;
+	
+	//Loop through the whole selection and split up
+	//into $controllers or $colliders
+	for ($obj in $sel)
+	{
+		$i++;
+		 // Check if the dialog has been cancelled
+		if ( `progressWindow -query -isCancelled` ) break;
+		// Check if end condition has been reached
+		if ( `progressWindow -query -progress` >= 100 ) break;
+		
+		$amount = ((100/$numberOfObjects) * $i);
+		progressWindow -edit -progress $amount;
+		
+		//Find the current index in controllers array
+		int $pos = size($controllers);
+		//If obj is a controller
+		if (`attributeExists "nameOfHairShapeNode" $obj`)
+		{
+			$controllers[$pos] = $obj; //Add to controller list
+		}else
+		{
+			//Get the shape node of obj
+			string $shapeNode[] = `listRelatives -s -path $obj`;
+			
+			//Find current index in collider array
+			$pos = size($colliders);
+			//Check if shape node is a mesh, or a nurbs surface
+			if ((`objectType -isType "mesh" $shapeNode[0]`) || (`objectType -isType "nurbsSurface" $shapeNode[0]`))
+			{
+				$colliders[$pos] = $obj;
+			}
+		}
+		
+	}
+	
+	progressWindow -edit -status "Connecting Colliders: 0%";
+	
+	$numberOfObjects = size($controllers);
+	
+	if ((!$numberOfObjects) || (!`size($colliders)`))
+	{
+		progressWindow -endProgress;
+		error "Incorrect selection. Must select controller(s) and surface(s). Nothing done.\n";
+	}
+	
+	$i = 0;
+
+
+
+
+	
+	//For every controller that was selected...
+	for ($chainCtrl in $controllers)
+	{
+
+
+		$i++;
+		
+		$amount = ((100/$numberOfObjects) * $i);
+		progressWindow -edit -progress $amount;
+		
+		//Get the name of the hair shape node
+		string $connections[] = `listConnections -p false -s true ($chainCtrl + ".nameOfHairShapeNode")`;
+
+
+		string $hairShape = $connections[0];
+        string $hairShapeName[] = `listRelatives -s -path $hairShape`;
+
+
+		string $nucleus[] = `listConnections -p false -s true -t "nucleus" $hairShapeName`;
+
+
+
+		for ($collider in $colliders)
+		{
+			//Create nRigid node and store it's name into a variable
+			string $nRigid = `createNode nRigid`;
+			
+			//Get the shape node of collider
+			string $objShape[] = `listRelatives -s -path $collider`;
+
+
+			
+			//Connect all the necessary attributes to make the surface collide
+			connectAttr -f ($objShape[0] +".worldMesh[0]") ($nRigid + ".inputMesh");
+
+			connectAttr -f ($nRigid +".currentState") ($nucleus[0] + ".inputPassive[0]");
+			connectAttr -f ($nRigid +".startState") ($nucleus[0] + ".inputPassiveStart[0]");
+			connectAttr -f ($nucleus[0] +".startFrame") ($nRigid + ".startFrame");
+
+			connectAttr time1.outTime ($nRigid + ".currentTime");
+	
+			//Print output to the user for each connected collider.
+			print ($obj + " has been set to collide with " + $chainCtrl + "\n");
+
+         }
+
+	}
+	progressWindow -endProgress;
+
+
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								BAKING PROCEDURE
+/////////////////////////////////////////////////////////////////////////////////////////
+global proc krDynChain_bakeDynChain ()
+{
+	//Declare necessary variables
+	string $initialSel[] = `ls -sl`;
+	string $allCtrls[];
+	int $i;
+	int $amount;
+
+	
+	//Filter selection to contain only dynamic chain controllers.
+	for ($obj in $initialSel)
+	{
+
+		if (`attributeExists "nameOfHairShapeNode" $obj`)
+		{
+			$allCtrls[$i] = $obj;
+			$i++;
+		}
+	}
+
+
+	
+	//Create a progress window
+	progressWindow
+		-title "Factor 5's Dynamic Joint Chain:"
+		-progress $amount
+		-status "Baking Joint Chains:"
+		-minValue 0
+		-maxValue 100
+		-isInterruptable true;
+			
+	//Construct frame range variable
+	string $frameRangeToBake;
+	float $startFrame = `intField -query -value startFrame`;
+	float $endFrame = `intField -query -value endFrame`;
+	$frameRangeToBake = ("\"" + $startFrame + ":" + $endFrame + "\"");
+	
+	int $j = 1;
+	//For all of the selected chain controllers.
+	for ($obj in $allCtrls)
+	{
+		// Check if the dialog has been cancelled
+		if ( `progressWindow -query -isCancelled` ) break;
+		// Check if end condition has been reached
+		if ( `progressWindow -query -progress` >= 100 ) break;
+		
+		$amount = ((100/$i) * $j);
+		progressWindow -edit -progress $amount;
+		progressWindow -edit -status ("Baking chain " + $j + " of " + $i + " :");
+		
+		$j++;
+		
+		string $chainCtrl = $obj;
+		string $connections[] = `listConnections -p false -s true ($chainCtrl + ".baseJoint")`;
+		string $baseJoint = $connections[0];
+
+
+		$connections = `listConnections -p false -s true ($chainCtrl + ".endJoint")`;
+		string $endJoint = $connections[0];
+
+
+		string $bakingJoints = "{\"" ;
+		string $currentJoint[]; 
+
+		$currentJoint[0] = $endJoint;
+		
+//********************************************************************
+      string $dynJnt[];
+
+		for($i=0; $currentJoint[0] != $baseJoint; $i++)
+		{
+			$bakingJoints = ($bakingJoints +$currentJoint[0] + "\", \"");
+			select $currentJoint[0];
+
+        string $selected[] = `ls -sl`;
+        int $leng_nam = size($selected[0]);
+        string $hdlNam = `substring $selected[0] 1 ($leng_nam - 4)`;
+
+        if(`objExists $hdlNam`)
+        {
+            $dynJnt[$i] = $hdlNam;
+         }
+
+			$currentJoint = `pickWalk -d up`;
+   	}
+
+      if(`objExists $dynJnt[1]`)
+      {
+          string $selected[] = `ls -sl`;
+          int $numArr = size($dynJnt);
+          int $leng_nam = size($selected[0]);
+          $dynJnt[$numArr] = `substring $selected[0] 1 ($leng_nam - 4)`;
+
+          bakeResults -simulation true -t ($startFrame + ":" + $endFrame)  -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true -sparseAnimCurveBake false -controlPoints false -shape true  $dynJnt;
+      }    
+
+//*********************************************************************
+	
+		//Add the base joint that the while loop will miss
+		$bakingJoints = ($bakingJoints + $baseJoint + "\"}");
+
+
+		//Concatenate the bake simulation command with the necessary joint names.
+		$bakingJoints = ("bakeResults -simulation true -t " + $frameRangeToBake + " -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true -sparseAnimCurveBake false -controlPoints false -shape true" + $bakingJoints);
+
+		
+		//Evaluate the $bakingJoints string to bake the simulation.
+		eval $bakingJoints;
+
+		
+		//Tell control object that joints are baked.
+		setAttr ($chainCtrl + ".bakingState") 1;
+		
+		//Print feedback to user
+		print ("All joints controlled by " + $chainCtrl + " have now been baked!\n");
+	}
+	progressWindow -endProgress;
+
+
+
+}
+
+
+
+
+global proc krDynChain_bakeHandle ()
+{
+
+	//Declare necessary variables
+	string $initialSel[] = `ls -sl`;
+	string $allCtrls[];
+	int $i;
+	int $amount;
+
+	
+	//Filter selection to contain only dynamic chain controllers.
+	for ($obj in $initialSel)
+	{
+
+		if (`attributeExists "nameOfHairShapeNode" $obj`)
+		{
+			$allCtrls[$i] = $obj;
+			$i++;
+		}
+	}
+
+
+
+	//Construct frame range variable
+	string $frameRangeToBake;
+	float $startFrame = `intField -query -value startFrame`;
+	float $endFrame = `intField -query -value endFrame`;
+	$frameRangeToBake = ("\"" + $startFrame + ":" + $endFrame + "\"");
+
+
+    string $dyn_Ctrl[];
+	int $j = 1;
+	//For all of the selected chain controllers.
+	for ($obj in $allCtrls)
+	{
+
+		$j++;
+		
+		string $chainCtrl = $obj;
+		string $connections[] = `listConnections -p false -s true ($chainCtrl + ".baseJoint")`;
+		string $baseJoint = $connections[0];
+
+
+		$connections = `listConnections -p false -s true ($chainCtrl + ".endJoint")`;
+		string $endJoint = $connections[0];
+
+
+		string $bakingJoints = "{\"" ;
+		string $currentJoint[]; 
+
+		$currentJoint[0] = $endJoint;
+		
+//********************************************************************
+
+
+        //string $dyn_Ctrl[];
+
+
+
+
+        int $j = 0;
+        for($i=0; $currentJoint[0] != $baseJoint; $i++)
+		{
+
+			select $currentJoint[0];
+            string $selected[] = `ls -sl`;
+            int $leng_nam = size($selected[0]);
+            string $hdlNam = `substring $selected[0] 1 ($leng_nam - 4)`;
+
+            if(`objExists $hdlNam`)
+            {
+
+                $dyn_Ctrl[size($dyn_Ctrl)] = $hdlNam;
+                $j++;
+             }
+
+			$currentJoint = `pickWalk -d up`;            
+           
+        }
+
+
+	}
+    print $dyn_Ctrl;
+
+  
+    
+    bakeResults -simulation true -t ($startFrame + ":" + $endFrame)  -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true -sparseAnimCurveBake false -controlPoints false -shape true $dyn_Ctrl;
+
+    int $hdl_num = size($dyn_Ctrl);
+    for($i=0; $i<$hdl_num; $i++)
+    {
+        string $constNode[] = `listRelatives -typ parentConstraint $dyn_Ctrl[$i]`;
+        delete $constNode[0];
+    }
+
+
+    select -cl;
+ 	for ($obj in $allCtrls)
+    {
+        select -add $obj;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								DELETE DYNAMICS PROCEDURE
+/////////////////////////////////////////////////////////////////////////////////////////
+global proc krDynChain_deleteDynChain ()
+{
+	//Declare necessary variables
+	string $initialSel[] = `ls -sl`;
+	
+	for ($chainCtrl in $initialSel)
+	{
+		int $error = 0;
+		
+		//Check that controller is selected.
+		if (!`attributeExists "bakingState" $chainCtrl`)
+		{
+			$error = 1;
+			warning ("Not a chain controller. Skipping:" + $chainCtrl + " .\n") ;
+		}else
+		{
+			//Check if joints have been baked.
+			if(((`getAttr ($chainCtrl + ".bakingState")`) == 0) && ((`getAttr ($chainCtrl + ".isStretchy")`) == 1))
+			{
+				string $result = `confirmDialog 
+									-title "Delete Dynamics Warning" 
+									-message "Deleting the dynamics on a stretchy chain may cause it to collapse. Please bake the joint chain before deleting."
+		 							-button "Continue Anyway" -button "Cancel" 
+									-defaultButton "Cancel"
+		 							-cancelButton "Cancel" -dismissString "Cancel"`;
+				if ($result == "Cancel")
+				{
+					$error = 1;
+					warning ("Dynamics were not deleted for: " + $chainCtrl + ".\n");
+				}
+			}
+		}
+		
+		if ($error == 0)
+		{
+			string $connections[];
+			
+			//Delete Follicle Node
+			$connections = `listConnections -p false -s true ($chainCtrl + ".nameOfFollicleNode")`;
+			string $follicleNode[];
+			$follicleNode[0] = $connections[0];
+			select $follicleNode[0];
+			$follicleNode = `pickWalk -d up`;
+			delete $follicleNode;
+			
+			//Delete Hair System Node
+			$connections = `listConnections -p false -s true ($chainCtrl + ".nameOfHairShapeNode")`;
+			delete $connections[0];
+
+		
+			//Delete Dynamic Hair Curve
+			$connections = `listConnections -p false -s true ($chainCtrl + ".nameOfDynCurve")`;
+			delete $connections[0];
+			
+				//Delete Multi/Div Node
+			$connections = `listConnections -p false -s true ($chainCtrl + ".nameOfMultiDivNode")`;	
+			if ($connections[0] != $chainCtrl)
+				delete $connections[0];
+/*			
+		//Delete Tip Constraint
+			$connections = `listConnections -p false -s true ($chainCtrl + ".nameOfTipConstraint")`;	
+			if ($connections[0] != $chainCtrl)
+				delete $connections[0];
+*/		 
+				//Delete IK Handle
+			$connections = `listConnections -p false -s true ($chainCtrl + ".baseJoint")`;
+			$connections = `listConnections -p false -s true $connections[0]`;
+			for ($connection in $connections)
+				if (`objectType -isType ikHandle $connection`)
+					delete $connection;
+			
+
+			//Delete control object
+			select $chainCtrl;
+            delete $chainCtrl; // add script -- moon
+			//$connections = `pickWalk -d up`;
+				//delete $connections;
+
+
+////////////////////add script -- moon ///////////////////////////////////////
+
+			if(`objExists("dynChain____CONTROLERS")`)
+			{
+
+                string $listChild[] = `listRelatives -c "dynChain____CONTROLERS"`;
+                if($listChild[0] == "")
+			        delete "dynChain____CONTROLERS";
+			}
+
+
+
+
+            string $dynChainGrp = `substitute  "DynChainControl" $chainCtrl "_DYNAMIC_CHAIN"`;
+            string $dynParentNode = `substitute  "DynChainControl" $chainCtrl "_parentNode"`;
+
+            delete $dynChainGrp;
+            delete $dynParentNode;
+
+			if(`objExists("dynChain____RIG_GROUP")`)
+			{
+                string $listChild[] = `listRelatives -c "dynChain____RIG_GROUP"`;
+                if($listChild[0] == "")
+			        delete "dynChain____RIG_GROUP";
+			}
+
+            if(!`objExists("dynChain____RIG_GROUP")`)
+            {
+                delete "Master_nucleus_loc";
+            }
+			
+			//Print feedback to the user.
+			print ("Dynamics have been deleted from the chain: " + $chainCtrl +"\n");
+		}
+	}
+	select -cl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								SETUP SINGLE JOINT PROCEDURE
+/////////////////////////////////////////////////////////////////////////////////////////
+global proc krDynChain_dynSingleJoint()
+{
+	string $sel[] = `ls -sl`;
+	
+	if (!`objectType -isType joint $sel[0]`)
+		error "Please select a single joint and try again.\n";
+	
+	if ($sel[0] == "")
+		error "Please select a single joint and try again.\n";
+
+	$nameOfJoint = $sel[0];
+		
+	//Get position of joint
+	float $jointPos[] = `xform -q -rp -ws $nameOfJoint`;
+	
+	//Create particle at joint
+	string $particleNode[] = `particle 	-position $jointPos[0] $jointPos[1] $jointPos[2] 
+										-c 0.9`;
+	
+	//Create NURBS curve cube at position of joint
+	string $curveCtrl = `curve -d 1 -p 0.5 0.5 0.5 -p 0.5 0.5 -0.5 -p -0.5 0.5 -0.5 -p -0.5 -0.5 -0.5 -p 0.5 -0.5 -0.5 -p 0.5 0.5 -0.5 -p -0.5 0.5 -0.5 -p -0.5 0.5 0.5 -p 0.5 0.5 0.5 -p 0.5 -0.5 0.5 -p 0.5 -0.5 -0.5 -p -0.5 -0.5 -0.5 -p -0.5 -0.5 0.5 -p 0.5 -0.5 0.5 -p -0.5 -0.5 0.5 -p -0.5 0.5 0.5 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15`;
+//	string $curveCtrl = `polyCube -w 1 -h 1 -d 1 -sx 1 -sy 1 -sz 1 -ax 0 1 0 -cuv 4 -ch 1`;
+
+
+
+
+
+
+	//Move ctrl curve to joint position.
+	move -ws $jointPos[0] $jointPos[1] $jointPos[2] $curveCtrl;
+	//Freeze Xforms on Controller
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 $curveCtrl;
+	//Rename Controller
+	$curveCtrl = `rename $curveCtrl ($nameOfJoint + "dynCtrl")`;
+	
+	//Create spring node
+	select ($curveCtrl + ".cv[1]") $particleNode[0];
+	string $springNode[] = `spring 	-noDuplicate false 
+									-all true 
+									-useRestLengthPS false 
+									-rl 0 
+									-s 20 
+									-d 4.0 
+									-sfw 1 
+									-efw 1`;
+
+	//Add springs between cube verts and particle
+	//CVs to connect are: 1 2 7 0 9 4 3 12
+	select ($curveCtrl + ".cv[2]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+	select ($curveCtrl + ".cv[7]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+	select ($curveCtrl + ".cv[0]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+	select ($curveCtrl + ".cv[9]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+	select ($curveCtrl + ".cv[4]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+	select ($curveCtrl + ".cv[3]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+	select ($curveCtrl + ".cv[12]") $particleNode[0];
+		krDynChain_addSpring($springNode[0]);
+		
+	//Create locator to attach to particle
+	string $nameOfLocator[] = `spaceLocator -p 0 0 0`;
+	string $world_Loc[] = `spaceLocator -p 0 0 0`;
+	string $ani_Loc[] = `spaceLocator -p 0 0 0`;
+	
+    parent $ani_Loc[0] $nameOfLocator[0];
+
+
+	//Connect world position of particle to translation of locator
+	connectAttr ($particleNode[1] + ".worldCentroid") ($nameOfLocator[0] + ".translate");
+	connectAttr ($particleNode[1] + ".worldCentroid") ($world_Loc[0] + ".translate");
+
+	
+	//Connect joint to locator
+//	string $nameOfConstraint[] = `parentConstraint -mo -weight 1 $nameOfLocator[0] $nameOfJoint`;
+	string $nameOfConstraint[] = `parentConstraint -mo -weight 1 $ani_Loc[0] $nameOfJoint`;
+	
+	//Group nodes to keep graph tidy
+	string $groupName = `group -em`;
+	$groupName = `rename $groupName ($curveCtrl + "_extrasGrp")`;
+	parent $particleNode[0] $springNode[0] $nameOfLocator[0] $groupName;
+
+	//Create message connections to controller to brand nodes for deletion
+	addAttr -ln isDynamicSingleJointCtrl -at bool $curveCtrl;
+	addAttr -ln deleteList -at message -multi -im false $curveCtrl;
+	connectAttr -na ($particleNode[0] + ".message") ($curveCtrl + ".deleteList");
+	connectAttr -na ($springNode[0] + ".message") ($curveCtrl + ".deleteList");
+	connectAttr -na ($nameOfLocator[0] + ".message") ($curveCtrl + ".deleteList");
+	connectAttr -na ($groupName + ".message") ($curveCtrl + ".deleteList");
+	
+	//Attach stiffness and damping to controller
+	addAttr -ln stiffness -at double $curveCtrl;
+	addAttr -ln damping -at double  $curveCtrl;
+	addAttr -ln startframe -at double  $curveCtrl;
+
+	connectAttr ($curveCtrl + ".stiffness") ($springNode[0] + ".stiffness");
+	connectAttr ($curveCtrl + ".damping") ($springNode[0] + ".damping");
+	connectAttr ($curveCtrl + ".startframe") ($particleNode[0] + ".startFrame");
+	
+	//Set stiffness and damping default values
+	setAttr -e -keyable true ($curveCtrl + ".damping");
+	setAttr -e -keyable true ($curveCtrl + ".stiffness");
+	setAttr -e -keyable true ($curveCtrl + ".startframe");
+	setAttr ($curveCtrl + ".damping") 2.0;
+	setAttr ($curveCtrl + ".stiffness") 10.0;
+	setAttr ($curveCtrl + ".startframe") 1;
+	
+	/*
+	//Store initial translation vector on joint itself
+	addAttr -ln stiffness -at double $curveCtrl;
+	addAttr -ln damping -at double  $curveCtrl;
+	*/
+	
+	//Hide clutter nodes
+	setAttr ($particleNode[0] + ".visibility") 0;
+	setAttr ($springNode[0] + ".visibility") 0;
+
+    string $Locator_shapes[] = `listRelatives -s -path $nameOfLocator[0]`;
+	setAttr ($Locator_shapes[0] + ".visibility") 0;
+
+
+//	setAttr ($nameOfLocator[0] + ".visibility") 0;
+	setAttr ($world_Loc[0] + ".visibility") 0;
+
+	
+	//Lock And Hide Attributes on Control Object.
+//	setAttr -lock true -keyable false ($curveCtrl + ".rx");
+//	setAttr -lock true -keyable false ($curveCtrl + ".ry");
+//	setAttr -lock true -keyable false ($curveCtrl + ".rz");
+	setAttr -lock false -keyable false ($curveCtrl + ".sx");
+	setAttr -lock false -keyable false ($curveCtrl + ".sy");
+	setAttr -lock false -keyable false ($curveCtrl + ".sz");
+	
+	if (`checkBoxGrp -q -value1 rotateConstraintCheckbox`)
+    {      
+        orientConstraint -n ($nameOfLocator[0] + "_Rot_constraint") -mo $world_Loc[0] $curveCtrl  $nameOfLocator[0];
+        setAttr ($nameOfLocator[0] + "_Rot_constraint" + ".interpType") 2;
+
+        addAttr -ln "rot_weight"  -at double  -min 0 -max 10 -dv 10 $curveCtrl;
+        setAttr -e-keyable true ($curveCtrl + ".rot_weight");
+
+        setAttr ($curveCtrl + ".rot_weight") 10;
+        setAttr ($nameOfLocator[0] + "_Rot_constraint." + $world_Loc[0] + "W0") 0;
+        setAttr ($nameOfLocator[0] + "_Rot_constraint." + $curveCtrl + "W1") 1;
+
+        setDrivenKeyframe -currentDriver ($curveCtrl + ".rot_weight") ($nameOfLocator[0] + "_Rot_constraint." + $world_Loc[0] + "W0");
+        setDrivenKeyframe -currentDriver ($curveCtrl + ".rot_weight") ($nameOfLocator[0] + "_Rot_constraint." + $curveCtrl + "W1");
+
+        /////////////////////////////////////////////////////////
+
+        setAttr ($curveCtrl + ".rot_weight") 0;
+        setAttr ($nameOfLocator[0] + "_Rot_constraint." + $world_Loc[0] + "W0") 1;
+        setAttr ($nameOfLocator[0] + "_Rot_constraint." + $curveCtrl + "W1") 0;
+
+        setDrivenKeyframe -currentDriver ($curveCtrl + ".rot_weight") ($nameOfLocator[0] + "_Rot_constraint." + $world_Loc[0] + "W0");
+        setDrivenKeyframe -currentDriver ($curveCtrl + ".rot_weight") ($nameOfLocator[0] + "_Rot_constraint." + $curveCtrl + "W1");
+
+
+        setAttr ($curveCtrl + ".rot_weight") 10;
+
+    }
+
+
+	select -r $curveCtrl;
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								ADD SPRING (FOR SINGLE JOINT SETUP) PROCEDURE
+/////////////////////////////////////////////////////////////////////////////////////////
+global proc krDynChain_addSpring(string $nameOfSpring)
+{
+	select -tgl $nameOfSpring;
+	spring  -name $nameOfSpring -add -noDuplicate false -all true ;
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								DELETE DYNAMICS (SINGLE JOINT) PROCEDURE
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+global proc krDynChain_singleJointCleanUp()
+{
+	string $sel[] = `ls -sl`;
+	
+	string $toDelete[] = `listConnections ($sel[0] + ".deleteList")`;
+
+	delete $toDelete;
+	delete $sel;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								DELETE DYNAMICS CALL FROM GUI (FOR SINGLE OR BOTH)
+/////////////////////////////////////////////////////////////////////////////////////////
+global proc krDynChain_deleteDynamics()
+{
+	string $sel[] = `ls -sl`;
+	
+	for ($obj in $sel)
+	{
+		if (`attributeExists "isDynamicSingleJointCtrl" $obj`)
+		{
+			select -r $obj;
+			krDynChain_singleJointCleanUp;
+		}else
+		if (`attributeExists "bakingState" $obj`)
+		{
+			select -r $obj;
+			krDynChain_deleteDynChain;
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// add script --- moon
+////////////////////////////////////////////////////////////////////////////////////////////
+
+global proc string[] MakeJoint()
+{
+    int $contCheck = `checkBoxGrp -q -v1 constraintCheckbox`;
+
+        
+    string $hdlNam[] = `ls -sl`;
+    int $num = size($hdlNam);
+    string $baseJoint = $hdlNam[0] + "_JNT";
+    string $endJoint = $hdlNam[$num-1] + "_JNT";
+
+
+    select -cl;
+
+    	for($i=0; $i<$num;$i++)
+    	{
+    		string $JntNam = $hdlNam[$i] + "_JNT";
+
+    		float $pstJoint[] = `xform -q -ws -a -t $hdlNam[$i]`;
+
+    		float $Xvalue = $pstJoint[0];
+    		float $Yvalue = $pstJoint[1];
+    		float $Zvalue = $pstJoint[2];
+		
+        	joint -p $pstJoint[0]  $pstJoint[1]  $pstJoint[2]  -n $JntNam;	
+
+    	 }
+
+
+        joint -e  -oj xyz -secondaryAxisOrient yup -ch -zso  ($hdlNam[0] + "_JNT");
+
+
+        for($i=0;$i<$num-1;$i++) 
+        {
+            MakeInsertJoint($hdlNam[$i], $hdlNam[$i+1]);        
+        }        
+
+
+
+    	for($i=0; $i<$num;$i++)
+    	{
+    		string $JntNam = $hdlNam[$i] + "_JNT";
+
+            if($contCheck == 1 && $i>0)
+            {
+                int $const_nam = `optionMenuGrp -q -sl constraintSel`;
+                //print $const_nam; 
+           
+
+               
+                if($const_nam == 1)
+                {    parentConstraint -n ($hdlNam[$i] + "_Dyn_constraint") -mo $JntNam $hdlNam[$i];    }
+            
+                else if($const_nam == 2)
+                {    pointConstraint -n ($hdlNam[$i] + "_Dyn_constraint")  -mo $JntNam $hdlNam[$i];    }
+
+                else if($const_nam == 3)
+                {    orientConstraint -n ($hdlNam[$i] + "_Dyn_constraint")  -mo $JntNam $hdlNam[$i];    }
+  
+
+
+             }
+
+        }
+
+    addAttr -ln "numberHandle" -at double  -dv 1 -keyable 0  $baseJoint;
+    setAttr ($baseJoint+".numberHandle") $num;
+
+    string $hdl_and_jnt[] = {$baseJoint, $endJoint};
+
+
+
+
+    /*
+    //string $test[] = `listConnections -p 1 -c 1 ($hdlNam[1] + ".tx")`;
+    string $test[] = `listRelatives -typ "parentConstraint"  $hdlNam[1]`; //($hdlNam[1] + ".tx")`;
+    string $test_att[] = `listConnections -p 1 -d 1 ($test[0] + ".targetWeight")`;
+    print "#######\n";
+    print $test_att;
+    print "/n#######\n";
+    */
+
+    //return $hdl_and_jnt;
+    return $hdlNam;
+
+
+}	
+
+
+
+global proc MakeInsertJoint(string $handle_name1, string $handle_name2)
+{
+
+        int $numInsJnt = `intField -query -value insJoint`;
+
+
+    	float $hdl1[] = `xform -q -ws -a -t $handle_name1`;
+    	
+    	float $hdl2[] = `xform -q -ws -a -t $handle_name2`;
+    	
+
+        vector $v1 = <<$hdl1[0], $hdl1[1], $hdl1[2]>>;
+        print ($v1+"\n");
+        
+        vector $v2 = <<$hdl2[0], $hdl2[1], $hdl2[2]>>;
+        print ($v2+"\n");
+
+        vector $v3 = $v2-$v1;
+
+        vector $vf = (($v2-$v1)/($numInsJnt+1))+$v1;
+
+        insertJoint ($handle_name1+"_JNT");
+
+
+        string $insJNT[] = `ls -sl`;
+        rename $insJNT[0] ($handle_name1+"_insJNT1");
+        joint -e -co -p ($vf.x) ($vf.y) ($vf.z) ($handle_name1+"_insJNT1");
+
+
+        string $insJointName[];
+        $insJointName[0] = $handle_name1+"_insJNT1";
+
+        for($i=0;$i<$numInsJnt-1;$i++)
+        {
+
+
+            insertJoint $insJointName[$i];
+
+            string $insJNT[] = `ls -sl`;
+            rename $insJNT[0] ($handle_name1+"_insJNT"+($i+2));
+
+            string $item[];
+            $Item[0] = ($handle_name1+"_insJNT"+($i+2));
+            appendStringArray($insJointName, $Item, 1);
+
+            float $p_joint[] = `xform -q -ws -a -t ($handle_name1+"_insJNT"+($i+1))`;
+            vector $p_jnt_v = <<$p_joint[0], $p_joint[1], $p_joint[2]>>;
+
+            vector $vec = ($v3/($numInsJnt+1)) + $p_jnt_v;
+            print ($vec+"\n");
+            joint -e -co -p ($vec.x) ($vec.y) ($vec.z) ($handle_name1+"_insJNT"+($i+2));
+
+
+
+        }
+
+
+
+
+
+        /*
+        int $numInsJnt = size($insJointName);
+
+
+        for($i=0;$i<$numInsJnt;$i++)
+        {
+            rename $insJointName[$i] ($handle_name1+"_insJNT"+($i+2));
+        }
+        */
+
+
+
+
+
+        //float PositionList[];
+        /*
+        for($i=0;$i<$numInsJnt;$i++)
+        {
+
+            vector $insJoint_vec = (($v3)/($numInsJnt+1))+$v1;
+
+            insertJoint ($handle_name1+"_JNT");
+            string $insJNT[] = `ls -sl`;
+            print $insJNT;
+            //rename $insJNT[0] ($handle_name1+"_insJNT"+$i);
+
+
+
+            //string $insJNT[] = `ls -sl`;
+            //rename $insJNT[0] ($handle_name1+"_insJNT"+$i);
+            //joint -e -co -p ($v3.x) ($v3.y) ($v3.z) ($handle_name1+"_insJNT"+$i);            
+
+        }
+        */
+
+
+
+        /*
+        vector $v1 = <<$hdl1[0], $hdl1[1], $hdl1[2]>>;
+        print ($v1+"\n");
+        
+        vector $v2 = <<$hdl2[0], $hdl2[1], $hdl2[2]>>;
+        print ($v2+"\n");
+
+        vector $v3 = (($v2-$v1)/2)+$v1;
+
+        insertJoint ($handle_name1+"_JNT");
+        string $insJNT[] = `ls -sl`;
+        rename $insJNT[0] ($handle_name1+"_insJNT");
+        joint -e -co -p ($v3.x) ($v3.y) ($v3.z) ($handle_name1+"_insJNT");
+        */    
+
+}
+
+
+
+
+
+
+global proc krDynChain_autoDyn()
+{
+
+    //string $dynJoint_list[] = MakeJoint();    
+    string $handle_list[] = MakeJoint();
+
+    //select -r $dynJoint_list[0];
+    //select -add $dynJoint_list[1];    
+
+    krDynChain_apply($handle_list);
+}
+
+
+
+
+
+
+
+
+global proc string[] krDynChain_apply( string $handles[])
+{
+
+
+
+    //string $dynJoint_list[] = MakeJoint();
+
+    //select -r $dynJoint_list[0];
+    //select -add $dynJoint_list[1];    
+
+
+    string $dynJoint_list[] = krDynChain_dynJointChain($handles);
+
+
+    string $parentNode_child = $dynJoint_list[0] + "_parentNode";
+
+    int $size_name = size($dynJoint_list[0]);
+    string $baseHandleName = `substring $dynJoint_list[0] 1 ($size_name-4)`;
+
+    select -r $baseHandleName;
+    pickWalk -d up;
+    
+    string $parentNode_parent[] = `ls -sl`;
+    parent $parentNode_child $parentNode_parent[0];
+
+    string $dynSet_group = $dynJoint_list[0] + "_DYNAMIC_CHAIN";
+    group -n $dynSet_group -em;
+    parent $dynJoint_list[0] $dynSet_group;
+    parent ($dynJoint_list[0] + "DynChainGroup")  $dynSet_group;
+ 
+    
+    if(!`objExists("dynChain____RIG_GROUP")`)
+    {
+         group -n "dynChain____RIG_GROUP" -em;   
+    }
+
+    parent $dynSet_group "dynChain____RIG_GROUP";
+
+ 
+     //Get the name of the hair shape node
+    string $jointCtrlObj = $dynJoint_list[0]+"DynChainControl";
+    string $connections[] = `listConnections -p false -s true ($jointCtrlObj + ".nameOfHairShapeNode")`;
+    string $hairShape = $connections[0];
+    string $hairShapeName[] = `listRelatives -s -path $hairShape`;
+    string $nucleus[] = `listConnections -p false -s true -t "nucleus" $hairShapeName`;
+
+    return $dynJoint_list;
+
+}
+
+
+
+
+
+
+
+
+
+/*
+global proc krDynChain_autoDyn()
+{
+
+    string $dynJoint_list[] = MakeJoint();
+
+    select -r $dynJoint_list[0];
+    select -add $dynJoint_list[1];    
+
+    krDynChain_dynJointChain();
+
+    string $parentNode_child = $dynJoint_list[0] + "_parentNode";
+
+    int $size_name = size($dynJoint_list[0]);
+    string $baseHandleName = `substring $dynJoint_list[0] 1 ($size_name-4)`;
+
+    select -r $baseHandleName;
+    pickWalk -d up;
+    
+    string $parentNode_parent[] = `ls -sl`;
+    parent $parentNode_child $parentNode_parent[0];
+
+    string $dynSet_group = $dynJoint_list[0] + "_DYNAMIC_CHAIN";
+    group -n $dynSet_group -em;
+    parent $dynJoint_list[0] $dynSet_group;
+    parent ($dynJoint_list[0] + "DynChainGroup")  $dynSet_group;
+ 
+    
+    if(!`objExists("dynChain____RIG_GROUP")`)
+    {
+         group -n "dynChain____RIG_GROUP" -em;   
+    }
+
+    parent $dynSet_group "dynChain____RIG_GROUP";
+
+ 
+     //Get the name of the hair shape node
+    string $jointCtrlObj = $dynJoint_list[0]+"DynChainControl";
+    string $connections[] = `listConnections -p false -s true ($jointCtrlObj + ".nameOfHairShapeNode")`;
+    string $hairShape = $connections[0];
+    string $hairShapeName[] = `listRelatives -s -path $hairShape`;
+    string $nucleus[] = `listConnections -p false -s true -t "nucleus" $hairShapeName`;
+
+}
+*/
+
+
+
+global proc krDynChain_Bake_and_Delete()
+{
+
+    krDynChain_bakeHandle;
+
+    krDynChain_deleteDynamics;
+
+}
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								MAIN WINDOW
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+global proc krDynChain()
+{
+	
+	if (`window -q -ex dynChainWindow`) deleteUI dynChainWindow;
+	
+	//Main Window
+	window -title "Auto Dynamic Joint Chain" -s 1 -rtf 1 -w 350 -h 520 dynChainWindow;
+//	scrollLayout -hst 0 -w 350 -h 500;
+   	columnLayout -w 420 -h 470 -columnAttach "both" 10 -rowSpacing 10 -columnWidth 350 dynChainColumn;
+
+	//Dynamic Chain Creation Options Layout
+
+
+
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+	frameLayout -w 390 -h 180
+            -cc "autoDynframeCollapse"
+            -ec "autoDynframeExpand"
+            -mh 0
+				//-borderStyle etchedOut 
+				-collapsable 0 
+            -cl 0
+				-label "Dynamic Chain Creation Option:" 
+				-bgc 0.2 0.2 0.2
+				autoDynFrame;
+
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+
+    text -label "";
+    checkBoxGrp -label "Create Tip Constraint : " -cw 1 250 tipConstraintCheckbox;
+    checkBoxGrp -label "Allow Joint Chain to Stretch : "   -cw 1 250 stretchCheckbox;
+
+ 	rowColumnLayout -nc 2 -cw 1 195 -cw 2 180 ;
+
+
+      text -label "";
+      text -label "";
+      text -label "Number of joint to insert : " -al "right";
+      intField -w 50 -value 1 -min 1  -max 10 insJoint;
+      text -label "";
+      text -label "";            
+    	text "Select controlers for Dynamic chain: ";
+    	button -label "Create Dyn Chain" -c "krDynChain_autoDyn";
+    	text -vis 0 "kk";
+    	button -label "Bake and Delete" -c "krDynChain_Bake_and_Delete";
+
+   setParent..;
+   setParent..;
+
+
+
+
+	frameLayout -w 390 -h 20 
+            -cc "frameCollapse"
+            -ec "frameExpand"
+            -mh 0
+            -mw 80
+				//-borderStyle etchedOut 
+				-collapsable 1
+            -cl 1
+				-label "Joint Creation Option:" 
+				-bgc 0.2 0.2 0.2
+				creationOptions;
+
+//	frameLayout -e -cl true creationOptions;
+
+
+//	columnLayout -cw 300;
+
+		checkBoxGrp -label "Constrain controler: " -v1 1  -h 30 constraintCheckbox;
+//	rowColumnLayout -nc 3 -cw 1 50 -cw 2 220 -cw 3 150;
+		optionMenuGrp -label  "Constraint " constraintSel;
+			menuItem -label "Parent";
+			menuItem -label "Point";
+			menuItem -label "orient";
+
+    	button -label "Create Joint"  -h 20 -c "MakeJoint";
+    	text -label "";
+
+
+		
+	setParent..;
+	setParent..;
+	
+	//Button Layouts
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+	frameLayout -w 390 -h 20
+            -cc "defaultframeCollapse"
+            -ec "defaultframeExpand"
+            -mh 0
+				//-borderStyle etchedOut 
+				-collapsable 1 
+            -cl 1
+				-label "Dynamic Chain Creation Option:" 
+				-bgc 0.2 0.2 0.2
+				defaultFrame;
+
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+
+     text -label "";
+		//checkBoxGrp -label "Create Tip Constraint : " -cw 1 250 tipConstraintCheckbox;
+		//checkBoxGrp -label "Allow Joint Chain to Stretch: "   -cw 1 250 stretchCheckbox;
+		checkBoxGrp -label "Create rotate Constraint Dynamic Joint: "  -v1 1  -cw 1 250 rotateConstraintCheckbox;
+
+	rowColumnLayout -nc 2 -cw 1 195 -cw 2 180 ;
+
+      text -label "";
+      text -label "";
+    	text "Select base joint, shift select tip: ";
+    	button -label "Create Dynamic Chain" -en 0  -c "krDynChain_apply";
+
+       	text "Select single joint: ";
+    	button -label "Create Dynamic Joint" -c "krDynChain_dynSingleJoint";
+
+
+    	text "Select control, shift select collider(s): ";
+    	button -label "Make Collide" -c "krDynChain_collideWithChain";
+
+   setParent..;
+   setParent..;
+
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+	frameLayout -w 390 -h 20
+            -cc "deleteframeCollapse"
+            -ec "deleteframeExpand"
+            -mh 0
+				//-borderStyle etchedOut 
+				-collapsable 1 
+            -cl 1
+				-label "Bake and Delete Option:" 
+				-bgc 0.2 0.2 0.2
+				deleteOption;
+
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+	//Bake Animation Layouts
+
+   text -label "";
+	rowColumnLayout -nc 3 -cw 1 100 -cw 2 100 -cw 3 120 bakeRowColumn;
+	text "Start Frame: ";
+	text "End Frame:";
+	text "Select Control:";
+
+    int $start = `playbackOptions -q -min`;
+    int $end = `playbackOptions -q -max`;
+
+	intField -value $start startFrame;
+	intField -value $end endFrame;
+	button -label "Bake Dynamic Chain" -c "krDynChain_bakeHandle"; //"krDynChain_bakeDynChain";
+   text -label "";
+   text -label "";
+   text -label "";
+   text -label "";
+  	text "Select control: ";
+  	button -label "Delete Dynamics" -c "krDynChain_deleteDynamics";	
+
+	//Show Main Window Command
+   setParent..;
+   setParent..;
+
+	showWindow dynChainWindow;
+	
+	frameLayout -e -cl true creationOptions;
+
+}
+
+
+//////////////////////////////////////////////////////////////
+
+global proc autoDynframeCollapse()
+{	frameLayout -e -h 20 	autoDynFrame;    }
+
+
+global proc autoDynframeExpand()
+{	frameLayout -e -h 192  autoDynFrame;    }
+
+////////////////////////////////////////////////////////////
+
+global proc frameCollapse()
+{	frameLayout -e -h 20 	creationOptions;    }
+
+
+global proc frameExpand()
+{	frameLayout -e -h 120  creationOptions;    }
+
+//////////////////////////////////////////////////////////////
+
+global proc defaultframeCollapse()
+{	frameLayout -e -h 20 	defaultFrame;    }
+
+
+global proc defaultframeExpand()
+{	frameLayout -e -h 192  defaultFrame;    }
+
+///////////////////////////////////////////////////////////////
+
+
+global proc deleteframeCollapse()
+{	frameLayout -e -h 20 	deleteOption;    }
+
+
+global proc deleteframeExpand()
+{	frameLayout -e -h 140  deleteOption;    }
+
+///////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+//krDynChain();

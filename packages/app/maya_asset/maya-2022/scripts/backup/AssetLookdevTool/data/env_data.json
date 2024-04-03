@@ -1,0 +1,22 @@
+{
+    "show_information": {
+
+        "default" :{
+            "env_map": "Stinson_Beach_1502_PM.rma/Env_StinsonBeach_1502PM_2k.18.tex",
+            "direct_env_map": "/dexter/Cache_DATA/LGT/Reference/HDR_browser/open_HDR/day/Backyard_Ref.tex",
+            "key_light": true,
+            "rim_light": false,
+            "camera": {},
+            "rotation" : [0, 0, 0]
+        },
+
+        "wwd" :{
+            "env_map": "surr_27_XXL_2k.tex",
+            "direct_env_map": "/dexter/Cache_DATA/LGT/Reference/HDR_browser/open_HDR/interior/surr_27_XXL_2k.tex ",
+            "key_light": true,
+            "rim_light": false,
+            "camera": {},
+            "rotation" : [0, -81.541, 0]
+        }
+    }
+}

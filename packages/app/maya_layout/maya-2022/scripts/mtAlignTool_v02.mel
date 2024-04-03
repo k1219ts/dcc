@@ -1,0 +1,242 @@
+global proc mtAlignTool()
+{
+
+string $windowName = "mtAlignWindow";
+
+if(`window -ex $windowName`) deleteUI $windowName;
+window -t $windowName -s 0 -mxb 0 -wh 260 500 $windowName;
+	columnLayout;
+		text -w 200 -l "mtAlignTool v1.1" -al "center";
+
+	separator;
+
+	frameLayout -l "Align" -mh 5 -mw 5 -w 224;
+		columnLayout;
+			frameLayout -l "Transrate" -w 210 -h 70 -mh 10 -mw 5;
+				rowLayout -nc 5 -cw5 40 40 40 30 40;
+					button -l "ALL"  -c "translateAll()";
+					checkBox -l "X"  traXcheckbox;
+					checkBox -l "Y"  traYcheckbox;
+					checkBox -l "Z"  traZcheckbox;
+					button -l "none" -c "translateNone()";
+				setParent ..;
+			setParent ..;
+
+			frameLayout -l "Rotation" -w 210 -h 70 -mh 10 -mw 5;
+				rowLayout -nc 5 -cw5 40 40 40 30 40;
+					button -l "ALL" -c "rotateAll()";
+					checkBox -l "X" rotXcheckbox;
+					checkBox -l "Y" rotYcheckbox;
+					checkBox -l "Z" rotZcheckbox;
+					button -l "none" -c "rotateNone()";
+				setParent ..;
+			setParent ..;
+
+			frameLayout -l "Scale" -w 210 -h 70 -mh 10 -mw 5;
+				rowLayout -nc 5 -cw5 40 40 40 30 40;
+					button -l "ALL" -c "scaleAll";
+					checkBox -l "X" scaXcheckbox;
+					checkBox -l "Y" scaYcheckbox;
+					checkBox -l "Z" scaZcheckbox;
+					button -l "none" -c "scaleNone()";
+				setParent ..;
+
+			setParent ..;
+
+			frameLayout -l "Pivot" -w 210 -h 70 -mh 10 -mw 5;
+				rowLayout -numberOfColumns 1 -columnAlign  1 "center";
+					button -l " Align Pivot " -c "AlignPivot()";
+				setParent ..;
+
+			setParent ..;
+
+			separator -w 210 -h 5 -st "none";
+
+			rowLayout -nc 2 -cw2 100 100 -cl2 "center" "center";
+				button -w 95 -l "Apply" -c "Apply()";
+				button -w 95 -l "Align To" -c "reloadList()";
+
+				setParent ..;
+
+				separator -w 200 -h 5;
+
+				string $lastSel;
+				text -w 180 -fn "plainLabelFont" -l("Press Align To for last selection :"+""+$lastSel) -al "left" alText;
+
+				setParent ..;
+
+	setParent ..;
+
+
+
+showWindow $windowName;
+
+}
+
+// aligns and closes the window
+global proc Apply()
+{
+string $windowName = "mtAlignWindow";
+string $sel[]=`ls -sl`;
+
+	if (size($sel) <= 1)
+	{
+		error ("------->>> please select minimum two objects if you want to Align. <<<-------\n");
+	}
+	else
+	{
+		int $last =	(size($sel)-1);
+		string $lastSelection = $sel[$last];
+
+		for ($x=0; $x<size ($sel);$x++)
+		{
+			string $sel[]=`ls -sl`;
+			string $lastSelection = $sel[$last];
+
+			float $trans[] = `xform -q -ws -rp $lastSelection`;
+
+			float $rot[]=`xform -q -ws -rotation $lastSelection`;
+
+			string $rotX = ($sel[$x]+".rx");
+			string $rotY = ($sel[$x]+".ry");
+			string $rotZ = ($sel[$x]+".rz");
+
+			float $scale[]=`xform -q -r -scale $lastSelection`;
+
+			string $scaX = ($sel[$x]+".sx");
+			string $scaY = ($sel[$x]+".sy");
+			string $scaZ = ($sel[$x]+".sz");
+
+			if(`checkBox -q -value traXcheckbox`)
+			{
+				move -rpr -x $trans[0];
+			}
+
+			if(`checkBox -q -value traYcheckbox`)
+			{
+				move -rpr -y $trans[1];
+			}
+
+			if(`checkBox -q -value traZcheckbox`)
+			{
+				move -rpr -z $trans[2];
+			}
+
+
+			if(`checkBox -q -value rotXcheckbox`)
+			{
+				setAttr $rotX $rot[0];
+			}
+
+			if(`checkBox -q -value rotYcheckbox`)
+			{
+				setAttr $rotY $rot[1];
+			}
+
+			if(`checkBox -q -value rotZcheckbox`)
+			{
+				setAttr $rotZ $rot[2];
+			}
+
+
+			if(`checkBox -q -value scaXcheckbox`)
+			{
+				setAttr $scaX $scale[0];
+			}
+
+			if(`checkBox -q -value scaYcheckbox`)
+			{
+				setAttr $scaY $scale[1];
+			}
+
+			if(`checkBox -q -value scaZcheckbox`)
+			{
+				setAttr $scaZ $scale[2];
+			}
+
+		}
+	}
+}
+global proc AlignPivot()
+{
+string $windowName = "mtAlignWindow";
+string $sel[]=`ls -sl`;
+
+	if (size($sel) <= 1)
+	{
+		error ("------->>> please select minimum two objects if you want to Align. <<<-------\n");
+	}
+	else
+	{
+		int $last =	(size($sel)-1);
+		string $lastSelection = $sel[$last];
+
+		float $rotatePivot[] = `getAttr ($lastSelection + ".rotatePivot")`;
+		float $worldPos[]=`xform -q -ws -translation $lastSelection`;
+
+		createNode -n ($lastSelection + "_DM") decomposeMatrix;
+		connectAttr ($lastSelection + ".inverseMatrix") ($lastSelection + "_DM.inputMatrix");
+		float $inverseRot[] = `getAttr ($lastSelection + "_DM.outputRotate")`;
+		float $newPivot[] = {$rotatePivot[0] + $worldPos[0], $rotatePivot[1] + $worldPos[1], $rotatePivot[2] + $worldPos[2]};
+
+		for ($x=0; $x < $last;$x++)
+		{
+            move $newPivot[0] $newPivot[1] $newPivot[2] ($sel[$x] + ".scalePivot") ($sel[$x] + ".rotatePivot");
+            select ($sel[$x] + ".rotateAxis");
+            xform -a -ro $inverseRot[0] $inverseRot[1] $inverseRot[2];
+		}
+		delete ($lastSelection + "_DM");
+	}
+}
+
+global proc translateAll()
+{
+	checkBox -e -v 1 traXcheckbox;
+	checkBox -e -v 1 traYcheckbox;
+	checkBox -e -v 1 traZcheckbox;
+}
+
+global proc translateNone()
+{
+	checkBox -e -v 0 traXcheckbox;
+	checkBox -e -v 0 traYcheckbox;
+	checkBox -e -v 0 traZcheckbox;
+}
+
+global proc rotateAll()
+{
+	checkBox -e -v 1 rotXcheckbox;
+	checkBox -e -v 1 rotYcheckbox;
+	checkBox -e -v 1 rotZcheckbox;
+}
+
+global proc rotateNone()
+{
+	checkBox -e -v 0 rotXcheckbox;
+	checkBox -e -v 0 rotYcheckbox;
+	checkBox -e -v 0 rotZcheckbox;
+}
+global proc scaleAll()
+{
+	checkBox -e -v 1 scaXcheckbox;
+	checkBox -e -v 1 scaYcheckbox;
+	checkBox -e -v 1 scaZcheckbox;
+}
+
+global proc scaleNone()
+{
+	checkBox -e -v 0 scaXcheckbox;
+	checkBox -e -v 0 scaYcheckbox;
+	checkBox -e -v 0 scaZcheckbox;
+}
+
+global proc reloadList()
+{
+	string $sel[]=`ls -sl`;
+	int $l = size($sel)-1;
+	string $lastSel = $sel[$l];
+	text -e -w 180 -fn "boldLabelFont" -l(" "+$lastSel) -al "left" alText;
+
+}
+
+mtAlignTool;

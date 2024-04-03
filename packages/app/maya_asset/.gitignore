@@ -1,0 +1,4 @@
+*.pyc
+*~
+maya-2018/scripts/backup/
+.idea/

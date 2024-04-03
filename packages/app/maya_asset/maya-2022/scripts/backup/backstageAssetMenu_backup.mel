@@ -1,0 +1,69 @@
+//
+//	CG Supervisor
+//		Sanghun.kim rman.td@gmail.com
+//
+//	2016.10.31	$1
+//
+
+proc addAssetMenu()
+{
+	global string $dxAssetMenu;
+
+	setParent -m $dxAssetMenu;
+
+	//menu -e -deleteAllItems $dxAssetMenu;
+
+	menuItem -divider true;
+	menuItem -l "AssetTool"
+			 -c ("python(\"import dxAssetTool; dxAssetTool.show_ui()\")");
+	menuItem -l "Export Mesh"
+			 -c ("python(\"import dxAssetExport; dxAssetExport.show_ui()\")");
+	menuItem -l "RenderMan Subdiv Tool"
+			 -c ("python(\"import dxSubdivTag; dxSubdivTag.show_ui()\")");
+	menuItem -l "publish inventory"
+			 -c ("python(\"import AssetBackupTool.AST_PUB_MAIN as AST_PUB_MAIN; AST_PUB_MAIN.main()\")");
+
+	menuItem -divider true;
+	menuItem -l "Asset Lookdev Tool"
+			 -c ("python(\"import AssetLookdevTool.Main as Main; Main.main()\")");
+    menuItem -l "Random Camera Capture"
+			 -c ("python(\"import RoundingConfirm.Main as Main; Main.main()\")");
+    menuItem -l "Structure"
+			 -c ("python(\"import Structures\")");
+
+    menuItem -divider true;
+    menuItem -l "Create MaterialSet"
+			 -c ("python(\"import MaterialSet; MaterialSet.createMaterialSet()\")");
+    menuItem -l "Import ShadingGroups"
+			 -c ("python(\"import MaterialSet; MaterialSet.materialImport()\")");
+	menuItem -l "Add MaterialSet By ShadingGroup"
+			 -c ("python(\"import MaterialSet; MaterialSet.AddMaterialSetAttributeByShadingGroup()\")");
+    menuItem -l "mGo(maya to mari)"
+			 -c ("python(\"import mGo.mGo_MayaUI as mGo_MayaUI;mGo_MayaUI.UI()\")");
+
+	menuItem -divider true;
+	menuItem -l "UVTextureMover" -c ("ks_UVTextureMover()");
+	menuItem -l "Create Proxy Texture"
+			 -c ("python(\"import dxTexture; dxTexture.textureProxyDialog()\")");
+	menuItem -l "PreivewShading Setup"
+			 -c ("python(\"import sgShader; sgShader.previewSetupProcess()\")");
+	menuItem -l "PreviewShading Dialog"
+			 -c ("python(\"import sgShader; sgShader.previewShadingDialog()\")");
+
+	menuItem -divider true;
+	menuItem -l "Create DisplayLayer by Texture Attributes"
+			 -c ("python(\"import dxTexture; dxTexture.create_TextureDisplayLayer()\")");
+//	menuItem -l "Import DisplayLayer"
+//			 -c ("python(\"import dexcmd; dexcmd.importDisplayLayerDialog()\")");
+    menuItem -l "Add shell_id to each Poly-shell"
+                 -c ("python(\"import addShellID;addShellID.run()\")");
+
+    menuItem -divider true;
+	menuItem -l "ZENN Controller"
+			 -c ("python(\"from ZENNController import MainForm as ZNMainForm; ZNMainForm.main()\")");
+}
+
+global proc backstageAssetMenu()
+{
+	addAssetMenu();
+}

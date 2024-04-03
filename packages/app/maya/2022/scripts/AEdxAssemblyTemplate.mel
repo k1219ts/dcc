@@ -1,0 +1,100 @@
+//--------------------------------------------------------------------------------
+//
+//	Dexter Pipe-line customNodes
+//
+//	Dexter CG Supervisor
+//		Sanghun Kim, rman.td@gmail.com
+//
+//		dxAssembly
+//
+//	rman.td 2017.03.10	$2
+//
+//--------------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------------
+// fileName
+global proc dxasbFileDialog( string $attr )
+{
+	string $current = `textField -q -tx dxasbFileWidget`;
+	print $current;
+	string $loc[] = `fileDialog2  -caption "Import Assembly File"
+					-fm 1
+					-okc "import"
+					-dir $current
+					-ff "Assembly (*.asb);;All (*.*)"`;
+	if( size($loc) > 0 ) {
+		string $newattr = python( "import sgUI; sgUI.assemblyImport(\"" + $attr + "\", \"" + $loc[0] + "\")" );
+		if( size($newattr) > 0 )
+			dxasbFileReplace $newattr;
+		else
+			dxasbFileReplace $attr;
+	}
+}
+
+global proc dxasbFileChange( string $attr )
+{
+	string $fn = `textField -q -tx dxasbFileWidget`;
+	python( "import sgUI; sgUI.assemblyImport(\"" + $attr + "\", \"" + $fn + "\")" );
+}
+
+global proc dxasbFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+		text -label "Assembly File";
+		textField -ed 1 dxasbFileWidget;
+		symbolButton -image "navButtonBrowse.xpm" dxasbFileButtonWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxasbFileReplace $attr;
+}
+
+global proc dxasbFileReplace( string $attr )
+{
+	button -e -c ("dxasbFileDialog(\"" + $attr + "\")") dxasbFileButtonWidget;
+	string $fn = `getAttr $attr`;
+	textField -e -tx $fn -cc ("dxasbFileChange(\"" + $attr + "\")") dxasbFileWidget;
+}
+
+
+//--------------------------------------------------------------------------------
+// Reload
+global proc dxasbReloadNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 2 -cw2 145 30;
+		text -h 30 -label "";
+		symbolButton -h 30 -w 30 -image "dxReload.png" dxasbReloadWidget;
+	setUITemplate -ppt;
+	dxasbReloadReplace $attr;
+}
+
+global proc dxasbReloadReplace( string $attr )
+{
+	button -e -c ("dxasbReloadProcess(\"" + $attr + "\")") dxasbReloadWidget;
+}
+
+global proc dxasbReloadProcess( string $attr )
+{
+	python( "import sgUI; sgUI.assemblyReload(\"" + $attr + "\")" );
+}
+
+
+//--------------------------------------------------------------------------------
+// Main
+global proc AEdxAssemblyTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Archive" -collapse 0;
+			editorTemplate -label "Action" -addControl "action";
+			editorTemplate -label "Mode" -addControl "mode";
+			editorTemplate -label "Display" -addControl "display";
+			editorTemplate -ccu "dxasbReloadNew" "dxasbReloadReplace" "";
+			editorTemplate -ccu "dxasbFileNew" "dxasbFileReplace" "fileName";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}

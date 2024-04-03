@@ -1,0 +1,1307 @@
+global proc shelf_Layout () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Layout Team Spanner" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Spanner" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "LayoutSpanner.jpg" 
+        -image1 "LayoutSpanner.jpg" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_spanner import main as main\nmain.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "File Texture Manager" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "File Texture Manager" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "ftm.png" 
+        -image1 "ftm.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"FileTextureManager.mel\";\nFileTextureManager;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Align objects to the last selected object" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "AlignObjects" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.0185644 0.0185644 0.0185644 0.6 
+        -image "Alignment.png" 
+        -image1 "Alignment.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"mtAlignTool_v02.mel\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Rename Tool" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "reNaming_MEL" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "reNaming_MEL.png" 
+        -image1 "reNaming_MEL.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"reNaming_MEL.mel\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Pivot snap" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "global proc moveToObjPivot()\n{\n\tstring $currentSel[] = `ls -sl`;..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "PivotSnap.png" 
+        -image1 "PivotSnap.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc moveToObjPivot()\n{\n\tstring $currentSel[] = `ls -sl`;\n\tstring $base = $currentSel[0];\n\tstring $target = $currentSel[1];\n\t\n\tfloat $worldSpaceOfBase[] = `xform -query -worldSpace -rotatePivot $base`;\n\tsetAttr ($target + \".translateX\") $worldSpaceOfBase[0];\n\tsetAttr ($target + \".translateY\") $worldSpaceOfBase[1];\n\tsetAttr ($target + \".translateZ\") $worldSpaceOfBase[2];\n}\nmoveToObjPivot;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "HotOcean" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "hotO" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "HotOcean.jpg" 
+        -image1 "HotOcean.jpg" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "deformer -type hotOceanDeformer;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "WaveDeform" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "WD" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "WaveDeform.jpg" 
+        -image1 "WaveDeform.jpg" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "deformer -type \"waveDeformer\"" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Scene Cleanup Tool" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "SCT" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "bariquant_B32.png" 
+        -image1 "bariquant_B32.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import GH_sceneCleanup.sceneCleanupToolUI as sceneCleanupToolUI\nreload(sceneCleanupToolUI)\nsceneCleanupToolUI.showUI()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Layout CameraShot manager" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "camerashot" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "camShot.png" 
+        -image1 "camShot.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_camshot import layoutcam\nreload(layoutcam)\nlayoutcam.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Camera Shake" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "camS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "CamShake.png" 
+        -image1 "CamShake.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import cameraShake as rsCameraUI\nreload(rsCameraUI)\nrsCameraUI.rsCameraUIBuild()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Bake a Camera." 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "BakeCam" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "bakecam.png" 
+        -image1 "bakecam.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "##################################################\n# Description: Bake selected camera.\n# Version: 0.9\n# Written by Daehwan Jang\n# Corected by Dongho Cha\n# Last updated: Jul 15, 2015\n##################################################\n\n# Change Log\n# 0.8\n# FilmOffset attributes are added.\n# 0.9\n# bake Focal length key. \n\nimport maya.cmds as cmds\n\ndef bakeCam():\n    selectedCamera = cmds.ls(sl=True, dag=True)\n    # a transform node of the selected Camera: selectedCamera[0]\n    # a shape node of the selected camera: selectedCamera[1]\n    \n    newCamera = cmds.camera(name=\"bakedCam\")\n    # a transform node of the created camera: newCamera[0]\n    # a shape node of the created camera: newCamera[1]\n    \n    # Connect basic attributes from the selected camera to new camera. Other attributes will be added.\n    # horizontalFilmAperture, verticalFilmAperture, lensSqueezeRatio\n    cmds.setAttr(newCamera[0] + \".rotateOrder\", cmds.getAttr(selectedCamera[0] + \".rotateOrder\"), lock=True)\n\n    cmds.setAttr(newCamera[1] + \".focalLength\", cmds.getAttr(selectedCamera[1] + \".focalLength\"))\n    cmds.setAttr(newCamera[1] + \".nearClipPlane\", cmds.getAttr(selectedCamera[1] + \".nearClipPlane\"))\n    cmds.setAttr(newCamera[1] + \".farClipPlane\", cmds.getAttr(selectedCamera[1] + \".farClipPlane\"))\n    \n    cmds.setAttr(newCamera[1] + \".horizontalFilmAperture\", cmds.getAttr(selectedCamera[1] + \".horizontalFilmAperture\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".verticalFilmAperture\", cmds.getAttr(selectedCamera[1] + \".verticalFilmAperture\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".filmFit\", cmds.getAttr(selectedCamera[1] + \".filmFit\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".lensSqueezeRatio\", cmds.getAttr(selectedCamera[1] + \".lensSqueezeRatio\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".horizontalFilmOffset\", cmds.getAttr(selectedCamera[1] + \".horizontalFilmOffset\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".verticalFilmOffset\", cmds.getAttr(selectedCamera[1] + \".verticalFilmOffset\"), lock=True)\n\n    cmds.setAttr(newCamera[1] + \".preScale\", cmds.getAttr(selectedCamera[1] + \".preScale\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".postScale\", cmds.getAttr(selectedCamera[1] + \".postScale\"), lock=True)\n\n    cmds.setAttr(newCamera[1] + \".shutterAngle\", cmds.getAttr(selectedCamera[1] + \".shutterAngle\"), lock=True)\n    cmds.setAttr(newCamera[1] + \".fStop\", cmds.getAttr(selectedCamera[1] + \".fStop\"), lock=True)    \n    \n    # Connect animated attributes like focalLength or imagePlanes.\n    # Currently, only imagePlanes, focalLength are supported.\n    connList = cmds.listConnections(selectedCamera[1])\n    if connList != None:\n        count = 0;\n        for i in connList:\n            if(cmds.nodeType(i) == \"imagePlane\"):\n                cmds.connectAttr(i + \".message\", newCamera[1] + \".imagePlane[%d]\" % count )\n                count += 1\n        \n            elif (cmds.nodeType(i) == \"animCurveTU\"):\n                if \"focalLength\" in i:\n                    cmds.connectAttr(i + \".output\", newCamera[1] + \".focalLength\")\n            else:\n                print \"other node type\"\n\n    \n    # Constrain transform data of new camera to the selected camera by parent contraint.\n    constInfo = cmds.parentConstraint(selectedCamera[0], newCamera[0], weight=1, maintainOffset=0, skipTranslate=\"none\", skipRotate=\"none\")\n    \n    # Bake transform data of new camera.\n    cmds.bakeResults(newCamera[0], t=(cmds.playbackOptions(q=True, ast= True), cmds.playbackOptions(q=True, aet=True)), pok=True, sm=True, at=[\"tx\", \"ty\", \"tz\", \"rx\", \"ry\", \"rz\"])\n    cmds.bakeResults(newCamera[1], t=(cmds.playbackOptions(q=True, ast= True), cmds.playbackOptions(q=True, aet=True)), pok=True, sm=True, at=[\"fl\"])\n    \n    # Delete parentConstraint\n    cmds.delete(constInfo)\n\n    # lock Attributes\n    cmds.setAttr(newCamera[0] + \".translate\", lock = True)\n    cmds.setAttr(newCamera[0] + \".rotate\", lock = True)\n    cmds.setAttr(newCamera[1] + \".focalLength\", lock = True)\n\nfor panName in cmds.getPanel(all=True):\n\tif 'modelPanel' in panName:cmds.isolateSelect(panName, state=1)\nbakeCam()\nfor panName in cmds.getPanel(all=True):\n\tif 'modelPanel' in panName:cmds.isolateSelect(panName, state=0)" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Insert Key for Motion blur." 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Add camera key for motion blur." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "addkey.png" 
+        -image1 "addkey.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "global proc string offsetKey(){\n    string $cam[]=`ls -cameras`; \n    string $transform[];\n    for($i in $cam){\n        $transform=`listRelatives -p $i`;\n        endOffsetKey($transform[0],\"tx\",1);\n        endOffsetKey($transform[0],\"ty\",1);\n        endOffsetKey($transform[0],\"tz\",1);\n        \n        endOffsetKey($transform[0],\"rx\",1);\n        endOffsetKey($transform[0],\"ry\",1);\n        endOffsetKey($transform[0],\"rz\",1); \n        \n        endOffsetKey($transform[0],\"sx\",1);\n        endOffsetKey($transform[0],\"sy\",1);\n        endOffsetKey($transform[0],\"sz\",1);  \n             \n        endOffsetKey($i,\"focalLength\",1);\n        \n        \n        startOffsetKey($transform[0],\"tx\",1);\n        startOffsetKey($transform[0],\"ty\",1);\n        startOffsetKey($transform[0],\"tz\",1);\n        \n        startOffsetKey($transform[0],\"rx\",1);\n        startOffsetKey($transform[0],\"ry\",1);\n        startOffsetKey($transform[0],\"rz\",1); \n        \n        startOffsetKey($transform[0],\"sx\",1);\n        startOffsetKey($transform[0],\"sy\",1);\n        startOffsetKey($transform[0],\"sz\",1);  \n             \n        startOffsetKey($i,\"focalLength\",1);        \n    }\n    \n    \n    return \"endOffsetKey\";\n}//end proc\n\nglobal proc string endOffsetKey(string $name,string $attr,int $offset){\n    string $camera[];\n    string $tmp[];\n    string $nodeType;\n    int $con;\n    float $endFrame[];\n    float $endV;\n    float $offsetV;\n    float $value;\n    \n    $con=`connectionInfo -id ($name+\".\"+$attr)`;\n    if($con==1){\n        $tmp=`listConnections ($name+\".\"+$attr)`;\n        $nodeType=`nodeType $tmp[0]`;\n        if(`gmatch $nodeType \"anim*\"`==1){\n            $endFrame=`keyframe -q -lsl ($name+\".\"+$attr)`;\n            $endV=`getAttr -t $endFrame[0] ($name+\".\"+$attr)`;\n            $offsetV=`getAttr -t ($endFrame[0]-$offset) ($name+\".\"+$attr)`; \n            $value=$endV-$offsetV;\n            setKeyframe -itt spline -ott spline -t ($endFrame[0]+$offset) -at $attr -v ($endV+$value) ($name+\".\"+$attr);\n        }//end if\n        }//end if\n    return \"endOffsetKey\";        \n}//end proc\n\nglobal proc string startOffsetKey(string $name,string $attr,int $offset){\n    string $camera[];\n    string $tmp[];\n    string $nodeType;\n    int $con;\n    float $startFrame[];\n    float $startV;\n    float $offsetV;\n    float $value;\n    \n    $con=`connectionInfo -id ($name+\".\"+$attr)`;\n    if($con==1){\n        $tmp=`listConnections ($name+\".\"+$attr)`;\n        $nodeType=`nodeType $tmp[0]`;\n        if(`gmatch $nodeType \"anim*\"`==1){\n            $startFrame=`keyframe -q -a ($name+\".\"+$attr)`;\n            $startV=`getAttr -t $startFrame[0] ($name+\".\"+$attr)`;\n            $offsetV=`getAttr -t ($startFrame[0]+$offset) ($name+\".\"+$attr)`; \n            $value=$offsetV-$startV;\n            setKeyframe -itt spline -ott spline -t ($startFrame[0]-$offset) -at $attr -v ($startV-$value) ($name+\".\"+$attr);\n        }//end if\n        }//end if\n    return \"startOffsetKey\";        \n}//end proc              \noffsetKey;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Maya Movie Maker" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "M3" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "M3.png" 
+        -image1 "M3.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import DDPM.main as ddpm_ani\nreload(ddpm_ani)\nddpm_ani.showUI()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "toggle HUD" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "HUD" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "hud.png" 
+        -image1 "hud.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"animHUD_v02.mel\";animHUD;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Anim Picker" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "picker" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "AnimPicker.jpg" 
+        -image1 "AnimPicker.jpg" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import anim_picker as AMP\n\nAMP.load(edit=True)" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "PrSelection" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import prSelectionUi\nreload(prSelectionUi)\nprSelectionUi.UI()" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "shelf_prSelectionUi.bmp" 
+        -image1 "shelf_prSelectionUi.bmp" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import prSelectionUi\nreload(prSelectionUi)\nprSelectionUi.UI()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Studio Library" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import studiolibrary\nstudiolibrary.main()\n" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.25 
+        -image "animLib.png" 
+        -image1 "animLib.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import studiolibrary\nstudiolibrary.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Auto Tangent" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "source autoTangent;autoTangent;" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "autoTangent.bmp" 
+        -image1 "autoTangent.bmp" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source autoTangent;autoTangent;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "DD_timeWarper;" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "DD_timeWarper;" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "DD_timeWarper.bmp" 
+        -image1 "DD_timeWarper.bmp" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "timeWarper;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Revit" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Revit" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "Revit.jpg" 
+        -image1 "Revit.jpg" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "// Copyright (C) 2000-2001 Michael Bazhutkin - Copyright (C) 2000 studio Klassika\n// www.geocites.com/bazhutkin\n// bazhutkin@mail.ru\n//\n//  Rivet (button) 1.0\n//  Script File\n//  MODIFY THIS AT YOUR OWN RISK\n//\n//  Creation Date:  April 13, 2001\n//\n//\n//  Description:\n//\tUse \"Rivet\" to constrain locator to polygon or NURBS surfaces\n//\tSelect two edges on polygon object\n//\tor select one point on NURBS surface and call rivet\n//\tParent your rivets and buttons to this locator\n\nglobal proc string rivet ( )\n{\n\nstring $nameObject;\nstring $namePOSI;\n\nstring $parts[];\nstring $list[] = `filterExpand -sm 32`;\nint $size = size($list);\nif ($size > 0)\n{\n\tif ($size != 2)\n\t{\terror(\"No two edges selected\");\n\t\treturn \"\";\n\t}\n\n\ttokenize($list[0],\".\",$parts);\n\t$nameObject = $parts[0];\n\ttokenize($list[0],\"[]\",$parts);\n\tfloat $e1 = $parts[1];\n\ttokenize($list[1],\"[]\",$parts);\n\tfloat $e2 = $parts[1];\n\n\tstring $nameCFME1 = `createNode curveFromMeshEdge -n \"rivetCurveFromMeshEdge1\"`;\n\t\tsetAttr \".ihi\" 1;\n\t\tsetAttr \".ei[0]\"  $e1;\n\tstring $nameCFME2 = `createNode curveFromMeshEdge -n \"rivetCurveFromMeshEdge2\"`;\n\t\tsetAttr \".ihi\" 1;\n\t\tsetAttr \".ei[0]\"  $e2;\n\tstring $nameLoft = `createNode loft -n \"rivetLoft1\"`;\n\t\tsetAttr -s 2 \".ic\";\n\t\tsetAttr \".u\" yes;\n\t\tsetAttr \".rsn\" yes;\n\n\t$namePOSI = `createNode pointOnSurfaceInfo -n \"rivetPointOnSurfaceInfo1\"`;\n\t\tsetAttr \".turnOnPercentage\" 1;\n\t\tsetAttr \".parameterU\" 0.5;\n\t\tsetAttr \".parameterV\" 0.5;\n\n\tconnectAttr -f ($nameLoft + \".os\") ($namePOSI + \".is\");\n\tconnectAttr ($nameCFME1 + \".oc\") ($nameLoft + \".ic[0]\");\n\tconnectAttr ($nameCFME2 + \".oc\") ($nameLoft + \".ic[1]\");\n\tconnectAttr ($nameObject + \".w\") ($nameCFME1 + \".im\");\n\tconnectAttr ($nameObject + \".w\") ($nameCFME2 + \".im\");\n}\nelse\n{\t$list = `filterExpand -sm 41`;\n\t$size = size($list);\n\n\tif ($size > 0)\n\t{\n\t\tif ($size != 1)\n\t\t{\terror(\"No one point selected\");\n\t\t\treturn \"\";\n\t\t}\n\t\ttokenize($list[0],\".\",$parts);\n\t\t$nameObject = $parts[0];\n\t\ttokenize($list[0],\"[]\",$parts);\n\t\tfloat $u = $parts[1];\n\t\tfloat $v = $parts[2];\n\t\t$namePOSI = `createNode pointOnSurfaceInfo -n \"rivetPointOnSurfaceInfo1\"`;\n\t\t\t\tsetAttr \".turnOnPercentage\" 0;\n\t\t\t\tsetAttr \".parameterU\" $u;\n\t\t\t\tsetAttr \".parameterV\" $v;\n\t\tconnectAttr -f ($nameObject + \".ws\") ($namePOSI + \".is\");\n\t}\n\telse\n\t{\terror(\"No edges or point selected\");\n\t\treturn \"\";\n\t}\n}\n\nstring $nameLocator = `createNode transform -n \"rivet1\"`;\ncreateNode locator -n ($nameLocator + \"Shape\") -p $nameLocator;\n\nstring $nameAC = `createNode aimConstraint -p $nameLocator -n ($nameLocator + \"_rivetAimConstraint1\")`;\n\tsetAttr \".tg[0].tw\" 1;\n\tsetAttr \".a\" -type \"double3\" 0 1 0;\n\tsetAttr \".u\" -type \"double3\" 0 0 1;\n\tsetAttr -k off \".v\";\n\tsetAttr -k off \".tx\";\n\tsetAttr -k off \".ty\";\n\tsetAttr -k off \".tz\";\n\tsetAttr -k off \".rx\";\n\tsetAttr -k off \".ry\";\n\tsetAttr -k off \".rz\";\n\tsetAttr -k off \".sx\";\n\tsetAttr -k off \".sy\";\n\tsetAttr -k off \".sz\";\n\nconnectAttr ($namePOSI + \".position\") ($nameLocator + \".translate\");\nconnectAttr ($namePOSI + \".n\") ($nameAC + \".tg[0].tt\");\nconnectAttr ($namePOSI + \".tv\") ($nameAC + \".wu\");\nconnectAttr ($nameAC + \".crx\") ($nameLocator + \".rx\");\nconnectAttr ($nameAC + \".cry\") ($nameLocator + \".ry\");\nconnectAttr ($nameAC + \".crz\") ($nameLocator + \".rz\");\n\nselect -r $nameLocator;\nreturn ($nameLocator);\n\n}\n\nrivet;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Animation to nurbs curve" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "AniCurve" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0 1 1 
+        -overlayLabelBackColor 0 0 0 0.1 
+        -image "AnimtoCurve.png" 
+        -image1 "AnimtoCurve.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "ld_animToCurve;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Offset Key" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "offsetKey" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "KeyOffset.png" 
+        -image1 "KeyOffset.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"offsetKey\";\n" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "CraneCame Import" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "cam_techocrane30" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "Cam_techcrane.png" 
+        -image1 "Cam_techcrane.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "file -import -type \"mayaBinary\" -ra true -namespace \"cam01\" -options \"v=0\"  -pr -loadReferenceDepth \"all\" \"/backstage/apps/Maya/versions/2017/team/layout/linux/scripts/mb/prvTechnoCam_v01.mb\";\n" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import ZDistance" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "ZDistance" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "ZD preset.png" 
+        -image1 "ZD preset.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "file -import -type \"mayaBinary\"  -ignoreVersion -ra true -mergeNamespacesOnClash false -rpr \"ZDistanceMeasureMesh_v01\" -options \"v=0;\"  -pr -loadReferenceDepth \"all\" \"/backstage/apps/Maya/versions/2017/team/layout/linux/scripts/mb/ZDistanceMeasureMesh_v01.mb\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Make ZDistance" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "ZD" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "ZD make.png" 
+        -image1 "ZD make.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "CreateZDistanceMeasureMesh()" 
+        -sourceType "mel" 
+        -doubleClickCommand "AimZDistanceMeasureMesh();" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "ZdSpeedLoc" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "speed" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "ZD Speed.png" 
+        -image1 "ZD Speed.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "file -import -type \"mayaBinary\"  -ignoreVersion -ra true -mergeNamespacesOnClash false -namespace \"speed_locator_v01\" -options \"v=0;\"  -pr \"/backstage/apps/Maya/versions/2017/team/layout/linux/scripts/mb/prvSpeedloc_v01.mb\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Wire_FrameUI" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "wireFrameUI" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "WireFrameUI.jpg" 
+        -image1 "WireFrameUI.jpg" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"wireFrameUI\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "ViewPort Set" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "viewport2" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "ViewportSetup.png" 
+        -image1 "ViewportSetup.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "setAttr \"defaultRenderGlobals.enableDefaultLight\" 0;\nsetAttr \"hardwareRenderingGlobals.consolidateWorld\" 1;\nsetAttr \"hardwareRenderingGlobals.transparencyAlgorithm\" 3;\nsetAttr \"hardwareRenderingGlobals.ssaoEnable\" 0;\nsetAttr \"hardwareRenderingGlobals.ssaoAmount\" 1.178;\nsetAttr \"hardwareRenderingGlobals.ssaoRadius\" 15;\nsetAttr \"hardwareRenderingGlobals.ssaoFilterRadius\" 32;\nsetAttr \"hardwareRenderingGlobals.multiSampleEnable\" 1;\nsetAttr \"hardwareRenderingGlobals.multiSampleCount\" 16;\nsetAttr \"hardwareRenderingGlobals.gammaCorrectionEnable\" 1;\nsetAttr \"hardwareRenderingGlobals.gammaValue\" 1.1;\n\n" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Layout Inventory" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Inventory" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "Layout" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "inventory.png" 
+        -image1 "inventory.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import layout_inventory.main as main\nmain.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Keyframe move select transform node" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "KeyMove" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "KeyMove" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "key.png" 
+        -image1 "key.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_keymove import keymove\nkeymove.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import Angle & Distance" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Angle" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "Angle" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "Angle.png" 
+        -image1 "Angle.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "file -import -type \"mayaBinary\"  -ignoreVersion -ra true -mergeNamespacesOnClash false -rpr \"AngleDis\" -options \"v=0;\"  -pr -loadReferenceDepth \"all\" \"/backstage/apps/Maya/versions/2017/team/layout/linux/scripts/mb/AngleDis.mb\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import Angle & Distance" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Angle" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "Angle360" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "Angle360.png" 
+        -image1 "Angle360.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_angle360 import Angle_view\nAngle_view.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Import rsAlphaShader" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Angle" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "AlphaShader" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "Alpha.png" 
+        -image1 "Alpha.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from rsalpha_shader import AlphaShader\nAlphaShader.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Camera" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Camera" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "Camera" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "cameras.png" 
+        -image1 "cameras.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_camera import camCreate\nreload(camCreate)\ncamCreate.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Shot" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Shot" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "Shot" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "shot.png" 
+        -image1 "shot.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_shot import shotCreate\nreload(shotCreate)\nshotCreate.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Unreal" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "UE4.png" 
+        -image1 "UE4.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from layout_unreal import unrealFBX\nreload(unrealFBX)\nunrealFBX.main()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Redshift" 
+        -enableBackground 1
+        -backgroundColor 0.266667 0.266667 0.266667 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "redshift.png" 
+        -image1 "redshift.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from redshift import main\nreload(main)\nmain.showUI()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "KOZ stamp" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "User Script" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "KOZ" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from nukeStamp import stampMainForm\nreload(stampMainForm)\nform = stampMainForm.MainForm(None)\nform.show()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+} 

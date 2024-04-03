@@ -1,0 +1,17 @@
+global proc DDPRV_multiCameraPB(){
+
+    string $ls[]=`ls -sl`;
+    int $start,$end;
+    string $path=`workspace -q -o`;
+    for($element in $ls){
+    $start=`getAttr ($element+".start")`;
+    $end=`getAttr ($element+".end")`;
+    lookThru $element;
+    playblast -startTime $start -endTime $end  -format "qt" -filename ($element) -sequenceTime 0 -clearCache 1 -viewer 0 -showOrnaments 1 -fp 4 -percent 100 -compression "H.264" -quality 100 -wh 1280 720;
+    }
+}
+
+DDPRV_multiCameraPB();
+
+
+

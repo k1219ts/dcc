@@ -1,0 +1,122 @@
+//--------------------------//
+// ZDistanceMeasureMesh.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Digital                   //
+// last update: 2014.10.13                               //
+//-------------------------------------------------------//
+
+global proc CreateZDistanceMeasureMesh()
+{
+	if( !`pluginInfo -q -loaded "ZNumToString"` )
+	{
+		error( "You must load the ZNumToString plug-in first!" );
+		return;
+	}
+
+	$xforms = `ls -sl -type transform`;
+    print $xforms;
+	for( $xform in $xforms )
+	{
+		$shapes = `listRelatives -shapes $xform`;
+		if( `nodeType $shapes[0]` != "distanceDimShape" ) { continue; }
+		$distanceDimShape = $shapes[0];
+
+		$startPointX = `getAttr ( $distanceDimShape + ".startPointX" )`;
+		$startPointY = `getAttr ( $distanceDimShape + ".startPointY" )`;
+		$startPointZ = `getAttr ( $distanceDimShape + ".startPointZ" )`;
+
+		$endPointX = `getAttr ( $distanceDimShape + ".endPointX" )`;
+		$endPointY = `getAttr ( $distanceDimShape + ".endPointY" )`;
+		$endPointZ = `getAttr ( $distanceDimShape + ".endPointZ" )`;
+
+		$midPointX = 0.5 * ( $startPointX + $endPointX );
+		$midPointY = 0.5 * ( $startPointY + $endPointY );
+		$midPointZ = 0.5 * ( $startPointZ + $endPointZ );
+
+		$ZNumToString = `createNode ZNumToString`;
+
+		$textForBevel = `createNode makeTextCurves -n "textForBevel#"`;
+		setAttr -type "string" ( $textForBevel + ".text" ) "Maya";
+		setAttr -type "string" ( $textForBevel + ".font" ) "Arial";
+
+		$bevelPlus = `createNode bevelPlus`;
+		setAttr ( $bevelPlus + ".width" ) -0.07;
+		setAttr ( $bevelPlus + ".depth" ) 0.01;
+		setAttr ( $bevelPlus + ".extrudeDepth" ) 0.25;
+		setAttr ( $bevelPlus + ".capSides" ) 4;
+		setAttr ( $bevelPlus + ".numberOfSides" ) 4;
+		setAttr ( $bevelPlus + ".tolerance" ) 0.01;
+		setAttr ( $bevelPlus + ".bevelInside" ) 0;
+		setAttr ( $bevelPlus + ".normalsOutwards" ) true;
+		setAttr ( $bevelPlus + ".polyOutUseChordHeight" ) false;
+		setAttr ( $bevelPlus + ".polyOutUseChordHeightRatio" ) false;
+		setAttr ( $bevelPlus + ".orderedCurves" ) false;
+
+		$innerStyleCurve = `createNode styleCurve -n "innerStyleCurve#"`;
+		setAttr ( $innerStyleCurve + ".style" ) 1;
+		$outerStyleCurve = `createNode styleCurve -n "outerStyleCurve#"`;
+		setAttr ( $outerStyleCurve + ".style" ) 1;
+
+		$meshXForm = `createNode transform`;
+		$mesh = `createNode mesh -p $meshXForm`;
+		sets -edit -forceElement initialShadingGroup $mesh;
+
+		connectAttr ( $textForBevel + ".outputCurve" ) ( $bevelPlus + ".inputCurves" );
+		connectAttr ( $textForBevel + ".count" ) ( $bevelPlus + ".count" );
+		connectAttr ( $textForBevel + ".position" ) ( $bevelPlus + ".position" );
+		connectAttr ( $innerStyleCurve + ".outCurve" ) ( $bevelPlus + ".innerStyleCurve" );
+		connectAttr ( $outerStyleCurve + ".outCurve" ) ( $bevelPlus + ".outerStyleCurve" );
+		connectAttr ( $bevelPlus + ".outputPoly" ) ( $mesh + ".inMesh" );
+
+		connectAttr ( $distanceDimShape + ".dist" ) ( $ZNumToString + ".input" );
+		connectAttr ( $ZNumToString + ".output" ) ( $textForBevel + ".text" );
+
+		select -r $meshXForm;
+		CenterPivot;
+		setAttr ( $meshXForm + ".translate" ) $midPointX $midPointY $midPointZ;
+		select -cl;
+	}
+}
+
+global proc AimZDistanceMeasureMesh()
+{
+	int $i = 0;
+	string $textMeshXForms[];
+
+	$xforms = `ls -sl -type transform`;
+	for( $xform in $xforms )
+	{
+		$shapes = `listRelatives -shapes $xform`;
+		if( `nodeType $shapes[0]` != "mesh" ) { continue; }
+		$textMeshXForms[$i++] = $xform;
+	}
+	int $count = size($textMeshXForms);
+
+	string $camShape;
+	$cameras = `ls -type camera`;
+	for( $camera in $cameras )
+	{
+		$renderable = `getAttr ( $camera + ".renderable" )`;
+		if( $renderable )
+		{
+			$camShape = $camera;
+			break;
+		}
+	}
+	$camXForm = `listRelatives -p $camShape`;
+
+	$locator = `spaceLocator -p 0 1 0 -n "reference_up"`;
+	connectAttr ( $camXForm[0] + ".tx" ) ( $locator[0] + ".tx" );
+	connectAttr ( $camXForm[0] + ".ty" ) ( $locator[0] + ".ty" );
+	connectAttr ( $camXForm[0] + ".tz" ) ( $locator[0] + ".tz" );
+	connectAttr ( $camXForm[0] + ".rx" ) ( $locator[0] + ".rx" );
+	connectAttr ( $camXForm[0] + ".ry" ) ( $locator[0] + ".ry" );
+	connectAttr ( $camXForm[0] + ".rz" ) ( $locator[0] + ".rz" );
+
+	for( $i=0; $i<$count; $i++ )
+	{
+		select -r $camXForm;
+		select -add $textMeshXForms[$i];
+		aimConstraint -offset 0 0 0 -weight 1 -aimVector 0 0 1 -upVector 0 1 0 -worldUpType "objectrotation" -worldUpVector 0 1 0 -worldUpObject $locator;
+	}
+}

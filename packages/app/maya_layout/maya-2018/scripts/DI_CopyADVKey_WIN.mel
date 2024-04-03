@@ -1,0 +1,64 @@
+//2011.5.9
+//
+//update
+//1.missing Attr value
+//2.nameSelect
+
+global proc string DI_CopyADVKey(){
+    string $con[]={"rig_char","Main","FKMiddleFinger3_R","FKMiddleFinger2_R","FKMiddleFinger1_R","FKThumbFinger3_R","FKThumbFinger2_R","FKThumbFinger1_R","FKIndexFinger3_R","FKIndexFinger2_R","FKIndexFinger1_R","FKPinkyFinger3_R","FKPinkyFinger2_R","FKPinkyFinger1_R","FKRingFinger3_R","FKRingFinger2_R","FKRingFinger1_R","FKWrist_R","FKElbow_R","FKShoulder_R","FKScapula_R","FKEye_R","FKJaw_M","FKHead_M","FKNeck_M","FKChest_M","FKBackB_M","FKBackA_M","FKMiddleToe1_R","FKAnkle_R","FKKnee_R","FKHip_R","FKMiddleFinger3_L","FKMiddleFinger2_L","FKMiddleFinger1_L","FKThumbFinger3_L","FKThumbFinger2_L","FKThumbFinger1_L","FKIndexFinger3_L","FKIndexFinger2_L","FKIndexFinger1_L","FKPinkyFinger3_L","FKPinkyFinger2_L","FKPinkyFinger1_L","FKRingFinger3_L","FKRingFinger2_L","FKRingFinger1_L","FKWrist_L","FKElbow_L","FKShoulder_L","FKScapula_L","FKEye_L","FKMiddleToe1_L","FKAnkle_L","FKKnee_L","FKHip_L","AimEye_M","HipSwingerRoot_M","IKArm_R","IKLeg_R","IKLegToe_R","IKLegBall_R","IKSpine0_M","IKSpine2_M","IKSpine4_M","IKArm_L","IKLeg_L","IKLegToe_L","IKLegBall_L","Center_M","FKIKSpine_M","FKIKArm_L","FKIKArm_R","FKIKLeg_L","FKIKLeg_R","Fingers_L","Fingers_R","PoleArm_R","PoleArm_L","PoleLeg_R","PoleLeg_L"};
+    string $i,$e;
+    string $attr[];
+    int $grph;
+
+    string $Fname=`textFieldGrp -q -tx txField`;
+    string $Tname=`textFieldGrp -q -tx inField`;
+
+    int $start=`intFieldGrp -q -v1  startF`;
+    int $end=`intFieldGrp -q -v1  endF`;
+    int $cp=`intFieldGrp -q -v1  copyF`;
+
+    for($i in $con)
+    {
+        $attr =`listAttr -k ($Fname+$i)`;
+        for($e in $attr){
+            $grph=`connectionInfo -id ($Fname+$i+"."+$e)`;
+            if($grph==0){
+                continue;
+            }
+            else{
+
+                copyKey -t ($start+":"+$end) -at $e ($Fname+$i);
+                $isj=`listAttr -k ($Tname+$i+"."+$e)`;
+                if(size($isj)!=0){
+                    pasteKey -t $cp -at $e ($Tname+$i);
+                }
+                else{
+                    continue;
+                }
+            }
+        }
+    }
+    return "complate : copyKey";
+}
+
+global proc DI_CopyADVKey_WIN(){
+    string $win="DI_CopyADVKey_WIN";
+
+    if(`window -q -ex $win`)
+        deleteUI $win;
+    window -t $win -w 400 -h 170 -s 0
+            $win;
+    columnLayout -adj 1 -w 35 -h 50;
+    textFieldGrp -l "from_prefixName" -tx "" txField;
+    textFieldGrp -l "to_prefixName" -tx "" inField;
+
+    intFieldGrp -l "startFrame" -v1 (`playbackOptions -q -min`) startF;
+    intFieldGrp -l "endFrame" -v1 (`playbackOptions -q -max`) endF;
+    text -l "";
+    intFieldGrp -l "copyFrame" -v1 (`playbackOptions -q -min`) copyF;
+    button -l "copyKey" -w 50 -c "DI_CopyADVKey";
+
+    showWindow $win;
+
+}
+DI_CopyADVKey_WIN;

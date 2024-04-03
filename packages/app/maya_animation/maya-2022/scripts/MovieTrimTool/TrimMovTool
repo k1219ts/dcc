@@ -1,0 +1,7 @@
+#!/bin/bash
+Relative_Path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
+#export QT_PLUGIN_PATH=/usr/lib64/kde4/plugins:/usr/lib/kde4/plugins:/usr/local/Trolltech/Qt-4.8.5/plugins/phonon_backend
+#echo $QT_PLUGIN_PATH
+export LD_LIBRARY_PATH=/netapp/backstage/pub/lib/extern/lib:/netapp/backstage/pub/lib/zelos/lib:$LD_LIBRARY_PATH
+
+python $Relative_Path/TrimMov.py

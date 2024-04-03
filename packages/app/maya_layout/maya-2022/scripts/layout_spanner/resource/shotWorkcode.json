@@ -1,0 +1,84 @@
+{
+    "mocap": {
+        "pub": [
+            "preview", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "preview", 
+            "data", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "fx": {
+        "pub": [
+            "preview", 
+            "data", 
+            "scenes", 
+            "tmp",
+            "sourceimages"      
+        ], 
+        "dev": [
+            "preview", 
+            "data", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "ani": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "tmp"
+        ]
+    }, 
+    "texture": {
+        "pub": [
+            "v01",
+            "psd"
+        ],
+        "dev": [
+        ]
+    }, 
+    "rig": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ], 
+        "dev": [
+            "data", 
+            "preview", 
+            "scenes", 
+            "sourceimages", 
+            "tmp"
+        ]
+    }, 
+    "model": {
+        "pub": [
+            "data", 
+            "preview", 
+            "scenes"
+        ], 
+        "dev": [
+            "data", 
+            "skp",
+            "fbx",
+            "obj",
+            "preview", 
+            "scenes", 
+            "tmp"
+        ]
+    }
+}

@@ -1,0 +1,183 @@
+global proc wireFrameUI()
+{
+    if(`window -exists wireFrameUI`)
+    {
+        deleteUI wireFrameUI;
+    }    
+    
+    window -width 400 -height 210 -s 0 -mxb 0 -title "DEXTER DIGITAL PREVIZ : Wireframe Changer" wireFrameUI;
+                        
+formLayout mainForm;
+    text -l "Select wireFrame color :" -font "boldLabelFont"  colorSelTxt;
+    colorSliderGrp -l "Wireframe color"  -width 400 -rgb 0 0 0 wireFrameColorSliderGroup;
+
+    text -l "Select isolated wireframe color (1-31) :" -font "boldLabelFont" isolatedSelTxt;
+	colorIndexSliderGrp -l "isolated wireframe color" -width 400 -min 0 -max 31 isolatedColorSliderGroup;
+	
+	text -l "Set wireframe thickness :" -font "boldLabelFont" wireFrameWidthTxt;
+	floatSliderGrp -width 160 -field false -minValue 1 -maxValue 10.0 -fieldMinValue -100.0 -fieldMaxValue 100.0
+    -value 1 -pre 1 -cc ("makeWireFrameWidth") wireFrameWidthField;
+    
+   	text -l "Smooth Wireframe " -font "boldLabelFont" smoothWFTxt;
+   	checkBox -height 20 -onc ("smoothWFOn") -ofc ("smoothWFOff") -l "" smoothWFButton;
+		  
+    button -l "Dotted" -height 20 -width 46 -c("dottedWF") dottedWFButton;
+    button -l "Full" -height 20 -width 35 -c ("fullWF") fullWFButton;
+    button -l "Set wireframe color" -height 25 -width 400 -c ("makeWireFrame")setWireFrameButton;		
+    button -l "Set isolated wireframecolor" -height 25 -width 400 -c ("makeIsolated") setIsolatedButton;
+    button -l "Wireframe ON/OFF" -height 24 -width 132 -c ("toggleWireFrame") toggleWireFrameButton;
+    button -l "Reset to default" -height 24 -width 132 -c ("reWireFrame") reWireFrame;
+    button -l "Delete isolated" -height 24 -width 132 -c ("deleteIsolated") deleteIsolatedButton;
+    button -l "Standard" -height 20 -width 56 -c("standardWF") standardWFButton;
+    button -l "Hard Edge" -height 20 -width 66 -c("hardEdgeWF") hardEdgeWFButton;
+				
+formLayout -edit
+
+		 -attachForm colorSelTxt top 10
+		 -attachForm colorSelTxt left 10		 	 
+		 -attachControl wireFrameColorSliderGroup top 5 colorSelTxt
+		 -attachControl isolatedSelTxt top 5 wireFrameColorSliderGroup
+		 -attachForm isolatedSelTxt left 10
+		 -attachControl isolatedColorSliderGroup top 5 isolatedSelTxt
+		 -attachControl wireFrameWidthTxt top 5 isolatedColorSliderGroup
+		 -attachForm wireFrameWidthTxt left 10
+		 -attachControl wireFrameWidthField left 5 wireFrameWidthTxt
+		 -attachControl wireFrameWidthField top 5 isolatedColorSliderGroup
+		 -ac dottedWFButton top 2 isolatedColorSliderGroup
+		 -ac dottedWFButton left 0 wireFrameWidthField
+		 -ac fullWFButton top 2 isolatedColorSliderGroup
+		 -ac fullWFButton left 1 dottedWFButton
+		 
+		 -ac smoothWFTxt top 5 wireFrameWidthTxt
+		 -af smoothWFTxt left 10
+		 -ac smoothWFButton left 5 smoothWFTxt
+		 -ac smoothWFButton top 0 wireFrameWidthField
+		 -ac standardWFButton left 20 smoothWFButton
+		 -ac standardWFButton top 0 wireFrameWidthField
+		 -ac hardEdgeWFButton left 0 standardWFButton
+		 -ac hardEdgeWFButton top 0 wireFrameWidthField
+
+
+		 -attachControl setWireFrameButton top 10 smoothWFTxt
+		 -attachForm setWireFrameButton left 2
+		 -attachControl setIsolatedButton top 2 setWireFrameButton
+		 -attachForm setIsolatedButton left 2
+		 -attachForm deleteIsolatedButton left 2
+		 -attachControl deleteIsolatedButton top 2 setIsolatedButton
+		 -attachControl toggleWireFrameButton left 2 deleteIsolatedButton
+		 -attachControl toggleWireFrameButton top 2 setIsolatedButton
+		 -attachControl reWireFrame top 2 setIsolatedButton
+		 -attachControl reWireFrame left 2 toggleWireFrameButton
+		 
+mainForm;
+    
+  showWindow wireFrameUI;
+}
+
+global proc makeWireFrame()
+{
+
+    string $currentPanel = `getPanel -withFocus`;
+    string $wireView = ( 1 - `modelEditor -q -wos $currentPanel`);
+    if ($wireView != 0)
+    {
+        modelEditor -e -wos 1 $currentPanel;
+    }
+
+   
+    float $wfColor[] = `colorSliderGrp -q -rgb wireFrameColorSliderGroup`;
+    colorIndex 24 $wfColor[0] $wfColor[1] $wfColor[2];
+    displayColor polymesh -dormant 24;    
+    displayColor surface -dormant 24;
+}
+
+global proc makeIsolated()
+{
+    
+    string $isolatedSel[] = `ls -sl`;
+    int $isolIndex = `colorIndexSliderGrp -q -value isolatedColorSliderGroup`;
+    int $isolCol = $isolIndex - 1;
+    int $size = size($isolatedSel);
+
+    if ($size == 0)
+    {
+        error "Choose object to isolate";
+    }
+    else {
+            setAttr ($isolatedSel[0] + ".overrideEnabled") 1;
+            setAttr ($isolatedSel[0] + ".overrideColor") $isolCol;
+    }
+}
+
+global proc makeWireFrameWidth()
+{
+    float $wfWidth = `floatSliderGrp -q -value wireFrameWidthField`;
+    modelEditor -lineWidth $wfWidth;
+}
+
+global proc dottedWF()
+{
+    displayPref -wsa reduced;
+}
+
+global proc standardWF()
+{
+	polyOptions -gl -ae;
+}
+
+global proc hardEdgeWF()
+{
+	polyOptions -gl -he;
+}
+
+global proc fullWF()
+{
+    displayPref -wsa full;
+}
+
+global proc toggleWireFrame()
+{
+    string $currentPanel = `getPanel -withFocus`;
+    string $wireView = ( 1 - `modelEditor -q -wos $currentPanel`);
+    if ( $wireView != 0)
+        {
+            modelEditor -e -wos 1 $currentPanel;
+        }
+    else
+        {
+            modelEditor -e -wos 0 $currentPanel;
+        }
+}
+
+global proc deleteIsolated()
+{
+    string $isolatedSel[] = `ls -sl`;
+    int $size = size($isolatedSel);
+    
+    if ($size == 0)
+    {
+        error "Choose isolated objects";
+    }
+    else{
+        setAttr ($isolatedSel[0] + ".overrideEnabled") 0;        
+    }
+    
+}
+
+global proc smoothWFOn()
+{
+    modelEditor -swf 1;
+}
+
+global proc smoothWFOff()
+{
+    modelEditor -swf 0;
+}
+
+global proc reWireFrame()
+{
+    displayColor -rf;
+    displayPref -wsa full;
+}
+
+wireFrameUI;

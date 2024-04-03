@@ -1,0 +1,52 @@
+//
+//	CG Supervisor
+//		Sanghun.kim rman.td@gmail.com
+//
+//	2016.10.31	$1
+//
+
+proc addAssetMenu()
+{
+	global string $dxAssetMenu;
+
+	setParent -m $dxAssetMenu;
+
+	//menu -e -deleteAllItems $dxAssetMenu;
+
+	menuItem -divider true;
+
+	menuItem -l "AssetTool"
+			 -c ("python(\"import dxAssetTool; dxAssetTool.show_ui()\")");
+	menuItem -l "AssetBrowser"
+			 -c ("python(\"import Main; Main.main()\")");
+
+    menuItem -divider true;
+
+	menuItem -l "Attribute Edit"
+			 -c ("python(\"import dxAttribute; dxAttribute.main()\")");
+
+    menuItem -l "Add shell_id to each Poly-shell"
+                 -c ("python(\"import dxAddShellID;dxAddShellID.run()\")");
+
+	menuItem -l "Create Proxy Texture"
+			 -c ("python(\"import dxTexture; dxTexture.textureProxyDialog()\")");
+
+	menuItem -l "Create DisplayLayer by Texture Attributes"
+			 -c ("python(\"import dxTexture; dxTexture.create_TextureDisplayLayer()\")");
+
+	menuItem -l "Maya2Katana"
+			 -c ("python(\"import maya2katana; reload (maya2katana); maya2katana.copy()\")");
+
+    menuItem -divider true;
+	menuItem -l "ZENN Controller"
+			 -c ("python(\"from ZENNController import MainForm as ZNMainForm; ZNMainForm.main()\")");
+
+    menuItem -divider true;
+	menuItem -l "Preview Texture"
+			 -c ("python(\"import previewTexture; previewTexture.Main()\")");
+}
+
+global proc backstageAssetMenu()
+{
+	addAssetMenu();
+}
