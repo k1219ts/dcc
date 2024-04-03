@@ -1,0 +1,11 @@
+{
+  "h264": "-c:v libx264 -profile:v baseline -b 30000k -tune zerolatency -preset slow -pix_fmt yuv420p",
+  "h265": "-c:v libx265 -crf 10 -tune fastdecode -pix_fmt yuv420p -tag:v hvc1",
+  "h265HDR": "-c:v libx265 -preset fast -crf 5 -pix_fmt yuv420p10le -x265-params keyint=25:bframes=2:vbv-bufsize=50000:vbv-maxrate=50000:hdr-opt=1:no-open-gop=1:hrd=1:repeat-headers=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:master-display=\"G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,16450)L(10000000,500)\":max-cll=\"1000,400\"",
+  "mjpeg": "-c:v mjpeg -q:v 2 -pix_fmt yuv420p",
+  "prores4444": "-c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le",
+  "proresProxy": "-c:v prores_ks -profile:v 0 -q:v 4 -pix_fmt yuv422p10le",
+  "proresLT": "-c:v prores -profile 1 -pix_fmt yuv422p10le",
+  "prores422" : "-c:v prores_ks -profile:v 2 -pix_fmt yuv422p10le",
+  "prores422HQ" : "-c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le"
+}

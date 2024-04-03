@@ -1,0 +1,2 @@
+#!/bin/bash
+xterm -hold -e /backstage/dcc/DCC rez-env ffmpeg_toolkit -- makeThumbnailExec

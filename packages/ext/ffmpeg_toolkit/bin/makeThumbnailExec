@@ -1,0 +1,56 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys, pprint, subprocess
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+        if not selected:
+            sys.exit(0)
+
+        selected = selected.split('\n')
+        selected.remove('')
+    else:
+        selected = sys.argv[-1]
+    # print('selected:', selected)
+
+    thumbCmd = ['{DCCPROC}', 'rez-env', 'ffmpeg_toolkit', '--', 'ffmpeg']
+    thumbCmd += ['-i', '{INPUT}']
+    thumbCmd += ['-vframes', '1']
+    thumbCmd += ['-vf', 'scale={SCALE}:force_original_aspect_ratio=decrease']
+    thumbCmd += ['-y', '{OUTPUT}']
+    thumbCmd = ' '.join(thumbCmd)
+
+    for path in selected:
+        # print(path, str(os.path.isfile(path)))
+        if os.path.isfile(path):
+            if '.mov' in path:
+                inputMov = path
+                outputMov = inputMov.replace('.mov', '.jpg')
+
+                command = thumbCmd.format(DCCPROC=os.environ['DCCPROC'], INPUT=inputMov,
+                                     SCALE='320x240', OUTPUT=outputMov)
+                print(command)
+                run = subprocess.Popen(command, shell=True)
+                run.wait()
+
+                print('#'*80)
+        else:
+            for file in os.listdir(path):
+                if '.mov' in file:
+                    print('#### %s ####' % file)
+
+                    inputMov = os.path.join(path, file)
+                    outputMov = inputMov.replace('.mov', '.jpg')
+
+                    command = thumbCmd.format(DCCPROC=os.environ['DCCPROC'], INPUT=inputMov,
+                                         SCALE='320x240', OUTPUT=outputMov)
+                    print(command)
+                    run = subprocess.Popen(command, shell=True)
+                    run.wait()
+
+                    print('#'*80)
+
+    print("# Complete!")
+
+    sys.exit(0)
