@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=usdmanager
+Comment=usdmanager
+Exec=/backstage/dcc/DCC rez-env usdmanager -- usdmanager
+Terminal=false
+Type=Application
+Icon=/others/backstage/share/icons/usdmanager.png
+Categories=dexter

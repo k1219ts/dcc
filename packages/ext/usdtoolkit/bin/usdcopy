@@ -1,0 +1,152 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys, pprint
+import DXUSD.Exporters as exp
+from PySide2 import QtWidgets,QtCore,QtGui
+
+
+from pymongo import MongoClient
+import dxConfig
+gDBIP = dxConfig.getConf("DB_IP")
+client = MongoClient(gDBIP)
+gDB = client["ASSETLIB"]
+
+
+
+
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.setWindowTitle("Usd Copy")
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+
+
+        self.label = QtWidgets.QLabel(Form)
+        self.label.setText("NewShow : ")
+        self.horizontalLayout.addWidget(self.label)
+        # self.showLineEdit  =QtWidgets.QLineEdit(Form)
+        # self.showLineEdit.setText("/assetlib/_3d")
+        # self.horizontalLayout.addWidget(self.showLineEdit)
+        self.comboBox_show = QtWidgets.QComboBox(Form)
+        self.horizontalLayout.addWidget( self.comboBox_show)
+
+
+        self.label_2 = QtWidgets.QLabel(Form)
+        self.label_2.setText("NewAsset : ")
+        self.horizontalLayout_2.addWidget(self.label_2)
+        self.assetLineEdit  =QtWidgets.QLineEdit(Form)
+        self.horizontalLayout_2.addWidget(self.assetLineEdit )
+
+        self.execBtn = QtWidgets.QPushButton(Form)
+        self.execBtn.setText("USD Export")
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.verticalLayout.addLayout(self.horizontalLayout_4)
+        self.verticalLayout.addWidget(self.execBtn)
+
+class MainForm(QtWidgets.QWidget):
+    def __init__(self, parent, files):
+        QtWidgets.QWidget.__init__(self, parent)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
+        self.files = files
+        self.ui.execBtn.clicked.connect(self.excute_clicked)
+
+        # make completer of show
+        # customNeedCompleter = []
+        # customNeedCompleter.append("/assetlib/_3d")
+        self.itemFont = QtGui.QFont()
+        self.itemFont.setPointSize(13)
+        self.itemFont.setBold(True)
+        # showCompleter = QtWidgets.QCompleter(customNeedCompleter)
+        # showCompleter.popup().setFont(self.itemFont)
+        # self.ui.showLineEdit.setCompleter(showCompleter)
+        # self.ui.showLineEdit.returnPressed.connect(lambda: self.changeAssetListCompleter())
+        showList = []
+        for s in os.listdir('/show'):
+            if os.path.exists(os.path.join('/show', s, '_3d')):
+                showList.append(s)
+        showList.sort()
+        showList.append("/assetlib/_3d")
+        self.ui.comboBox_show.addItems(showList)
+        self.ui.comboBox_show.setCurrentIndex(0)
+
+    def excute_clicked(self):
+        newShow = self.ui.comboBox_show.currentText()
+        newAsset = self.ui.assetLineEdit.text()
+        print('newAsset:', newAsset)
+        orgShow = self.files[0].split('asset')[0]
+        print('orgShow:', orgShow)
+
+        for usdpath in self.files:
+            self.MayaAssetExport(newShow, usdpath, newAsset)
+            pprint.pprint("[Debug mode]:  %s" % 'Success')
+        self.close()
+
+    # def changeAssetListCompleter(self):
+    #     self.assetList = {}
+    #     self.entityDict = {}
+    #     branchList = []
+    #     if self.ui.showLineEdit.text() == '/assetlib/_3d':
+    #         assetUsdFilePath = os.path.join(self.ui.showLineEdit.text(), "asset", "asset.usd")
+    #     else:
+    #         assetUsdFilePath = os.path.join('/show', self.ui.showLineEdit.text(), '_3d', "asset", "asset.usd")
+    #
+
+
+    def MayaAssetExport(self, show, path, newasset=None, versionExp=False):
+        arg = exp.AUsdExporter()
+        if '/assetlib/_3d' in show:
+            arg.ovr_show = show
+        else:
+            arg.show = show
+        arg.orgPath = path
+        arg.newAssetName = newasset
+        arg.versionExp = versionExp
+        exp.MayaExport(arg)
+
+
+
+def main(files):
+    # for usdpath in files:
+    app = QtWidgets.QApplication(sys.argv)
+    mainView = MainForm(None, files)
+    mainView.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+        sys.stdout.write("[Debug mode]:  %s" % 'Usd Copy')
+        if not selected:
+            sys.exit(0)
+
+        if os.path.isdir(selected[0]):
+            files = []
+            for file in selected.split('\n'):
+                pprint.pprint(file)
+                if not file == "":
+                    if '.usd' in file:
+                        usdpath = file
+                    elif os.path.isdir(file):
+                        usdpath = os.path.join(file, file.split('/')[-1]+'.usd')
+                    pprint.pprint("[Debug mode]:  %s" % usdpath)
+                    if os.path.exists(usdpath):
+                        files.append(usdpath)
+
+            sys.exit(main(files))
+
+        else:
+            pprint.pprint("[Debug mode]:  %s" % 'ERROR: You need to select asset directory.')
+
+    else:
+        sys.stdout.write("[Debug mode]:  %s" % sys.argv[1:])
+        sys.exit(main(sys.argv[1:]))

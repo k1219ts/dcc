@@ -1,0 +1,16 @@
+{
+    "Plugins": [
+        {
+            "Type": "python",
+            "Name": "assetExportPlugin",
+            "Info": {
+                "Types": {
+                    "assetExportPlugin.assetExportPluginContainer": {
+                        "bases": ["pxr.Usdviewq.plugin.PluginContainer"],
+                        "displayName": "Export Asset"
+                    }
+                }
+            }
+        }
+    ]
+}

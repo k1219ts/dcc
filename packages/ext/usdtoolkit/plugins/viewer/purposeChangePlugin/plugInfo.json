@@ -1,0 +1,16 @@
+{
+    "Plugins": [
+        {
+            "Type": "python",
+            "Name": "purposeChangePlugin",
+            "Info": {
+                "Types": {
+                    "purposeChangePlugin.PurposeChangePluginContainer": {
+                        "bases": ["pxr.Usdviewq.plugin.PluginContainer"],
+                        "displayName": "Purpose Change"
+                    }
+                }
+            }
+        }
+    ]
+}

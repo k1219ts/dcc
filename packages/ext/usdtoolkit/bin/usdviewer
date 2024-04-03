@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function getShowDir() {
+    arrIn=$(echo $1 | tr "/" "\n")
+    findShow=0
+    showDir="/"
+    for text in $arrIn
+    do
+        showDir=$showDir$text"/"
+        if [ $findShow -eq 1 ]; then
+            break
+        fi
+        if [ "$text" == "show" ]; then
+            findShow=1
+        fi
+    done
+    if [[ "$1" == *"_3d"* ]]; then
+        showDir=$showDir"_3d/"
+    fi
+    if [ $findShow -eq 1 ]; then
+        echo $showDir
+    else
+        echo ""
+    fi
+}
+
+if [ $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ]; then
+    filename=$(/usr/bin/realpath $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)
+else
+    filename=$(readlink -f $1)
+fi
+
+dir=$(getShowDir $filename)
+if [ $dir ]; then
+    export RMAN_TEXTUREPATH=$RMAN_TEXTUREPATH:$(getShowDir $filename)
+fi
+export RMAN_TEXTUREPATH=$RMAN_TEXTUREPATH:"/assetlib/_3d/"
+
+${REZ_USD_CORE_ROOT}/bin/usdview $filename --camera main_cam --defaultsettings &

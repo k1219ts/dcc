@@ -1,0 +1,16 @@
+{
+    "Plugins": [
+        {
+            "Type": "python",
+            "Name": "cameraMaskPlugin",
+            "Info": {
+                "Types": {
+                    "cameraMaskPlugin.CameraMaskPluginContainer": {
+                        "bases": ["pxr.Usdviewq.plugin.PluginContainer"],
+                        "displayName": "Camera Mask"
+                    }
+                }
+            }
+        }
+    ]
+}

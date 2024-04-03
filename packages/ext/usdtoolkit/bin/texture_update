@@ -1,0 +1,47 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys, pprint
+
+
+def proxyMtl(dirpath):
+    import DXUSD.Tweakers as twk
+    arg = twk.AProxyMaterial()
+    arg.mtlDir = dirpath
+    if arg.Treat():
+        TPM = twk.ProxyMaterial(arg)
+        TPM.DoIt()
+        print('')
+        print('# Resolved Proxy Data')
+        pprint.pprint(TPM.arg.texData, indent=4)
+
+def texAttr(dirpath):
+    import DXUSD.Tweakers as twk
+    arg = twk.ATexture()
+    arg.texAttrDir = dirpath
+    if arg.Treat():
+        TT = twk.Texture(arg)
+        TT.DoIt()
+        print('')
+        print('# Resolved Texture Data')
+        pprint.pprint(TT.arg.texData, indent=4)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+        if not selected:
+            sys.exit(0)
+
+        selected = selected.split('\n')[0]
+    else:
+        selected = sys.argv[-1]
+
+    if os.path.isfile(selected):
+        selected = os.path.dirname(selected)
+
+    if '/texture/proxy' in selected:
+        proxyMtl(selected)
+    if '/texture/tex' in selected:
+        texAttr(selected)
+
+    sys.exit(0)

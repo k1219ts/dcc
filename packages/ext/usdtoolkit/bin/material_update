@@ -1,0 +1,33 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys, pprint
+
+def doIt(dirpath):
+    import DXUSD.Tweakers as twk
+
+    arg = twk.APrmanMaterial()
+    arg.dstdir = dirpath
+    if arg.Treat():
+        twk.PrmanMaterial(arg).DoIt()
+
+    arg = twk.APrmanMaterialOverride()
+    arg.dstdir = dirpath
+    if arg.Treat():
+        twk.PrmanMaterialOverride(arg).DoIt()
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+        if not selected:
+            sys.exit(0)
+
+        selected = selected.split('\n')[0]
+    else:
+        selected = sys.argv[-1]
+
+    if os.path.isfile(selected):
+        selected = os.path.dirname(selected)
+
+    doIt(selected)
+
+    sys.exit(0)

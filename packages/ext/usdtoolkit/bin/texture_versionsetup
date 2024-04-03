@@ -1,0 +1,111 @@
+#!/usr/bin/python2.7
+
+from PySide2 import QtWidgets,QtCore,QtGui
+import sys
+import os
+import pprint
+import DXUSD.Utils as utl
+import DXUSD.Message as msg
+import DXUSD.Tweakers as twk
+
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.setWindowTitle("TxVersionSetup")
+        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.label_3 = QtWidgets.QLabel(Form)
+        self.label_3.setText("modelVersion:       ")
+        self.horizontalLayout.addWidget(self.label_3)
+        self.comboBox = QtWidgets.QComboBox(Form)
+        self.horizontalLayout.addWidget(self.comboBox)
+        self.execBtn = QtWidgets.QPushButton(Form)
+        self.execBtn.setText("Excecute")
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout.addWidget(self.execBtn)
+
+class MainForm(QtWidgets.QWidget):
+    def __init__(self, parent, texdir):
+        QtWidgets.QWidget.__init__(self, parent)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+        self.texdir =  texdir
+        if '/mach' in self.texdir:
+            self.texdir= self.texdir.split('/mach')[1]
+
+        self.assetdir = texdir.split('/texture/')[0]
+        modelpath = os.path.join(self.assetdir,'model','model.usd')
+        n = 0
+        vers = self.getModelVers(modelpath)
+        vers.sort(reverse=True)
+        for ver in  vers:
+            self.ui.comboBox.addItem("")
+            self.ui.comboBox.setItemText(n, ver)
+            n+=1
+        self.ui.execBtn.clicked.connect(self.excute_clicked)
+
+    def excute_clicked(self):
+        modelVersion = self.ui.comboBox.currentText()
+        self.AttrExport(dirpath=self.texdir, modelVersion = modelVersion)
+        self.close()
+
+
+    def getModelVers(self,path):
+        layer = utl.AsLayer(path)
+        dprim = layer.defaultPrim
+        primspec = layer.GetPrimAtPath('/' + dprim)
+        vsetspec = primspec.variantSets.get('modelVer')
+        data = vsetspec.variants
+        versionList = data.keys()
+        return versionList
+
+
+    def AttrExport( self, dirpath, modelVersion):
+        if '/texture/proxy' in dirpath:
+            self.proxyMtl(dirpath)
+        elif '/texture/tex' in dirpath:
+            self.texAttr(dirpath, modelVersion)
+
+
+    def texAttr(self,txPath,modelVersion):
+        arg = twk.ATexture()
+        arg.texAttrDir = txPath
+        arg.modelVersion = modelVersion
+        if arg.Treat():
+            TT = twk.Texture(arg)
+            TT.DoIt()
+            print('')
+            print('# Resolved Texture Data')
+            pprint.pprint(TT.arg.texData, indent=4)
+
+    def proxyMtl(self,dirpath):
+        arg = twk.AProxyMaterial()
+        arg.mtlDir = dirpath
+        if arg.Treat():
+            TPM = twk.ProxyMaterial(arg)
+            TPM.DoIt()
+            print('')
+            print('# Resolved Proxy Data')
+            pprint.pprint(TPM.arg.texData, indent=4)
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+        sys.stdout.write("[Debug mode]:  %s" % 'Texture Version Setup')
+        sys.stdout.write("[Debug mode]:  %s" % selected)
+        if not selected:
+            sys.exit(0)
+        selected = selected.split('\n')[0]
+    else:
+        selected = sys.argv[-1]
+
+    if os.path.isfile(selected):
+        selected = os.path.dirname(selected)
+
+    app = QtWidgets.QApplication(sys.argv)
+    mainView = MainForm(None, selected)
+    mainView.show()
+    sys.exit(app.exec_())
+

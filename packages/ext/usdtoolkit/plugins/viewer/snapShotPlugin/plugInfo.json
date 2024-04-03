@@ -1,0 +1,16 @@
+{
+    "Plugins": [
+        {
+            "Type": "python",
+            "Name": "snapShotPlugin",
+            "Info": {
+                "Types": {
+                    "snapShotPlugin.SnapshotPluginContainer": {
+                        "bases": ["pxr.Usdviewq.plugin.PluginContainer"],
+                        "displayName": "viewport Snapshot"
+                    }
+                }
+            }
+        }
+    ]
+}
