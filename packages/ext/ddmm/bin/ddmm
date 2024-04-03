@@ -1,0 +1,2 @@
+#!/bin/bash
+python ${REZ_DDMM_ROOT}/scripts/main.py $1

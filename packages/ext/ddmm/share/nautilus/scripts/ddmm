@@ -1,0 +1,2 @@
+#!/bin/bash
+/backstage/dcc/DCC rez-env ddmm -- ddmm $*
