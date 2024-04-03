@@ -1,0 +1,183 @@
+
+# __flag__:
+#     name:
+#         __default__: 'Nobody'
+#         __pattern__: '[A-Z][a-zA-Z]*'
+#     sex:
+#         __pattern__: 'woman|man'
+#     age:
+#         __pattern__: '[0-9]+'
+#
+# __product__:
+#     PERSON:      '(name)_(sex)_(age)'
+
+
+
+# __flag__:
+#     date:
+#         __pattern__: '[0-9]{8}'
+#     location:
+#         __pattern__: '[0-9]{4}'
+#     kind:
+#         __pattern__: '[0-9]{2}'
+#     usage:
+#         __pattern__: '[0-9]{2}'
+#
+# __child__:
+#     Chair:
+#         __flag__:
+#             kind:
+#                 __default__: '21'
+#         __child__:
+#             Office:
+#                 __flag__:
+#                     usage:
+#                         __default__: '07'
+#                 __product__:
+#                     niceOfficeChair:     '(date)-(kind)(usage)N(location)'
+#                     gorgeousOfficeChair: '(date)-(kind)(usage)J(location)'
+#
+#             Students:
+#                 __flag__:
+#                     usage:
+#                         __default__: '02'
+#                 __product__:
+#                     backgoodChair:       '(date)-(kind)(usage)J(location)'
+#     Table:
+#         __flag__:
+#             kind:
+#                 __default__: '28'
+#         __child__:
+#             Office:
+#                 __flag__:
+#                     usage:
+#                         __default__: '07'
+#                 __product__:
+#                     niceOfficeTable:     '(date)-(kind)(usage)N(location)'
+#             Caffe:
+#                 __flag__:
+#                     usage:
+#                         __default__: '03'
+#                 __product__:
+#                     terraceTable:        '(date)-(kind)(usage)N(location)'
+
+__flag__:
+    date:
+        __pattern__: '[0-9]{8}'
+    location:
+        __pattern__: '[0-9]{4}'
+    kind:
+        __pattern__: 'CH|TB'
+    usage:
+        __pattern__: 'OF|CF|ST'
+
+
+__child__:
+    __ref__: 'kind'
+    CH:  # chair
+        __child__:
+            __ref__: 'usage'
+            OF: # office
+                __product__:
+                    niceOfficeChair:     '(date)-(kind)(usage)N(location)'
+                    gorgeousOfficeChair: '(date)-(kind)(usage)J(location)'
+
+            ST: # student
+                __product__:
+                    backgoodChair:       '(date)-(kind)(usage)J(location)'
+    TB:  # table
+        __child__:
+            __ref__: 'usage'
+            OF:
+                __product__:
+                    niceOfficeTable:     '(date)-(kind)(usage)A(location)'
+            CF:
+                __product__:
+                    terraceTable:        '(date)-(kind)(usage)N(location)'
+
+
+# __tag__:
+#     NAME:       'name'
+#     SEX:        'man|woman'
+#     DEPARTMENT: 'Not Assign'
+# __flag__:
+#     sex:
+#         __pattern__: '@SEX@'
+#     name:
+#         __pattern__: '[A-Z][a-zA-Z]*'
+# __child__:
+#     AssetTeam:
+#         __tag__:
+#             DEPARTMENT: 'Asset'
+#         __product__:
+#             ARTIST: '@NAME@: (name) [(sex)]'
+#         __child__:
+#             TEAM1:
+#                 __tag__:
+#                     TEAMNAME: 'A'
+
+# __flag__:
+#     asset:
+#         __pattern__: '[a-zA-Z0-9]+'
+#     branch:
+#         __pattern__: '[a-zA-Z0-9]+'
+#     ver:
+#         __pattern__: 'v[0-9]{3}'
+# __product__:
+#     ASSETUSD: ['(asset)_(branch)_(ver).usd',
+#                '(asset)_(ver).usd']
+
+# __flag__:
+#     root:
+#         __default__: '/show'
+#         __pattern__: '/show|/[a-zA-Z0-9_/]+/show'
+#     show:
+#         __pattern__: '[a-z0-9]+'
+#     pub:
+#         __pattern__: '_2d|_3d|_config'
+#     asset:
+#         __pattern__: '[a-z][a-zA-Z0-9]*'
+#     branch:
+#         __pattern__: '[a-z][a-zA-Z0-9]*'
+#     seq:
+#         __pattern__: '[a-zA-Z0-9]{3}'
+#     shot:
+#         __pattern__: '[0-9]{4}'
+#     customdir:
+#         __pattern__: '/[a-zA-Z0-9_/]*'
+#     task:
+#         __pattern__: 'model|rig|set|texture|groom|prman|ani|cam|env|sim|fx|lgt|comp'
+#     ver:
+#         __pattern__: 'v[0-9]{3}'
+#     nslyr:
+#         __pattern__: '[a-zA-Z0-9_]+'
+#     nsver:
+#         __pattern__: 'v[0-9]{3}'
+#
+# __combiner__:
+#     seperator: '/'
+#     combine:   'ROOTS/KINDS/TASKS'
+#
+#     ROOTS: ['<PUB>', '<SHOW>', '<CUSTOMDIR>']
+#     KINDS: ['<SHOT>/<ASSET>/<BRANCH>',
+#             '<SHOT>/<ASSET>', '<SHOT>',
+#             '<ASSET>/<BRANCH>', '<ASSET>']
+#     TASKS: ['<TASKVNV>',
+#             '<TASKVN>',   '<TASKNV>',
+#             '<TASKV>',    '<TASKN>'  ]
+#
+# __product__:
+#     SHOW:       '(root)/(show)'
+#     PUB:        '(root)/(show)/(pub)'
+#     CUSTOMDIR:  '(customdir)'
+#
+#     ASSET:      'asset/(asset)'
+#     BRANCH:     'branch/(branch)'
+#     SEQ:        'shot/(seq)'
+#     SHOT:       'shot/(seq)/(seq)_(shot)'
+#
+#     TASKV:      '(task)/(ver)'
+#     TASKVN:     '(task)/(ver)/(nslyr)'
+#     TASKVNV:    '(task)/(ver)/(nslyr)/(nsver)'
+#     TASKN:      '(task)/(nslyr)'
+#     TASKNV:     '(task)/(nslyr)/(nsver)'

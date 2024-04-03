@@ -1,0 +1,993 @@
+# DXUSD2.0 Naming Rule File
+# Legends:
+#    {} = environment variable key
+#    () = flag key
+#    <> = product key
+#    @@ = tags
+# reserves
+# __flag__
+#   __default__
+#   __pattern__
+# __product__
+# __child__
+#   __ref__
+# __tag__
+# __combiner__
+#   seperator:
+#   combine:
+
+# global: Default Tags
+__tag__:
+    CATEGORY: 'D|F|N'
+    DCC:      'USD|ABC|JSON|MAYA|HOUDINI|KATANA|NUKE|MAP'
+
+    # --------------------------------------------------------------------------
+    # directory
+    SHOW:    'show'
+    PUB2:    '_2d'
+    PUB3:    '_3d'
+    WORKS:   'works'
+    PUBTEST: '_test'
+    CONFIG:  '_config'
+    GLOBAL:  '_global'
+    ASSET:   'asset'
+    BRANCH:  'branch'
+    SHOT:    'shot'
+    SEQ:     'seq'
+
+    # Exclusive Paths
+    EXCLUSIVEROOT: '(/mach|/knot)'
+
+    # --------------------------------------------------------------------------
+    # extra dirs
+    ASSETLIB:   '/assetlib'
+    ASSETLIB2D: '@ASSETLIB@/2D'
+    ASSETLIB3D: '@ASSETLIB@/_3d'
+
+    # --------------------------------------------------------------------------
+    # tex file extentions
+    TEXEXT: 'tex'
+
+    # --------------------------------------------------------------------------
+    # LOD
+    LODS:        '@HIGH@|@MID@|@LOW@|@GUIDE@|@SIM@'
+    HIGH:        'high'
+    MID:         'mid'
+    LOW:         'low'
+    GUIDE:       'guide'
+
+    # --------------------------------------------------------------------------
+    # attributes
+    MATERIALSET:   'MaterialSet'
+    MODELVER:      'modelVersion'
+    TXLAYERNAME:   'txLayerName'
+    TXBASEPATH:    'txBasePath'
+    TXMULTIUV:     'txmultiUV'
+    ST:            'st'
+
+    # --------------------------------------------------FEATHER------------------------
+    # tasks
+    TASK:    'task'
+    TASKS:   '@MODEL@|@LAYOUT@|@TEXTURE@|@RIG@|@CLIP@|@GROOM@|@ZN@|@ANI@|@MMV@|@PMODEL@|@CAM@|@LIDAR@|@SIM@|@CROWD@|@FX@|@LGT@|@COMP@|@PRECOMP@|@REMOVE@|@KEYING@|@RETIME@|@ROTO@|@MERGE@|@AGENT@|@MATERIAL@|@FEATHER@'
+
+    MODEL:   'model'
+    LAYOUT:  'layout'
+    TEXTURE: 'texture'
+    MATERIAL: 'material'
+    RIG:     'rig'
+    CLIP:    'clip'
+    GROOM:   'groom'
+    FEATHER: 'feather'
+    ZN:      'ZN'
+    PRMAN:   'prman'
+
+    ANI:     'ani'
+    CAM:     'cam'
+    MMV:     'matchmove'
+    PMODEL:  'pmodel'
+    LIDAR:   'lidar'
+    # ENV:     'env'
+    SIM:     'sim'
+    CROWD:   'crowd'
+    FX:      'fx'
+    LGT:     'lgt'
+    # COMP TEAM
+    COMP:    'comp'
+    PRECOMP: 'precomp'
+    REMOVE:  'remove'
+    KEYING:  'keying'
+    RETIME:  'retime'
+    ROTO:    'roto'
+    AGENT:   'agent'
+    CGSUP:   'cgp'
+    MERGE:  'merge'
+
+    MI_ORGAGENT: 'OriginalAgent'
+    MI_GEOM:     'Geometry'
+
+    # --------------------------------------------------------------------------
+    # camera
+    CAMERA:     'camera'
+    CAMLOC:     'cam_loc'
+    IMAGEPLANE: 'imp'
+    MAINCAM:    'main_cam'
+    EXTRACAM:   'extra'
+    EXTRACAMGROUP: 'Cameras'
+
+    # --------------------------------------------------------------------------
+    # renderers
+    RENDERERS: '@PREVIEW@|@PRMAN@'
+    PREVIEW: 'preview'
+    PRMAN:   'prman'
+
+    # --------------------------------------------------------------------------
+    # departments
+    DEPARTMENTS:    '@ASSET_TEAM@|@RIG_TEAM@|@MATCHMOVE_TEAM@|@ANIMATION_TEAM@|@LIGHT_TEAM@|@MATTE_TEAM@|@FX_TEAM@|@COMP_TEAM@|@CGSUP_TEAM@|@LAYOUT_TEAM@'
+
+    ASSET_TEAM:     'AST'
+    RIG_TEAM:       'RIG'
+    MATCHMOVE_TEAM: 'MMV'
+    ANIMATION_TEAM: 'ANI'
+    LIGHT_TEAM:     'LNR'
+    MATTE_TEAM:     'MAT'
+    FX_TEAM:        'PFX'
+    COMP_TEAM:      'CMP'
+    CGSUP_TEAM:     'CSP'
+    LAYOUT_TEAM:    'LAY'
+
+    # --------------------------------------------------------------------------
+    # prim name@TASKS@
+    RIGSOURCE:      'RigSource'
+
+    # --------------------------------------------------------------------------
+    # Custom Layer Data
+    RIGFILE:     'rigFile'
+    GROOMFILE:   'groomFile'
+    FEATHERFILE: 'featherFile'
+    SCENEFILE:   'sceneFile'
+    DXUSD:       'dxusd'
+
+
+    # --------------------------------------------------------------------------
+    # value types
+    BOOL:           'off|on'
+    BASE:           'base'
+
+
+__flag__:
+    # category
+    category:
+        __pattern__: '@CATEGORY@'
+    # DCCs
+    dcc:
+        __pattern__: '@DCC@'
+    # directories
+    root:
+        __default__: '/show'
+        __pattern__: '/show|/[a-zA-Z0-9_/]+/show'
+    name:
+        __pattern__: '[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z0-9]'
+
+    show:
+        __pattern__: '[a-z0-9]+|test_shot'
+    pub:
+        __pattern__: '@PUB2@|@PUB3@|@CONFIG@'
+    departs:
+        __pattern__: '@DEPARTMENTS@'
+    artist:
+        __pattern__: '[a-z0-9]+\.[a-z0-9]+'
+    assetlib:
+        __pattern__: '@ASSETLIB2D@|@ASSETLIB3D@'
+    asset:
+        __pattern__: '[a-z][a-zA-Z0-9]*|@GLOBAL@'
+    branch:
+        __pattern__: '[a-z][a-zA-Z0-9]*'
+    abname:
+        __pattern__: '[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z0-9]'
+    seq:
+        __pattern__: '[a-zA-Z0-9]*'
+    shot:
+        __pattern__: '[0-9]{4}'
+    customdir:
+        __pattern__: '/[a-zA-Z0-9_/]*'
+
+    task:
+        __pattern__: '@TASKS@'
+    nslyr:
+        __pattern__: '[a-zA-Z0-9_]+'
+    subdir:
+        __pattern__: '[a-zA-Z0-9_]+'
+    subdir1:
+        __pattern__: '[a-zA-Z0-9_]+'
+    subdir2:
+        __pattern__: '[a-zA-Z0-9_]+'
+    subdir3:
+        __pattern__: '[a-zA-Z0-9_]+'
+    clip:
+        __pattern__: '@BASE@|[0-9]+_[0-9]+'
+    ver:
+        __pattern__: 'v[0-9]{3}'
+    nsver:
+        __pattern__: 'v[0-9]{3}'
+    subver:
+        __pattern__: 'v[0-9]{3}'
+    desc:
+        __pattern__: '[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z0-9]'
+    temp:
+        __pattern__: '[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z0-9]'
+    frame:
+        __pattern__: '[0-9]{4}'
+    render:
+        __pattern__: '@RENDERERS@'
+    agentprefix:
+        __pattern__: '@MI_ORGAGENT@|@MI_GEOM@'
+
+    # files
+    lod:
+        __pattern__: '@LODS@'
+    department:
+        __default__: ''
+        __pattern__: '@DEPARTMENTS@'
+    username:
+        __default__: '{USER}'
+        __pattern__: '[a-zA-Z0-9]+'
+
+    # value type
+    bool:
+        __pattern__: '@BOOL@'
+
+    # etc
+    unknown:
+        __pattern__: '[a-zA-Z0-9_]+'
+    vendor:
+        __pattern__: '[a-zA-Z0-9_]+'
+
+
+__child__:
+    # ==========================================================================
+    D: # =======================================================================
+        __combiner__:
+            seperator: '/'
+            combine:    'ROOTS/KINDS/TASKS'
+
+            ROOTS: ['<WORKS>', '<PUB>', '<SHOW>', '<CUSTOMDIR>']
+
+            KINDS: ['<SHOT>/<ASSET>/<BRANCH>',   '<SHOT>/<ASSET>',
+                    '<SEQ>/<ASSET>/<BRANCH>',    '<SEQ>/<ASSET>',
+                    '<SHOT>', '<SEQ>',
+                    '<ASSET>/<BRANCH>', '<ASSET>',
+                    '<SHOT>/<ASSET>/<BRANCHES>', '<SHOT>/<ASSETS>',
+                    '<SEQ>/<ASSET>/<BRANCHES>',  '<SEQ>/<ASSETS>',
+                    '<ASSET>/<BRANCHES>', '<ASSETS>', '<SHOTS>']
+
+            TASKS: ['<TASKSRMNV>',   '<TASKRMNV>',   '<TASKSRMN>',   '<TASKRMN>',
+                    '<TASKSRM>',     '<TASKRM>',     '<TASKSR>',     '<TASKR>',
+                    '<TASKVNVS>',    '<TASKNVCS>',   '<TASKNVSVS>',  '<TASKNVSV>',
+                    '<TASKVNV>',     '<TASKNVC>',    '<TASKNVS>',
+                    '<TASKVN>',      '<TASKNV>',     '<TASKVS>',
+                    '<TASKV>',       '<TASKN>',      '<TASKNS>',
+                    '<TASK>']
+        __product__:
+            # ------------------------------------------------------------------
+            # ROOTS
+            PUB:            '(root)/(show)/(pub)'
+            CUSTOMDIR:      '(customdir)'
+            SHOW:           '(root)/(show)'
+            WORKS:          '(root)/(show)/@WORKS@/(departs)'
+
+            # ARTIST:         '(root)/(show)/@WORKS@/(departs)/(artist)'
+            # ------------------------------------------------------------------
+            # KINDS
+            ASSETS:     '@ASSET@'
+            SHOTS:      '@SHOT@'
+            BRANCHES:   '@BRANCH@'
+            ASSET:      '@ASSET@/(asset)'
+            BRANCH:     '@BRANCH@/(branch)'
+            SEQ:        '@SHOT@/(seq)'
+            SHOT:       '@SHOT@/(seq)/(seq)_(shot)'
+            # ------------------------------------------------------------------
+            # TASKS
+            TASK:       '(task)'
+
+            TASKV:      '(task)/(ver)'
+            TASKVS:     '(task)/(ver)/(subdir)'
+            TASKVN:     '(task)/(ver)/(nslyr)'
+            TASKVNV:    '(task)/(ver)/(nslyr)/(nsver)'
+            TASKVNVS:   '(task)/(ver)/(nslyr)/(nsver)/(subdir)'
+
+            TASKN:      '(task)/(nslyr)'
+            TASKNS:     '(task)/(nslyr)/(subdir)'
+            TASKNV:     '(task)/(nslyr)/(nsver)'
+            TASKNVS:    '(task)/(nslyr)/(nsver)/(subdir)'
+            TASKNVC:    '(task)/(nslyr)/(nsver)/(clip)'
+            TASKNVCS:   '(task)/(nslyr)/(nsver)/(clip)/(subdir)'
+            TASKNVSV:   '(task)/(nslyr)/(nsver)/(subdir)/(subver)'
+            TASKNVSVS:  '(task)/(nslyr)/(nsver)/(subdir)/(subver)/(subdir1)'
+
+            TASKR:      '(task)/(render)'
+            TASKRM:     '(task)/(render)/shaders'
+            TASKRMN:    '(task)/(render)/shaders/(nslyr)'
+            TASKRMNV:   '(task)/(render)/shaders/(nslyr)/(nsver)'
+
+            TASKSR:     '(task)/(subdir)/(render)'
+            TASKSRM:    '(task)/(subdir)/(render)/shaders'
+            TASKSRMN:   '(task)/(subdir)/(render)/shaders/(nslyr)'
+            TASKSRMNV:  '(task)/(subdir)/(render)/shaders/(nslyr)/(nsver)'
+
+        # ----------------------------------------------------------------------
+        # CUSTOM
+        __child__:
+            OTHER:
+                __product__:
+                    CONFIG:  '(root)/(show)/@CONFIG@'
+                    EXCLUSIVEROOT: ['@EXCLUSIVEROOT@(root)', '(root)']
+                    TASKSCENE:    ['(root)/(show)/(pub)/@SHOT@/(seq)/(seq)_(shot)/@ASSET@/(asset)/@BRANCH@/(branch)/(task)/scenes',
+                                   '(root)/(show)/(pub)/@SHOT@/(seq)/(seq)_(shot)/@ASSET@/(asset)/(task)/scenes',
+                                   '(root)/(show)/(pub)/@SHOT@/(seq)/(seq)_(shot)/(task)/scenes',
+                                   '(root)/(show)/(pub)/@ASSET@/(asset)/@BRANCH@/(branch)/(task)/scenes',
+                                   '(root)/(show)/(pub)/@ASSET@/(asset)/(task)/scenes']
+
+            ASSETLIB:
+                __product__:
+                    MATRMNV: '@ASSETLIB3D@/usd/material/(render)/shaders/(nslyr)/(nsver)'
+                    MATRMN:  '@ASSETLIB3D@/usd/material/(render)/shaders/(nslyr)'
+                    MATRM:   '@ASSETLIB3D@/usd/material/(render)/shaders'
+                    MATR:    '@ASSETLIB3D@/usd/material/(render)'
+                    MAT:     '@ASSETLIB3D@/usd/material'
+
+            TDE:
+                __product__:
+                    WORKS:  ['(root)/(show)/@WORKS@/(departs)/@SHOT@/(seq)/(seq)_(shot)/(task)',
+                             '(root)/(show)/@WORKS@/(departs)/@ASSET@/(asset)/(task)/3de']
+            ANI:
+                __product__:
+                    WORKS:  '(root)/(show)/@WORKS@/(departs)/(seq)/(seq)_(shot)/dev/scenes'
+
+            NUKE:
+                __flag__:
+                    worktype:
+                        __default__: 'dev'
+                        __pattern__: 'dev|pub'
+                __product__:
+                    WORKS:  ['(root)/(show)/@WORKS@/(departs)/(seq)/(seq)_(shot)/(task)/(unknown)',
+                             '(root)/(show)/@WORKS@/(departs)/(seq)/(seq)_(shot)/(task)',
+                             '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/(task)/(worktype)/(unknown)/nuke',
+                             '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/lighting/(task)/nuke']
+                    IMAGES: '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)'
+                    # LIGHTING: '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/lighting/images/(asset)/(ver)'
+
+
+            PLATES:
+                __flag__:
+                    desc:
+                        __default__: 'main1'
+
+                __product__:
+                    BASE:  ['(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/plates/(desc)/(ver)',
+                            '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/plates/(desc)',
+                            '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/plates']
+                    LIGHTING: '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/lighting/images/(asset)/(ver)'
+                    IMAGES:   ['(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/plates/(desc)/(ver)',
+                               '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/plates/(desc)']
+
+            IMAGEPLANE:
+                __flag__:
+                    res:
+                        # __default__: 'hi'
+                        __pattern__: 'hi|lo'
+
+                __product__:
+                    IMAGES:  ['(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/imageplane/(desc)/(ver)/(res)',
+                              '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/imageplane/(desc)/(ver)']
+                    NODE:    '(root)/(show)/_2d/@SHOT@/(seq)/(seq)_(shot)/imageplane/(desc)/(ver)/node'
+    # ==========================================================================
+    F: # =======================================================================
+        __flag__:
+            filename:
+                __pattern__: '[a-zA-Z0-9\._]+'
+        __product__:
+            CHECKEXT:  '(ext)'
+
+        __child__:
+            USD: # =============================================================
+                __tag__:
+                    PAYLOAD:    'payload'
+                    LGT:        'lgt'
+                    COLLECTION: 'collection'
+                    ATTR:       'attr'
+                    GEOM:       'geom'
+                    SKEL:       'skel'
+                    MTL:        'mtl'
+                    XFORM:      'xform'
+                    ROOTCON:    'root_con'
+                    TEX:        'tex'
+                    PROXY:      'proxy'
+
+                    # lods
+                    LODATTRS:    '@HIGHATTR@|@MIDATTR@|@LOWATTR@'
+                    HIGHATTR:    '@HIGH@_@ATTR@'
+                    MIDATTR:     '@MID@_@ATTR@'
+                    LOWATTR:     '@LOW@_@ATTR@'
+
+                    LODGEOMS:    '@HIGHGEOM@|@MIDGEOM@|@LOWGEOM@'
+                    HIGHGEOM:    '@HIGH@_@GEOM@'
+                    MIDGEOM:     '@MID@_@GEOM@'
+                    LOWGEOM:     '@LOW@_@GEOM@'
+
+                __flag__:
+                    # extentions
+                    ext:
+                        __default__: 'usd'
+                        __pattern__: 'usd|usda|usdz'
+
+                __product__:
+                    # root kinds
+                    ASSETS:            '@ASSET@.(ext)'
+                    BRANCHES:          '@BRANCH@.(ext)'
+                    BRANCHES_PAY:      '@BRANCH@.@PAYLOAD@.(ext)'
+                    SEQ:               '@SEQ@.(ext)'
+                    SHOTS:             '@SHOT@.(ext)'
+                    # asset or branch
+                    ABNAME:            '(abname).(ext)'
+                    ABNAME_PAY:        '(abname).@PAYLOAD@.(ext)'
+                    ABNAME_LGT:        '(abname).@LGT@.(ext)'
+                    # asset
+                    ASSET:             '(asset).(ext)'
+                    ASSET_PAY:         '(asset).@PAYLOAD@.(ext)'
+                    ASSET_LGT:         '(asset).@LGT@.(ext)'
+                    # branch
+                    BRANCH:            '(branch).(ext)'
+                    BRANCH_PAY:        '(branch).@PAYLOAD@.(ext)'
+                    BRANCH_LGT:        '(branch).@LGT@.(ext)'
+                    # shot
+                    SHOT:              '(seq)_(shot).(ext)'
+                    SHOT_PAY:          '(seq)_(shot).@PAYLOAD@.(ext)'
+                    SHOT_LGT:          '(seq)_(shot).@LGT@.(ext)'
+                    # task
+                    TASK:              '(task).(ext)'
+                    TASK_PAY:          '(task).@PAYLOAD@.(ext)'
+                    # nslyr
+                    NSLYR:             '(nslyr).(ext)'
+                    NSLYR_PAY:         '(nslyr).@PAYLOAD@.(ext)'
+                __child__:
+                    __ref__: 'task'
+
+                    model: # ---------------------------------------------------
+                        __product__:
+                            MASTER:     '(abname)_(task).(ext)'
+                            PAYLOAD:    '(abname)_(task).@PAYLOAD@.(ext)'
+                            LIGHT:      '(abname)_(task).@PAYLOAD@.@LGT@.(ext)'
+                            COLLECTION: '(abname)_(task).@COLLECTION@.(ext)'
+                            GEOM:       ['(subdir).@HIGH@_@GEOM@.(ext)',
+                                         '(asset)_(branch)_(task)_(desc).(lod)_@GEOM@.(ext)',
+                                         '(asset)_(nslyr).@HIGH@_@GEOM@.(ext)',
+                                         '(asset)_(task)_(desc).(lod)_@GEOM@.(ext)']
+                            ATTR:        '(abname)_(task)_(desc).(lod)_@ATTR@.(ext)'
+                            LOD:        ['(abname)_(task).(lod)_@GEOM@.(ext)',
+                                         '(abname)_(task).@HIGH@.(ext)',
+                                         '(nslyr)_(task).(lod)_@GEOM@.(ext)']
+
+                    rig: # -----------------------------------------------------
+                        __product__:
+                            MASTER:     '(abname)_(task).(ext)'
+                            PAYLOAD:    '(abname)_(task).@PAYLOAD@.(ext)'
+                            GEOM:       '(desc).(lod)_@GEOM@.(ext)'
+                            SIMGEOM:    '(desc).@SIM@_@GEOM@.(ext)'
+                            ATTR:       '(desc)_(lod)_@ATTR@.(ext)'
+                            COLLECTION: '(abname)_(task).@COLLECTION@.(ext)'
+                            LIGHT:      '(abname)_(task).@PAYLOAD@.@LGT@.(ext)'
+                    texture: # -------------------------------------------------
+                        __product__:
+                            TEX:        '@TEX@.(ext)'
+                            TEXATTR:    '@TEX@.@ATTR@.(ext)'
+
+                            PROXY:      '@PROXY@.(ext)'
+                            PROXYATTR:  '@PROXY@.@ATTR@.(ext)'
+                            MASTER:      '(nslyr).(ext)'
+                            ATTR:       '(nslyr).@ATTR@.(ext)'
+                            MTL:        '(nslyr).@MTL@.(ext)'
+
+                            OLDTEX:       'tex.attr.(ext)'
+                            OLDTEXATTR:   'tex_attr.(ext)'
+                            OLDPROXY:     'proxy.mtl.(ext)'
+                            OLDPROXYATTR: 'proxy_mtl.(ext)'
+                    material: # ------------------------------------------------
+                        __product__:
+                            MASTER:      '(nslyr).(ext)'
+                            PRMAN_USD:  '@PRMAN@.(ext)'
+                    groom: # ---------------------------------------------------
+                        __product__:
+                            MASTER:     ['(abname)_(task).(ext)',
+                                         '(nslyr)_(task).(ext)']
+                            PAYLOAD:    ['(abname)_(task).@PAYLOAD@.(ext)',
+                                         '(nslyr)_(task).@PAYLOAD@.(ext)']
+                            LOD:        ['(abname)_(task).(lod).(ext)',
+                                         '(abname)_(task).@HIGH@.(ext)',
+                                         '(nslyr)_(task).(lod).(ext)']
+                            COLLECTION: ['(abname)_(task).@COLLECTION@.(ext)',
+                                         '(nslyr)_(task).@COLLECTION@.(ext)']
+                            GEOM:      ['(subdir).(lod)_@GEOM@.(frame).(ext)',
+                                        '(subdir).(lod)_@GEOM@.(ext)',
+                                        '(subdir).@HIGH@_@GEOM@.(frame).(ext)',
+                                        '(subdir).@HIGH@_@GEOM@.(ext)']
+                            RIGSOURCE:  '(abname)_rigSource.(ext)'
+                    agent: # ---------------------------------------------------
+                        __product__:
+                            MASTER:     '(nslyr).(ext)'
+                            PAYLOAD:    '(nslyr).@PAYLOAD@.(ext)'
+                            COLLECTION: '(nslyr).@COLLECTION@.(ext)'
+                            SKEL:       ['(agentprefix)_(nslyr).@SKEL@.(ext)',
+                                         '(nslyr).@SKEL@.(ext)']
+                            GEOM:       ['(agentprefix)_(nslyr).@GEOM@.(ext)',
+                                         '(nslyr).@GEOM@.(ext)']
+                            ATTR:       ['(agentprefix)_(nslyr).@ATTR@.(ext)',
+                                         '(nslyr).@SKEL@.(ext)']
+                            GCHA:       '(nslyr).gcha'
+                            GCG:        '(nslyr).gcg'
+                    clip: # ----------------------------------------------------
+                        __product__:
+                            MASTER:      '(nslyr)_@CLIP@.(ext)'
+                            CLIP:        '(clip).(ext)'
+                            PAYLOAD:     '(clip).@PAYLOAD@.(ext)'
+                            GEOM:       ['(desc).(lod)_@GEOM@.(ext)',
+                                         '(desc).@HIGH@_@GEOM@.(ext)']
+                            LOD:        ['(desc).(lod)_@GEOM@.(ext)',
+                                         '(desc).@HIGH@_@GEOM@.(ext)']
+                            SIMGEOM:    '(desc).@SIM@_@GEOM@.(ext)'
+                            GROOM:       '(abname)_@GROOM@.(ext)'
+                            GROOMGEOM:  ['(subdir).(lod)_@GEOM@.(ext)',
+                                         '(subdir).@HIGH@_@GEOM@.(ext)']
+                    cam: # -----------------------------------------------------
+                        __product__:
+                            MASTER:     '@CAMERA@.(ext)'
+                            PAYLOAD:    '@CAMERA@.@PAYLOAD@.(ext)'
+                            GEOM:       '(seq)_(shot)_(desc)_(task).@GEOM@.(ext)'
+                            IMAGEPLANE: '(seq)_(shot)_(desc)_(task).@IMAGEPLANE@.(ext)'
+                    ani: # -----------------------------------------------------
+                        __product__:
+                            MASTER:     '(nslyr)_(task).(ext)'
+                            PAYLOAD:    '(nslyr)_(task).@PAYLOAD@.(ext)'
+                            GEOM:       ['(desc).(lod)_@GEOM@.(ext)',
+                                         '(desc).@HIGH@_@GEOM@.(ext)']
+                            SIMGEOM:    '(desc).@SIM@_@GEOM@.(ext)'
+                            ROOTCON:    '(desc).@ROOTCON@.(ext)'
+                            XFORM:      '(desc).@XFORM@.(ext)'
+                    sim: # -----------------------------------------------------
+                        __product__:
+                            MASTER:      '(nslyr)_(task).(ext)'
+                            PAYLOAD:     '(nslyr)_(task).@PAYLOAD@.(ext)'
+                            GEOM:       ['(desc).(lod)_@GEOM@.(ext)',
+                                         '(desc).@HIGH@_@GEOM@.(ext)']
+                    crowd: # ---------------------------------------------------
+                        __product__:
+                            MASTER:     '(task).(ext)'
+                            PAYLOAD:    '(task).@PAYLOAD@.(ext)'
+                            SKEL:       '(task).skel.(ext)'
+                            SKELFRAME:  '(task).skel.(frame).(ext)'
+                            GEOM:       '(task).geom.(ext)'
+                            GEOMFRAME:  '(task).geom.(frame).(ext)'
+                    layout: # --------------------------------------------------
+                        __product__:
+                            MASTER:     '(nslyr)_(task).(ext)'
+                            PAYLOAD:    '(nslyr).@PAYLOAD@.(ext)'
+                            GEOM:      ['(nslyr)_(task)_(desc).@GEOM@.(ext)',
+                                        '(nslyr)_(task).@GEOM@.(ext)']
+                    lidar: # ---------------------------------------------------
+                        __product__:
+                            MASTER:     '(abname)_(task).(ext)'
+                            PAYLOAD:    '(abname)_(task).@PAYLOAD@.(ext)'
+                            GEOM:       ['(asset)_(branch)_(task).(lod)_@GEOM@.(ext)',
+                                         '(asset)_(branch)_(task).@HIGH@_@GEOM@.(ext)',
+                                         '(asset)_(task).(lod)_@GEOM@.(ext)',
+                                         '(asset)_(task).@HIGH@_@GEOM@.(ext)']
+                    fx: # ---------------------------------------------------
+                        __product__:
+                            MASTER:     '(subdir)_(task).(ext)'
+                            GEOM:      ['(desc).(lod)_@GEOM@.(frame).(ext)',
+                                        '(desc).(lod)_@GEOM@.(ext)',
+                                        '(desc).@HIGH@_@GEOM@.(frame).(ext)',
+                                        '(desc).@HIGH@_@GEOM@.(ext)']
+                            LOD:        ['(abname)_(task).(lod)_@GEOM@.(ext)',
+                                         '(abname)_(task).@HIGH@.(ext)',
+                                         '(nslyr)_(task).(lod)_@GEOM@.(ext)']
+                            LIGHT:      '(abname)_(task).@PAYLOAD@.@LGT@.(ext)'
+                            COLLECTION: '(abname)_(task).@COLLECTION@.(ext)'
+
+
+            OBJECT: # ==========================================================
+                __flag__:
+                    # extentions
+                    ext:
+                        __pattern__: 'abc|obj'
+                    num:
+                        __pattern__: '[0-9]{2}'
+
+                __product__:
+                    GEOM:       ['(asset)_(branch)_(task)_(num).(lod)_geom.(ext)',
+                                 '(asset)_(branch)_(task).(lod)_geom.(ext)',
+                                 '(asset)_(task)_(num).(lod)_geom.(ext)',
+                                 '(asset)_(task).(lod)_geom.(ext)']
+            IMAGEPLANE: # ======================================================
+                __flag__:
+                    # extentions
+                    ext:
+                        __default__: 'jpg'
+
+                __product__:
+                    IMAGES:     '(seq)_(shot)_(desc)_(ver).(frame).(ext)'
+                    NODE:       '(seq)_(shot)_(desc)_LD_(ver).nk'
+            CONFIG: # ============================================================
+                __tag__:
+                    PATHRULE:   'PathRule'
+                    DCCLAUNCH:  'DCCLaunchList'
+                    DELIVERY:   'DeliveryRule'
+                    DEPART:     'DepartRule'
+                    VIDEOENCODER: 'VideoEncoder'
+
+                __flag__:
+                    ext:
+                        __default__: 'config'
+                        __pattern__: 'config|json'
+
+                __product__:
+                    MSP:            'MSP.(ext)'
+                    PATHRULE:    '@PATHRULE@.(ext)'
+                    DCCLAUNCH:   '@DCCLAUNCH@.(ext)'
+                    DELIVERY:    '@DELIVERY@.(ext)'
+                    DEPART:      '@DEPART@.(ext)'
+                    VIDEOENCODER: '@VIDEOENCODER@.(ext)'
+            MAP: # =============================================================
+                __tag__:
+                    CHANNEL: '@DIFFC@|@SPECG@|@SPECR@|@BUMP@|@MASK@|@NORM@|@DISF@|@DISV@|@ALPHA@|@DIFFT@|@COATG@|@FUZZC@|@DISI@'
+                    DIFFC:  'diffC'
+                    DIFFT:  'diffT'
+                    SPECG:  'specG'
+                    SPECR:  'specR'
+                    COATG:  'coatG'
+                    FUZZC:  'fuzzC'
+                    BUMP:   'bump'
+                    MASK:   'mask'
+                    NORM:   'norm'
+                    DISF:   'disF'
+                    DISV:   'disV'
+                    DISI:   'disI'
+                    ALPHA:  'Alpha'
+
+                    ZNPREFIX: 'tip|root'
+                    FEATHERPREFIX: 'feather'
+
+                __flag__:
+                    ext:
+                        __default__: '@TEXEXT@'
+                        __pattern__: '@TEXEXT@|jpg|png|exr'
+                    name:
+                        __pattern__: '[a-zA-Z0-9_]+' # *(^_root)|[a-zA-Z0-9]+'
+                    channel:
+                        __pattern__: '@CHANNEL@'
+                    groomprefix:
+                        __pattern__: '@ZNPREFIX@|@FEATHERPREFIX@'
+                    udimnum:
+                        __pattern__: '[0-9]{4}'
+                __product__:
+                    MASTER:  [ '(name)_(groomprefix)_(channel).(udimnum).(ext)',
+                               '(name)_(channel).(udimnum).(ext)',
+                               '(name)_(channel).(ext)',
+                               '(name).(ext)' ]
+
+            MAYA: # ============================================================
+                __ref__: 'task'
+
+                __flag__:
+                    ext:
+                        __default__: 'mb'
+                        __pattern__: 'mb|ma'
+
+
+                __product__:
+                     BASE: ['(seq)_(shot)_(task)_(ver)_(desc).(ext)',
+                            '(seq)_(shot)_(task)_(ver).(ext)',
+                            '(seq)_(shot)_(desc)_(task)_(ver).(ext)',
+                            '(seq)_(shot)_(nslyr)_(nsver).(ext)',
+                            '(asset)_(task)_(ver)_(desc)_(unknown).(ext)',
+                            '(asset)_(task)_(ver)_(desc).(ext)',
+                            '(asset)_(task)_(ver).(ext)'
+                            ]
+
+                __child__:
+                    __ref__: 'task'
+
+                    rig: # ---------------------------------------------------
+                        __product__:
+                            MASTER:      '(nslyr).(ext)'
+                            WORK:      [ '(abname)_(task)_(ver)_(desc).(ext)',
+                                         '(abname)_(task)_(ver).(ext)' ]
+                    ani: # -----------------------------------------------------
+                        __product__:
+                            WORK:      ['(seq)_(shot)_(task)_(ver)_(desc).(ext)',
+                                        '(seq)_(shot)_(task)_(ver).(ext)',
+                                        '(seq)_(shot)_(desc)_(task)_(ver).(ext)']
+                    groom: # ---------------------------------------------------
+                        __product__:
+                            WORK:      ['(seq)_(shot)_(task)_(ver)_(desc).(ext)',
+                                        '(seq)_(shot)_(task)_(ver).(ext)',
+                                        '(seq)_(shot)_hairSim_(ver)_(desc).(ext)',
+                                        '(seq)_(shot)_hairSim_(ver).(ext)']
+                    sim: # -----------------------------------------------------
+                        __product__:
+                            WORK:      ['(seq)_(shot)_(task)_(ver)_(desc).(ext)',
+                                        '(seq)_(shot)_(task)_(ver).(ext)',
+                                        '(seq)_(shot)_cloth_(ver)_(desc).(ext)',
+                                        '(seq)_(shot)_cloth_(ver).(ext)']
+                    layout: # --------------------------------------------------
+                        __product__:
+                            WORK:      ['(seq)_(shot)_(task)_(ver)_(desc).(ext)',
+                                        '(seq)_(shot)_(task)_(ver).(ext)']
+                    vendor: # --------------------------------------------------
+                        __product__:
+                            WORK:      ['(show)_(vendor)_(seq)_(shot)_(task)_(ver)_(unknown).(ext)',
+                                        '(show)_(vendor)_(seq)_(shot)_(task)_(ver).(ext)']
+            HOUDINI: # =========================================================
+                __flag__:
+                    ext:
+                        __default__: 'hou'
+            KATANA: # ==========================================================
+                __flag__:
+                    ext:
+                        __default__: 'katana'
+            NUKE: # ============================================================
+                __flag__:
+                    ext:
+                        __default__: 'nk'
+                    fxnum:
+                        __pattern__: 'fx[0-9]{2}'
+
+                __product__:
+                    BASE: ['(seq)_(shot)_(task)_(temp)_(ver)_(unknown).(ext)',
+                           '(seq)_(shot)_(task)_(temp)_(ver).(ext)',
+                           '(seq)_(shot)_(task)_(ver)_(temp).(ext)',
+                           '(seq)_(shot)_(task)_(ver).(ext)',
+                           '(seq)_(shot)_LD_(ver).(ext)']
+                    FX: ['(seq)_(shot)_(fxnum)_(temp)_(ver)_(unknown).(ext)',
+                         '(seq)_(shot)_(fxnum)_(temp)_(ver).(ext)',
+                         '(seq)_(shot)_(fxnum)_(ver)_(temp).(ext)',
+                         '(seq)_(shot)_(fxnum)_(ver).(ext)']
+            IMAGES: # ==========================================================
+                __flag__:
+                    ext:
+                        __default__: 'exr'
+                    frame:
+                       __pattern__: '[0-9]|%04d'
+                    mask:
+                        __pattern__: '[a-zA-Z][a-zA-Z0-9]*[a-zA-Z0-9]'
+                    pass:
+                        __pattern__: '[a-zA-Z][a-zA-Z0-9]*[a-zA-Z0-9]'
+                    denoise:
+                        __pattern__: '[a-zA-Z][a-zA-Z0-9]*[a-zA-Z0-9]'
+
+                __product__:
+                    BASE: ['(seq)_(shot)_(task)_(temp)_(ver).(frame).(ext)',
+                           '(seq)_(shot)_(task)_(ver).(frame).(ext)',
+                           '(seq)_(shot)_(desc)_(ver).(frame).(ext)',
+                           '(seq)_(shot)_(asset)_(temp).crypto_(mask).(frame).(ext)',
+                           '(seq)_(shot)_(asset)_(temp).(frame).(ext)',
+                           '(seq)_(shot)_(asset).(pass)_(denoise).(frame).(ext)',
+                           '(seq)_(shot)_(asset).(pass).(frame).(ext)']
+
+    # ==========================================================================
+    N: # =======================================================================
+        __product__:
+            SHOTNAME:   ['(seq)_(shot)',
+                         '(shot)', '(seq)']
+
+        __child__:
+            USD: # =============================================================
+                __ref__: 'task'
+
+                __tag__:
+                    # attributes
+                    ATTR_MATERIALSET:   'userProperties:@MATERIALSET@'
+                    ATTR_MODELVER:      'primvars:@MODELVER@'
+                    ATTR_TXLAYERNAME:   'primvars:@TXLAYERNAME@'
+                    ATTR_TXBASEPATH:    'primvars:@TXBASEPATH@'
+                    ATTR_TXMULTIUV:     'primvars:@TXMULTIUV@'
+                    ATTR_ST:            'primvars:@ST@'
+                    ATTR_TXVERSION:     'primvars:ri:attributes:user:txVersion'
+                    ATTR_CHANNELS:      'userProperties:Texture:channels'
+                    ATTR_DISBOUND:      'primvars:ri:attributes:displacementbound:sphere'
+                    ATTR_RIVISIBILITY:  'primvars:ri:attributes:visibility'
+
+                    # variant set name
+                    VAR_ASSET:        'asset'
+                    VAR_BRANCH:       'branch'
+                    VAR_SHOT:         'shot'
+                    VAR_TASK:         'task'
+
+                    VAR_AGENT:        'agent'
+                    VAR_CAMERA:       'camera'
+                    VAR_CLIP:         'clip'
+                    VAR_LOD:          'LOD'
+                    VAR_PREVIEW:      'preview'
+                    VAR_WORLDXFORM:   'WorldXform'
+
+                    VAR_MODELVER:     'modelVer'
+                    VAR_ENVER:        'envVer'
+                    VAR_CLIPVER:      'clipVer'
+                    VAR_GROOMVER:     'groomVer'
+                    VAR_FEATHERVER:   'featherVer'
+                    VAR_RIGVER:       'rigVer'
+                    VAR_CAMVER:       'camVer'
+                    VAR_ANIVER:       'aniVer'
+                    VAR_SIMVER:       'simVer'
+                    VAR_CROWDVER:     'crowdVer'
+                    VAR_FXVER:        'fxVer'
+                    VAR_AGENTVER:     'agentVer'
+                    VAR_LIDARVER:     'lidarVer'
+
+                    VAR_TIMESCALE:    'timeScale'
+
+                    # customLayerData
+                    CUS_DXUSD:        'dxusd'
+                    CUS_START:        'start'
+                    CUS_END:          'end'
+                    CUS_STEP:         'step'
+                    CUS_SCENEFILE:    'sceneFile'
+                    CUS_INPUTCACHE:   'inputCache'
+                    CUS_RIGFILE:      'rigFile'
+                    CUS_RIGSOURCEFILE: 'rigSourceFile'
+                    CUS_RIGSOURCEPRIM: 'rigSourcePrim'
+                    CUS_GROOMFILE:     'groomFile'
+                    CUS_FEATHERFILE:   'featherFile'
+
+                    # override
+                    CAMERA:      'cam'
+
+                __product__:
+                    # prim names
+                    PRIM_ATTR:      '/_(name)_Attr'
+                    PRIM_TXATTR:   ['/_(branch)_(name)_txAttr',
+                                    '/_(asset)_(name)_txAttr',
+                                    '/_(name)_txAttr']
+
+                    # variant set
+                    VAR_ASSET:        '{@VAR_ASSET@=(asset)}'
+                    VAR_BRANCH:       '{@VAR_BRANCH@=(branch)}'
+                    VAR_SHOT:         '{@VAR_SHOT@=(seq)_(shot)}'
+                    VAR_TASK:         '{@VAR_TASK@=(task)}'
+                    VAR_AGENT:        '{@VAR_AGENT@=(agent)}'
+                    VAR_CLIP:         '{@VAR_CLIP@=(clip)}'
+                    VAR_LOD:          '{@VAR_LOD@=(lod)}'
+                    VAR_PREVIEW:      '{@VAR_PREVIEW@=(bool)}'
+                    VAR_WORLDXFORM:   '{@VAR_WORLDXFORM@=(bool)}'
+
+                    VAR_MODELVER:     '{@VAR_MODELVER@=(ver)}'
+                    VAR_ENVER:        '{@VAR_ENVER@=(ver)}'
+                    VAR_CLIPVER:      '{@VAR_CLIPVER@=(ver)}'
+                    VAR_GROOMVER:     '{@VAR_GROOMVER@=(ver)}'
+                    VAR_FEATHERVER:   '{@VAR_FEATHERVER@=(ver)}'
+                    VAR_RIGVER:       '{@VAR_RIGVER@=(ver)}'
+                    VAR_CAMVER:       '{@VAR_CAMVER@=(ver)}'
+                    VAR_ANIVER:       '{@VAR_ANIVER@=(ver)}'
+                    VAR_SIMVER:       '{@VAR_SIMVER@=(ver)}'
+                    VAR_CROWDVER:     '{@VAR_CROWDVER@=(ver)}'
+                    VAR_FXVER:        '{@VAR_FXVER@=(ver)}'
+                    VAR_AGENTVER:     '{@VAR_AGENTVER@=(ver)}'
+
+                    VAR_TASKVER:      '(task)Ver'
+                    VAR_VER:          ['(ver)', '(nsver)', '(nslyr)']
+
+                    ATTR_CHANNELS:   '@ATTR_CHANNELS@:(name)'
+                    ATTR_RIVIS:      '@ATTR_RIVISIBILITY@:(name)'
+
+                __child__:
+                    __ref__: 'task'
+
+                    model: # ---------------------------------------------------
+                        __product__:
+                            ASSET: ['(asset)_(branch)_@MODEL@_(lod)_(desc)',
+                                    '(asset)_(branch)_@MODEL@_(desc)',
+                                    '(asset)_@MODEL@_(lod)_(desc)',
+                                    '(asset)_@MODEL@_(desc)']
+                            TASKVAR: '@VAR_MODELVER@'
+                    rig: # -----------------------------------------------------
+                        __product__:
+                            ASSET: ['(asset)_(branch)_@RIG@_(lod)_(desc)',
+                                    '(asset)_(branch)_@RIG@_(desc)',
+                                    '(asset)_@RIG@_(lod)_(desc)',
+                                    '(asset)_@RIG@_(desc)']
+                            RIGVER: '(asset)_@RIG@_(ver)'
+                            TASKVAR: '@VAR_RIGVER@'
+                    ani: # -----------------------------------------------------
+                        __product__:
+                            ASSET: ['(nslyr):(asset)_(branch)_@RIG@_(desc)',
+                                    '(nslyr):(asset)_@RIG@_(desc)']
+                            SHOT:  ['(nslyr):(desc)']
+                            TASKVAR: '@VAR_ANIVER@'
+                    cam: # -----------------------------------------------------
+                        __product__:
+                            ASSET: ['(asset)_@CAMERA@',
+                                    '(asset)_@CAMERA@_(desc)',
+                                    '(asset)_(branch)_@CAMERA@',
+                                    '(asset)_(branch)_@CAMERA@_(desc)',
+                                    '(seq)_(shot)_(desc)_@CAMERA@',
+                                    '(seq)_(shot)_(desc)_@CAMERA@_left',
+                                    '(seq)_(shot)_(desc)_@CAMERA@_right']
+                            TASKVAR: '@VAR_CAMVER@'
+                    sim: # -----------------------------------------------------
+                        __product__:
+                            ASSET: ['(nslyr):(asset)_(branch)_@RIG@_(desc)',
+                                    '(nslyr):(asset)_@RIG@_(desc)']
+                            SHOT:  ['(nslyr):(desc)']
+                            TASKVAR: '@VAR_SIMVER@'
+                    groom: #----------------------------------------------------
+                        __product__:
+                            ASSET: ['(asset)_(branch)_(task)_(desc)',
+                                    '(asset)_(task)_(desc)',
+                                    '(asset)_(branch)_ZN_(desc)',
+                                    '(asset)_ZN_(desc)',
+                                    '(nslyr):(asset)_(branch)_(task)_(desc)',
+                                    '(nslyr):(asset)_(task)_(desc)',
+                                    '(nslyr):(asset)_(branch)_ZN_(desc)',
+                                    '(nslyr):(asset)_ZN_(desc)']
+                            SHOT:   '(desc)'
+                            TASKVAR: '@VAR_GROOMVER@'
+                    clip: #-----------------------------------------------------
+                        __product__:
+                            ASSET: ['(asset)_(branch)_@RIG@_(desc)',
+                                    '(asset)_@RIG@_(desc)',
+                                    '(asset)_(branch)_@MODEL@_(desc)',
+                                    '(asset)_@MODEL@_(desc)']
+                            TASKVAR: '@VAR_CLIPVER@'
+                    agent: # ---------------------------------------------------
+                        __product__:
+                            ASSET:    ['(agentprefix)_(nslyr)',
+                                       'glm_(nslyr)']
+                            SETASSET: ['(asset)', '(asset)(temp)']
+                            TASKVAR: '@VAR_AGENTVER@'
+                    layout: # -----------------------------------------------------
+                        __product__:
+                            SHOT:  ['(nslyr)_(task)',
+                                    '(nslyr)_(task)_(desc)',
+                                    '(nslyr)_(desc)']
+                    lidar: # ---------------------------------------------------
+                        __product__:
+                            ASSET:  ['(asset)_(branch)_@LIDAR@_(lod)_(desc)',
+                                     '(asset)_(branch)_@LIDAR@_(desc)',
+                                     '(asset)_@LIDAR@_(lod)_(desc)',
+                                     '(asset)_@LIDAR@_(desc)']
+
+            JSON: # ============================================================
+                __tag__:
+                    SHARED:      'shared'
+
+            MAYA: # ============================================================
+                __tag__:
+                    OBJTYPES:    '@GROUP@|@POLYGON@'
+                    GROUP:       'GRP'
+                    POLYGON:     'PLY'
+                    CAMERA:      'cam'
+
+                __flag__:
+                    objtype:
+                        __pattern__: '@GROUP@'
+                __product__:
+                    TOP:    ['(agentprefix)_(nslyr)',
+                             'glm_(nslyr)',
+                             '(seq)_(shot)_(desc)_@CAMERA@_left',
+                             '(seq)_(shot)_(desc)_@CAMERA@_right',
+                             '(seq)_(shot)_(desc)_@CAMERA@',
+                             '(asset)_(branch)_(task)_@GROUP@',
+                             '(asset)_(branch)_(task)_(nslyr)',
+                             '(asset)_(task)_@GROUP@',
+                             '(asset)_(task)_(nslyr)']
+
+            HOUDINI: # =========================================================
+                __product:
+                    TEST:  'HOUDINI'
+
+            KATANA: # ==========================================================
+                __product:
+                   TEST:   'KATANA'
+
+            NUKE: # ============================================================
+                __product:
+                    TEST:   'NUKE'
