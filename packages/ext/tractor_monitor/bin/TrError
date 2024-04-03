@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python ${REZ_TRACTOR_MONITOR_ROOT}/scripts/TrError.py $*
