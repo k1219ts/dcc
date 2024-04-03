@@ -1,0 +1,1 @@
+python("import sys; sys.path.append('/backstage/dcc/packages/ext/dxrunner/scripts'); import startupCommand; startupCommand.execMiarmy()");
