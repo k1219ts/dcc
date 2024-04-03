@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python ${REZ_LOOPABC_ROOT}/script/loopABC.py ${@:-1}
