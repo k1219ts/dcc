@@ -1,0 +1,6 @@
+*.pyc
+*.py~
+.idea
+doc/
+*test*
+.txt
