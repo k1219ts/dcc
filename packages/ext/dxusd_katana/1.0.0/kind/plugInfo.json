@@ -1,0 +1,20 @@
+{
+    "Plugins": [
+        {
+            "Type": "resource",
+            "Name": "DexterKindModule",
+            "Info": {
+                "Kinds": {
+                    "set": {
+                        "baseKind": "assembly",
+                        "description": "model layout"
+                    },
+                    "set_source": {
+                        "baseKind": "component",
+                        "description": "model reference"
+                    }
+                }
+            }
+        }
+    ]
+}
