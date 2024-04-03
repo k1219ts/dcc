@@ -1,0 +1,664 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.11.0@OPROJECT_VERSION_RELEASE_TYPE@
+# options: -v -o /WORK_DATA/develop/dcc/packages/app/renderman/25.2/lib/shaders/DxSimplexNoise.oso -I/opt/pixar/RenderManProServer-25.2/include -I/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl
+shader FractalSimplexNoise	%meta{string,description,"Fractal Simplex noise"} 
+param	float	start_frequency	1		%meta{string,description,"Initial sampling position multiplier that affects the overall granularity."}  %read{26,26} %write{2147483647,-1}
+param	vector	start_offset	0 0 0		%meta{string,description,"Offsets the initial sampling position effectively shifting the pattern in the specified direction."}  %read{27,27} %write{2147483647,-1}
+param	float	lacunarity	2		%meta{string,description,"Position (frequency) multiplier per iteration."}  %read{224,224} %write{2147483647,-1}
+param	float	gain	0.5		%meta{string,description,"Amplitude multiplier per iteration."}  %read{225,225} %write{2147483647,-1}
+param	int	octaves	8		%meta{string,description,"Number of fractal iterations."}  %read{33,33} %write{2147483647,-1}
+param	float	attenuation	1		%meta{string,description,"The power of the falloff applied to the final result."}  %read{230,230} %write{2147483647,-1}
+param	struct Manifold	manifold			%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{0,0} %write{2147483647,-1} %struct{"Manifold"} %structfields{Q,QN,Qradius} %structfieldtypes{"pnf"} %structnfields{3}
+param	point	manifold.Q	0 0 0		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{22,22} %write{2147483647,-1} %mystruct{manifold} %mystructfield{0}
+param	normal	manifold.QN	0 0 1		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{23,23} %write{2147483647,-1} %mystruct{manifold} %mystructfield{1}
+param	float	manifold.Qradius	0		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{24,24} %write{2147483647,-1} %mystruct{manifold} %mystructfield{2}
+oparam	color	result	0 0 0		%read{2147483647,-1} %write{231,231}
+global	point	P	%read{4,4} %write{2147483647,-1}
+global	normal	N	%read{5,5} %write{2147483647,-1}
+local	vector	___392_vec1	%read{15,16} %write{14,15}
+local	float	___392_scale	%read{19,19} %write{18,18}
+local	int[512]	___417_perm	%read{33,226} %write{33,226}
+local	vector[16]	___417_gradient	%read{33,226} %write{33,226}
+local	float	___418_t	%read{33,226} %write{33,226}
+local	float	___418_t2	%read{33,226} %write{33,226}
+local	float	___418_t4	%read{33,226} %write{33,226}
+local	int	___418_gradientIndex	%read{33,226} %write{33,226}
+local	int	___418_safeGradientIndex	%read{33,226} %write{33,226}
+local	float	___417_F3	%read{33,226} %write{33,226}
+local	float	___417_G3	%read{33,226} %write{33,226}
+local	float	___417_G3a	%read{33,226} %write{33,226}
+local	float	___417_G3b	%read{33,226} %write{33,226}
+local	float	___417_skew	%read{33,226} %write{33,226}
+local	point	___417_skewedPosition	%read{33,226} %write{33,226}
+local	point	___417_skewedCellOrigin	%read{33,226} %write{33,226}
+local	float	___417_unskew	%read{33,226} %write{33,226}
+local	point	___417_cellOrigin	%read{33,226} %write{33,226}
+local	vector	___417_offset0	%read{33,226} %write{33,226}
+local	vector	___417_skewedOffset1	%read{33,226} %write{33,226}
+local	vector	___417_skewedOffset2	%read{33,226} %write{33,226}
+local	vector	___417_offset1	%read{33,226} %write{33,226}
+local	vector	___417_offset2	%read{33,226} %write{33,226}
+local	vector	___417_offset3	%read{33,226} %write{33,226}
+local	int	___417_i	%read{33,226} %write{33,226}
+local	int	___417_j	%read{33,226} %write{33,226}
+local	int	___417_k	%read{33,226} %write{33,226}
+local	float	___417_noiseValue	%read{33,226} %write{33,226}
+local	float	___428_noiseValue	%read{33,227} %write{29,226}
+local	float	___428_amplitude	%read{33,226} %write{30,226}
+local	int	___429_octave	%read{33,226} %write{32,226}
+local	point	inputManifoldRw.Q	%read{9,25} %write{4,22} %mystruct{inputManifoldRw} %mystructfield{0}
+local	normal	inputManifoldRw.QN	%read{11,13} %write{5,23} %mystruct{inputManifoldRw} %mystructfield{1}
+local	float	inputManifoldRw.Qradius	%read{19,20} %write{6,24} %mystruct{inputManifoldRw} %mystructfield{2}
+local	point	objectPosition	%read{26,26} %write{25,25}
+local	point	startPosition	%read{33,226} %write{27,226}
+local	float	noiseValue	%read{228,231} %write{227,230}
+temp	int	$tmp1	%read{1,1} %write{0,0}
+temp	int	$tmp2	%read{2,2} %write{1,1}
+const	int	$const1	0		%read{1,168} %write{2147483647,-1}
+const	string	$const2	"Manifold_Construct"		%read{3,3} %write{2147483647,-1}
+const	float	$const3	0		%read{6,204} %write{2147483647,-1}
+const	string	$const4	"object"		%read{9,15} %write{2147483647,-1}
+const	string	$const5	"Manifold_Transform"		%read{7,8} %write{2147483647,-1}
+const	string	$const6	"common"		%read{9,15} %write{2147483647,-1}
+temp	normal	$tmp3	%read{12,12} %write{11,11}
+const	vector	$const7	1 1 1		%read{14,14} %write{2147483647,-1}
+temp	float	$tmp4	%read{18,18} %write{16,16}
+temp	float	$tmp5	%read{18,18} %write{17,17}
+const	float	$const8	3		%read{17,56} %write{2147483647,-1}
+const	string	$const9	"Manifold_Copy"		%read{21,21} %write{2147483647,-1}
+temp	point	$tmp6	%read{27,27} %write{26,26}
+const	string	$const10	"fractalSimplexNoise3D"		%read{28,28} %write{2147483647,-1}
+const	float	$const11	1		%read{30,57} %write{2147483647,-1}
+temp	int	$tmp7	%read{33,226} %write{33,226}
+temp	int	$tmp8	%read{31,226} %write{32,226}
+temp	float	$tmp9	%read{33,226} %write{33,226}
+const	string	$const12	"simplexNoise3D"		%read{35,35} %write{2147483647,-1}
+const	int[512]	$const13	151 160 137 91 90 15 131 13 201 95 96 53 194 233 7 225 140 36 103 30 69 142 8 99 37 240 21 10 23 190 6 148 247 120 234 75 0 26 197 62 94 252 219 203 117 35 11 32 57 177 33 88 237 149 56 87 174 20 125 136 171 168 68 175 74 165 71 134 139 48 27 166 77 146 158 231 83 111 229 122 60 211 133 230 220 105 92 41 55 46 245 40 244 102 143 54 65 25 63 161 1 216 80 73 209 76 132 187 208 89 18 169 200 196 135 130 116 188 159 86 164 100 109 198 173 186 3 64 52 217 226 250 124 123 5 202 38 147 118 126 255 82 85 212 207 206 59 227 47 16 58 17 182 189 28 42 223 183 170 213 119 248 152 2 44 154 163 70 221 153 101 155 167 43 172 9 129 22 39 253 19 98 108 110 79 113 224 232 178 185 112 104 218 246 97 228 251 34 242 193 238 210 144 12 191 179 162 241 81 51 145 235 249 14 239 107 49 192 214 31 181 199 106 157 184 84 204 176 115 121 50 45 127 4 150 254 138 236 205 93 222 114 67 29 24 72 243 141 128 195 78 66 215 61 156 180 151 160 137 91 90 15 131 13 201 95 96 53 194 233 7 225 140 36 103 30 69 142 8 99 37 240 21 10 23 190 6 148 247 120 234 75 0 26 197 62 94 252 219 203 117 35 11 32 57 177 33 88 237 149 56 87 174 20 125 136 171 168 68 175 74 165 71 134 139 48 27 166 77 146 158 231 83 111 229 122 60 211 133 230 220 105 92 41 55 46 245 40 244 102 143 54 65 25 63 161 1 216 80 73 209 76 132 187 208 89 18 169 200 196 135 130 116 188 159 86 164 100 109 198 173 186 3 64 52 217 226 250 124 123 5 202 38 147 118 126 255 82 85 212 207 206 59 227 47 16 58 17 182 189 28 42 223 183 170 213 119 248 152 2 44 154 163 70 221 153 101 155 167 43 172 9 129 22 39 253 19 98 108 110 79 113 224 232 178 185 112 104 218 246 97 228 251 34 242 193 238 210 144 12 191 179 162 241 81 51 145 235 249 14 239 107 49 192 214 31 181 199 106 157 184 84 204 176 115 121 50 45 127 4 150 254 138 236 205 93 222 114 67 29 24 72 243 141 128 195 78 66 215 61 156 180 		%read{36,36} %write{2147483647,-1}
+const	vector	$const14	1 1 0		%read{37,105} %write{2147483647,-1}
+const	vector	$const15	-1 1 0		%read{38,51} %write{2147483647,-1}
+const	int	$const16	1		%read{38,226} %write{2147483647,-1}
+const	vector	$const17	1 -1 0		%read{39,39} %write{2147483647,-1}
+const	int	$const18	2		%read{39,174} %write{2147483647,-1}
+const	vector	$const19	-1 -1 0		%read{40,40} %write{2147483647,-1}
+const	int	$const20	3		%read{40,40} %write{2147483647,-1}
+const	vector	$const21	1 0 1		%read{41,91} %write{2147483647,-1}
+const	int	$const22	4		%read{41,41} %write{2147483647,-1}
+const	vector	$const23	-1 0 1		%read{42,42} %write{2147483647,-1}
+const	int	$const24	5		%read{42,42} %write{2147483647,-1}
+const	vector	$const25	1 0 -1		%read{43,43} %write{2147483647,-1}
+const	int	$const26	6		%read{43,43} %write{2147483647,-1}
+const	vector	$const27	-1 0 -1		%read{44,44} %write{2147483647,-1}
+const	int	$const28	7		%read{44,44} %write{2147483647,-1}
+const	vector	$const29	0 1 1		%read{45,103} %write{2147483647,-1}
+const	int	$const30	8		%read{45,45} %write{2147483647,-1}
+const	vector	$const31	0 -1 1		%read{46,50} %write{2147483647,-1}
+const	int	$const32	9		%read{46,46} %write{2147483647,-1}
+const	vector	$const33	0 1 -1		%read{47,47} %write{2147483647,-1}
+const	int	$const34	10		%read{47,47} %write{2147483647,-1}
+const	vector	$const35	0 -1 -1		%read{48,52} %write{2147483647,-1}
+const	int	$const36	11		%read{48,48} %write{2147483647,-1}
+const	int	$const37	12		%read{49,49} %write{2147483647,-1}
+const	int	$const38	13		%read{50,50} %write{2147483647,-1}
+const	int	$const39	14		%read{51,51} %write{2147483647,-1}
+const	int	$const40	15		%read{52,52} %write{2147483647,-1}
+const	float	$const41	0.333333343		%read{53,53} %write{2147483647,-1}
+const	float	$const42	0.166666672		%read{54,54} %write{2147483647,-1}
+const	float	$const43	2		%read{55,55} %write{2147483647,-1}
+temp	float	$tmp26	%read{33,226} %write{33,226}
+temp	float	$tmp27	%read{33,226} %write{33,226}
+temp	float	$tmp28	%read{33,226} %write{33,226}
+temp	float	$tmp29	%read{33,226} %write{33,226}
+temp	float	$tmp30	%read{33,226} %write{33,226}
+temp	float	$tmp31	%read{33,226} %write{33,226}
+temp	float	$tmp32	%read{33,226} %write{33,226}
+temp	float	$tmp33	%read{33,226} %write{33,226}
+temp	float	$tmp34	%read{33,226} %write{33,226}
+temp	float	$tmp35	%read{33,226} %write{33,226}
+temp	float	$tmp36	%read{33,226} %write{33,226}
+temp	float	$tmp37	%read{33,226} %write{33,226}
+temp	float	$tmp38	%read{33,226} %write{33,226}
+temp	int	$tmp39	%read{33,226} %write{33,226}
+temp	float	$tmp40	%read{33,226} %write{33,226}
+temp	float	$tmp41	%read{33,226} %write{33,226}
+temp	int	$tmp42	%read{33,226} %write{33,226}
+const	vector	$const44	1 0 0		%read{82,88} %write{2147483647,-1}
+temp	float	$tmp43	%read{33,226} %write{33,226}
+temp	float	$tmp44	%read{33,226} %write{33,226}
+temp	int	$tmp45	%read{33,226} %write{33,226}
+const	vector	$const45	0 0 1		%read{90,96} %write{2147483647,-1}
+temp	float	$tmp46	%read{33,226} %write{33,226}
+temp	float	$tmp47	%read{33,226} %write{33,226}
+temp	int	$tmp48	%read{33,226} %write{33,226}
+temp	float	$tmp49	%read{33,226} %write{33,226}
+temp	float	$tmp50	%read{33,226} %write{33,226}
+temp	int	$tmp51	%read{33,226} %write{33,226}
+const	vector	$const46	0 1 0		%read{102,104} %write{2147483647,-1}
+temp	vector	$tmp52	%read{33,226} %write{33,226}
+temp	vector	$tmp53	%read{33,226} %write{33,226}
+temp	int	$tmp54	%read{33,226} %write{33,226}
+temp	float	$tmp55	%read{33,226} %write{33,226}
+const	int	$const47	255		%read{113,119} %write{2147483647,-1}
+temp	int	$tmp56	%read{33,226} %write{33,226}
+temp	float	$tmp57	%read{33,226} %write{33,226}
+temp	int	$tmp58	%read{33,226} %write{33,226}
+temp	float	$tmp59	%read{33,226} %write{33,226}
+temp	float	$tmp60	%read{33,226} %write{33,226}
+const	string	$const48	"evaluatePointContribution"		%read{121,199} %write{2147483647,-1}
+const	float	$const49	0.600000024		%read{123,201} %write{2147483647,-1}
+temp	float	$tmp61	%read{33,226} %write{33,226}
+temp	int	$tmp62	%read{33,226} %write{33,226}
+temp	int	$tmp63	%read{33,226} %write{33,226}
+temp	int	$tmp64	%read{33,226} %write{33,226}
+temp	int	$tmp65	%read{33,226} %write{33,226}
+temp	int	$tmp66	%read{33,226} %write{33,226}
+const	int	$const50	16		%read{135,213} %write{2147483647,-1}
+temp	float	$tmp67	%read{33,226} %write{33,226}
+temp	vector	$tmp68	%read{33,226} %write{33,226}
+temp	float	$tmp69	%read{33,226} %write{33,226}
+temp	int	$tmp70	%read{33,226} %write{33,226}
+temp	float	$tmp71	%read{33,226} %write{33,226}
+temp	int	$tmp72	%read{33,226} %write{33,226}
+temp	int	$tmp73	%read{33,226} %write{33,226}
+temp	float	$tmp74	%read{33,226} %write{33,226}
+temp	int	$tmp75	%read{33,226} %write{33,226}
+temp	int	$tmp76	%read{33,226} %write{33,226}
+temp	float	$tmp77	%read{33,226} %write{33,226}
+temp	int	$tmp78	%read{33,226} %write{33,226}
+temp	float	$tmp79	%read{33,226} %write{33,226}
+temp	int	$tmp80	%read{33,226} %write{33,226}
+temp	int	$tmp81	%read{33,226} %write{33,226}
+temp	int	$tmp82	%read{33,226} %write{33,226}
+temp	int	$tmp83	%read{33,226} %write{33,226}
+temp	int	$tmp84	%read{33,226} %write{33,226}
+temp	float	$tmp85	%read{33,226} %write{33,226}
+temp	vector	$tmp86	%read{33,226} %write{33,226}
+temp	float	$tmp87	%read{33,226} %write{33,226}
+temp	int	$tmp88	%read{33,226} %write{33,226}
+temp	float	$tmp89	%read{33,226} %write{33,226}
+temp	int	$tmp90	%read{33,226} %write{33,226}
+temp	int	$tmp91	%read{33,226} %write{33,226}
+temp	float	$tmp92	%read{33,226} %write{33,226}
+temp	int	$tmp93	%read{33,226} %write{33,226}
+temp	int	$tmp94	%read{33,226} %write{33,226}
+temp	float	$tmp95	%read{33,226} %write{33,226}
+temp	int	$tmp96	%read{33,226} %write{33,226}
+temp	float	$tmp97	%read{33,226} %write{33,226}
+temp	int	$tmp98	%read{33,226} %write{33,226}
+temp	int	$tmp99	%read{33,226} %write{33,226}
+temp	int	$tmp100	%read{33,226} %write{33,226}
+temp	int	$tmp101	%read{33,226} %write{33,226}
+temp	int	$tmp102	%read{33,226} %write{33,226}
+temp	float	$tmp103	%read{33,226} %write{33,226}
+temp	vector	$tmp104	%read{33,226} %write{33,226}
+temp	float	$tmp105	%read{33,226} %write{33,226}
+temp	int	$tmp106	%read{33,226} %write{33,226}
+temp	int	$tmp107	%read{33,226} %write{33,226}
+temp	int	$tmp108	%read{33,226} %write{33,226}
+temp	float	$tmp109	%read{33,226} %write{33,226}
+temp	int	$tmp110	%read{33,226} %write{33,226}
+temp	int	$tmp111	%read{33,226} %write{33,226}
+temp	int	$tmp112	%read{33,226} %write{33,226}
+temp	int	$tmp113	%read{33,226} %write{33,226}
+temp	int	$tmp114	%read{33,226} %write{33,226}
+temp	float	$tmp115	%read{33,226} %write{33,226}
+temp	vector	$tmp116	%read{33,226} %write{33,226}
+const	float	$const51	32		%read{218,218} %write{2147483647,-1}
+const	float	$const52	0.5		%read{219,229} %write{2147483647,-1}
+temp	float	$tmp117	%read{33,226} %write{33,226}
+temp	float	$tmp118	%read{33,226} %write{33,226}
+temp	float	$tmp119	%read{33,226} %write{33,226}
+temp	float	$tmp120	%read{229,229} %write{228,228}
+code ___main___
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:202
+#     if (!isconnected(manifold))
+	isconnected	$tmp1 manifold 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl"} %line{202} %argrw{"wr"}
+	eq		$tmp2 $tmp1 $const1 	%argrw{"wrr"}
+	if		$tmp2 21 25 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:204
+#         Manifold_Construct(P,N,inputManifoldRw);
+	functioncall	$const2 7 	%line{204} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:69
+#     m.Q = inP;
+	assign		inputManifoldRw.Q P 	%filename{"/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{69} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:70
+#     m.QN = inN;
+	assign		inputManifoldRw.QN N 	%line{70} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:71
+#     m.Qradius = 0.0;
+	assign		inputManifoldRw.Qradius $const3 	%line{71} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:205
+#         Manifold_Transform(inputManifoldRw,"object");
+	functioncall	$const5 21 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl"} %line{205} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:91
+#     Manifold_Transform(ioManifold, "common", toSpace);
+	functioncall	$const5 21 	%filename{"/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{91} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:78
+#     ioManifold.Q = transform(fromSpace, toSpace, ioManifold.Q);
+	transform	inputManifoldRw.Q $const6 $const4 inputManifoldRw.Q 	%line{78} %argrw{"wrrr"}
+	assign		inputManifoldRw.Q inputManifoldRw.Q 	%argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:79
+#     ioManifold.QN = normalize(transform(fromSpace, toSpace, ioManifold.QN));
+	transformn	$tmp3 $const6 $const4 inputManifoldRw.QN 	%line{79} %argrw{"wrrr"}
+	normalize	inputManifoldRw.QN $tmp3 	%argrw{"wr"}
+	assign		inputManifoldRw.QN inputManifoldRw.QN 	%argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:81
+#     vector vec1 = vector(1.0);
+	assign		___392_vec1 $const7 	%line{81} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:82
+#     vec1 = transform(fromSpace, toSpace, vec1);
+	transformv	___392_vec1 $const6 $const4 ___392_vec1 	%line{82} %argrw{"wrrr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:83
+#     float scale = length(vec1) / sqrt(3.0);
+	length		$tmp4 ___392_vec1 	%line{83} %argrw{"wr"}
+	sqrt		$tmp5 $const8 	%argrw{"wr"}
+	div		___392_scale $tmp4 $tmp5 	%argrw{"wrr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:84
+#     ioManifold.Qradius *= scale;
+	mul		inputManifoldRw.Qradius inputManifoldRw.Qradius ___392_scale 	%line{84} %argrw{"wrr"}
+	assign		inputManifoldRw.Qradius inputManifoldRw.Qradius 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:208
+#         Manifold_Copy(manifold,inputManifoldRw);
+	functioncall	$const9 25 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl"} %line{208} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:53
+#     dest.Q = src.Q;
+	assign		inputManifoldRw.Q manifold.Q 	%filename{"/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{53} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:54
+#     dest.QN = src.QN;
+	assign		inputManifoldRw.QN manifold.QN 	%line{54} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:55
+#     dest.Qradius = src.Qradius;
+	assign		inputManifoldRw.Qradius manifold.Qradius 	%line{55} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:210
+#     point objectPosition = inputManifoldRw.Q;
+	assign		objectPosition inputManifoldRw.Q 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl"} %line{210} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:211
+#     point startPosition = start_frequency * objectPosition - start_offset;
+	mul		$tmp6 start_frequency objectPosition 	%line{211} %argrw{"wrr"}
+	sub		startPosition $tmp6 start_offset 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:213
+#     float noiseValue = fractalSimplexNoise3D(startPosition, lacunarity, gain, octaves);
+	functioncall	$const10 228 	%line{213} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:165
+#     float noiseValue = 0.0;
+	assign		___428_noiseValue $const3 	%line{165} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:167
+#     float amplitude = 1.0;
+	assign		___428_amplitude $const11 	%line{167} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:169
+#     for (int octave = 0; octave < octaveCount; ++octave) {
+	for		$tmp8 33 35 226 227 	%line{169} %argrw{"r"}
+	assign		___429_octave $const1 	%argrw{"wr"}
+	lt		$tmp7 ___429_octave octaves 	%argrw{"wrr"}
+	neq		$tmp8 $tmp7 $const1 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:170
+#         noiseValue += amplitude * (simplexNoise3D(position) - 0.5);
+	functioncall	$const12 221 	%line{170} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:9
+#     int perm[512] = {
+	assign		___417_perm $const13 	%line{9} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:38
+#     vector gradient[16] = {
+	aassign		___417_gradient $const1 $const14 	%line{38} %argrw{"wrr"}
+	aassign		___417_gradient $const16 $const15 	%argrw{"wrr"}
+	aassign		___417_gradient $const18 $const17 	%argrw{"wrr"}
+	aassign		___417_gradient $const20 $const19 	%argrw{"wrr"}
+	aassign		___417_gradient $const22 $const21 	%argrw{"wrr"}
+	aassign		___417_gradient $const24 $const23 	%argrw{"wrr"}
+	aassign		___417_gradient $const26 $const25 	%argrw{"wrr"}
+	aassign		___417_gradient $const28 $const27 	%argrw{"wrr"}
+	aassign		___417_gradient $const30 $const29 	%argrw{"wrr"}
+	aassign		___417_gradient $const32 $const31 	%argrw{"wrr"}
+	aassign		___417_gradient $const34 $const33 	%argrw{"wrr"}
+	aassign		___417_gradient $const36 $const35 	%argrw{"wrr"}
+	aassign		___417_gradient $const37 $const14 	%argrw{"wrr"}
+	aassign		___417_gradient $const38 $const31 	%argrw{"wrr"}
+	aassign		___417_gradient $const39 $const15 	%argrw{"wrr"}
+	aassign		___417_gradient $const40 $const35 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:73
+#     float F3 = 0.333333333;
+	assign		___417_F3 $const41 	%line{73} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:74
+#     float G3 = 0.166666667;
+	assign		___417_G3 $const42 	%line{74} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:75
+#     float G3a = 2.0 * G3;
+	mul		___417_G3a $const43 ___417_G3 	%line{75} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:76
+#     float G3b = 3.0 * G3 - 1.0;
+	mul		$tmp26 $const8 ___417_G3 	%line{76} %argrw{"wrr"}
+	sub		___417_G3b $tmp26 $const11 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:79
+#     float skew = (position[0] + position[1] + position[2]) * F3;
+	compref		$tmp27 startPosition $const1 	%line{79} %argrw{"wrr"}
+	compref		$tmp28 startPosition $const16 	%argrw{"wrr"}
+	add		$tmp29 $tmp27 $tmp28 	%argrw{"wrr"}
+	compref		$tmp30 startPosition $const18 	%argrw{"wrr"}
+	add		$tmp31 $tmp29 $tmp30 	%argrw{"wrr"}
+	mul		___417_skew $tmp31 ___417_F3 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:80
+#     point skewedPosition = position + skew;
+	add		___417_skewedPosition startPosition ___417_skew 	%line{80} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:81
+#     point skewedCellOrigin = floor(skewedPosition);
+	floor		___417_skewedCellOrigin ___417_skewedPosition 	%line{81} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:84
+#     float unskew = (skewedCellOrigin[0] + skewedCellOrigin[1] + skewedCellOrigin[2]) * G3;
+	compref		$tmp32 ___417_skewedCellOrigin $const1 	%line{84} %argrw{"wrr"}
+	compref		$tmp33 ___417_skewedCellOrigin $const16 	%argrw{"wrr"}
+	add		$tmp34 $tmp32 $tmp33 	%argrw{"wrr"}
+	compref		$tmp35 ___417_skewedCellOrigin $const18 	%argrw{"wrr"}
+	add		$tmp36 $tmp34 $tmp35 	%argrw{"wrr"}
+	mul		___417_unskew $tmp36 ___417_G3 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:85
+#     point cellOrigin = skewedCellOrigin - unskew;
+	sub		___417_cellOrigin ___417_skewedCellOrigin ___417_unskew 	%line{85} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:88
+#     vector offset0 = position - cellOrigin;
+	sub		___417_offset0 startPosition ___417_cellOrigin 	%line{88} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:95
+#     if (offset0[0] >= offset0[1]) {
+	compref		$tmp37 ___417_offset0 $const1 	%line{95} %argrw{"wrr"}
+	compref		$tmp38 ___417_offset0 $const16 	%argrw{"wrr"}
+	ge		$tmp39 $tmp37 $tmp38 	%argrw{"wrr"}
+	if		$tmp39 92 106 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:96
+#         if (offset0[1] >= offset0[2]) {
+	compref		$tmp40 ___417_offset0 $const16 	%line{96} %argrw{"wrr"}
+	compref		$tmp41 ___417_offset0 $const18 	%argrw{"wrr"}
+	ge		$tmp42 $tmp40 $tmp41 	%argrw{"wrr"}
+	if		$tmp42 84 92 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:98
+#             skewedOffset1 = vector(1, 0, 0);
+	assign		___417_skewedOffset1 $const44 	%line{98} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:99
+#             skewedOffset2 = vector(1, 1, 0);
+	assign		___417_skewedOffset2 $const14 	%line{99} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:100
+#         } else if (offset0[0] >= offset0[2]) {
+	compref		$tmp43 ___417_offset0 $const1 	%line{100} %argrw{"wrr"}
+	compref		$tmp44 ___417_offset0 $const18 	%argrw{"wrr"}
+	ge		$tmp45 $tmp43 $tmp44 	%argrw{"wrr"}
+	if		$tmp45 90 92 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:102
+#             skewedOffset1 = vector(1, 0, 0);
+	assign		___417_skewedOffset1 $const44 	%line{102} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:103
+#             skewedOffset2 = vector(1, 0, 1);
+	assign		___417_skewedOffset2 $const21 	%line{103} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:106
+#             skewedOffset1 = vector(0, 0, 1);
+	assign		___417_skewedOffset1 $const45 	%line{106} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:107
+#             skewedOffset2 = vector(1, 0, 1);
+	assign		___417_skewedOffset2 $const21 	%line{107} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:110
+#         if (offset0[1] < offset0[2]) {
+	compref		$tmp46 ___417_offset0 $const16 	%line{110} %argrw{"wrr"}
+	compref		$tmp47 ___417_offset0 $const18 	%argrw{"wrr"}
+	lt		$tmp48 $tmp46 $tmp47 	%argrw{"wrr"}
+	if		$tmp48 98 106 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:112
+#             skewedOffset1 = vector(0, 0, 1);
+	assign		___417_skewedOffset1 $const45 	%line{112} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:113
+#             skewedOffset2 = vector(0, 1, 1);
+	assign		___417_skewedOffset2 $const29 	%line{113} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:114
+#         } else if (offset0[0] < offset0[2]) {
+	compref		$tmp49 ___417_offset0 $const1 	%line{114} %argrw{"wrr"}
+	compref		$tmp50 ___417_offset0 $const18 	%argrw{"wrr"}
+	lt		$tmp51 $tmp49 $tmp50 	%argrw{"wrr"}
+	if		$tmp51 104 106 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:116
+#             skewedOffset1 = vector(0, 1, 0);
+	assign		___417_skewedOffset1 $const46 	%line{116} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:117
+#             skewedOffset2 = vector(0, 1, 1);
+	assign		___417_skewedOffset2 $const29 	%line{117} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:120
+#             skewedOffset1 = vector(0, 1, 0);
+	assign		___417_skewedOffset1 $const46 	%line{120} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:121
+#             skewedOffset2 = vector(1, 1, 0);
+	assign		___417_skewedOffset2 $const14 	%line{121} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:130
+#     vector offset1 = offset0 - skewedOffset1 + G3;
+	sub		$tmp52 ___417_offset0 ___417_skewedOffset1 	%line{130} %argrw{"wrr"}
+	add		___417_offset1 $tmp52 ___417_G3 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:133
+#     vector offset2 = offset0 - skewedOffset2 + G3a;
+	sub		$tmp53 ___417_offset0 ___417_skewedOffset2 	%line{133} %argrw{"wrr"}
+	add		___417_offset2 $tmp53 ___417_G3a 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:136
+#     vector offset3 = offset0 + G3b;
+	add		___417_offset3 ___417_offset0 ___417_G3b 	%line{136} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:139
+#     int i = int(skewedCellOrigin[0]) & 255;
+	compref		$tmp55 ___417_skewedCellOrigin $const1 	%line{139} %argrw{"wrr"}
+	assign		$tmp54 $tmp55 	%argrw{"wr"}
+	bitand		___417_i $tmp54 $const47 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:140
+#     int j = int(skewedCellOrigin[1]) & 255;
+	compref		$tmp57 ___417_skewedCellOrigin $const16 	%line{140} %argrw{"wrr"}
+	assign		$tmp56 $tmp57 	%argrw{"wr"}
+	bitand		___417_j $tmp56 $const47 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:141
+#     int k = int(skewedCellOrigin[2]) & 255;
+	compref		$tmp59 ___417_skewedCellOrigin $const18 	%line{141} %argrw{"wrr"}
+	assign		$tmp58 $tmp59 	%argrw{"wr"}
+	bitand		___417_k $tmp58 $const47 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:144
+#     float noiseValue = 0.0;
+	assign		___417_noiseValue $const3 	%line{144} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:145
+#     noiseValue += evaluatePointContribution(i, j, k, offset0);
+	functioncall	$const48 139 	%line{145} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:58
+#         float t = 0.6 - dot(offset, offset);
+	dot		$tmp61 ___417_offset0 ___417_offset0 	%line{58} %argrw{"wrr"}
+	sub		___418_t $const49 $tmp61 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:59
+#         if (t < 0.0) {
+	lt		$tmp62 ___418_t $const3 	%line{59} %argrw{"wrr"}
+	if		$tmp62 128 128 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:60
+#             return 0.0;
+	assign		$tmp60 $const3 	%line{60} %argrw{"wr"}
+	return
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:63
+#         float t2 = t * t;
+	mul		___418_t2 ___418_t ___418_t 	%line{63} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:64
+#         float t4 = t2 * t2;
+	mul		___418_t4 ___418_t2 ___418_t2 	%line{64} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:66
+#         int gradientIndex = perm[i + perm[j + perm[k]]];
+	aref		$tmp63 ___417_perm ___417_k 	%line{66} %argrw{"wrr"}
+	add		$tmp64 ___417_j $tmp63 	%argrw{"wrr"}
+	aref		$tmp65 ___417_perm $tmp64 	%argrw{"wrr"}
+	add		$tmp66 ___417_i $tmp65 	%argrw{"wrr"}
+	aref		___418_gradientIndex ___417_perm $tmp66 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:67
+#         int safeGradientIndex = gradientIndex % 16;
+	mod		___418_safeGradientIndex ___418_gradientIndex $const50 	%line{67} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:69
+#         return t4 * dot(gradient[safeGradientIndex], offset);
+	aref		$tmp68 ___417_gradient ___418_safeGradientIndex 	%line{69} %argrw{"wrr"}
+	dot		$tmp67 $tmp68 ___417_offset0 	%argrw{"wrr"}
+	mul		$tmp60 ___418_t4 $tmp67 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:145
+#     noiseValue += evaluatePointContribution(i, j, k, offset0);
+	add		___417_noiseValue ___417_noiseValue $tmp60 	%line{145} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:146
+#     noiseValue += evaluatePointContribution(i + int(skewedOffset1[0]), j + int(skewedOffset1[1]), k + int(skewedOffset1[2]), offset1);
+	compref		$tmp71 ___417_skewedOffset1 $const1 	%line{146} %argrw{"wrr"}
+	assign		$tmp70 $tmp71 	%argrw{"wr"}
+	add		$tmp72 ___417_i $tmp70 	%argrw{"wrr"}
+	compref		$tmp74 ___417_skewedOffset1 $const16 	%argrw{"wrr"}
+	assign		$tmp73 $tmp74 	%argrw{"wr"}
+	add		$tmp75 ___417_j $tmp73 	%argrw{"wrr"}
+	compref		$tmp77 ___417_skewedOffset1 $const18 	%argrw{"wrr"}
+	assign		$tmp76 $tmp77 	%argrw{"wr"}
+	add		$tmp78 ___417_k $tmp76 	%argrw{"wrr"}
+	functioncall	$const48 167 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:58
+#         float t = 0.6 - dot(offset, offset);
+	dot		$tmp79 ___417_offset1 ___417_offset1 	%line{58} %argrw{"wrr"}
+	sub		___418_t $const49 $tmp79 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:59
+#         if (t < 0.0) {
+	lt		$tmp80 ___418_t $const3 	%line{59} %argrw{"wrr"}
+	if		$tmp80 156 156 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:60
+#             return 0.0;
+	assign		$tmp69 $const3 	%line{60} %argrw{"wr"}
+	return
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:63
+#         float t2 = t * t;
+	mul		___418_t2 ___418_t ___418_t 	%line{63} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:64
+#         float t4 = t2 * t2;
+	mul		___418_t4 ___418_t2 ___418_t2 	%line{64} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:66
+#         int gradientIndex = perm[i + perm[j + perm[k]]];
+	aref		$tmp81 ___417_perm $tmp78 	%line{66} %argrw{"wrr"}
+	add		$tmp82 $tmp75 $tmp81 	%argrw{"wrr"}
+	aref		$tmp83 ___417_perm $tmp82 	%argrw{"wrr"}
+	add		$tmp84 $tmp72 $tmp83 	%argrw{"wrr"}
+	aref		___418_gradientIndex ___417_perm $tmp84 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:67
+#         int safeGradientIndex = gradientIndex % 16;
+	mod		___418_safeGradientIndex ___418_gradientIndex $const50 	%line{67} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:69
+#         return t4 * dot(gradient[safeGradientIndex], offset);
+	aref		$tmp86 ___417_gradient ___418_safeGradientIndex 	%line{69} %argrw{"wrr"}
+	dot		$tmp85 $tmp86 ___417_offset1 	%argrw{"wrr"}
+	mul		$tmp69 ___418_t4 $tmp85 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:146
+#     noiseValue += evaluatePointContribution(i + int(skewedOffset1[0]), j + int(skewedOffset1[1]), k + int(skewedOffset1[2]), offset1);
+	add		___417_noiseValue ___417_noiseValue $tmp69 	%line{146} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:147
+#     noiseValue += evaluatePointContribution(i + int(skewedOffset2[0]), j + int(skewedOffset2[1]), k + int(skewedOffset2[2]), offset2);
+	compref		$tmp89 ___417_skewedOffset2 $const1 	%line{147} %argrw{"wrr"}
+	assign		$tmp88 $tmp89 	%argrw{"wr"}
+	add		$tmp90 ___417_i $tmp88 	%argrw{"wrr"}
+	compref		$tmp92 ___417_skewedOffset2 $const16 	%argrw{"wrr"}
+	assign		$tmp91 $tmp92 	%argrw{"wr"}
+	add		$tmp93 ___417_j $tmp91 	%argrw{"wrr"}
+	compref		$tmp95 ___417_skewedOffset2 $const18 	%argrw{"wrr"}
+	assign		$tmp94 $tmp95 	%argrw{"wr"}
+	add		$tmp96 ___417_k $tmp94 	%argrw{"wrr"}
+	functioncall	$const48 195 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:58
+#         float t = 0.6 - dot(offset, offset);
+	dot		$tmp97 ___417_offset2 ___417_offset2 	%line{58} %argrw{"wrr"}
+	sub		___418_t $const49 $tmp97 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:59
+#         if (t < 0.0) {
+	lt		$tmp98 ___418_t $const3 	%line{59} %argrw{"wrr"}
+	if		$tmp98 184 184 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:60
+#             return 0.0;
+	assign		$tmp87 $const3 	%line{60} %argrw{"wr"}
+	return
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:63
+#         float t2 = t * t;
+	mul		___418_t2 ___418_t ___418_t 	%line{63} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:64
+#         float t4 = t2 * t2;
+	mul		___418_t4 ___418_t2 ___418_t2 	%line{64} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:66
+#         int gradientIndex = perm[i + perm[j + perm[k]]];
+	aref		$tmp99 ___417_perm $tmp96 	%line{66} %argrw{"wrr"}
+	add		$tmp100 $tmp93 $tmp99 	%argrw{"wrr"}
+	aref		$tmp101 ___417_perm $tmp100 	%argrw{"wrr"}
+	add		$tmp102 $tmp90 $tmp101 	%argrw{"wrr"}
+	aref		___418_gradientIndex ___417_perm $tmp102 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:67
+#         int safeGradientIndex = gradientIndex % 16;
+	mod		___418_safeGradientIndex ___418_gradientIndex $const50 	%line{67} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:69
+#         return t4 * dot(gradient[safeGradientIndex], offset);
+	aref		$tmp104 ___417_gradient ___418_safeGradientIndex 	%line{69} %argrw{"wrr"}
+	dot		$tmp103 $tmp104 ___417_offset2 	%argrw{"wrr"}
+	mul		$tmp87 ___418_t4 $tmp103 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:147
+#     noiseValue += evaluatePointContribution(i + int(skewedOffset2[0]), j + int(skewedOffset2[1]), k + int(skewedOffset2[2]), offset2);
+	add		___417_noiseValue ___417_noiseValue $tmp87 	%line{147} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:148
+#     noiseValue += evaluatePointContribution(i + 1, j + 1, k + 1, offset3);
+	add		$tmp106 ___417_i $const16 	%line{148} %argrw{"wrr"}
+	add		$tmp107 ___417_j $const16 	%argrw{"wrr"}
+	add		$tmp108 ___417_k $const16 	%argrw{"wrr"}
+	functioncall	$const48 217 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:58
+#         float t = 0.6 - dot(offset, offset);
+	dot		$tmp109 ___417_offset3 ___417_offset3 	%line{58} %argrw{"wrr"}
+	sub		___418_t $const49 $tmp109 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:59
+#         if (t < 0.0) {
+	lt		$tmp110 ___418_t $const3 	%line{59} %argrw{"wrr"}
+	if		$tmp110 206 206 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:60
+#             return 0.0;
+	assign		$tmp105 $const3 	%line{60} %argrw{"wr"}
+	return
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:63
+#         float t2 = t * t;
+	mul		___418_t2 ___418_t ___418_t 	%line{63} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:64
+#         float t4 = t2 * t2;
+	mul		___418_t4 ___418_t2 ___418_t2 	%line{64} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:66
+#         int gradientIndex = perm[i + perm[j + perm[k]]];
+	aref		$tmp111 ___417_perm $tmp108 	%line{66} %argrw{"wrr"}
+	add		$tmp112 $tmp107 $tmp111 	%argrw{"wrr"}
+	aref		$tmp113 ___417_perm $tmp112 	%argrw{"wrr"}
+	add		$tmp114 $tmp106 $tmp113 	%argrw{"wrr"}
+	aref		___418_gradientIndex ___417_perm $tmp114 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:67
+#         int safeGradientIndex = gradientIndex % 16;
+	mod		___418_safeGradientIndex ___418_gradientIndex $const50 	%line{67} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:69
+#         return t4 * dot(gradient[safeGradientIndex], offset);
+	aref		$tmp116 ___417_gradient ___418_safeGradientIndex 	%line{69} %argrw{"wrr"}
+	dot		$tmp115 $tmp116 ___417_offset3 	%argrw{"wrr"}
+	mul		$tmp105 ___418_t4 $tmp115 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:148
+#     noiseValue += evaluatePointContribution(i + 1, j + 1, k + 1, offset3);
+	add		___417_noiseValue ___417_noiseValue $tmp105 	%line{148} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:151
+#     noiseValue *= 32.0;
+	mul		___417_noiseValue ___417_noiseValue $const51 	%line{151} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:154
+#     return 0.5 * noiseValue + 0.5;
+	mul		$tmp117 $const52 ___417_noiseValue 	%line{154} %argrw{"wrr"}
+	add		$tmp9 $tmp117 $const52 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:170
+#         noiseValue += amplitude * (simplexNoise3D(position) - 0.5);
+	sub		$tmp118 $tmp9 $const52 	%line{170} %argrw{"wrr"}
+	mul		$tmp119 ___428_amplitude $tmp118 	%argrw{"wrr"}
+	add		___428_noiseValue ___428_noiseValue $tmp119 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:171
+#         position *= lacunarity;
+	mul		startPosition startPosition lacunarity 	%line{171} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:172
+#         amplitude *= gain;
+	mul		___428_amplitude ___428_amplitude gain 	%line{172} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:169
+#     for (int octave = 0; octave < octaveCount; ++octave) {
+	add		___429_octave ___429_octave $const16 	%line{169} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:175
+#     return noiseValue;
+	assign		noiseValue ___428_noiseValue 	%line{175} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:215
+#     noiseValue = 0.5 * noiseValue + 0.5;
+	mul		$tmp120 $const52 noiseValue 	%line{215} %argrw{"wrr"}
+	add		noiseValue $tmp120 $const52 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:216
+#     noiseValue = pow(noiseValue, attenuation);
+	pow		noiseValue noiseValue attenuation 	%line{216} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxSimplexNoise.osl:218
+#     result = color(noiseValue);
+	assign		result noiseValue 	%line{218} %argrw{"wr"}
+	end

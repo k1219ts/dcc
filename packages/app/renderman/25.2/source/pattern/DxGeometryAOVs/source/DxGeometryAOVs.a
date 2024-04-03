@@ -1,0 +1,29 @@
+<args format="1.0">
+	<help>
+		dexter geometry aovs
+	</help>
+	<shaderType>
+		<tag value="pattern"/>
+	</shaderType>
+    <page name="Parameters" open="True">
+        <param name="inputAOV"
+            label="Input AOV"
+            type="int">
+            <tags>
+                <tag value="int"/>
+            </tags>
+        </param>
+        <param name="enable" label="Enable" type="int" default="1"
+            connectable="False" widget="checkBox">
+        </param>
+    </page>
+
+    <output name="resultAOV">
+        <tags>
+            <tag value="int"/>
+        </tags>
+    </output>
+
+    <rfmdata nodeid="3000021"
+             classification="rendernode/RenderMan/pattern/utility"/>
+</args>

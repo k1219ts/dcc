@@ -1,0 +1,8 @@
+echo "build DxBeyondScreen"
+cd DxBeyondScreen; make clean; make -j32; cd ..;
+
+echo "build DxFisheye"
+cd DxFisheye; make clean; make -j32; cd ..;
+
+echo "build DxOmniDirectionalStereo"
+cd DxOmniDirectionalStereo; make clean; make -j32; cd ..;

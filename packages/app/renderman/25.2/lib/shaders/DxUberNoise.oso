@@ -1,0 +1,527 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.11.0@OPROJECT_VERSION_RELEASE_TYPE@
+# options: -v -o /WORK_DATA/develop/dcc/packages/app/renderman/25.2/lib/shaders/DxUberNoise.oso -I/opt/pixar/RenderManProServer-25.2/include -I/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl
+shader UberNoise	%meta{string,help,"<h3>UberNoise</h3>Combines many noise functions in one. Can do classic<br>Perlin, Fractal, Cell as well as fBm noise and multiple<br>flavors of Worley noise."} %meta{string,label,"Uber Noise"} 
+param	point	UVW	0 0 0		%meta{string,help,"The UVW coordinate to use. When not connected, defaults to Object space"}  %read{2,2} %write{1,1} %initexpr
+param	float	Scale	25		%read{2,2} %write{2147483647,-1}
+param	int	Type	0		%meta{string,widget,"mapper"} %meta{string,help,"Pick noise type from the list"} %meta{int,connectable,0} %meta{string,options,"Simplex:-1|Perlin:0|Fractal:1|Cell:2|Worley Classic (Voronoi):3|Worley Manhattan:4|Worley Chebychev:5|Worley Minkowski 0.5:6|Worley Minkowski 4:7"}  %read{27,50} %write{2147483647,-1}
+param	float	WorleyPower	1		%meta{float,min,0.00999999978} %meta{float,max,10} %meta{string,help,"The power applied to the Worley distance function. Values higher than 1.0 smooths out peaks and values lower than 1.0 sharpens them"}  %read{132,132} %write{2147483647,-1}
+param	float	WorleyJitter	1		%meta{float,min,-2} %meta{float,max,2} %meta{string,help,"How much the individual cell points Worley noise is based on is distorted away from a perfect grid. "}  %read{75,75} %write{2147483647,-1}
+param	int	Iterations	3		%meta{string,help,"Hos many layers of noise are mixed together."} %meta{int,min,1} %meta{int,max,20}  %read{17,17} %write{2147483647,-1}
+param	float	Lacunarity	1.79999995		%meta{string,help,"How much the 'frequency' of the noise changes per layer."}  %read{164,164} %write{2147483647,-1}
+param	float	Gain	0.769999981		%meta{string,help,"How much the amplitude of the noise changes per layer. Higher numbers means higher noise frequencies have more effect."}  %read{165,165} %write{2147483647,-1}
+param	int	Mode	0		%meta{string,widget,"mapper"} %meta{string,help,"The layer combination mode"} %meta{int,connectable,0} %meta{string,options,"Add:0|Relative:1|Multiply:2"}  %read{11,158} %write{2147483647,-1}
+param	int	LayerDistort	1		%meta{string,widget,"checkBox"} %meta{string,label,"Layer Distortion"} %meta{int,connectable,0} %meta{string,help,"Enables a per layer distortion of the noise."}  %read{21,21} %write{2147483647,-1}
+param	float	LayerDistAmount	4		%meta{string,help,"Amount of layer distortion."} %meta{string,label,"Distortion Amount"}  %read{24,24} %write{2147483647,-1}
+param	float	LayerDistScale	0.100000001		%meta{string,help,"Scale of the layer distortion relative to the Base Wavelength."} %meta{string,label,"Distortion Scale"} %meta{float,min,-1} %meta{float,max,1}  %read{7,7} %write{2147483647,-1}
+param	float	LayerDistRatio	1.20000005		%meta{string,help,"How much the 'frequency' of the distortion changes per layer."} %meta{string,label,"Distortion Scale Ratio"}  %read{26,26} %write{2147483647,-1}
+param	int	LayerStepFunction	1		%meta{string,widget,"checkBox"} %meta{string,label,"Layer Step Function"} %meta{int,connectable,0} %meta{string,help,"Enables a per-layer smoothstep curve in the noise, allowing you to increase the 'contrast' of the noise"}  %read{145,145} %write{2147483647,-1}
+param	float	LayerLowStep	0.200000003		%meta{string,help,"Low threshold of the smoothstep function."} %meta{string,label,"Layer Low Step"} %meta{float,min,0} %meta{float,max,1}  %read{146,146} %write{2147483647,-1}
+param	float	LayerHiStep	0.800000012		%meta{string,help,"High threshold of the smoothstep function."} %meta{string,label,"Layer High Step"} %meta{float,min,0} %meta{float,max,1}  %read{146,146} %write{2147483647,-1}
+param	int	Normalize	1		%meta{string,widget,"checkBox"} %meta{int,connectable,0} %meta{string,help,"If the noise is auto-normalized to Amplitude or not."}  %read{171,171} %write{2147483647,-1}
+param	float	Amplitude	1		%meta{string,help,"The amplitude of the noise."}  %read{172,174} %write{2147483647,-1}
+param	int	OutputStepFunction	0		%meta{string,widget,"checkBox"} %meta{string,label,"Output Step Function"} %meta{int,connectable,0} %meta{string,help,"Enables a smoothstep curve to the resulting noise, allowing you to increase the 'contrast' of the noise"}  %read{175,175} %write{2147483647,-1}
+param	float	OutputLowStep	0.200000003		%meta{string,help,"Low threshold of the smoothstep function."} %meta{string,label,"Output Low Step"} %meta{float,min,0} %meta{float,max,1}  %read{176,176} %write{2147483647,-1}
+param	float	OutputHiStep	0.800000012		%meta{string,help,"High threshold of the smoothstep function."} %meta{string,label,"Output High Step"} %meta{float,min,0} %meta{float,max,1}  %read{176,176} %write{2147483647,-1}
+param	color	A	0 0 0		%meta{string,label,"Color A"}  %read{178,178} %write{2147483647,-1}
+param	color	B	1 1 1		%meta{string,label,"Color B"}  %read{178,178} %write{2147483647,-1}
+param	float	Phase	0		%meta{string,help,"The 'Phase' is just a 4th coordinate of the noise, can be used to allow it to evolve over time, for example."}  %read{6,6} %write{2147483647,-1}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{178,178}
+oparam	float	Float	0		%read{2147483647,-1} %write{177,177}
+oparam	color	CellRandomness	0 0 0		%meta{string,label,"Worley Cell Color"}  %read{2147483647,-1} %write{179,179}
+oparam	point	CellCenter	0 0 0		%meta{string,label,"Worley Cell Center"}  %read{179,179} %write{17,170}
+global	point	P	%read{1,1} %write{2147483647,-1}
+local	float	___325_closestdist	%read{17,170} %write{17,170}
+local	point	___325_cellpnt	%read{17,170} %write{17,170}
+local	vector	___325_offset	%read{2147483647,-1} %write{17,170}
+local	int	___326_x	%read{17,170} %write{17,170}
+local	int	___328_y	%read{17,170} %write{17,170}
+local	int	___330_z	%read{17,170} %write{17,170}
+local	point	___331_base	%read{17,170} %write{17,170}
+local	float	___331_distort	%read{17,170} %write{17,170}
+local	vector	___331_dist	%read{17,170} %write{17,170}
+local	float	___331_d	%read{17,170} %write{17,170}
+local	float	___334_x	%read{17,170} %write{17,170}
+local	float	___334_y	%read{17,170} %write{17,170}
+local	float	___334_z	%read{17,170} %write{17,170}
+local	float	___336_x	%read{17,170} %write{17,170}
+local	float	___336_y	%read{17,170} %write{17,170}
+local	float	___336_z	%read{17,170} %write{17,170}
+local	point	pnt	%read{17,170} %write{2,2}
+local	float	sum	%read{17,172} %write{3,170}
+local	float	curFreq	%read{17,170} %write{4,170}
+local	float	curAmp	%read{17,170} %write{5,170}
+local	float	curPhase	%read{17,170} %write{6,6}
+local	float	curDistFreq	%read{17,170} %write{7,170}
+local	float	result	%read{17,178} %write{8,176}
+local	float	lastResult	%read{17,170} %write{9,170}
+local	point	cellpoint	%read{17,170} %write{10,170}
+local	int	___339_i	%read{17,170} %write{16,170}
+local	float	___340_ns	%read{17,170} %write{17,170}
+local	point	___340_noisePoint	%read{17,170} %write{17,170}
+local	point	___341_distort	%read{17,170} %write{17,170}
+const	string	$const1	"object"		%read{1,1} %write{2147483647,-1}
+const	string	$const2	"transform"		%read{0,0} %write{2147483647,-1}
+const	string	$const3	"common"		%read{1,1} %write{2147483647,-1}
+const	int	$const4	0		%read{3,166} %write{2147483647,-1}
+const	float	$const5	1		%read{4,144} %write{2147483647,-1}
+const	float	$const6	0		%read{8,78} %write{2147483647,-1}
+temp	int	$tmp1	%read{12,12} %write{11,11}
+temp	int	$tmp2	%read{17,170} %write{17,170}
+temp	int	$tmp3	%read{15,170} %write{16,170}
+const	string	$const7	"perlin"		%read{23,41} %write{2147483647,-1}
+temp	point	$tmp4	%read{17,170} %write{17,170}
+temp	point	$tmp5	%read{17,170} %write{17,170}
+const	int	$const8	-1		%read{27,65} %write{2147483647,-1}
+temp	int	$tmp6	%read{17,170} %write{17,170}
+const	string	$const9	"usimplex"		%read{31,31} %write{2147483647,-1}
+temp	float	$tmp7	%read{17,170} %write{17,170}
+temp	float	$tmp8	%read{17,170} %write{17,170}
+temp	int	$tmp9	%read{17,170} %write{17,170}
+const	string	$const10	"uperlin"		%read{36,36} %write{2147483647,-1}
+temp	float	$tmp10	%read{17,170} %write{17,170}
+temp	float	$tmp11	%read{17,170} %write{17,170}
+const	int	$const11	1		%read{37,170} %write{2147483647,-1}
+temp	int	$tmp12	%read{17,170} %write{17,170}
+temp	float	$tmp13	%read{17,170} %write{17,170}
+temp	float	$tmp14	%read{17,170} %write{17,170}
+temp	float	$tmp15	%read{17,170} %write{17,170}
+const	int	$const12	2		%read{43,158} %write{2147483647,-1}
+temp	int	$tmp16	%read{17,170} %write{17,170}
+const	string	$const13	"cell"		%read{47,47} %write{2147483647,-1}
+temp	float	$tmp17	%read{17,170} %write{17,170}
+temp	float	$tmp18	%read{17,170} %write{17,170}
+temp	float	$tmp19	%read{17,170} %write{17,170}
+temp	float	$tmp20	%read{17,170} %write{17,170}
+const	int	$const14	3		%read{50,102} %write{2147483647,-1}
+temp	int	$tmp21	%read{17,170} %write{17,170}
+const	string	$const15	"WorleyNoise"		%read{51,51} %write{2147483647,-1}
+const	int	$const16	1000		%read{52,52} %write{2147483647,-1}
+const	float	$const17	0.5		%read{53,74} %write{2147483647,-1}
+temp	point	$tmp22	%read{17,170} %write{17,170}
+temp	int	$tmp23	%read{17,170} %write{17,170}
+temp	int	$tmp24	%read{17,170} %write{17,170}
+temp	int	$tmp25	%read{17,170} %write{17,170}
+temp	int	$tmp26	%read{17,170} %write{17,170}
+temp	int	$tmp27	%read{17,170} %write{17,170}
+temp	int	$tmp28	%read{17,170} %write{17,170}
+temp	vector	$tmp29	%read{17,170} %write{17,170}
+temp	float	$tmp30	%read{17,170} %write{17,170}
+temp	float	$tmp31	%read{17,170} %write{17,170}
+temp	float	$tmp32	%read{17,170} %write{17,170}
+temp	float	$tmp33	%read{17,170} %write{17,170}
+temp	float	$tmp34	%read{17,170} %write{17,170}
+temp	point	$tmp35	%read{17,170} %write{17,170}
+temp	int	$tmp36	%read{17,170} %write{17,170}
+temp	int	$tmp37	%read{17,170} %write{17,170}
+temp	float	$tmp38	%read{17,170} %write{17,170}
+temp	float	$tmp39	%read{17,170} %write{17,170}
+temp	float	$tmp40	%read{17,170} %write{17,170}
+temp	float	$tmp41	%read{17,170} %write{17,170}
+temp	float	$tmp42	%read{17,170} %write{17,170}
+temp	float	$tmp43	%read{17,170} %write{17,170}
+temp	float	$tmp44	%read{17,170} %write{17,170}
+temp	int	$tmp45	%read{17,170} %write{17,170}
+temp	float	$tmp46	%read{17,170} %write{17,170}
+temp	float	$tmp47	%read{17,170} %write{17,170}
+temp	float	$tmp48	%read{17,170} %write{17,170}
+temp	float	$tmp49	%read{17,170} %write{17,170}
+temp	int	$tmp50	%read{17,170} %write{17,170}
+temp	float	$tmp51	%read{17,170} %write{17,170}
+temp	float	$tmp52	%read{17,170} %write{17,170}
+temp	float	$tmp53	%read{17,170} %write{17,170}
+temp	float	$tmp54	%read{17,170} %write{17,170}
+temp	float	$tmp55	%read{17,170} %write{17,170}
+temp	float	$tmp56	%read{17,170} %write{17,170}
+temp	float	$tmp57	%read{17,170} %write{17,170}
+temp	float	$tmp58	%read{17,170} %write{17,170}
+temp	float	$tmp59	%read{17,170} %write{17,170}
+temp	float	$tmp60	%read{17,170} %write{17,170}
+const	int	$const18	4		%read{115,115} %write{2147483647,-1}
+temp	int	$tmp61	%read{17,170} %write{17,170}
+temp	float	$tmp62	%read{17,170} %write{17,170}
+temp	float	$tmp63	%read{17,170} %write{17,170}
+temp	float	$tmp64	%read{17,170} %write{17,170}
+temp	float	$tmp65	%read{17,170} %write{17,170}
+temp	float	$tmp66	%read{17,170} %write{17,170}
+temp	float	$tmp67	%read{17,170} %write{17,170}
+temp	float	$tmp68	%read{17,170} %write{17,170}
+temp	float	$tmp69	%read{17,170} %write{17,170}
+temp	float	$tmp70	%read{17,170} %write{17,170}
+temp	float	$tmp71	%read{17,170} %write{17,170}
+temp	float	$tmp72	%read{17,170} %write{17,170}
+temp	int	$tmp73	%read{17,170} %write{17,170}
+temp	int	$tmp74	%read{2147483647,-1} %write{17,170}
+temp	int	$tmp75	%read{2147483647,-1} %write{17,170}
+temp	int	$tmp76	%read{2147483647,-1} %write{17,170}
+const	float	$const19	1.41419995		%read{143,143} %write{2147483647,-1}
+temp	float	$tmp77	%read{17,170} %write{17,170}
+temp	int	$tmp78	%read{17,170} %write{17,170}
+temp	float	$tmp79	%read{17,170} %write{17,170}
+temp	int	$tmp80	%read{17,170} %write{17,170}
+temp	float	$tmp81	%read{17,170} %write{17,170}
+temp	float	$tmp82	%read{17,170} %write{17,170}
+temp	int	$tmp83	%read{17,170} %write{17,170}
+temp	float	$tmp84	%read{17,170} %write{17,170}
+temp	int	$tmp85	%read{17,170} %write{17,170}
+temp	int	$tmp86	%read{2147483647,-1} %write{17,170}
+temp	float	$tmp87	%read{173,173} %write{172,172}
+code UVW
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:97
+# 	point  UVW    = transform("object", P)
+	functioncall	$const2 2 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl"} %line{97} %argrw{"r"}
+# /opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h:285
+# point  transform (string to, point p)  { return transform("common",to,p); }
+	transform	UVW $const3 $const1 P 	%filename{"/opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h"} %line{285} %argrw{"wrrr"}
+code ___main___
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:186
+# 	point pnt = UVW / Scale;
+	div		pnt UVW Scale 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl"} %line{186} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:188
+# 	float sum = 0;
+	assign		sum $const4 	%line{188} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:189
+# 	float curFreq  = 1.0;
+	assign		curFreq $const5 	%line{189} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:190
+# 	float curAmp   = 1.0;
+	assign		curAmp $const5 	%line{190} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:191
+# 	float curPhase = Phase;
+	assign		curPhase Phase 	%line{191} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:193
+# 	float curDistFreq = LayerDistScale;
+	assign		curDistFreq LayerDistScale 	%line{193} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:195
+# 	float result = 0.0, lastResult = 1.0;
+	assign		result $const6 	%line{195} %argrw{"wr"}
+	assign		lastResult $const5 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:197
+# 	point cellpoint = 0;
+	assign		cellpoint $const4 	%line{197} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:199
+# 	if (Mode > 0)
+	gt		$tmp1 Mode $const4 	%line{199} %argrw{"wrr"}
+	if		$tmp1 15 15 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:201
+# 		sum = 1.0;
+	assign		sum $const5 	%line{201} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:202
+# 		result = 1.0;
+	assign		result $const5 	%line{202} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:206
+# 	for (int i = 0; i < Iterations; i++)
+	for		$tmp3 17 19 169 171 	%line{206} %argrw{"r"}
+	assign		___339_i $const4 	%argrw{"wr"}
+	lt		$tmp2 ___339_i Iterations 	%argrw{"wrr"}
+	neq		$tmp3 $tmp2 $const4 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:211
+# 		float ns = 0.0;
+	assign		___340_ns $const6 	%line{211} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:213
+# 		point noisePoint = pnt * curFreq;
+	mul		___340_noisePoint pnt curFreq 	%line{213} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:216
+# 		if (LayerDistort)
+	if		LayerDistort 27 27 	%line{216} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:221
+# 			point distort = noise("perlin", pnt * curDistFreq, curPhase);
+	mul		$tmp4 pnt curDistFreq 	%line{221} %argrw{"wrr"}
+	noise		___341_distort $const7 $tmp4 curPhase 	%argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:222
+# 			noisePoint += distort * LayerDistAmount;
+	mul		$tmp5 ___341_distort LayerDistAmount 	%line{222} %argrw{"wrr"}
+	add		___340_noisePoint ___340_noisePoint $tmp5 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:223
+# 			curDistFreq *= LayerDistRatio;
+	mul		curDistFreq curDistFreq LayerDistRatio 	%line{223} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:226
+# 		if (Type == -1)		
+	eq		$tmp6 Type $const8 	%line{226} %argrw{"wrr"}
+	if		$tmp6 32 145 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:227
+# 			ns = noise("usimplex", noisePoint, curPhase + i);
+	assign		$tmp8 ___339_i 	%line{227} %argrw{"wr"}
+	add		$tmp7 curPhase $tmp8 	%argrw{"wrr"}
+	noise		___340_ns $const9 ___340_noisePoint $tmp7 	%argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:228
+# 		else if (Type == 0)
+	eq		$tmp9 Type $const4 	%line{228} %argrw{"wrr"}
+	if		$tmp9 37 145 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:229
+# 			ns = noise("uperlin", noisePoint, curPhase + i);
+	assign		$tmp11 ___339_i 	%line{229} %argrw{"wr"}
+	add		$tmp10 curPhase $tmp11 	%argrw{"wrr"}
+	noise		___340_ns $const10 ___340_noisePoint $tmp10 	%argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:230
+# 		else if (Type == 1)
+	eq		$tmp12 Type $const11 	%line{230} %argrw{"wrr"}
+	if		$tmp12 43 145 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:231
+# 			ns = fabs(noise("perlin", noisePoint, curPhase + i)); 
+	assign		$tmp15 ___339_i 	%line{231} %argrw{"wr"}
+	add		$tmp14 curPhase $tmp15 	%argrw{"wrr"}
+	noise		$tmp13 $const7 ___340_noisePoint $tmp14 	%argrw{"wrrr"}
+	fabs		___340_ns $tmp13 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:232
+# 		else if (Type == 2)
+	eq		$tmp16 Type $const12 	%line{232} %argrw{"wrr"}
+	if		$tmp16 48 145 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:233
+# 			ns = noise("cell", noisePoint, curPhase + i);
+	assign		$tmp18 ___339_i 	%line{233} %argrw{"wr"}
+	add		$tmp17 curPhase $tmp18 	%argrw{"wrr"}
+	noise		___340_ns $const13 ___340_noisePoint $tmp17 	%argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:235
+# 			ns = WorleyNoise(noisePoint, curPhase + i, Type - 3, WorleyPower, WorleyJitter, cellpoint);
+	assign		$tmp20 ___339_i 	%line{235} %argrw{"wr"}
+	add		$tmp19 curPhase $tmp20 	%argrw{"wrr"}
+	sub		$tmp21 Type $const14 	%argrw{"wrr"}
+	functioncall	$const15 145 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:12
+# 	float  closestdist = 1000;
+	assign		___325_closestdist $const16 	%line{12} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:13
+# 	point  cellpnt = floor(pnt+0.5);		
+	add		$tmp22 ___340_noisePoint $const17 	%line{13} %argrw{"wrr"}
+	floor		___325_cellpnt $tmp22 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:14
+# 	vector offset  = pnt - cellpnt;
+	sub		___325_offset ___340_noisePoint ___325_cellpnt 	%line{14} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:16
+# 	for (int x = -1; x <= 1; x++)		
+	for		$tmp24 58 60 141 143 	%line{16} %argrw{"r"}
+	assign		___326_x $const8 	%argrw{"wr"}
+	le		$tmp23 ___326_x $const11 	%argrw{"wrr"}
+	neq		$tmp24 $tmp23 $const4 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:18
+# 		for (int y = -1; y <= 1; y++)		
+	for		$tmp26 62 64 139 141 	%line{18} %argrw{"r"}
+	assign		___328_y $const8 	%argrw{"wr"}
+	le		$tmp25 ___328_y $const11 	%argrw{"wrr"}
+	neq		$tmp26 $tmp25 $const4 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:20
+# 			for (int z = -1; z <= 1; z++)		
+	for		$tmp28 66 68 137 139 	%line{20} %argrw{"r"}
+	assign		___330_z $const8 	%argrw{"wr"}
+	le		$tmp27 ___330_z $const11 	%argrw{"wrr"}
+	neq		$tmp28 $tmp27 $const4 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:22
+# 				point  base    = cellpnt + vector(x,y,z);	
+	assign		$tmp30 ___326_x 	%line{22} %argrw{"wr"}
+	assign		$tmp31 ___328_y 	%argrw{"wr"}
+	assign		$tmp32 ___330_z 	%argrw{"wr"}
+	vector		$tmp29 $tmp30 $tmp31 $tmp32 	%argrw{"wrrr"}
+	add		___331_base ___325_cellpnt $tmp29 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:23
+# 				float  distort = cellnoise(base, phase) - 0.5;
+	cellnoise	$tmp33 ___331_base $tmp19 	%line{23} %argrw{"wrr"}
+	sub		___331_distort $tmp33 $const17 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:28
+# 				vector dist = pnt - (base + distort * jitter); 
+	mul		$tmp34 ___331_distort WorleyJitter 	%line{28} %argrw{"wrr"}
+	add		$tmp35 ___331_base $tmp34 	%argrw{"wrr"}
+	sub		___331_dist ___340_noisePoint $tmp35 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:30
+# 				float d = 0.0;
+	assign		___331_d $const6 	%line{30} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:37
+# 				if (mode == 0) 
+	eq		$tmp36 $tmp21 $const4 	%line{37} %argrw{"wrr"}
+	if		$tmp36 82 132 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:40
+# 					d = dot(dist, dist);
+	dot		___331_d ___331_dist ___331_dist 	%line{40} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:44
+# 				else if (mode == 1) // "Manhattan"
+	eq		$tmp37 $tmp21 $const11 	%line{44} %argrw{"wrr"}
+	if		$tmp37 92 132 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:46
+# 					d = abs(dist[0]) + abs(dist[1]) + abs(dist[2]);
+	compref		$tmp39 ___331_dist $const4 	%line{46} %argrw{"wrr"}
+	abs		$tmp38 $tmp39 	%argrw{"wr"}
+	compref		$tmp41 ___331_dist $const11 	%argrw{"wrr"}
+	abs		$tmp40 $tmp41 	%argrw{"wr"}
+	add		$tmp42 $tmp38 $tmp40 	%argrw{"wrr"}
+	compref		$tmp44 ___331_dist $const12 	%argrw{"wrr"}
+	abs		$tmp43 $tmp44 	%argrw{"wr"}
+	add		___331_d $tmp42 $tmp43 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:48
+# 				else if (mode == 2) // "Chebychev"
+	eq		$tmp45 $tmp21 $const12 	%line{48} %argrw{"wrr"}
+	if		$tmp45 102 132 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:50
+# 					float x = abs(dist[0]);
+	compref		$tmp46 ___331_dist $const4 	%line{50} %argrw{"wrr"}
+	abs		___334_x $tmp46 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:51
+# 					float y = abs(dist[1]);
+	compref		$tmp47 ___331_dist $const11 	%line{51} %argrw{"wrr"}
+	abs		___334_y $tmp47 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:52
+# 					float z = abs(dist[2]);
+	compref		$tmp48 ___331_dist $const12 	%line{52} %argrw{"wrr"}
+	abs		___334_z $tmp48 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:53
+# 					d = max(z,max(x,y));
+	max		$tmp49 ___334_x ___334_y 	%line{53} %argrw{"wrr"}
+	max		___331_d ___334_z $tmp49 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:55
+# 				else if (mode == 3)  // "Minkowski 0.5"
+	eq		$tmp50 $tmp21 $const14 	%line{55} %argrw{"wrr"}
+	if		$tmp50 115 132 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:57
+# 					d = sqrt(abs(dist[0])) + sqrt(abs(dist[1])) + sqrt(abs(dist[2]));	
+	compref		$tmp53 ___331_dist $const4 	%line{57} %argrw{"wrr"}
+	abs		$tmp52 $tmp53 	%argrw{"wr"}
+	sqrt		$tmp51 $tmp52 	%argrw{"wr"}
+	compref		$tmp56 ___331_dist $const11 	%argrw{"wrr"}
+	abs		$tmp55 $tmp56 	%argrw{"wr"}
+	sqrt		$tmp54 $tmp55 	%argrw{"wr"}
+	add		$tmp57 $tmp51 $tmp54 	%argrw{"wrr"}
+	compref		$tmp60 ___331_dist $const12 	%argrw{"wrr"}
+	abs		$tmp59 $tmp60 	%argrw{"wr"}
+	sqrt		$tmp58 $tmp59 	%argrw{"wr"}
+	add		___331_d $tmp57 $tmp58 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:59
+# 				else if (mode == 4)  // "Minkowski 4"
+	eq		$tmp61 $tmp21 $const18 	%line{59} %argrw{"wrr"}
+	if		$tmp61 132 132 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:61
+# 					float x = dist[0]*dist[0];
+	compref		$tmp62 ___331_dist $const4 	%line{61} %argrw{"wrr"}
+	compref		$tmp63 ___331_dist $const4 	%argrw{"wrr"}
+	mul		___336_x $tmp62 $tmp63 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:62
+# 					float y = dist[1]*dist[1];
+	compref		$tmp64 ___331_dist $const11 	%line{62} %argrw{"wrr"}
+	compref		$tmp65 ___331_dist $const11 	%argrw{"wrr"}
+	mul		___336_y $tmp64 $tmp65 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:63
+# 					float z = dist[2]*dist[2];				
+	compref		$tmp66 ___331_dist $const12 	%line{63} %argrw{"wrr"}
+	compref		$tmp67 ___331_dist $const12 	%argrw{"wrr"}
+	mul		___336_z $tmp66 $tmp67 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:64
+# 					d = sqrt(x*x + y*y + z*z);
+	mul		$tmp68 ___336_x ___336_x 	%line{64} %argrw{"wrr"}
+	mul		$tmp69 ___336_y ___336_y 	%argrw{"wrr"}
+	add		$tmp70 $tmp68 $tmp69 	%argrw{"wrr"}
+	mul		$tmp71 ___336_z ___336_z 	%argrw{"wrr"}
+	add		$tmp72 $tmp70 $tmp71 	%argrw{"wrr"}
+	sqrt		___331_d $tmp72 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:71
+# 				d = pow(d, power);
+	pow		___331_d ___331_d WorleyPower 	%line{71} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:74
+# 				if (d < closestdist) 
+	lt		$tmp73 ___331_d ___325_closestdist 	%line{74} %argrw{"wrr"}
+	if		$tmp73 137 137 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:76
+# 					closestpoint = base;
+	assign		cellpoint ___331_base 	%line{76} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:77
+# 					closestdist  = d;
+	assign		___325_closestdist ___331_d 	%line{77} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:20
+# 			for (int z = -1; z <= 1; z++)		
+	assign		$tmp74 ___330_z 	%line{20} %argrw{"wr"}
+	add		___330_z ___330_z $const11 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:18
+# 		for (int y = -1; y <= 1; y++)		
+	assign		$tmp75 ___328_y 	%line{18} %argrw{"wr"}
+	add		___328_y ___328_y $const11 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:16
+# 	for (int x = -1; x <= 1; x++)		
+	assign		$tmp76 ___326_x 	%line{16} %argrw{"wr"}
+	add		___326_x ___326_x $const11 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:85
+# 	return 1.0 - closestdist / 1.4142;
+	div		$tmp77 ___325_closestdist $const19 	%line{85} %argrw{"wrr"}
+	sub		___340_ns $const5 $tmp77 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:237
+# 		if (LayerStepFunction)
+	if		LayerStepFunction 147 147 	%line{237} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:238
+# 			ns = smoothstep(LayerLowStep, LayerHiStep, ns);
+	smoothstep	___340_ns LayerLowStep LayerHiStep ___340_ns 	%line{238} %argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:240
+# 		if (Mode == 0)
+	eq		$tmp78 Mode $const4 	%line{240} %argrw{"wrr"}
+	if		$tmp78 152 163 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:243
+# 			result += ns * curAmp;
+	mul		$tmp79 ___340_ns curAmp 	%line{243} %argrw{"wrr"}
+	add		result result $tmp79 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:245
+# 			sum += curAmp;
+	add		sum sum curAmp 	%line{245} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:247
+# 		else if (Mode == 1)
+	eq		$tmp80 Mode $const11 	%line{247} %argrw{"wrr"}
+	if		$tmp80 158 163 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:250
+# 			result += ns * curAmp * lastResult;
+	mul		$tmp81 ___340_ns curAmp 	%line{250} %argrw{"wrr"}
+	mul		$tmp82 $tmp81 lastResult 	%argrw{"wrr"}
+	add		result result $tmp82 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:252
+# 			sum += curAmp;
+	add		sum sum curAmp 	%line{252} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:254
+# 		else if (Mode == 2)
+	eq		$tmp83 Mode $const12 	%line{254} %argrw{"wrr"}
+	if		$tmp83 163 163 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:257
+# 			result *= (ns * curAmp);
+	mul		$tmp84 ___340_ns curAmp 	%line{257} %argrw{"wrr"}
+	mul		result result $tmp84 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:259
+# 			sum *= (curAmp);
+	mul		sum sum curAmp 	%line{259} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:263
+# 		lastResult = ns;
+	assign		lastResult ___340_ns 	%line{263} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:266
+# 		curFreq *= Lacunarity;
+	mul		curFreq curFreq Lacunarity 	%line{266} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:267
+# 		curAmp  *= Gain;		
+	mul		curAmp curAmp Gain 	%line{267} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:269
+# 		if (i == 0)
+	eq		$tmp85 ___339_i $const4 	%line{269} %argrw{"wrr"}
+	if		$tmp85 169 169 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:271
+# 			CellCenter = cellpoint;
+	assign		CellCenter cellpoint 	%line{271} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:206
+# 	for (int i = 0; i < Iterations; i++)
+	assign		$tmp86 ___339_i 	%line{206} %argrw{"wr"}
+	add		___339_i ___339_i $const11 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:275
+# 	if (Normalize)
+	if		Normalize 174 175 	%line{275} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:276
+# 		result /= sum / Amplitude;
+	div		$tmp87 sum Amplitude 	%line{276} %argrw{"wrr"}
+	div		result result $tmp87 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:278
+# 		result *= Amplitude;
+	mul		result result Amplitude 	%line{278} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:280
+# 	if (OutputStepFunction)
+	if		OutputStepFunction 177 177 	%line{280} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:281
+# 		result = smoothstep(OutputLowStep, OutputHiStep, result);
+	smoothstep	result OutputLowStep OutputHiStep result 	%line{281} %argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:284
+# 	Float = result;
+	assign		Float result 	%line{284} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:285
+# 	Color = mix(A, B, result);
+	mix		Color A B result 	%line{285} %argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxUberNoise.osl:286
+# 	CellRandomness = noise(CellCenter);
+	noise		CellRandomness CellCenter 	%line{286} %argrw{"wr"}
+	end

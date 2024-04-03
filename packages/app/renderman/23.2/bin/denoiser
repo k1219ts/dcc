@@ -1,0 +1,206 @@
+#!/usr/bin/python2.7
+
+import os
+import sys
+import string
+import argparse
+
+class Main:
+    def __init__(self, opts, inputfile):
+        self.opts     = opts
+        self.inputfile= inputfile
+        self.rversion = os.getenv('RMAN_VER')
+        self.seqRule  = '%04d'
+        self.seqRuleList = ['%04d', '%05d', '%06d', '####', '#####', '######']
+
+        self.getOverrideOptions()   # self.overrideOptions
+        self.doIt()
+
+    def getSkipOption(self, key):
+        '''
+        Args:
+            key (str) - F or L
+        '''
+        skipMap = {
+            '21.7': {
+                'F': '--skipfirst 1', 'L': '--skiplast 1'
+            },
+            '22.0': {
+                'F': '--skipfirst', 'L': '--skiplast'
+            },
+            '23.0': {
+                'F': '--skipfirst', 'L': '--skiplast'
+            }
+        }
+        ver = self.rversion
+        if not skipMap.has_key(ver):
+            ver = ver.split('.')[0] + '.0'
+        if not skipMap.has_key(ver):
+            assert False, '# msg : Not support this version.'
+        return skipMap[ver][key]
+
+    def getFrameFile(self, input, frame):
+        if input.find(self.seqRule) > -1:
+            if self.seqRule.find('#') > -1:
+                seqRule = '%0' + str(len(self.seqRule)) + 'd'
+                input = input.replace(self.seqRule, seqRule)
+            return input % frame
+        else:
+            return input
+
+    def getDigitFrame(self, frame):
+        seqRule = self.seqRule
+        if self.seqRule.find('#') > -1:
+            seqRule = '%0' + str(len(self.seqRule)) + 'd'
+        return seqRule % frame
+
+    def getCrossFrame(self, f1, f2, f3):
+        fopt = self.getDigitFrame(f1) + ','
+        fopt+= self.getDigitFrame(f2) + ','
+        fopt+= self.getDigitFrame(f3)
+        return fopt
+
+
+    def doIt(self):
+        if self.opts.frame:
+            splitStr = self.inputfile.split('.')
+            if splitStr[-2] in self.seqRuleList:
+                self.seqRule = splitStr[-2]
+            else:
+                assert False, '# msg : inputfile convention error.'
+        else:
+            baseName = os.path.basename(self.inputfile)
+            splitStr = baseName.split('.')
+            if len(splitStr) >= 3:
+                self.opts.frame = int(splitStr[-2])
+
+        # filter asbpath
+        configPath = os.getenv('DENOISE_CONFIG_PATH')
+        if configPath:
+            self.opts.filter = os.path.join(configPath, self.opts.filter)
+            self.opts.filter = self.opts.filter.replace('.json', '.js')
+            if not os.path.exists(self.opts.filter):
+                assert False, '# msg: not found filter -> %s' % self.opts.filter
+
+        if self.opts.crossframe:
+            self.Crossframe()
+        else:
+            self.Frame()
+
+    def getOverrideOptions(self):
+        overrides = list()
+        if self.opts.gpu:
+            overrides += ['gpuIndex', '0']
+        if self.opts.filter.find('volume') == -1:
+            overrides += ['filterbanks.*.strength', str(self.opts.strength)]
+        if overrides:
+            overrides.insert(0, '--override')
+            overrides.insert(len(overrides), '--')
+        self.overrideOptions = overrides
+
+
+    def Crossframe(self):
+        frame = self.opts.frame
+
+        splitStr = self.inputfile.split('.')
+        if not splitStr[-2] in self.seqRuleList:
+            self.seqRule = '%0' + str(len(splitStr[-2])) + 'd'
+            splitStr[-2] = self.seqRule
+        inputfile = '.'.join(splitStr)
+
+        before = os.path.exists(self.getFrameFile(inputfile, frame-1))
+        current= os.path.exists(self.getFrameFile(inputfile, frame))
+        next   = os.path.exists(self.getFrameFile(inputfile, frame+1))
+
+        if before and next:             # center frame -> skip first and last
+            skipOption = '%s %s' % (self.getSkipOption('F'), self.getSkipOption('L'))
+            frameOption= self.getCrossFrame(frame-1, frame, frame+1)
+        else:
+            if not before and next:     # first frame -> skip last
+                skipOption  = self.getSkipOption('L')
+                frameOption = self.getCrossFrame(frame, frame+1, frame+2)
+            elif not next and before:   # last frame -> skip first
+                skipOption  = self.getSkipOption('F')
+                frameOption = self.getCrossFrame(frame-2, frame-1, frame)
+            else:
+                frameOption = None
+
+        if not frameOption:
+            assert False, '# msg : frame error.'
+
+        command = ['denoise', '-v', 'variance', '--crossframe', skipOption, '-f', self.opts.filter]
+        command+= self.overrideOptions
+
+        if self.opts.varianceimage:
+            varianceimage = self.opts.varianceimage
+            if varianceimage.find(self.seqRule) == -1:
+                splitStr = varianceimage.split('.')
+                splitStr[-2] = '{%s}' % frameOption
+                varianceimage= '.'.join(splitStr)
+            else:
+                varianceimage= varianceimage.replace(self.seqRule, '{%s}' % frameOption)
+            command.append(varianceimage)
+
+        command.append(inputfile.replace(self.seqRule, '{%s}' % frameOption))
+
+        strcmd = string.join(command, ' ')
+        print '# command :', strcmd
+        os.system(strcmd)
+
+
+    def Frame(self):
+        command = ['denoise', '-f', self.opts.filter]
+        command+= self.overrideOptions
+
+        if self.opts.varianceimage:
+            varianceimage = self.getFrameFile(self.opts.varianceimage, self.opts.frame)
+            command.append(varianceimage)
+
+        inputfile = self.getFrameFile(self.inputfile, self.opts.frame)
+        command.append(inputfile)
+
+        strcmd = string.join(command, ' ')
+        print '# command :', strcmd
+        os.system(strcmd)
+
+def GetVarianceFile(inputfile):
+    dirname  = os.path.dirname(inputfile)
+    basename = os.path.basename(inputfile)
+
+    splitStr = basename.split('.')
+    if not '_variance' in splitStr[0]:
+        newStr = [splitStr[0] + '_variance']
+        newStr+= splitStr[-2:]
+        basename = '.'.join(newStr)
+        return os.path.join(dirname, basename)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='RenderMan23 Denoiser')
+    parser.add_argument('-f', dest='filter', type=str, default='default.filter.json',
+        help='Default: default.filter.json, Example: default.filter.json, volume.filter.json, sigmaAlphaOnly.filter.json')
+    parser.add_argument('-s', '--strength', type=float, default=0.4,
+        help='Default: 0.5 , Type: float , Example: 0.2')
+    parser.add_argument('-c', '--crossframe', action='store_true',
+        help='Default: False , Option: store_true')
+    parser.add_argument('--frame', type=int, default=0,
+        help='Default: 0 , Type: int , Example: 1001')
+    parser.add_argument('-g', '--gpu', action='store_true',
+        help='Default: False , Option: store_true')
+
+    args, unknown = parser.parse_known_args()
+    args.varianceimage = ''
+    inputfile = sys.argv[-1]
+
+    if len(unknown) > 2:
+        args.varianceimage = unknown[0]
+    else:
+        varfile = GetVarianceFile(inputfile)
+        if varfile:
+            args.varianceimage = varfile
+
+    if inputfile.split('.')[-1] != 'exr':
+        print '[ERROR] : Wrong arguments!'
+        os._exit(0)
+
+    cc = Main(args, inputfile)

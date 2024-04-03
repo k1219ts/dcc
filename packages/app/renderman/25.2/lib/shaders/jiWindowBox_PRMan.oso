@@ -1,0 +1,645 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.11.0@OPROJECT_VERSION_RELEASE_TYPE@
+# options: -v -o /WORK_DATA/develop/dcc/packages/app/renderman/25.2/lib/shaders/jiWindowBox_PRMan.oso -I/opt/pixar/RenderManProServer-25.2/include -I/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl
+shader jiWindowBox_PRMan
+param	float	s	0		%meta{int,lockgeom,0}  %read{36,41} %write{2147483647,-1} %derivs
+param	float	t	0		%meta{int,lockgeom,0}  %read{36,41} %write{2147483647,-1} %derivs
+param	string	filename	""		%meta{string,widget,"filename"}  %read{234,246} %write{2147483647,-1}
+param	int	textureFlip	0		%meta{string,widget,"boolean"}  %read{15,218} %write{2147483647,-1} %derivs
+param	int	textureFlop	0		%meta{string,widget,"boolean"}  %read{20,205} %write{2147483647,-1} %derivs
+param	float	roomDepth	1		%meta{float,min,0.100000001} %meta{float,max,100}  %read{1,1} %write{2147483647,-1} %derivs
+param	float	widthOverscan	0		%meta{float,min,0} %meta{float,max,0.899999976}  %read{8,8} %write{2147483647,-1} %derivs
+param	float	heightOverscan	0		%meta{float,min,0} %meta{float,max,0.899999976}  %read{4,4} %write{2147483647,-1} %derivs
+param	int	enableMidground	0		%meta{string,widget,"boolean"}  %read{235,235} %write{2147483647,-1}
+param	float	midgroundDepth	0.5		%meta{float,min,0.0500000007} %meta{float,max,99}  %read{13,13} %write{2147483647,-1} %derivs
+param	float	midgroundOffsetX	0		%read{23,23} %write{2147483647,-1} %derivs
+param	float	midgroundOffsetY	0		%read{18,18} %write{2147483647,-1} %derivs
+param	int	enableCurtains	0		%meta{string,widget,"boolean"}  %read{242,242} %write{2147483647,-1}
+oparam	color	outRGB	0 0 0		%read{2147483647,-1} %write{248,248}
+global	vector	I	%read{25,25} %write{2147483647,-1} %derivs
+local	float	roomDepthMult	%read{11,151} %write{2,2} %derivs
+local	float	heightOverscanMult	%read{34,44} %write{6,6} %derivs
+local	float	widthOverscanMult	%read{34,44} %write{10,10} %derivs
+local	float	midgroundDepthMult	%read{56,169} %write{14,14} %derivs
+local	float	midgroundOffY	%read{187,187} %write{19,19} %derivs
+local	float	midgroundOffX	%read{187,187} %write{24,24} %derivs
+local	vector	objI	%read{28,165} %write{27,35} %derivs
+local	color	objPOrig	%read{196,196} %write{40,40} %derivs
+local	color	objP	%read{50,167} %write{47,47} %derivs
+local	vector	sections	%read{50,142} %write{49,49} %derivs
+local	color	baseDepth	%read{61,66} %write{53,53} %derivs
+local	color	mgDepth	%read{2147483647,-1} %write{57,57}
+local	color	baseBack	%read{146,164} %write{60,60} %derivs
+local	color	baseWidth	%read{70,74} %write{61,61} %derivs
+local	color	baseDepthX	%read{84,84} %write{65,65} %derivs
+local	color	baseDepthY	%read{78,78} %write{69,69} %derivs
+local	color	baseWidthX	%read{80,80} %write{73,73} %derivs
+local	color	baseWidthY	%read{82,82} %write{77,77} %derivs
+local	float	horizU	%read{86,158} %write{79,79} %derivs
+local	float	vertU	%read{117,122} %write{81,81} %derivs
+local	float	horizV	%read{87,92} %write{83,83} %derivs
+local	float	vertV	%read{116,159} %write{85,85} %derivs
+local	float	sideWallsMask	%read{98,111} %write{91,91} %derivs
+local	color	sideWallsUV	%read{97,103} %write{93,93} %derivs
+local	color	rWallUV	%read{202,202} %write{100,100} %derivs
+local	color	lWallUV	%read{109,203} %write{107,115} %derivs
+local	float	FloorCeilMask	%read{128,141} %write{121,121} %derivs
+local	color	FloorCeilUV	%read{127,133} %write{123,123} %derivs
+local	color	ceilUV	%read{201,201} %write{130,130} %derivs
+local	color	floorUV	%read{139,201} %write{137,145} %derivs
+local	color	backWallUV	%read{204,204} %write{162,162} %derivs
+local	color	midgroundUV	%read{173,238} %write{172,227} %derivs
+local	float	midgroundMask	%read{189,189} %write{186,186} %derivs
+local	color	curtainsUV	%read{198,245} %write{196,231} %derivs
+local	color	finalUV	%read{215,233} %write{204,222} %derivs
+local	color	roomRGB	%read{240,241} %write{234,234}
+local	color	finalRGB	%read{247,248} %write{240,247}
+local	float	___327_midgroundA	%read{240,240} %write{239,239}
+local	color	___327_midgroundRGB	%read{240,240} %write{239,239}
+local	float	___329_curtainsA	%read{247,247} %write{246,246}
+local	color	___329_curtainsRGB	%read{247,247} %write{246,246}
+const	float	$const1	0.100000001		%read{2,24} %write{2147483647,-1}
+const	float	$const3	100		%read{1,1} %write{2147483647,-1}
+const	string	$const4	"clamp"		%read{0,12} %write{2147483647,-1}
+temp	float	$tmp1	%read{2,2} %write{1,1} %derivs
+const	int	$const5	1		%read{16,245} %write{2147483647,-1}
+temp	float	$tmp2	%read{6,6} %write{5,5} %derivs
+const	int	$const6	0		%read{28,244} %write{2147483647,-1}
+const	float	$const7	0		%read{5,187} %write{2147483647,-1}
+const	float	$const8	0.899999976		%read{4,8} %write{2147483647,-1}
+temp	float	$tmp3	%read{5,5} %write{4,4} %derivs
+const	float	$const9	1		%read{6,228} %write{2147483647,-1}
+temp	float	$tmp4	%read{10,10} %write{9,9} %derivs
+temp	float	$tmp5	%read{9,9} %write{8,8} %derivs
+const	float	$const10	0.0500000007		%read{14,14} %write{2147483647,-1}
+const	float	$const11	0.00999999978		%read{11,11} %write{2147483647,-1}
+temp	float	$tmp6	%read{13,13} %write{11,11} %derivs
+temp	float	$tmp7	%read{14,14} %write{13,13} %derivs
+const	int	$const12	2		%read{15,164} %write{2147483647,-1}
+temp	int	$tmp8	%read{16,16} %write{15,15} %derivs
+temp	int	$tmp9	%read{17,17} %write{16,16} %derivs
+temp	float	$tmp10	%read{19,19} %write{18,18} %derivs
+temp	float	$tmp11	%read{18,18} %write{17,17} %derivs
+temp	int	$tmp12	%read{21,21} %write{20,20} %derivs
+temp	int	$tmp13	%read{22,22} %write{21,21} %derivs
+temp	float	$tmp14	%read{24,24} %write{23,23} %derivs
+temp	float	$tmp15	%read{23,23} %write{22,22} %derivs
+const	string	$const13	"object"		%read{27,27} %write{2147483647,-1}
+temp	vector	$tmp16	%read{27,27} %write{25,25} %derivs
+const	string	$const14	"transform"		%read{26,26} %write{2147483647,-1}
+const	string	$const15	"common"		%read{27,27} %write{2147483647,-1}
+temp	vector	$tmp17	%read{35,35} %write{33,33} %derivs
+temp	float	$tmp18	%read{29,29} %write{28,28} %derivs
+temp	float	$tmp19	%read{33,33} %write{29,29} %derivs
+temp	float	$tmp20	%read{33,33} %write{30,30} %derivs
+temp	float	$tmp21	%read{32,32} %write{31,31} %derivs
+temp	float	$tmp22	%read{33,33} %write{32,32} %derivs
+temp	color	$tmp23	%read{35,35} %write{34,34} %derivs
+temp	color	$tmp24	%read{37,37} %write{36,36} %derivs
+const	float	$const16	0.5		%read{36,85} %write{2147483647,-1}
+temp	color	$tmp25	%read{38,38} %write{37,37} %derivs
+const	float	$const17	2		%read{37,225} %write{2147483647,-1}
+temp	color	$tmp26	%read{39,39} %write{38,38} %derivs
+temp	color	$tmp27	%read{40,40} %write{39,39} %derivs
+temp	color	$tmp28	%read{42,42} %write{41,41} %derivs
+temp	color	$tmp29	%read{43,43} %write{42,42} %derivs
+temp	color	$tmp30	%read{45,45} %write{43,43} %derivs
+temp	color	$tmp31	%read{45,45} %write{44,44} %derivs
+temp	color	$tmp32	%read{46,46} %write{45,45} %derivs
+temp	color	$tmp33	%read{47,47} %write{46,46} %derivs
+temp	vector	$tmp34	%read{49,49} %write{48,48} %derivs
+temp	color	$tmp35	%read{53,53} %write{50,50} %derivs
+temp	vector	$tmp36	%read{52,52} %write{51,51} %derivs
+temp	vector	$tmp37	%read{53,53} %write{52,52} %derivs
+temp	color	$tmp38	%read{57,57} %write{54,54}
+temp	vector	$tmp39	%read{56,56} %write{55,55}
+temp	vector	$tmp40	%read{57,57} %write{56,56}
+temp	color	$tmp41	%read{60,60} %write{58,58} %derivs
+temp	vector	$tmp42	%read{60,60} %write{59,59} %derivs
+temp	float	$tmp43	%read{63,63} %write{62,62} %derivs
+temp	vector	$tmp44	%read{64,64} %write{63,63} %derivs
+temp	vector	$tmp45	%read{65,65} %write{64,64} %derivs
+temp	float	$tmp46	%read{67,67} %write{66,66} %derivs
+temp	vector	$tmp47	%read{68,68} %write{67,67} %derivs
+temp	vector	$tmp48	%read{69,69} %write{68,68} %derivs
+temp	float	$tmp49	%read{71,71} %write{70,70} %derivs
+temp	vector	$tmp50	%read{72,72} %write{71,71} %derivs
+temp	vector	$tmp51	%read{73,73} %write{72,72} %derivs
+temp	float	$tmp52	%read{75,75} %write{74,74} %derivs
+temp	vector	$tmp53	%read{76,76} %write{75,75} %derivs
+temp	vector	$tmp54	%read{77,77} %write{76,76} %derivs
+temp	float	$tmp55	%read{79,79} %write{78,78} %derivs
+temp	float	$tmp56	%read{81,81} %write{80,80} %derivs
+temp	float	$tmp57	%read{83,83} %write{82,82} %derivs
+temp	float	$tmp58	%read{85,85} %write{84,84} %derivs
+temp	float	$tmp59	%read{91,91} %write{86,86} %derivs
+temp	float	$tmp60	%read{91,91} %write{90,90} %derivs
+temp	float	$tmp61	%read{89,89} %write{88,88} %derivs
+temp	float	$tmp62	%read{88,88} %write{87,87} %derivs
+temp	float	$tmp63	%read{90,90} %write{89,89} %derivs
+temp	color	$tmp64	%read{93,93} %write{92,92} %derivs
+const	float	$const19	3		%read{93,228} %write{2147483647,-1}
+temp	color	$tmp65	%read{97,97} %write{96,96} %derivs
+temp	float	$tmp66	%read{96,96} %write{94,94} %derivs
+temp	float	$tmp67	%read{96,96} %write{95,95} %derivs
+temp	color	$tmp68	%read{98,98} %write{97,97} %derivs
+temp	color	$tmp69	%read{100,100} %write{98,98} %derivs
+temp	float	$tmp70	%read{100,100} %write{99,99} %derivs
+temp	color	$tmp71	%read{103,103} %write{102,102} %derivs
+temp	float	$tmp72	%read{102,102} %write{101,101} %derivs
+temp	color	$tmp73	%read{104,104} %write{103,103} %derivs
+temp	color	$tmp74	%read{107,107} %write{104,104} %derivs
+temp	float	$tmp75	%read{106,106} %write{105,105} %derivs
+temp	float	$tmp76	%read{107,107} %write{106,106} %derivs
+temp	float	$tmp77	%read{110,110} %write{108,108} %derivs
+temp	float	$tmp78	%read{110,110} %write{109,109} %derivs
+temp	float	$tmp79	%read{111,111} %write{110,110} %derivs
+temp	float	$tmp80	%read{114,114} %write{111,111} %derivs
+temp	float	$tmp81	%read{113,113} %write{112,112} %derivs
+temp	float	$tmp82	%read{114,114} %write{113,113} %derivs
+temp	float	$tmp83	%read{115,115} %write{114,114} %derivs
+temp	float	$tmp84	%read{121,121} %write{116,116} %derivs
+temp	float	$tmp85	%read{121,121} %write{120,120} %derivs
+temp	float	$tmp86	%read{119,119} %write{118,118} %derivs
+temp	float	$tmp87	%read{118,118} %write{117,117} %derivs
+temp	float	$tmp88	%read{120,120} %write{119,119} %derivs
+temp	color	$tmp89	%read{123,123} %write{122,122} %derivs
+temp	color	$tmp90	%read{127,127} %write{126,126} %derivs
+temp	float	$tmp91	%read{126,126} %write{124,124} %derivs
+temp	float	$tmp92	%read{126,126} %write{125,125} %derivs
+temp	color	$tmp93	%read{128,128} %write{127,127} %derivs
+temp	color	$tmp94	%read{130,130} %write{128,128} %derivs
+temp	float	$tmp95	%read{130,130} %write{129,129} %derivs
+temp	color	$tmp96	%read{133,133} %write{132,132} %derivs
+temp	float	$tmp97	%read{132,132} %write{131,131} %derivs
+temp	color	$tmp98	%read{134,134} %write{133,133} %derivs
+temp	color	$tmp99	%read{137,137} %write{134,134} %derivs
+temp	float	$tmp100	%read{136,136} %write{135,135} %derivs
+temp	float	$tmp101	%read{137,137} %write{136,136} %derivs
+temp	float	$tmp102	%read{140,140} %write{138,138} %derivs
+temp	float	$tmp103	%read{140,140} %write{139,139} %derivs
+temp	float	$tmp104	%read{141,141} %write{140,140} %derivs
+temp	float	$tmp105	%read{144,144} %write{141,141} %derivs
+temp	float	$tmp106	%read{143,143} %write{142,142} %derivs
+temp	float	$tmp107	%read{144,144} %write{143,143} %derivs
+temp	float	$tmp108	%read{145,145} %write{144,144} %derivs
+temp	float	$tmp109	%read{147,147} %write{146,146} %derivs
+temp	vector	$tmp110	%read{150,150} %write{147,147} %derivs
+temp	color	$tmp111	%read{149,149} %write{148,148} %derivs
+temp	color	$tmp112	%read{150,150} %write{149,149} %derivs
+temp	vector	$tmp113	%read{152,152} %write{150,150} %derivs
+temp	float	$tmp114	%read{152,152} %write{151,151} %derivs
+temp	vector	$tmp115	%read{153,153} %write{152,152} %derivs
+temp	vector	$tmp116	%read{157,157} %write{153,153} %derivs
+temp	color	$tmp117	%read{157,157} %write{156,156} %derivs
+temp	float	$tmp118	%read{156,156} %write{154,154} %derivs
+temp	float	$tmp119	%read{156,156} %write{155,155} %derivs
+temp	vector	$tmp120	%read{162,162} %write{157,157} %derivs
+temp	float	$tmp121	%read{161,161} %write{160,160} %derivs
+temp	float	$tmp122	%read{160,160} %write{158,158} %derivs
+temp	float	$tmp123	%read{160,160} %write{159,159} %derivs
+temp	float	$tmp124	%read{162,162} %write{161,161} %derivs
+temp	float	$tmp125	%read{172,172} %write{163,163} %derivs
+temp	float	$tmp126	%read{165,165} %write{164,164} %derivs
+temp	vector	$tmp127	%read{168,168} %write{165,165} %derivs
+temp	float	$tmp128	%read{167,167} %write{166,166} %derivs
+temp	color	$tmp129	%read{168,168} %write{167,167} %derivs
+temp	vector	$tmp130	%read{170,170} %write{168,168} %derivs
+temp	float	$tmp131	%read{170,170} %write{169,169} %derivs
+temp	vector	$tmp132	%read{171,171} %write{170,170} %derivs
+temp	vector	$tmp133	%read{172,172} %write{171,171} %derivs
+temp	float	$tmp134	%read{186,186} %write{179,179} %derivs
+temp	float	$tmp135	%read{174,174} %write{173,173} %derivs
+temp	float	$tmp136	%read{178,178} %write{174,174} %derivs
+temp	float	$tmp137	%read{176,176} %write{175,175} %derivs
+temp	float	$tmp138	%read{177,177} %write{176,176} %derivs
+temp	float	$tmp139	%read{178,178} %write{177,177} %derivs
+temp	float	$tmp140	%read{179,179} %write{178,178} %derivs
+temp	float	$tmp141	%read{186,186} %write{185,185} %derivs
+temp	float	$tmp142	%read{184,184} %write{180,180} %derivs
+temp	float	$tmp143	%read{183,183} %write{181,181} %derivs
+temp	float	$tmp144	%read{183,183} %write{182,182} %derivs
+temp	float	$tmp145	%read{184,184} %write{183,183} %derivs
+temp	float	$tmp146	%read{185,185} %write{184,184} %derivs
+temp	color	$tmp147	%read{188,188} %write{187,187} %derivs
+temp	color	$tmp148	%read{189,189} %write{188,188} %derivs
+temp	float	$tmp149	%read{191,191} %write{190,190} %derivs
+temp	float	$tmp150	%read{192,192} %write{191,191} %derivs
+temp	color	$tmp151	%read{196,196} %write{195,195} %derivs
+temp	float	$tmp152	%read{195,195} %write{193,193} %derivs
+temp	float	$tmp153	%read{195,195} %write{194,194} %derivs
+temp	float	$tmp154	%read{199,199} %write{197,197} %derivs
+temp	float	$tmp155	%read{199,199} %write{198,198} %derivs
+temp	float	$tmp156	%read{200,200} %write{199,199} %derivs
+temp	color	$tmp157	%read{202,202} %write{201,201} %derivs
+temp	color	$tmp158	%read{203,203} %write{202,202} %derivs
+temp	color	$tmp159	%read{204,204} %write{203,203} %derivs
+temp	int	$tmp160	%read{206,206} %write{205,205}
+temp	float	$tmp161	%read{209,209} %write{207,207} %derivs
+temp	float	$tmp162	%read{209,209} %write{208,208} %derivs
+temp	float	$tmp163	%read{210,210} %write{209,209} %derivs
+temp	float	$tmp164	%read{213,213} %write{211,211} %derivs
+temp	float	$tmp165	%read{213,213} %write{212,212} %derivs
+temp	float	$tmp166	%read{214,214} %write{213,213} %derivs
+temp	float	$tmp167	%read{216,216} %write{215,215} %derivs
+temp	float	$tmp168	%read{217,217} %write{216,216} %derivs
+temp	int	$tmp169	%read{219,219} %write{218,218}
+temp	float	$tmp170	%read{221,221} %write{220,220} %derivs
+temp	float	$tmp171	%read{222,222} %write{221,221} %derivs
+temp	float	$tmp172	%read{224,224} %write{223,223} %derivs
+temp	float	$tmp173	%read{226,226} %write{224,224} %derivs
+temp	float	$tmp174	%read{226,226} %write{225,225} %derivs
+temp	float	$tmp175	%read{227,227} %write{226,226} %derivs
+temp	float	$tmp176	%read{230,230} %write{228,228} %derivs
+temp	float	$tmp177	%read{230,230} %write{229,229} %derivs
+temp	float	$tmp178	%read{231,231} %write{230,230} %derivs
+temp	float	$tmp179	%read{234,234} %write{232,232} %derivs
+temp	float	$tmp180	%read{234,234} %write{233,233} %derivs
+temp	int	$tmp181	%read{236,236} %write{235,235}
+temp	float	$tmp182	%read{239,239} %write{237,237} %derivs
+temp	float	$tmp183	%read{239,239} %write{238,238} %derivs
+const	string	$const20	"alpha"		%read{239,246} %write{2147483647,-1}
+temp	int	$tmp184	%read{243,243} %write{242,242}
+temp	float	$tmp185	%read{246,246} %write{244,244} %derivs
+temp	float	$tmp186	%read{246,246} %write{245,245} %derivs
+code ___main___
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:21
+#     float roomDepthMult = clamp(roomDepth,0.1,100);
+	functioncall	$const4 3 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl"} %line{21} %argrw{"r"}
+# /opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h:163
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp1 roomDepth $const3 	%filename{"/opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h"} %line{163} %argrw{"wrr"}
+	max		roomDepthMult $tmp1 $const1 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:22
+#     float heightOverscanMult = 1 - clamp(heightOverscan,0,0.9);
+	functioncall	$const4 6 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl"} %line{22} %argrw{"r"}
+# /opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h:163
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp3 heightOverscan $const8 	%filename{"/opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h"} %line{163} %argrw{"wrr"}
+	max		$tmp2 $tmp3 $const7 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:22
+#     float heightOverscanMult = 1 - clamp(heightOverscan,0,0.9);
+	sub		heightOverscanMult $const9 $tmp2 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl"} %line{22} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:23
+#     float widthOverscanMult = 1 - clamp(widthOverscan,0,0.9); 
+	functioncall	$const4 10 	%line{23} %argrw{"r"}
+# /opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h:163
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp5 widthOverscan $const8 	%filename{"/opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h"} %line{163} %argrw{"wrr"}
+	max		$tmp4 $tmp5 $const7 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:23
+#     float widthOverscanMult = 1 - clamp(widthOverscan,0,0.9); 
+	sub		widthOverscanMult $const9 $tmp4 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl"} %line{23} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:24
+#     float midgroundDepthMult = clamp(midgroundDepth,0.05,roomDepthMult-0.01); 
+	sub		$tmp6 roomDepthMult $const11 	%line{24} %argrw{"wrr"}
+	functioncall	$const4 15 	%argrw{"r"}
+# /opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h:163
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp7 midgroundDepth $tmp6 	%filename{"/opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h"} %line{163} %argrw{"wrr"}
+	max		midgroundDepthMult $tmp7 $const10 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:25
+#     float midgroundOffY = midgroundOffsetY * (textureFlip*2-1) * 0.1;
+	mul		$tmp8 textureFlip $const12 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl"} %line{25} %argrw{"wrr"}
+	sub		$tmp9 $tmp8 $const5 	%argrw{"wrr"}
+	assign		$tmp11 $tmp9 	%argrw{"wr"}
+	mul		$tmp10 midgroundOffsetY $tmp11 	%argrw{"wrr"}
+	mul		midgroundOffY $tmp10 $const1 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:26
+#     float midgroundOffX = midgroundOffsetX * (textureFlop*2-1) * 0.1;
+	mul		$tmp12 textureFlop $const12 	%line{26} %argrw{"wrr"}
+	sub		$tmp13 $tmp12 $const5 	%argrw{"wrr"}
+	assign		$tmp15 $tmp13 	%argrw{"wr"}
+	mul		$tmp14 midgroundOffsetX $tmp15 	%argrw{"wrr"}
+	mul		midgroundOffX $tmp14 $const1 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:30
+#     vector objI = transform("object", -I);
+	neg		$tmp16 I 	%line{30} %argrw{"wr"}
+	functioncall	$const14 28 	%argrw{"r"}
+# /opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h:284
+# vector transform (string to, vector p) { return transform("common",to,p); }
+	transformv	objI $const15 $const13 $tmp16 	%filename{"/opt/pixar/RenderManProServer-25.2/lib/osl/include/stdosl.h"} %line{284} %argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:31
+#     objI = vector(-objI[0],objI[2],-objI[1]) * color(widthOverscanMult, heightOverscanMult, 1); 		//reorder to match UV
+	compref		$tmp18 objI $const6 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl"} %line{31} %argrw{"wrr"}
+	neg		$tmp19 $tmp18 	%argrw{"wr"}
+	compref		$tmp20 objI $const12 	%argrw{"wrr"}
+	compref		$tmp21 objI $const5 	%argrw{"wrr"}
+	neg		$tmp22 $tmp21 	%argrw{"wr"}
+	vector		$tmp17 $tmp19 $tmp20 $tmp22 	%argrw{"wrrr"}
+	color		$tmp23 widthOverscanMult heightOverscanMult $const9 	%argrw{"wrrr"}
+	mul		objI $tmp17 $tmp23 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:32
+#     color objPOrig = (color(s,t,0.5) * 2 - 1) * 0.5 + 0.5;							//for curtains
+	color		$tmp24 s t $const16 	%line{32} %argrw{"wrrr"}
+	mul		$tmp25 $tmp24 $const17 	%argrw{"wrr"}
+	sub		$tmp26 $tmp25 $const9 	%argrw{"wrr"}
+	mul		$tmp27 $tmp26 $const16 	%argrw{"wrr"}
+	add		objPOrig $tmp27 $const16 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:33
+#     color objP = (color(s,t,0.5) * 2 - 1) * color(widthOverscanMult, heightOverscanMult, 1)  * 0.5 + 0.5; 	//UV seems to be the better approach
+	color		$tmp28 s t $const16 	%line{33} %argrw{"wrrr"}
+	mul		$tmp29 $tmp28 $const17 	%argrw{"wrr"}
+	sub		$tmp30 $tmp29 $const9 	%argrw{"wrr"}
+	color		$tmp31 widthOverscanMult heightOverscanMult $const9 	%argrw{"wrrr"}
+	mul		$tmp32 $tmp30 $tmp31 	%argrw{"wrr"}
+	mul		$tmp33 $tmp32 $const16 	%argrw{"wrr"}
+	add		objP $tmp33 $const16 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:37
+#     vector sections = step(0, objI);
+	assign		$tmp34 $const7 	%line{37} %argrw{"wr"}
+	step		sections $tmp34 objI 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:38
+#     color baseDepth = (objP-sections)/(-objI * roomDepthMult);
+	sub		$tmp35 objP sections 	%line{38} %argrw{"wrr"}
+	neg		$tmp36 objI 	%argrw{"wr"}
+	mul		$tmp37 $tmp36 roomDepthMult 	%argrw{"wrr"}
+	div		baseDepth $tmp35 $tmp37 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:39
+#     color mgDepth = (objP-sections)/(-objI * midgroundDepthMult);    
+	sub		$tmp38 objP sections 	%line{39} %argrw{"wrr"}
+	neg		$tmp39 objI 	%argrw{"wr"}
+	mul		$tmp40 $tmp39 midgroundDepthMult 	%argrw{"wrr"}
+	div		mgDepth $tmp38 $tmp40 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:40
+#     color baseBack = (objP-sections)/(-objI);
+	sub		$tmp41 objP sections 	%line{40} %argrw{"wrr"}
+	neg		$tmp42 objI 	%argrw{"wr"}
+	div		baseBack $tmp41 $tmp42 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:41
+#     color baseWidth = baseDepth * roomDepthMult;
+	mul		baseWidth baseDepth roomDepthMult 	%line{41} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:46
+#     color baseDepthX = (baseDepth[1]*objI+objP + 1);
+	compref		$tmp43 baseDepth $const5 	%line{46} %argrw{"wrr"}
+	mul		$tmp44 $tmp43 objI 	%argrw{"wrr"}
+	add		$tmp45 $tmp44 objP 	%argrw{"wrr"}
+	add		baseDepthX $tmp45 $const9 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:47
+#     color baseDepthY = (baseDepth[0]*objI+objP + 1);
+	compref		$tmp46 baseDepth $const6 	%line{47} %argrw{"wrr"}
+	mul		$tmp47 $tmp46 objI 	%argrw{"wrr"}
+	add		$tmp48 $tmp47 objP 	%argrw{"wrr"}
+	add		baseDepthY $tmp48 $const9 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:48
+#     color baseWidthX = (baseWidth[1]*objI+objP + 1);
+	compref		$tmp49 baseWidth $const5 	%line{48} %argrw{"wrr"}
+	mul		$tmp50 $tmp49 objI 	%argrw{"wrr"}
+	add		$tmp51 $tmp50 objP 	%argrw{"wrr"}
+	add		baseWidthX $tmp51 $const9 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:49
+#     color baseWidthY = (baseWidth[0]*objI+objP + 1);
+	compref		$tmp52 baseWidth $const6 	%line{49} %argrw{"wrr"}
+	mul		$tmp53 $tmp52 objI 	%argrw{"wrr"}
+	add		$tmp54 $tmp53 objP 	%argrw{"wrr"}
+	add		baseWidthY $tmp54 $const9 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:51
+#     float horizU = baseDepthY[2] - 0.5;
+	compref		$tmp55 baseDepthY $const12 	%line{51} %argrw{"wrr"}
+	sub		horizU $tmp55 $const16 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:52
+#     float vertU = baseWidthX[0] - 1;
+	compref		$tmp56 baseWidthX $const6 	%line{52} %argrw{"wrr"}
+	sub		vertU $tmp56 $const9 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:53
+#     float horizV = baseWidthY[1] - 1;
+	compref		$tmp57 baseWidthY $const5 	%line{53} %argrw{"wrr"}
+	sub		horizV $tmp57 $const9 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:54
+#     float vertV = baseDepthX[2] - 0.5;
+	compref		$tmp58 baseDepthX $const12 	%line{54} %argrw{"wrr"}
+	sub		vertV $tmp58 $const16 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:58
+#     float sideWallsMask = step(0,horizU) * step(0,1-max(horizV, 1-horizV)); 
+	step		$tmp59 $const7 horizU 	%line{58} %argrw{"wrr"}
+	sub		$tmp62 $const9 horizV 	%argrw{"wrr"}
+	max		$tmp61 horizV $tmp62 	%argrw{"wrr"}
+	sub		$tmp63 $const9 $tmp61 	%argrw{"wrr"}
+	step		$tmp60 $const7 $tmp63 	%argrw{"wrr"}
+	mul		sideWallsMask $tmp59 $tmp60 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:59
+#     color sideWallsUV = color(horizU, horizV, 0) / 3;
+	color		$tmp64 horizU horizV $const7 	%line{59} %argrw{"wrrr"}
+	div		sideWallsUV $tmp64 $const19 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:60
+#     color rWallUV = (sideWallsUV + color(2.0/3.0, 1.0/3.0, 0)) * sideWallsMask * sections[0];
+	div		$tmp66 $const17 $const19 	%line{60} %argrw{"wrr"}
+	div		$tmp67 $const9 $const19 	%argrw{"wrr"}
+	color		$tmp65 $tmp66 $tmp67 $const7 	%argrw{"wrrr"}
+	add		$tmp68 sideWallsUV $tmp65 	%argrw{"wrr"}
+	mul		$tmp69 $tmp68 sideWallsMask 	%argrw{"wrr"}
+	compref		$tmp70 sections $const6 	%argrw{"wrr"}
+	mul		rWallUV $tmp69 $tmp70 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:61
+#     color lWallUV = (sideWallsUV + color(0.0, 1.0/3.0, 0)) * sideWallsMask * (1-sections[0]);
+	div		$tmp72 $const9 $const19 	%line{61} %argrw{"wrr"}
+	color		$tmp71 $const7 $tmp72 $const7 	%argrw{"wrrr"}
+	add		$tmp73 sideWallsUV $tmp71 	%argrw{"wrr"}
+	mul		$tmp74 $tmp73 sideWallsMask 	%argrw{"wrr"}
+	compref		$tmp75 sections $const6 	%argrw{"wrr"}
+	sub		$tmp76 $const9 $tmp75 	%argrw{"wrr"}
+	mul		lWallUV $tmp74 $tmp76 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:62
+#     lWallUV[0] = (1.0/3.0 - lWallUV[0]) * sideWallsMask * (1-sections[0]);     
+	div		$tmp77 $const9 $const19 	%line{62} %argrw{"wrr"}
+	compref		$tmp78 lWallUV $const6 	%argrw{"wrr"}
+	sub		$tmp79 $tmp77 $tmp78 	%argrw{"wrr"}
+	mul		$tmp80 $tmp79 sideWallsMask 	%argrw{"wrr"}
+	compref		$tmp81 sections $const6 	%argrw{"wrr"}
+	sub		$tmp82 $const9 $tmp81 	%argrw{"wrr"}
+	mul		$tmp83 $tmp80 $tmp82 	%argrw{"wrr"}
+	compassign	lWallUV $const6 $tmp83 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:64
+#     float FloorCeilMask = step(0,vertV) * step(0,1-max(vertU, 1-vertU));
+	step		$tmp84 $const7 vertV 	%line{64} %argrw{"wrr"}
+	sub		$tmp87 $const9 vertU 	%argrw{"wrr"}
+	max		$tmp86 vertU $tmp87 	%argrw{"wrr"}
+	sub		$tmp88 $const9 $tmp86 	%argrw{"wrr"}
+	step		$tmp85 $const7 $tmp88 	%argrw{"wrr"}
+	mul		FloorCeilMask $tmp84 $tmp85 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:65
+#     color FloorCeilUV = color(vertU, vertV, 0) / 3;
+	color		$tmp89 vertU vertV $const7 	%line{65} %argrw{"wrrr"}
+	div		FloorCeilUV $tmp89 $const19 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:66
+#     color ceilUV = (FloorCeilUV + color(1.0/3.0, 2.0/3.0, 0)) * FloorCeilMask * sections[1];
+	div		$tmp91 $const9 $const19 	%line{66} %argrw{"wrr"}
+	div		$tmp92 $const17 $const19 	%argrw{"wrr"}
+	color		$tmp90 $tmp91 $tmp92 $const7 	%argrw{"wrrr"}
+	add		$tmp93 FloorCeilUV $tmp90 	%argrw{"wrr"}
+	mul		$tmp94 $tmp93 FloorCeilMask 	%argrw{"wrr"}
+	compref		$tmp95 sections $const5 	%argrw{"wrr"}
+	mul		ceilUV $tmp94 $tmp95 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:67
+#     color floorUV = (FloorCeilUV + color(1.0/3.0, 0, 0)) * FloorCeilMask * (1-sections[1]);
+	div		$tmp97 $const9 $const19 	%line{67} %argrw{"wrr"}
+	color		$tmp96 $tmp97 $const7 $const7 	%argrw{"wrrr"}
+	add		$tmp98 FloorCeilUV $tmp96 	%argrw{"wrr"}
+	mul		$tmp99 $tmp98 FloorCeilMask 	%argrw{"wrr"}
+	compref		$tmp100 sections $const5 	%argrw{"wrr"}
+	sub		$tmp101 $const9 $tmp100 	%argrw{"wrr"}
+	mul		floorUV $tmp99 $tmp101 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:68
+#     floorUV[1] = (1.0/3.0 - floorUV[1]) * FloorCeilMask * (1-sections[1]);
+	div		$tmp102 $const9 $const19 	%line{68} %argrw{"wrr"}
+	compref		$tmp103 floorUV $const5 	%argrw{"wrr"}
+	sub		$tmp104 $tmp102 $tmp103 	%argrw{"wrr"}
+	mul		$tmp105 $tmp104 FloorCeilMask 	%argrw{"wrr"}
+	compref		$tmp106 sections $const5 	%argrw{"wrr"}
+	sub		$tmp107 $const9 $tmp106 	%argrw{"wrr"}
+	mul		$tmp108 $tmp105 $tmp107 	%argrw{"wrr"}
+	compassign	floorUV $const5 $tmp108 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:70
+#     color backWallUV = ((baseBack[2]*objI + (objP/2)/(roomDepthMult)) * (roomDepthMult*2) / 3 + color(1.0/3.0, 1.0/3.0, 0) ) * (1 - max(step(0,horizU), step(0,vertV)));
+	compref		$tmp109 baseBack $const12 	%line{70} %argrw{"wrr"}
+	mul		$tmp110 $tmp109 objI 	%argrw{"wrr"}
+	div		$tmp111 objP $const17 	%argrw{"wrr"}
+	div		$tmp112 $tmp111 roomDepthMult 	%argrw{"wrr"}
+	add		$tmp113 $tmp110 $tmp112 	%argrw{"wrr"}
+	mul		$tmp114 roomDepthMult $const17 	%argrw{"wrr"}
+	mul		$tmp115 $tmp113 $tmp114 	%argrw{"wrr"}
+	div		$tmp116 $tmp115 $const19 	%argrw{"wrr"}
+	div		$tmp118 $const9 $const19 	%argrw{"wrr"}
+	div		$tmp119 $const9 $const19 	%argrw{"wrr"}
+	color		$tmp117 $tmp118 $tmp119 $const7 	%argrw{"wrrr"}
+	add		$tmp120 $tmp116 $tmp117 	%argrw{"wrr"}
+	step		$tmp122 $const7 horizU 	%argrw{"wrr"}
+	step		$tmp123 $const7 vertV 	%argrw{"wrr"}
+	max		$tmp121 $tmp122 $tmp123 	%argrw{"wrr"}
+	sub		$tmp124 $const9 $tmp121 	%argrw{"wrr"}
+	mul		backWallUV $tmp120 $tmp124 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:73
+#     color midgroundUV = (1.0/3.0 - (baseBack[2]*objI + (objP)/(midgroundDepthMult*2)) * (midgroundDepthMult*2) / 3);
+	div		$tmp125 $const9 $const19 	%line{73} %argrw{"wrr"}
+	compref		$tmp126 baseBack $const12 	%argrw{"wrr"}
+	mul		$tmp127 $tmp126 objI 	%argrw{"wrr"}
+	mul		$tmp128 midgroundDepthMult $const17 	%argrw{"wrr"}
+	div		$tmp129 objP $tmp128 	%argrw{"wrr"}
+	add		$tmp130 $tmp127 $tmp129 	%argrw{"wrr"}
+	mul		$tmp131 midgroundDepthMult $const17 	%argrw{"wrr"}
+	mul		$tmp132 $tmp130 $tmp131 	%argrw{"wrr"}
+	div		$tmp133 $tmp132 $const19 	%argrw{"wrr"}
+	sub		midgroundUV $tmp125 $tmp133 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:74
+#     float midgroundMask = step( 0, midgroundUV[1] * 3 * (1-midgroundUV[1]*3) ) * step( 0, midgroundUV[0] * (1.0/3.0-midgroundUV[0]) ); 
+	compref		$tmp135 midgroundUV $const5 	%line{74} %argrw{"wrr"}
+	mul		$tmp136 $tmp135 $const19 	%argrw{"wrr"}
+	compref		$tmp137 midgroundUV $const5 	%argrw{"wrr"}
+	mul		$tmp138 $tmp137 $const19 	%argrw{"wrr"}
+	sub		$tmp139 $const9 $tmp138 	%argrw{"wrr"}
+	mul		$tmp140 $tmp136 $tmp139 	%argrw{"wrr"}
+	step		$tmp134 $const7 $tmp140 	%argrw{"wrr"}
+	compref		$tmp142 midgroundUV $const6 	%argrw{"wrr"}
+	div		$tmp143 $const9 $const19 	%argrw{"wrr"}
+	compref		$tmp144 midgroundUV $const6 	%argrw{"wrr"}
+	sub		$tmp145 $tmp143 $tmp144 	%argrw{"wrr"}
+	mul		$tmp146 $tmp142 $tmp145 	%argrw{"wrr"}
+	step		$tmp141 $const7 $tmp146 	%argrw{"wrr"}
+	mul		midgroundMask $tmp134 $tmp141 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:75
+#     midgroundUV = (color(midgroundOffX, midgroundOffY, 0) + midgroundUV) * midgroundMask;
+	color		$tmp147 midgroundOffX midgroundOffY $const7 	%line{75} %argrw{"wrrr"}
+	add		$tmp148 $tmp147 midgroundUV 	%argrw{"wrr"}
+	mul		midgroundUV $tmp148 midgroundMask 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:76
+#     midgroundUV[1] = 1-midgroundUV[1];  
+	compref		$tmp149 midgroundUV $const5 	%line{76} %argrw{"wrr"}
+	sub		$tmp150 $const9 $tmp149 	%argrw{"wrr"}
+	compassign	midgroundUV $const5 $tmp150 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:78
+#     color curtainsUV = objPOrig * color(1.0/3.0, 1.0/3.0, 1);
+	div		$tmp152 $const9 $const19 	%line{78} %argrw{"wrr"}
+	div		$tmp153 $const9 $const19 	%argrw{"wrr"}
+	color		$tmp151 $tmp152 $tmp153 $const9 	%argrw{"wrrr"}
+	mul		curtainsUV objPOrig $tmp151 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:79
+#     curtainsUV[0] = 1.0/3.0 - curtainsUV[0];
+	div		$tmp154 $const9 $const19 	%line{79} %argrw{"wrr"}
+	compref		$tmp155 curtainsUV $const6 	%argrw{"wrr"}
+	sub		$tmp156 $tmp154 $tmp155 	%argrw{"wrr"}
+	compassign	curtainsUV $const6 $tmp156 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:83
+#     color finalUV = ceilUV + floorUV + rWallUV + lWallUV + backWallUV;
+	add		$tmp157 ceilUV floorUV 	%line{83} %argrw{"wrr"}
+	add		$tmp158 $tmp157 rWallUV 	%argrw{"wrr"}
+	add		$tmp159 $tmp158 lWallUV 	%argrw{"wrr"}
+	add		finalUV $tmp159 backWallUV 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:89
+#     if (textureFlop > 0){
+	gt		$tmp160 textureFlop $const6 	%line{89} %argrw{"wrr"}
+	if		$tmp160 215 218 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:90
+#         midgroundUV[0] = 1.0/3.0 - midgroundUV[0];
+	div		$tmp161 $const9 $const19 	%line{90} %argrw{"wrr"}
+	compref		$tmp162 midgroundUV $const6 	%argrw{"wrr"}
+	sub		$tmp163 $tmp161 $tmp162 	%argrw{"wrr"}
+	compassign	midgroundUV $const6 $tmp163 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:91
+#         curtainsUV[0] = 1.0/3.0 - curtainsUV[0];
+	div		$tmp164 $const9 $const19 	%line{91} %argrw{"wrr"}
+	compref		$tmp165 curtainsUV $const6 	%argrw{"wrr"}
+	sub		$tmp166 $tmp164 $tmp165 	%argrw{"wrr"}
+	compassign	curtainsUV $const6 $tmp166 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:93
+#         finalUV[0] = 1-finalUV[0];
+	compref		$tmp167 finalUV $const6 	%line{93} %argrw{"wrr"}
+	sub		$tmp168 $const9 $tmp167 	%argrw{"wrr"}
+	compassign	finalUV $const6 $tmp168 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:94
+#     if (textureFlip > 0){
+	gt		$tmp169 textureFlip $const6 	%line{94} %argrw{"wrr"}
+	if		$tmp169 232 232 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:95
+#         finalUV[1] = 1-finalUV[1];
+	compref		$tmp170 finalUV $const5 	%line{95} %argrw{"wrr"}
+	sub		$tmp171 $const9 $tmp170 	%argrw{"wrr"}
+	compassign	finalUV $const5 $tmp171 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:96
+#         midgroundUV[1] = 1 - midgroundUV[1] + 2.0/3.0;
+	compref		$tmp172 midgroundUV $const5 	%line{96} %argrw{"wrr"}
+	sub		$tmp173 $const9 $tmp172 	%argrw{"wrr"}
+	div		$tmp174 $const17 $const19 	%argrw{"wrr"}
+	add		$tmp175 $tmp173 $tmp174 	%argrw{"wrr"}
+	compassign	midgroundUV $const5 $tmp175 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:97
+#         curtainsUV[1] = 1.0/3.0 - curtainsUV[1];
+	div		$tmp176 $const9 $const19 	%line{97} %argrw{"wrr"}
+	compref		$tmp177 curtainsUV $const5 	%argrw{"wrr"}
+	sub		$tmp178 $tmp176 $tmp177 	%argrw{"wrr"}
+	compassign	curtainsUV $const5 $tmp178 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:101
+#     color roomRGB = texture(filename, finalUV[0], finalUV[1]);
+	compref		$tmp179 finalUV $const6 	%line{101} %argrw{"wrr"}
+	compref		$tmp180 finalUV $const5 	%argrw{"wrr"}
+	texture		roomRGB filename $tmp179 $tmp180 	%argrw{"wrrr"} %argderivs{2,3}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:109
+#     if (enableMidground > 0){
+	gt		$tmp181 enableMidground $const6 	%line{109} %argrw{"wrr"}
+	if		$tmp181 241 242 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:111
+#         color midgroundRGB = texture(filename, midgroundUV[0], midgroundUV[1], "alpha", midgroundA);
+	compref		$tmp182 midgroundUV $const6 	%line{111} %argrw{"wrr"}
+	compref		$tmp183 midgroundUV $const5 	%argrw{"wrr"}
+	texture		___327_midgroundRGB filename $tmp182 $tmp183 $const20 ___327_midgroundA 	%argrw{"wrrrrw"} %argderivs{2,3}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:112
+#         finalRGB = mix(roomRGB,midgroundRGB,midgroundA);
+	mix		finalRGB roomRGB ___327_midgroundRGB ___327_midgroundA 	%line{112} %argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:115
+#         finalRGB = roomRGB;
+	assign		finalRGB roomRGB 	%line{115} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:122
+#     if (enableCurtains > 0){
+	gt		$tmp184 enableCurtains $const6 	%line{122} %argrw{"wrr"}
+	if		$tmp184 248 248 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:124
+#         color curtainsRGB = texture(filename, curtainsUV[0], curtainsUV[1], "alpha", curtainsA);
+	compref		$tmp185 curtainsUV $const6 	%line{124} %argrw{"wrr"}
+	compref		$tmp186 curtainsUV $const5 	%argrw{"wrr"}
+	texture		___329_curtainsRGB filename $tmp185 $tmp186 $const20 ___329_curtainsA 	%argrw{"wrrrrw"} %argderivs{2,3}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:125
+#         finalRGB = mix(finalRGB,curtainsRGB,curtainsA);
+	mix		finalRGB finalRGB ___329_curtainsRGB ___329_curtainsA 	%line{125} %argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/jiWindowBox_PRMan.osl:131
+#     outRGB = finalRGB;
+	assign		outRGB finalRGB 	%line{131} %argrw{"wr"}
+	end

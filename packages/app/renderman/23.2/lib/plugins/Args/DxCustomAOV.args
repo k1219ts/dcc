@@ -1,0 +1,38 @@
+<args format="1.0">
+	<help>
+		dexter custom aov
+	</help>
+	<shaderType>
+		<tag value="pattern"/>
+	</shaderType>
+    <page name="Parameters" open="True">
+        <param name="inputAOV"
+            label="Input AOV"
+            type="int">
+            <tags>
+                <tag value="int"/>
+            </tags>
+        </param>
+        <param name="enable" label="Enable" type="int" default="1"
+            connectable="False" widget="checkBox">
+        </param>
+		<param name="aovColor" label="Input Color" type="color" default="1.0 1.0 1.0"
+			widget="color">
+			<tags>
+				<tag value="color"/>
+			</tags>
+		</param>
+		<param name="aovName" label="AOV Name" type="string" default=""
+			connectable="False">
+		</param>
+    </page>
+
+    <output name="resultAOV">
+        <tags>
+            <tag value="int"/>
+        </tags>
+    </output>
+
+    <rfmdata nodeid="3000010"
+             classification="rendernode/RenderMan/pattern/utility"/>
+</args>

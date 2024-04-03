@@ -1,0 +1,10 @@
+1
+dxEditOrder,dxSeqLatest-3.1.rvpkg,Dexter/searchEditOrder,nil,nil,false,false
+dxSeqLatest,dxSeqLatest-3.1.rvpkg,Dexter/SeqLatest,nil,nil,false,false
+dxVersioning,dxSeqLatest-3.1.rvpkg,nil,nil,nil,true,true
+dxTask_selector,dxSeqLatest-3.1.rvpkg,nil,nil,nil,true,true
+simple_edit,SimpleEdit-1.0.rvpkg,nil,nil,nil,true,true
+otio_reader_plugin,dxOTIO-1.0.rvpkg,nil,nil,nil,true,true
+overlay_hud,dxOTIO-1.0.rvpkg,nil,nil,nil,true,true
+otio_reader,dxOTIO-1.0.rvpkg,nil,nil,nil,false,false
+gotoInput,dxOTIO-1.0.rvpkg,nil,nil,nil,true,true

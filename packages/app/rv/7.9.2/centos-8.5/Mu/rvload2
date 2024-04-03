@@ -1,0 +1,12 @@
+3
+simple_edit,SimpleEdit-1.0.rvpkg,nil,nil,nil,true,true,7.3.4,false
+dxTacticSubmit,dxTacticSubmit-1.2.rvpkg,Dexter/Tactic Submit,Z,nil,false,false,7.7.0,false
+dxTacticReview,dxTacticReview-1.0.rvpkg,Dexter/Tactic Review,nil,nil,false,false,7.7.1,false
+dxEditOrder,dxSeqLatest-2.5.rvpkg,Dexter/searchEditOrder,nil,nil,false,false,7.9.2,false
+dxSeqLatest,dxSeqLatest-2.5.rvpkg,Dexter/SeqLatest,nil,nil,false,false,7.9.2,false
+dxVersioning,dxSeqLatest-2.5.rvpkg,nil,nil,nil,true,true,7.9.2,false
+dxTask_selector,dxSeqLatest-2.5.rvpkg,nil,nil,nil,true,true,7.9.2,false
+otio_reader_plugin,dxOTIO-1.0.rvpkg,nil,nil,nil,true,true,7.7.1,false
+overlay_hud,dxOTIO-1.0.rvpkg,nil,nil,nil,true,true,7.7.1,false
+otio_reader,dxOTIO-1.0.rvpkg,nil,nil,nil,false,false,7.7.1,false
+gotoInput,dxOTIO-1.0.rvpkg,nil,nil,nil,true,true,7.7.1,false

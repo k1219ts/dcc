@@ -1,0 +1,33 @@
+package: DEXTER SequenceLatest
+author: kwantae Kim
+organization: DEXTER STUDIOS
+contact: whatever
+version: 2.5
+requires: ''
+rv: 7.9.2
+url: http://www.dexterstudios.com
+modes:
+  - file: dxEditOrder.py
+    menu: 'Dexter/searchEditOrder'
+  - file: dxSeqLatest.py
+    menu: 'Dexter/SeqLatest'
+  - file: dxVersioning.py
+    load: immediate
+  - file: dxTask_selector.mu
+    load: immediate
+description: |
+    <p> Tactic based Sequence Latest.
+        Snapshot Task / Version control </p>
+    <p></p>
+    <p></p>
+    <p> Hotkey: </p>
+    <p> [Version Infomation toggle]
+        Shift + v </p>
+    <p> [Version Change]
+        Shift + up / down </p>
+    <p> [Task Change]
+        Shift + left / right </p>
+    <p> [multi Shot Extension]
+        Shift + ' </p>
+    <p> [Reload New Snapshot]
+        ` </p>

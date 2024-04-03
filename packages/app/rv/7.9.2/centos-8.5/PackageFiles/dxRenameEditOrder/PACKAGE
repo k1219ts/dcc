@@ -1,0 +1,13 @@
+package: DEXTER Rename Edit Order
+author: chewoon kong
+organization: DEXTER STUDIOS
+contact: whatever
+version: 1.0
+requires: ''
+rv: 7.7.1
+url: http://www.dexterstudios.com
+modes:
+  - file: dxRenameEditOrder.py
+    menu: 'Dexter/RenameEditOrder'
+description: |
+    <p> Rename Edit Order </p>

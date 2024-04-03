@@ -1,0 +1,40 @@
+{
+    "21.7": {
+        "channels": [
+            "Ci",
+            "a",
+            "mse",
+            "albedo",
+            "albedo_var",
+            "diffuse",
+            "diffuse_mse",
+            "specular",
+            "specular_mse",
+            "z",
+            "z_var",
+            "normal",
+            "normal_var",
+            "forward",
+            "backward"
+        ]
+    },
+    "22.0": {
+        "channels": [
+            "Ci",
+            "a",
+            "mse",
+            "albedo",
+            "albedo_var",
+            "diffuse",
+            "diffuse_mse",
+            "specular",
+            "specular_mse",
+            "zfiltered",
+            "zfiltered_var",
+            "normal",
+            "normal_var",
+            "forward",
+            "backward"
+        ]
+    },
+}

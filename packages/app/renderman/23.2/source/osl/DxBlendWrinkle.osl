@@ -1,0 +1,72 @@
+#include "stdosl.h"
+
+shader DxBlendWrinkle(
+    float strength = 1
+    [[  int slider = 1,
+        int min = 0,
+        int max = 1]],
+    // color tint = color(1),
+    // float tintStrength = 1
+    // [[  int slider = 1,
+    //     int min = 0,
+    //     int max = 1]],
+    float depth = 1,
+    color baseDiffuse = color(1),
+    color auDiff = color(0),
+    normal baseNormal = normal(0),
+    normal auNormal = normal(0),
+    color AU01_x_AU02_L_x_AU02_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU04_L_x_AU04_R_x_AU06_L = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU06_R_x_AU11_L_x_AU11_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU09_L_x_AU09_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color dxBlend_AU01_x_AU02_L_x_AU02_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color dxBlend_AU04_L_x_AU04_R_x_AU06_L = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color dxBlend_AU06_R_x_AU11_L_x_AU11_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color dxBlend_AU09_L_x_AU09_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+
+    output color outDiffuse = color(1) [[ string widget = "null" ]],
+    // output color outTint = color(1) [[ string widget = "null" ]],
+    output normal outNormal = N [[ string widget = "null" ]],
+    output float outWeight = 0 [[ string widget = "null" ]])
+{
+    float weight = dot(AU01_x_AU02_L_x_AU02_R, dxBlend_AU01_x_AU02_L_x_AU02_R);
+    weight += dot(AU04_L_x_AU04_R_x_AU06_L, dxBlend_AU04_L_x_AU04_R_x_AU06_L);
+    weight += dot(AU06_R_x_AU11_L_x_AU11_R, dxBlend_AU06_R_x_AU11_L_x_AU11_R);
+    weight += dot(AU09_L_x_AU09_R, dxBlend_AU09_L_x_AU09_R);
+    weight = min(weight, 1.0);
+
+    outWeight = depth * weight;
+
+    // color weightColor = color(outWeight);
+    // outTint = tint + weightColor - tint * weightColor;
+
+    weight *= strength;
+    outDiffuse = baseDiffuse - auDiff * weight;
+
+    normal dNormal = weight * (auNormal - N);
+    outNormal = normalize(baseNormal + dNormal);
+}

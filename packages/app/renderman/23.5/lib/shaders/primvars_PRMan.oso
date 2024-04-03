@@ -1,0 +1,11 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.8.2.pixar1697a56
+# options: 
+shader primvars_PRMan
+param	color	myColor	0 1 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{0,0} %write{2147483647,-1}
+oparam	color	outRGB	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{0,0}
+code ___main___
+# primvars_PRMan.osl:16
+#     outRGB = myColor;
+	assign		outRGB myColor 	%filename{"primvars_PRMan.osl"} %line{16} %argrw{"wr"}
+	end

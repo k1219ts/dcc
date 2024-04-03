@@ -1,0 +1,12 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="projection"/>
+    </shaderType>
+    <help>
+          This camera projection renders the scene as angular fisheye.
+          It is intended to be rendered in a square format.
+
+          Author: Dexter
+    </help>
+	<rfmdata nodeid="2000029" classification="RenderMan/projection"/>
+</args>

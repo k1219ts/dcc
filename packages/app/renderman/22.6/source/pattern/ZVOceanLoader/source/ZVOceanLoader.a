@@ -1,0 +1,76 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="pattern"/>
+    </shaderType>
+    <help>
+        An implementation of mixing vector maps which are made in ZFX by Sungmin Lee.
+    </help>
+    <param name="jsonFile" 
+           label="Json File"
+           type="string" 
+           default="" 
+           widget="fileInput"
+		   options= "*.json"
+           connectable="False">
+        <help>Connect .json file made in ZFX.</help>
+    </param>
+    <param name="waveScale" label="Wave Global Scale" type="float" default="1" widget="default" connectable="False">
+    </param>
+    <page name="Wave Manifold" open="True">
+        <param name="angle" label="Angle" type="float" default="0" widget="default" connectable="False">
+        </param>
+        <param name="scaleS" label="Scale S" type="float" default="1" widget="default" connectable="False">
+        </param>
+        <param name="scaleT" label="Scale T" type="float" default="1" widget="default" connectable="False">
+        </param>
+        <param name="offsetS" label="Offset S" type="float" default="0" widget="default" connectable="False">
+        </param>
+        <param name="offsetT" label="Offset T" type="float" default="0" widget="default" connectable="False">
+        </param>
+    </page>
+    <page name="Frame" open="False">
+		<param name="frameOffset" 
+			   label="FrameOffset"
+			   type="int" 
+			   default="0" 
+			   widget="default" 
+			   connectable="False">
+		</param>	
+	</page>
+
+	<output name="resultVector">
+		<tags>
+			<tag value = "color"/>
+			<tag value = "vector"/>
+            <tag value = "normal"/>
+            <tag value = "point"/>
+		</tags>
+	</output>
+    <output name="resultX">
+        <tags>
+            <tag value ="float"/>
+        </tags>
+    </output>
+    <output name="resultY">
+        <tags>
+            <tag value ="float"/>
+        </tags>
+    </output>
+    <output name="resultZ">
+        <tags>
+            <tag value ="float"/>
+        </tags>
+    </output>
+	<output name="resultFoam">
+		<tags>
+			<tag value ="float"/>
+        </tags>
+    </output>
+	<output name="resultWeight">
+		<tags>
+			<tag value ="float"/>
+        </tags>
+    </output>
+
+    <rfmdata nodeid="2000027" classification="rendernode/RenderMan/pattern"/>
+</args>

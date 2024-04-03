@@ -1,0 +1,13 @@
+{
+    "rman search paths": {
+        "shader": [
+            "${RFM_SITE_PATH}/lib/shaders"
+        ],
+        "rixplugin": [
+            "${RFM_SITE_PATH}/lib/plugins"
+        ],
+        "procedural": [
+            "${RFM_SITE_PATH}/lib/plugins"
+        ]
+    }
+}

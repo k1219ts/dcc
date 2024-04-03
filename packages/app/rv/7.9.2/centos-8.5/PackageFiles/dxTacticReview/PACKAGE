@@ -1,0 +1,13 @@
+package: DEXTER TacticReview
+author: kwantae Kim
+organization: DEXTER DIGITAL
+contact: whatever
+version: 1.0
+requires: ''
+rv: 7.7.1
+url: http://www.dexterstudios.com
+modes: 
+  - file: dxTacticReview.py
+    menu: 'Dexter/TacticReview'
+description: |
+    <p> Tactic based Review Tool.</p>

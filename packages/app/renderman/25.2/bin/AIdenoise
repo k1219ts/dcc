@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/backstage/dcc/packages/app/renderman/25.2/AI_denoise/Dx_denoise.py run $*

@@ -1,0 +1,57 @@
+
+Please note: Pixar has reserved maya node ids:
+
+0x00101261-0x001012ff (1,053,281 - 1,053,439)
+
+for our rfm templates.
+
+Customers should request node id blocks from Autodesk to prevent
+compatibility issues.  Sites should further adopt naming conventions
+in the form of four-letter prefixes to reduce the risk of template
+collision. The prefixes px and rman are reserved by Pixar.
+
+rfmManifold.rslt:   0x00101261-0x00101269 (1,053,281-1,053,289)
+
+rfmTexture2d.rslt:  0x0010126A-0x0010127D (1,053,290-1,053,309)
+
+rfmTexture3d.rslt:  0x0010127E-0x00101291 (1,053,310-1,053,329)
+
+rfmUtility.rslt:    0x00101292-0x001012AF (1,053,330-1,053,359)
+
+plausible nodes:    0x001012B0-0x001012C3 (1,053,360-1,053,399)
+
+========================================================================
+[ dxr - REYES ]
+2100001 dxrTexture
+2100101 dxrZelosOceanWave
+2100102 dxrZelosTwoOceanWave
+2100103 dxrZelosDoubleOceanWave
+
+[ Dx - RIS ]
+2000001	DxTexture
+2000004	DxCustomAOV
+2000005	DxGrade
+2000006	DxHair
+2000007	DxLinearize
+2000009	DxID
+2000010	DxWire
+2000011	DxShadingContext
+2000012	DxOBJ
+2000013	DxPrimvar
+2000014 DxCrowdID
+2000015 DxSideMask
+2000101	ZOceanWavePattern
+2000102 ZTwoOceanWavePattern
+2000021	DxConstant
+2000023 DxFoam
+2000024 DxObjectAOV
+2000025 DxZFXOceanLoader
+2000026 DxManifold2D
+2000027 ZVOceanLoader
+2000028 PxrLightProbe
+2000029 DxFisheye
+2000030 DxSphere
+2000031 bora?
+2000032 DxOmniDirectionalStereo
+2000033 DxCroppedFisheye
+2000034 DxBeyondScreen

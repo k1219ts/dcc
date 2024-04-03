@@ -1,0 +1,13 @@
+#include <stdosl.h>
+
+shader userattr_PRMan(
+    output color outRGB = 0.0
+    [[
+        string widget = "null"
+    ]]
+)
+{
+    float value = 0;
+    getattribute("user:myValue", value);
+    outRGB = color(value);
+}

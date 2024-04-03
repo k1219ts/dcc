@@ -1,0 +1,28 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="projection"/>
+    </shaderType>
+    <param name="interpupilaryDistance"
+          label="Interpupilary Distance"
+          type="float" widget="default"
+          default="0.0635" min="0.0"
+          connectable="False">
+        <help>
+        The distance between the two eyes. The default, 0.0635, should work if
+        your scene is measured in meters.
+        </help>
+    </param>
+
+    <param name="whichCamera" label="Which Camera"
+           type="string" default="L" widget="mapper">
+        <hintdict name="options">
+            <string name="L" value="L"/>
+            <string name="R" value="R"/>
+        </hintdict>
+        <help>
+         Choose left or right camera to render.
+        </help>
+    </param>
+
+    <rfmdata nodeid="3000130" classification="RenderMan/projection"/>
+</args>

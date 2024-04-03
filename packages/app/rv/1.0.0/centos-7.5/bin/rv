@@ -1,0 +1,15 @@
+#!/bin/bash
+
+args=()
+args+=($@)
+
+if [[ $1 == *.jpg ]] || [[ $1 == *.png ]] || [[ $1 == *.exr ]]; then
+    args=()
+    new=${1//.[0-9]*./.#.}
+    args+=($new)
+    args+=(${@:2})
+fi
+
+set -- ${args[@]}
+
+exec rv.bin $*

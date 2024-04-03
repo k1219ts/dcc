@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=RV 7.7.1
+Comment=TweakSoft RV
+Exec=sh /backstage/dcc/DCC rez-env rv-7.7.1 -- rv %F
+Icon=/backstage/share/icons/rv_small.png
+Terminal=false
+Type=Application
+Categories=dexter

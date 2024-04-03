@@ -1,0 +1,20 @@
+echo "build DxCustomAOV"
+cd DxCustomAOV; make clean; make -j32; cd ..;
+
+echo "build DxFoam"
+cd DxFoam; make clean; make -j32; cd ..;
+
+echo "build DxGrade"
+cd DxGrade; make clean; make -j32; cd ..;
+
+echo "build DxObjectAOV"
+cd DxObjectAOV; make clean; make -j32; cd ..;
+
+echo "build DxTexFile"
+cd DxTexFile; make clean; make -j32; cd ..;
+
+echo "build PxrBoraOcean"
+cd PxrBoraOcean; make clean; make -j32; cd ..;
+
+#echo "build ZVOceanLoader"
+#cd ZVOceanLoader; make clean; make -j32; cd ..;

@@ -1,0 +1,854 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.11.0@OPROJECT_VERSION_RELEASE_TYPE@
+# options: -v -o /WORK_DATA/develop/dcc/packages/app/renderman/25.2/lib/shaders/DxTexFile.oso -I/opt/pixar/RenderManProServer-25.2/include -I/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl
+shader DxTexture	%meta{int,rfm_nodeid,3000050} %meta{string,rfm_classification,"rendernode/RenderMan/pattern/texture"} %meta{string,rfh_classification,"Pattern/Texture"} %meta{string,help,"Read a texture file."} 
+param	int	computeMode	1		%meta{string,widget,"mapper"} %meta{string,options,"File:0|TxPrimVars:1"} %meta{string,label,"Process Mode"} %meta{string,help,"TxPrimvars : txBasePath, txAssetName(old-stype), txLayerName, txVersion"} %meta{int,connectable,0}  %read{6,6} %write{2147483647,-1}
+param	string	txChannel	""		%meta{string,label,"Tx Channel"} %meta{int,connectable,0} %meta{string,conditionalVisOp,"equalTo"} %meta{string,conditionalVisPath,"../computeMode"} %meta{string,conditionalVisValue,"1"} %meta{string,help,"1. ${txBasePath}/tex/${txVersion}/${txLayerName}<br>2. asset/${txAssetName}/texture/tex/${txVersion}/${txLayerName}"}  %read{16,16} %write{2147483647,-1} %derivs
+param	int	txVarNum	1		%meta{string,label,"Enable Tx Variation"} %meta{string,widget,"checkBox"} %meta{int,connectable,0} %meta{string,conditionalVisOp,"equalTo"} %meta{string,conditionalVisPath,"../computeMode"} %meta{string,conditionalVisValue,"1"} %meta{string,help,"Enable Texture Variation by txVarNum primvar"}  %read{17,17} %write{2147483647,-1}
+param	string	filename	""		%meta{string,widget,"assetIdInput"} %meta{string,label,"Filename"} %meta{string,options,"texture"} %meta{int,connectable,0} %meta{string,conditionalVisOp,"equalTo"} %meta{string,conditionalVisPath,"../computeMode"} %meta{string,conditionalVisValue,"0"} %meta{string,help,"To variate texture in file mode<br>please change the variation number to # on file path.<br>(eg. name_diffC_4.tex > name_diffC_#.tex)"}  %read{5,5} %write{2147483647,-1} %derivs
+param	int	firstChannel	0		%meta{string,label,"First Channel Offset"} %meta{int,connectable,0} %meta{string,help,"Offsets the first channel to be looked up. Usually, you want to start with channel 0 (RGB of RGBA texture), but if you are using a multi-channel openexr texture, you may need to point to the correct channel. Let's say we have a texture containing 9 channels organized in 3 RGB groups (diff.r, diff,g, diff.b, spec.r, spec.g, spec.b, ior.r, ior.g, ior.b). If you want to read the spec RGB channels, you will have to set firstChannel to 3. "}  %read{81,81} %write{2147483647,-1} %derivs
+param	int	atlasStyle	0		%meta{string,label,"Atlas Style"} %meta{string,widget,"mapper"} %meta{string,options,"None:0|UDIM (Mari):1|UV Tile Base-1 (Mudbox):2|UV Tile Base-0 (Zbrush):3"} %meta{int,connectable,0} %meta{string,help,"[DEPRECATED]: If you have created a series of tiled texturs using Mari, Mudbox, or ZBrush, select the type of atlas that should be used to determine the proper filename based on the UVs of your geometry.  See the help text for the Filename parameter for more details on how you must specify your filename in these cases. "}  %read{32,32} %write{2147483647,-1}
+param	int	invertT	1		%meta{string,label,"Invert T"} %meta{string,widget,"checkBox"} %meta{int,connectable,0}  %read{1,1} %write{2147483647,-1}
+param	int	filter	1		%meta{string,label,"Filter"} %meta{string,widget,"mapper"} %meta{string,options,"Closest:0|Smart cubic:1|Linear:2"} %meta{int,connectable,0} %meta{string,help,"Choose the filter to apply to the texture as it is applied to the object."}  %read{74,77} %write{2147483647,-1}
+param	float	blur	0		%meta{string,label,"Blur"} %meta{string,help,"Choose the width of the filter kernel as it is applied to the texture during lookup. Selecting 0.0 disables the filtering.  Disabling the filter will speed up lookup and then cause your render to rely on the mip levels and the path tracing algorithm for averaging. "}  %read{82,82} %write{2147483647,-1} %derivs
+param	color	missingColor	1 0 1		%meta{string,label,"Missing Color"} %meta{string,widget,"color"} %meta{string,help,"If you have wired resultRGB to another node in your network, and if there is an error in loading the file, the resultRGB value will be populated with the value that you specify here. RenderMan can fail to load a file for several reasons, including if the filename is incorrect, or if an atlas texture is specified, but no _MAPID_ was found in the filename. "}  %read{83,83} %write{2147483647,-1} %derivs
+param	float	missingAlpha	1		%meta{string,label,"Missing Alpha"} %meta{string,widget,"default"} %meta{string,help,"If you have wired resultA to another node in your network, and if there is an error in loading the file, the resultA value will be populated with the value that you specify here. See the help for missingColor for the different cases for which RenderMan may have issues loading a file. "}  %read{84,84} %write{2147483647,-1}
+param	int	linearize	1		%meta{string,label,"Linearize"} %meta{string,widget,"checkBox"} %meta{int,connectable,0} %meta{string,help,"Apply the reverse sRGB transform your texture. If you are painting textures in sRGB space (default for most paint packages) but viewing your data in data linear space, your textures will look washed out. Linearize will apply the reverse sRGB transform to your texture, which should make it appear visually linear again. "}  %read{209,209} %write{2147483647,-1}
+param	struct Manifold	manifold			%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{0,0} %write{2147483647,-1} %struct{"Manifold"} %structfields{Q,QN,Qradius} %structfieldtypes{"pnf"} %structnfields{3}
+param	point	manifold.Q	0 0 0		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{56,56} %write{2147483647,-1} %mystruct{manifold} %mystructfield{0} %derivs
+param	normal	manifold.QN	0 0 1		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{57,57} %write{2147483647,-1} %mystruct{manifold} %mystructfield{1}
+param	float	manifold.Qradius	0		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{58,58} %write{2147483647,-1} %mystruct{manifold} %mystructfield{2}
+param	color	colorScale	1 1 1		%meta{string,page,"Adjust Output"} %meta{int,page_open,1} %meta{string,label,"Color Scale"}  %read{279,279} %write{2147483647,-1}
+param	color	colorOffset	0 0 0		%meta{string,page,"Adjust Output"} %meta{string,label,"Color Offset"}  %read{280,280} %write{2147483647,-1}
+param	float	saturation	1		%meta{string,page,"Adjust Output"} %meta{string,label,"Saturation"} %meta{float,min,0} %meta{string,widget,"number"} %meta{float,slidermax,2}  %read{277,277} %write{2147483647,-1} %derivs
+param	float	alphaScale	1		%meta{string,page,"Adjust Output"} %meta{string,label,"Alpha Scale"}  %read{281,281} %write{2147483647,-1}
+param	float	alphaOffset	0		%meta{string,page,"Adjust Output"} %meta{string,label,"Alpha Offset"}  %read{282,282} %write{2147483647,-1}
+param	int	mipBias	0		%meta{string,page,"Advanced Texture Settings"} %meta{int,open,1} %meta{string,label,"MIP bias"} %meta{string,widget,"number"} %meta{float,slider,1} %meta{float,slidermin,-10} %meta{float,slidermax,10} %meta{int,connectable,0} %meta{string,help,"Offset the selected MIP level picked by the renderer. Positive values will bias toward lower resolution MIPs. Negative values will bias toward higher resolution MIPs. "}  %read{115,125} %write{2147483647,-1} %derivs
+param	float	maxResolution	0		%meta{string,page,"Advanced Texture Settings"} %meta{int,open,1} %meta{string,label,"Max Resolution"} %meta{string,widget,"mapper"} %meta{string,options,"Unlimited:0|32:32|64:64|128:128|256:256|512:512|1024:1024|2048:2048|4096:4096|8192:8192"} %meta{string,help,"Clamp the resolution to a maximum value."}  %read{118,134} %write{2147483647,-1} %derivs
+oparam	color	resultRGB	0 0 0		%read{283,285} %write{280,280}
+oparam	float	resultR	0		%read{2147483647,-1} %write{283,283}
+oparam	float	resultG	0		%read{2147483647,-1} %write{284,284}
+oparam	float	resultB	0		%read{2147483647,-1} %write{285,285}
+oparam	float	resultA	0		%read{239,239} %write{282,282}
+oparam	vector	resultNG	0 0 0		%meta{string,help,"Surface gradient from bump map.<br>resultNG (vector)"}  %read{258,258} %write{272,272}
+global	point	P	%read{263,263} %write{2147483647,-1} %derivs
+global	normal	N	%read{262,268} %write{2147483647,-1} %derivs
+global	float	u	%read{70,70} %write{2147483647,-1} %derivs
+global	float	v	%read{71,71} %write{2147483647,-1} %derivs
+local	string	___418_interp	%read{85,85} %write{76,80} %derivs
+local	int	___418_params.firstchannel	%read{87,87} %write{81,81} %mystruct{___418_params} %mystructfield{0} %derivs
+local	float	___418_params.blur	%read{88,88} %write{82,82} %mystruct{___418_params} %mystructfield{1} %derivs
+local	color	___418_params.missingcolor	%read{89,89} %write{83,83} %mystruct{___418_params} %mystructfield{2} %derivs
+local	float	___418_params.missingalpha	%read{90,90} %write{84,84} %mystruct{___418_params} %mystructfield{3}
+local	string	___418_params.interp	%read{91,91} %write{85,85} %mystruct{___418_params} %mystructfield{4} %derivs
+local	float	___418_params.width	%read{92,92} %write{86,86} %mystruct{___418_params} %mystructfield{5} %derivs
+local	float	___420__tt	%read{103,107} %write{100,101} %derivs
+local	float	___420_coords.s	%read{108,108} %write{102,102} %mystruct{___420_coords} %mystructfield{0} %derivs
+local	float	___420_coords.t	%read{109,109} %write{103,103} %mystruct{___420_coords} %mystructfield{1} %derivs
+local	float	___420_coords.dsdx	%read{110,110} %write{104,104} %mystruct{___420_coords} %mystructfield{2} %derivs
+local	float	___420_coords.dtdx	%read{111,111} %write{105,105} %mystruct{___420_coords} %mystructfield{3} %derivs
+local	float	___420_coords.dsdy	%read{112,112} %write{106,106} %mystruct{___420_coords} %mystructfield{4} %derivs
+local	float	___420_coords.dtdy	%read{113,113} %write{107,107} %mystruct{___420_coords} %mystructfield{5} %derivs
+local	int	___422_foo	%read{214,214} %write{212,213}
+local	int	___425_i	%read{219,232} %write{218,232} %derivs
+local	float	___429_bias	%read{128,151} %write{126,128} %derivs
+local	float	___431_minRadius	%read{138,153} %write{134,135} %derivs
+local	float	___431_dsdx	%read{159,159} %write{140,140} %derivs
+local	float	___431_dtdx	%read{159,159} %write{145,145} %derivs
+local	float	___431_dsdy	%read{160,160} %write{150,150} %derivs
+local	float	___431_dtdy	%read{160,160} %write{155,155} %derivs
+local	vector	___431_v0	%read{169,170} %write{158,158} %derivs
+local	vector	___431_v1	%read{162,173} %write{161,161} %derivs
+local	int	___433_success	%read{189,189} %write{179,188}
+local	int	___433_nchannels	%read{191,197} %write{180,188}
+local	color	___433_finalResult	%read{207,207} %write{181,206} %derivs
+local	color	___433_result	%read{183,205} %write{182,182} %derivs
+local	color	___436_missingalpha	%read{256,256} %write{255,255}
+local	string	___437_UDIMfilename	%read{53,53} %write{36,52} %derivs
+local	string	___437_separator	%read{39,39} %write{37,37} %derivs
+local	string[2]	___437_tokens	%read{42,43} %write{38,39} %derivs
+local	int	___437_nTokens	%read{40,40} %write{39,39}
+local	string	___438_baseFileName	%read{46,52} %write{42,42} %derivs
+local	string	___438_extension	%read{46,52} %write{43,43} %derivs
+local	color	___445_tmpColor	%read{275,277} %write{274,274} %derivs
+local	float	___445_intensity	%read{276,276} %write{275,275} %derivs
+local	float	___495_k	%read{268,270} %write{267,267}
+local	color	resultRGBA.c	%read{208,279} %write{185,278} %mystruct{resultRGBA} %mystructfield{0} %derivs
+local	float	resultRGBA.a	%read{257,281} %write{256,257} %mystruct{resultRGBA} %mystructfield{1}
+local	int	hasManifold	%read{54,54} %write{0,0}
+local	int	inInvertT	%read{94,94} %write{1,61}
+local	int	acescg	%read{233,233} %write{2,4}
+local	int	atlas_pvr	%read{25,31} %write{3,15}
+local	int	errStatus	%read{2147483647,-1} %write{4,4}
+local	string	finalFilename	%read{24,256} %write{5,53} %derivs
+local	string	___515_txBasePath	%read{2147483647,-1} %write{8,8}
+local	string	___515_txLayerName	%read{2147483647,-1} %write{9,9}
+local	string	___515_txVersion	%read{2147483647,-1} %write{10,10}
+local	float	___515_txmultiUV	%read{14,14} %write{11,12}
+local	string	___516_txVarNumValue	%read{21,21} %write{18,19}
+local	int	atlas	%read{33,50} %write{31,32}
+local	float	s	%read{102,106} %write{59,70} %derivs
+local	float	t	%read{96,101} %write{60,71} %derivs
+local	point	___521_inputManifoldRw.Q	%read{59,60} %write{56,56} %mystruct{___521_inputManifoldRw} %mystructfield{0} %derivs
+local	normal	___521_inputManifoldRw.QN	%read{2147483647,-1} %write{57,57} %mystruct{___521_inputManifoldRw} %mystructfield{1}
+local	float	___521_inputManifoldRw.Qradius	%read{2147483647,-1} %write{58,58} %mystruct{___521_inputManifoldRw} %mystructfield{2}
+local	float[2]	___522_inManifold	%read{64,69} %write{62,66} %derivs
+local	int	txparams.firstchannel	%read{182,256} %write{87,253} %mystruct{txparams} %mystructfield{0} %derivs
+local	float	txparams.blur	%read{182,256} %write{88,88} %mystruct{txparams} %mystructfield{1} %derivs
+local	color	txparams.missingcolor	%read{182,183} %write{89,89} %mystruct{txparams} %mystructfield{2} %derivs
+local	float	txparams.missingalpha	%read{255,255} %write{90,90} %mystruct{txparams} %mystructfield{3}
+local	string	txparams.interp	%read{182,256} %write{91,91} %mystruct{txparams} %mystructfield{4} %derivs
+local	float	txparams.width	%read{128,256} %write{92,177} %mystruct{txparams} %mystructfield{5} %derivs
+local	float	txcoords.s	%read{182,256} %write{108,108} %mystruct{txcoords} %mystructfield{0} %derivs
+local	float	txcoords.t	%read{182,256} %write{109,109} %mystruct{txcoords} %mystructfield{1} %derivs
+local	float	txcoords.dsdx	%read{136,256} %write{110,110} %mystruct{txcoords} %mystructfield{2} %derivs
+local	float	txcoords.dtdx	%read{141,256} %write{111,111} %mystruct{txcoords} %mystructfield{3} %derivs
+local	float	txcoords.dsdy	%read{146,256} %write{112,112} %mystruct{txcoords} %mystructfield{4} %derivs
+local	float	txcoords.dtdy	%read{151,256} %write{113,113} %mystruct{txcoords} %mystructfield{5} %derivs
+local	matrix	___527_rec709ToACEScg	%read{237,237} %write{235,235} %derivs
+local	int	___528_result	%read{244,244} %write{241,243}
+local	int	___528_nchannels	%read{245,248} %write{242,243}
+local	int	___529_ofs	%read{252,252} %write{247,251} %derivs
+local	normal	___530_bumpN	%read{267,269} %write{265,265}
+const	int	$const1	0		%read{2,283} %write{2147483647,-1}
+const	string	$const2	"user:ACEScg"		%read{4,4} %write{2147483647,-1}
+const	int	$const3	1		%read{6,284} %write{2147483647,-1}
+temp	int	$tmp1	%read{7,7} %write{6,6}
+const	string	$const4	""		%read{8,10} %write{2147483647,-1}
+const	float	$const5	0		%read{11,235} %write{2147483647,-1}
+temp	int	$tmp2	%read{13,13} %write{12,12}
+const	string	$const6	"primvar"		%read{12,66} %write{2147483647,-1}
+const	string	$const7	"txmultiUV"		%read{12,12} %write{2147483647,-1}
+temp	float	$tmp3	%read{15,15} %write{14,14}
+const	string	$const8	"<primstr:txBasePath>/tex/<primstr:txVersion>/<primstr:txLayerName>_%s"		%read{16,16} %write{2147483647,-1}
+const	string	$const9	"0"		%read{18,18} %write{2147483647,-1}
+temp	int	$tmp4	%read{20,20} %write{19,19}
+const	string	$const10	"txVarNum"		%read{19,19} %write{2147483647,-1}
+temp	int	$tmp5	%read{22,22} %write{21,21}
+temp	int	$tmp6	%read{23,23} %write{22,22}
+const	string	$const11	"%s_<primstr:txVarNum>"		%read{24,24} %write{2147483647,-1}
+temp	int	$tmp7	%read{26,26} %write{25,25}
+const	string	$const12	"%s._MAPID_"		%read{27,27} %write{2147483647,-1}
+const	string	$const13	"%s.tex"		%read{28,28} %write{2147483647,-1}
+temp	int	$tmp8	%read{30,30} %write{29,29}
+temp	int	$tmp9	%read{34,34} %write{33,33}
+const	string	$const14	"PxrAtlasRename"		%read{35,35} %write{2147483647,-1}
+const	string	$const15	"_MAPID_"		%read{37,37} %write{2147483647,-1}
+const	string[2]	$const16	"" "" 		%read{38,38} %write{2147483647,-1}
+const	int	$const17	2		%read{39,285} %write{2147483647,-1}
+temp	int	$tmp10	%read{41,41} %write{40,40}
+temp	int	$tmp11	%read{45,45} %write{44,44}
+const	string	$const18	"%s%s%s"		%read{46,52} %write{2147483647,-1}
+const	string	$const19	"<UDIM>"		%read{46,46} %write{2147483647,-1}
+temp	int	$tmp12	%read{48,48} %write{47,47}
+const	string	$const20	"_u<U>_v<V>"		%read{49,49} %write{2147483647,-1}
+const	int	$const21	3		%read{50,251} %write{2147483647,-1}
+temp	int	$tmp13	%read{51,51} %write{50,50}
+const	string	$const22	"_u<u>_v<v>"		%read{52,52} %write{2147483647,-1}
+const	string	$const23	"Manifold_Copy"		%read{55,55} %write{2147483647,-1}
+temp	int	$tmp14	%read{63,63} %write{62,62}
+const	string	$const24	"st"		%read{62,62} %write{2147483647,-1}
+temp	int	$tmp15	%read{67,67} %write{66,66}
+const	string	$const25	"_polygonUV"		%read{66,66} %write{2147483647,-1}
+const	string	$const26	"initTxParams"		%read{72,73} %write{2147483647,-1}
+const	float	$const27	1		%read{86,235} %write{2147483647,-1}
+temp	int	$tmp16	%read{75,75} %write{74,74}
+const	string	$const28	"closest"		%read{76,76} %write{2147483647,-1}
+temp	int	$tmp17	%read{78,78} %write{77,77}
+const	string	$const29	"linear"		%read{79,79} %write{2147483647,-1}
+const	string	$const30	"smartcubic"		%read{80,80} %write{2147483647,-1}
+const	string	$const31	"initTxCoords"		%read{93,93} %write{2147483647,-1}
+const	string	$const32	"invertCoord"		%read{95,95} %write{2147483647,-1}
+temp	float	$tmp18	%read{97,97} %write{96,96} %derivs
+temp	float	$tmp19	%read{100,100} %write{97,97} %derivs
+temp	float	$tmp20	%read{99,99} %write{98,98} %derivs
+temp	float	$tmp21	%read{100,100} %write{99,99} %derivs
+temp	int	$tmp22	%read{116,116} %write{115,115}
+temp	int	$tmp23	%read{117,121} %write{116,120}
+temp	int	$tmp24	%read{119,119} %write{118,118}
+temp	int	$tmp25	%read{120,120} %write{119,119}
+const	string	$const33	"PxrTxMipControls"		%read{122,122} %write{2147483647,-1}
+temp	int	$tmp26	%read{124,124} %write{123,123}
+const	float	$const34	2		%read{126,126} %write{2147483647,-1}
+temp	float	$tmp27	%read{126,126} %write{125,125} %derivs
+temp	int	$tmp28	%read{130,130} %write{129,129}
+temp	int	$tmp29	%read{133,133} %write{132,132}
+temp	float	$tmp30	%read{140,140} %write{138,138} %derivs
+temp	float	$tmp31	%read{138,138} %write{137,137} %derivs
+temp	float	$tmp32	%read{137,137} %write{136,136} %derivs
+temp	float	$tmp33	%read{140,140} %write{139,139} %derivs
+temp	float	$tmp34	%read{145,145} %write{143,143} %derivs
+temp	float	$tmp35	%read{143,143} %write{142,142} %derivs
+temp	float	$tmp36	%read{142,142} %write{141,141} %derivs
+temp	float	$tmp37	%read{145,145} %write{144,144} %derivs
+temp	float	$tmp38	%read{150,150} %write{148,148} %derivs
+temp	float	$tmp39	%read{148,148} %write{147,147} %derivs
+temp	float	$tmp40	%read{147,147} %write{146,146} %derivs
+temp	float	$tmp41	%read{150,150} %write{149,149} %derivs
+temp	float	$tmp42	%read{155,155} %write{153,153} %derivs
+temp	float	$tmp43	%read{153,153} %write{152,152} %derivs
+temp	float	$tmp44	%read{152,152} %write{151,151} %derivs
+temp	float	$tmp45	%read{155,155} %write{154,154} %derivs
+temp	point	$tmp46	%read{158,158} %write{156,156} %derivs
+temp	point	$tmp47	%read{158,158} %write{157,157} %derivs
+temp	point	$tmp48	%read{161,161} %write{159,159} %derivs
+temp	point	$tmp49	%read{161,161} %write{160,160} %derivs
+temp	float	$tmp50	%read{164,164} %write{162,162} %derivs
+temp	float	$tmp51	%read{164,164} %write{163,163} %derivs
+temp	float	$tmp52	%read{168,168} %write{164,164} %derivs
+temp	float	$tmp53	%read{167,167} %write{165,165} %derivs
+temp	float	$tmp54	%read{167,167} %write{166,166} %derivs
+temp	float	$tmp55	%read{168,168} %write{167,167} %derivs
+temp	float	$tmp56	%read{176,176} %write{168,168} %derivs
+temp	float	$tmp57	%read{171,171} %write{169,169} %derivs
+temp	float	$tmp58	%read{171,171} %write{170,170} %derivs
+temp	float	$tmp59	%read{175,175} %write{171,171} %derivs
+temp	float	$tmp60	%read{174,174} %write{172,172} %derivs
+temp	float	$tmp61	%read{174,174} %write{173,173} %derivs
+temp	float	$tmp62	%read{175,175} %write{174,174} %derivs
+temp	float	$tmp63	%read{176,176} %write{175,175} %derivs
+const	string	$const35	"PxrTextureLookup"		%read{178,254} %write{2147483647,-1}
+const	string	$const36	"firstchannel"		%read{182,256} %write{2147483647,-1}
+const	string	$const37	"blur"		%read{182,256} %write{2147483647,-1}
+const	string	$const38	"missingcolor"		%read{182,256} %write{2147483647,-1}
+const	string	$const39	"interp"		%read{182,256} %write{2147483647,-1}
+const	string	$const40	"width"		%read{182,256} %write{2147483647,-1}
+temp	int	$tmp64	%read{184,184} %write{183,183}
+const	string	$const41	"channels"		%read{188,243} %write{2147483647,-1}
+temp	int	$tmp65	%read{190,193} %write{189,192}
+temp	int	$tmp66	%read{192,192} %write{191,191}
+temp	int	$tmp67	%read{195,195} %write{194,194}
+temp	int	$tmp68	%read{196,200} %write{195,199}
+temp	int	$tmp69	%read{198,198} %write{197,197}
+temp	int	$tmp70	%read{199,199} %write{198,198}
+temp	float	$tmp71	%read{202,202} %write{201,201} %derivs
+temp	float	$tmp72	%read{204,204} %write{203,203} %derivs
+temp	float	$tmp73	%read{206,206} %write{205,205} %derivs
+const	string	$const42	"PxrLinearizeSRGB"		%read{210,210} %write{2147483647,-1}
+temp	int	$tmp74	%read{215,215} %write{214,214}
+const	string	$const43	"ocioEnabled"		%read{211,211} %write{2147483647,-1}
+temp	int	$tmp75	%read{2147483647,-1} %write{213,213}
+const	string	$const44	"user:ocioenabled"		%read{213,213} %write{2147483647,-1}
+temp	int	$tmp76	%read{216,216} %write{215,215}
+temp	int	$tmp77	%read{219,232} %write{219,232}
+temp	int	$tmp78	%read{217,232} %write{218,232}
+temp	float	$tmp79	%read{219,232} %write{219,232}
+const	float	$const45	0.0404499993		%read{222,222} %write{2147483647,-1}
+temp	int	$tmp80	%read{219,232} %write{219,232}
+temp	float	$tmp81	%read{219,232} %write{219,232} %derivs
+const	float	$const46	0.0773993805		%read{225,225} %write{2147483647,-1}
+temp	float	$tmp82	%read{219,232} %write{219,232} %derivs
+temp	float	$tmp83	%read{219,232} %write{219,232} %derivs
+temp	float	$tmp84	%read{219,232} %write{219,232} %derivs
+const	float	$const47	0.0549999997		%read{228,228} %write{2147483647,-1}
+temp	float	$tmp85	%read{219,232} %write{219,232} %derivs
+const	float	$const48	0.947867274		%read{229,229} %write{2147483647,-1}
+temp	float	$tmp86	%read{219,232} %write{219,232} %derivs
+const	float	$const49	2.4000001		%read{230,230} %write{2147483647,-1}
+temp	int	$tmp87	%read{234,234} %write{233,233}
+const	float	$const50	0.610276997		%read{235,235} %write{2147483647,-1}
+const	float	$const51	0.0688436031		%read{235,235} %write{2147483647,-1}
+const	float	$const52	0.0241672993		%read{235,235} %write{2147483647,-1}
+const	float	$const53	0.345423996		%read{235,235} %write{2147483647,-1}
+const	float	$const54	0.934974015		%read{235,235} %write{2147483647,-1}
+const	float	$const55	0.121813998		%read{235,235} %write{2147483647,-1}
+const	float	$const56	0.0443001017		%read{235,235} %write{2147483647,-1}
+const	float	$const57	-0.00381805003		%read{235,235} %write{2147483647,-1}
+const	float	$const58	0.854018986		%read{235,235} %write{2147483647,-1}
+temp	vector	$tmp88	%read{237,237} %write{236,236} %derivs
+temp	int	$tmp89	%read{240,240} %write{239,239}
+temp	int	$tmp90	%read{246,246} %write{245,245}
+temp	int	$tmp91	%read{249,249} %write{248,248}
+temp	int	$tmp92	%read{259,259} %write{258,258}
+temp	vector	$tmp93	%read{265,265} %write{264,264}
+temp	float	$tmp94	%read{261,261} %write{260,260} %derivs
+const	float	$const59	0.5		%read{261,261} %write{2147483647,-1}
+temp	float	$tmp95	%read{262,262} %write{261,261} %derivs
+temp	normal	$tmp96	%read{263,263} %write{262,262} %derivs
+temp	point	$tmp97	%read{264,264} %write{263,263} %derivs
+const	string	$const60	"surfgradFromPerturbedNormal"		%read{266,266} %write{2147483647,-1}
+temp	vector	$tmp98	%read{269,269} %write{268,268}
+temp	vector	$tmp99	%read{272,272} %write{269,269}
+temp	float	$tmp100	%read{272,272} %write{271,271}
+const	float	$const61	9.99999994e-09		%read{271,271} %write{2147483647,-1}
+temp	float	$tmp101	%read{271,271} %write{270,270}
+const	string	$const62	"Color_Saturate"		%read{273,273} %write{2147483647,-1}
+temp	color	$tmp102	%read{277,277} %write{276,276} %derivs
+temp	color	$tmp103	%read{280,280} %write{279,279}
+temp	float	$tmp104	%read{282,282} %write{281,281}
+code ___main___
+# DxTexFile.osl:247
+#     int inInvertT = invertT;
+	isconnected	hasManifold manifold 	%filename{"DxTexFile.osl"} %line{247} %argrw{"wr"}
+# DxTexFile.osl:248
+#     int acescg = 0;
+	assign		inInvertT invertT 	%line{248} %argrw{"wr"}
+# DxTexFile.osl:249
+#     int atlas_pvr = 0;
+	assign		acescg $const1 	%line{249} %argrw{"wr"}
+# DxTexFile.osl:250
+#     int errStatus = getattribute("user:ACEScg", acescg);
+	assign		atlas_pvr $const1 	%line{250} %argrw{"wr"}
+# DxTexFile.osl:251
+# 
+	getattribute	errStatus $const2 acescg 	%line{251} %argrw{"wrw"}
+# DxTexFile.osl:253
+#     if (computeMode == 1)
+	assign		finalFilename filename 	%line{253} %argrw{"wr"}
+# DxTexFile.osl:254
+#     {
+	eq		$tmp1 computeMode $const3 	%line{254} %argrw{"wrr"}
+	if		$tmp1 29 29 	%argrw{"r"}
+# DxTexFile.osl:256
+#         string txLayerName = "";
+	assign		___515_txBasePath $const4 	%line{256} %argrw{"wr"}
+# DxTexFile.osl:257
+#         string txVersion = "";
+	assign		___515_txLayerName $const4 	%line{257} %argrw{"wr"}
+# DxTexFile.osl:258
+#         // getattribute("primvar", "txBasePath", txBasePath);
+	assign		___515_txVersion $const4 	%line{258} %argrw{"wr"}
+# DxTexFile.osl:268
+#         if (getattribute("primvar", "txmultiUV", txmultiUV))
+	assign		___515_txmultiUV $const5 	%line{268} %argrw{"wr"}
+# DxTexFile.osl:269
+#             atlas_pvr = int(round(txmultiUV));
+	getattribute	$tmp2 $const6 $const7 ___515_txmultiUV 	%line{269} %argrw{"wrrw"}
+	if		$tmp2 16 16 	%argrw{"r"}
+# DxTexFile.osl:270
+# 
+	round		$tmp3 ___515_txmultiUV 	%line{270} %argrw{"wr"}
+	assign		atlas_pvr $tmp3 	%argrw{"wr"}
+# DxTexFile.osl:272
+#             // if (txLayerName)
+	format		finalFilename $const8 txChannel 	%line{272} %argrw{"wrr"}
+# DxTexFile.osl:293
+#         {
+	if		txVarNum 25 25 	%line{293} %argrw{"r"}
+# DxTexFile.osl:295
+#             if(getattribute("primvar", "txVarNum", txVarNumValue))
+	assign		___516_txVarNumValue $const9 	%line{295} %argrw{"wr"}
+# DxTexFile.osl:296
+#             {
+	getattribute	$tmp4 $const6 $const10 ___516_txVarNumValue 	%line{296} %argrw{"wrrw"}
+	if		$tmp4 25 25 	%argrw{"r"}
+# DxTexFile.osl:298
+#                 {
+	stoi		$tmp5 ___516_txVarNumValue 	%line{298} %argrw{"wr"}
+	gt		$tmp6 $tmp5 $const1 	%argrw{"wrr"}
+	if		$tmp6 25 25 	%argrw{"r"}
+# DxTexFile.osl:301
+#                 }
+	format		finalFilename $const11 finalFilename 	%line{301} %argrw{"wrr"}
+# DxTexFile.osl:306
+#             finalFilename = format("%s._MAPID_", finalFilename);
+	eq		$tmp7 atlas_pvr $const3 	%line{306} %argrw{"wrr"}
+	if		$tmp7 28 28 	%argrw{"r"}
+# DxTexFile.osl:307
+#         }
+	format		finalFilename $const12 finalFilename 	%line{307} %argrw{"wrr"}
+# DxTexFile.osl:309
+#         // }
+	format		finalFilename $const13 finalFilename 	%line{309} %argrw{"wrr"}
+# DxTexFile.osl:319
+#         atlas = atlas_pvr;
+	eq		$tmp8 atlas_pvr $const3 	%line{319} %argrw{"wrr"}
+	if		$tmp8 32 33 	%argrw{"r"}
+# DxTexFile.osl:320
+#     else
+	assign		atlas atlas_pvr 	%line{320} %argrw{"wr"}
+# DxTexFile.osl:322
+#     if (atlas > 0)
+	assign		atlas atlasStyle 	%line{322} %argrw{"wr"}
+# DxTexFile.osl:323
+#     {
+	gt		$tmp9 atlas $const1 	%line{323} %argrw{"wrr"}
+	if		$tmp9 54 54 	%argrw{"r"}
+# DxTexFile.osl:325
+#     }
+	functioncall	$const14 54 	%line{325} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:238
+#     string UDIMfilename = filename;
+	assign		___437_UDIMfilename finalFilename 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{238} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:239
+#     string separator = "_MAPID_";
+	assign		___437_separator $const15 	%line{239} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:240
+#     string tokens[2] = {"",""};
+	assign		___437_tokens $const16 	%line{240} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:242
+#     int nTokens = split(filename, tokens, separator, 2);
+	split		___437_nTokens finalFilename ___437_tokens ___437_separator $const17 	%line{242} %argrw{"wrwrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:245
+#     if (nTokens == 2)
+	eq		$tmp10 ___437_nTokens $const17 	%line{245} %argrw{"wrr"}
+	if		$tmp10 53 53 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:247
+#         string baseFileName = tokens[0];
+	aref		___438_baseFileName ___437_tokens $const1 	%line{247} %argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:248
+#         string extension = tokens[1];
+	aref		___438_extension ___437_tokens $const3 	%line{248} %argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:250
+#         if (atlasStyle == 1) {
+	eq		$tmp11 atlas $const3 	%line{250} %argrw{"wrr"}
+	if		$tmp11 47 53 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:251
+#             UDIMfilename = format("%s%s%s",baseFileName,"<UDIM>",extension);
+	format		___437_UDIMfilename $const18 ___438_baseFileName $const19 ___438_extension 	%line{251} %argrw{"wrrrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:253
+#         else if (atlasStyle == 2)
+	eq		$tmp12 atlas $const17 	%line{253} %argrw{"wrr"}
+	if		$tmp12 50 53 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:255
+#             UDIMfilename = format("%s%s%s",baseFileName,"_u<U>_v<V>",extension);
+	format		___437_UDIMfilename $const18 ___438_baseFileName $const20 ___438_extension 	%line{255} %argrw{"wrrrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:257
+#         else if (atlasStyle == 3)
+	eq		$tmp13 atlas $const21 	%line{257} %argrw{"wrr"}
+	if		$tmp13 53 53 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:259
+#             UDIMfilename = format("%s%s%s",baseFileName,"_u<u>_v<v>",extension);
+	format		___437_UDIMfilename $const18 ___438_baseFileName $const22 ___438_extension 	%line{259} %argrw{"wrrrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:262
+#     return UDIMfilename;
+	assign		finalFilename ___437_UDIMfilename 	%line{262} %argrw{"wr"}
+# DxTexFile.osl:330
+#     {
+	if		hasManifold 62 72 	%filename{"DxTexFile.osl"} %line{330} %argrw{"r"}
+# DxTexFile.osl:334
+# 
+	functioncall	$const23 59 	%line{334} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:53
+#     dest.Q = src.Q;
+	assign		___521_inputManifoldRw.Q manifold.Q 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{53} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:54
+#     dest.QN = src.QN;
+	assign		___521_inputManifoldRw.QN manifold.QN 	%line{54} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:55
+#     dest.Qradius = src.Qradius;
+	assign		___521_inputManifoldRw.Qradius manifold.Qradius 	%line{55} %argrw{"wr"}
+# DxTexFile.osl:336
+#         t = inputManifoldRw.Q[1];
+	compref		s ___521_inputManifoldRw.Q $const1 	%filename{"DxTexFile.osl"} %line{336} %argrw{"wrr"}
+# DxTexFile.osl:337
+#         inInvertT = 0;
+	compref		t ___521_inputManifoldRw.Q $const3 	%line{337} %argrw{"wrr"}
+# DxTexFile.osl:338
+#     }
+	assign		inInvertT $const1 	%line{338} %argrw{"wr"}
+# DxTexFile.osl:343
+#         {
+	getattribute	$tmp14 $const6 $const24 ___522_inManifold 	%line{343} %argrw{"wrrw"}
+	if		$tmp14 66 72 	%argrw{"r"}
+# DxTexFile.osl:345
+#             t = inManifold[1];
+	aref		s ___522_inManifold $const1 	%line{345} %argrw{"wrr"}
+# DxTexFile.osl:346
+#         }
+	aref		t ___522_inManifold $const3 	%line{346} %argrw{"wrr"}
+# DxTexFile.osl:348
+#         {
+	getattribute	$tmp15 $const6 $const25 ___522_inManifold 	%line{348} %argrw{"wrrw"}
+	if		$tmp15 70 72 	%argrw{"r"}
+# DxTexFile.osl:350
+#             t = inManifold[1];
+	aref		s ___522_inManifold $const1 	%line{350} %argrw{"wrr"}
+# DxTexFile.osl:351
+#         }
+	aref		t ___522_inManifold $const3 	%line{351} %argrw{"wrr"}
+# DxTexFile.osl:355
+#             t = v;
+	assign		s u 	%line{355} %argrw{"wr"}
+# DxTexFile.osl:356
+#         }
+	assign		t v 	%line{356} %argrw{"wr"}
+# DxTexFile.osl:360
+#                                      missingColor, missingAlpha, filter);
+	functioncall	$const26 93 	%line{360} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:83
+#     return initTxParams(firstchannel, blur, missingcolor, missingalpha, filter, 1.0);
+	functioncall	$const26 93 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{83} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:68
+#     if (filter == 0)
+	eq		$tmp16 filter $const1 	%line{68} %argrw{"wrr"}
+	if		$tmp16 77 81 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:69
+#         interp = "closest";
+	assign		___418_interp $const28 	%line{69} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:70
+#     else if (filter == 2)
+	eq		$tmp17 filter $const17 	%line{70} %argrw{"wrr"}
+	if		$tmp17 80 81 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:71
+#         interp = "linear";
+	assign		___418_interp $const29 	%line{71} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:73
+#         interp = "smartcubic";
+	assign		___418_interp $const30 	%line{73} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:75
+#     TxParams params = {firstchannel, blur, missingcolor, missingalpha,
+	assign		___418_params.firstchannel firstChannel 	%line{75} %argrw{"wr"}
+	assign		___418_params.blur blur 	%argrw{"wr"}
+	assign		___418_params.missingcolor missingColor 	%argrw{"wr"}
+	assign		___418_params.missingalpha missingAlpha 	%argrw{"wr"}
+	assign		___418_params.interp ___418_interp 	%argrw{"wr"}
+	assign		___418_params.width $const27 	%argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:77
+#     return params;
+	assign		txparams.firstchannel ___418_params.firstchannel 	%line{77} %argrw{"wr"}
+	assign		txparams.blur ___418_params.blur 	%argrw{"wr"}
+	assign		txparams.missingcolor ___418_params.missingcolor 	%argrw{"wr"}
+	assign		txparams.missingalpha ___418_params.missingalpha 	%argrw{"wr"}
+	assign		txparams.interp ___418_params.interp 	%argrw{"wr"}
+	assign		txparams.width ___418_params.width 	%argrw{"wr"}
+# DxTexFile.osl:362
+#     if (mipBias != 0 || maxResolution != 0)
+	functioncall	$const31 115 	%filename{"DxTexFile.osl"} %line{362} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:102
+#     float _tt = invertT ? invertCoord(tt) : tt;
+	if		inInvertT 101 102 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{102} %argrw{"r"}
+	functioncall	$const32 101 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:48
+#     return floor(tt) + 1.0 - (tt - floor(tt));
+	floor		$tmp18 t 	%line{48} %argrw{"wr"}
+	add		$tmp19 $tmp18 $const27 	%argrw{"wrr"}
+	floor		$tmp20 t 	%argrw{"wr"}
+	sub		$tmp21 t $tmp20 	%argrw{"wrr"}
+	sub		___420__tt $tmp19 $tmp21 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:102
+#     float _tt = invertT ? invertCoord(tt) : tt;
+	assign		___420__tt t 	%line{102} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:103
+#     TxCoords coords = { ss, _tt, Dx(ss), Dx(_tt), Dy(ss), Dy(_tt) };
+	assign		___420_coords.s s 	%line{103} %argrw{"wr"}
+	assign		___420_coords.t ___420__tt 	%argrw{"wr"}
+	Dx		___420_coords.dsdx s 	%argrw{"wr"} %argderivs{1}
+	Dx		___420_coords.dtdx ___420__tt 	%argrw{"wr"} %argderivs{1}
+	Dy		___420_coords.dsdy s 	%argrw{"wr"} %argderivs{1}
+	Dy		___420_coords.dtdy ___420__tt 	%argrw{"wr"} %argderivs{1}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:104
+#     return coords;
+	assign		txcoords.s ___420_coords.s 	%line{104} %argrw{"wr"}
+	assign		txcoords.t ___420_coords.t 	%argrw{"wr"}
+	assign		txcoords.dsdx ___420_coords.dsdx 	%argrw{"wr"}
+	assign		txcoords.dtdx ___420_coords.dtdx 	%argrw{"wr"}
+	assign		txcoords.dsdy ___420_coords.dsdy 	%argrw{"wr"}
+	assign		txcoords.dtdy ___420_coords.dtdy 	%argrw{"wr"}
+	return
+# DxTexFile.osl:363
+#         PxrTxMipControls(mipBias, maxResolution, txcoords, txparams);
+	neq		$tmp22 mipBias $const1 	%filename{"DxTexFile.osl"} %line{363} %argrw{"wrr"}
+	neq		$tmp23 $tmp22 $const1 	%argrw{"wrr"}
+	if		$tmp23 118 121 	%argrw{"r"}
+	neq		$tmp24 maxResolution $const1 	%argrw{"wrr"}
+	neq		$tmp25 $tmp24 $const1 	%argrw{"wrr"}
+	assign		$tmp23 $tmp25 	%argrw{"wr"}
+	if		$tmp23 178 178 	%argrw{"r"}
+# DxTexFile.osl:364
+#     resultRGBA.c = PxrTextureLookup(finalFilename, txcoords, txparams);
+	functioncall	$const33 178 	%line{364} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:155
+#     float bias = (mipBias != 0) ? pow(2.0, mipBias) : 1.0;
+	neq		$tmp26 mipBias $const1 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{155} %argrw{"wrr"}
+	if		$tmp26 127 128 	%argrw{"r"}
+	assign		$tmp27 mipBias 	%argrw{"wr"}
+	pow		___429_bias $const34 $tmp27 	%argrw{"wrr"}
+	assign		___429_bias $const27 	%argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:156
+#     bias *= params.width;
+	mul		___429_bias ___429_bias txparams.width 	%line{156} %argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:157
+#     if (maxResolution <= 0)
+	le		$tmp28 maxResolution $const1 	%line{157} %argrw{"wrr"}
+	if		$tmp28 132 178 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:159
+#         params.width = bias;
+	assign		txparams.width ___429_bias 	%line{159} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:165
+#         float minRadius = (maxResolution > 0.0) ? 1.0 / maxResolution : 0.0;
+	gt		$tmp29 maxResolution $const5 	%line{165} %argrw{"wrr"}
+	if		$tmp29 135 136 	%argrw{"r"}
+	div		___431_minRadius $const27 maxResolution 	%argrw{"wrr"}
+	assign		___431_minRadius $const5 	%argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:167
+#         float dsdx = max(minRadius, abs(coords.dsdx * bias)) * sign(coords.dsdx);
+	mul		$tmp32 txcoords.dsdx ___429_bias 	%line{167} %argrw{"wrr"}
+	abs		$tmp31 $tmp32 	%argrw{"wr"}
+	max		$tmp30 ___431_minRadius $tmp31 	%argrw{"wrr"}
+	sign		$tmp33 txcoords.dsdx 	%argrw{"wr"}
+	mul		___431_dsdx $tmp30 $tmp33 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:168
+#         float dtdx = max(minRadius, abs(coords.dtdx * bias)) * sign(coords.dtdx);
+	mul		$tmp36 txcoords.dtdx ___429_bias 	%line{168} %argrw{"wrr"}
+	abs		$tmp35 $tmp36 	%argrw{"wr"}
+	max		$tmp34 ___431_minRadius $tmp35 	%argrw{"wrr"}
+	sign		$tmp37 txcoords.dtdx 	%argrw{"wr"}
+	mul		___431_dtdx $tmp34 $tmp37 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:169
+#         float dsdy = max(minRadius, abs(coords.dsdy * bias)) * sign(coords.dsdy);
+	mul		$tmp40 txcoords.dsdy ___429_bias 	%line{169} %argrw{"wrr"}
+	abs		$tmp39 $tmp40 	%argrw{"wr"}
+	max		$tmp38 ___431_minRadius $tmp39 	%argrw{"wrr"}
+	sign		$tmp41 txcoords.dsdy 	%argrw{"wr"}
+	mul		___431_dsdy $tmp38 $tmp41 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:170
+#         float dtdy = max(minRadius, abs(coords.dtdy * bias)) * sign(coords.dtdy);
+	mul		$tmp44 txcoords.dtdy ___429_bias 	%line{170} %argrw{"wrr"}
+	abs		$tmp43 $tmp44 	%argrw{"wr"}
+	max		$tmp42 ___431_minRadius $tmp43 	%argrw{"wrr"}
+	sign		$tmp45 txcoords.dtdy 	%argrw{"wr"}
+	mul		___431_dtdy $tmp42 $tmp45 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:171
+#         vector v0 = point(coords.dsdx, coords.dtdx, 0) - point(coords.dsdy, coords.dtdy, 0);
+	point		$tmp46 txcoords.dsdx txcoords.dtdx $const5 	%line{171} %argrw{"wrrr"}
+	point		$tmp47 txcoords.dsdy txcoords.dtdy $const5 	%argrw{"wrrr"}
+	sub		___431_v0 $tmp46 $tmp47 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:172
+#         vector v1 = point(dsdx, dtdx, 0) - point(dsdy, dtdy, 0);
+	point		$tmp48 ___431_dsdx ___431_dtdx $const5 	%line{172} %argrw{"wrrr"}
+	point		$tmp49 ___431_dsdy ___431_dtdy $const5 	%argrw{"wrrr"}
+	sub		___431_v1 $tmp48 $tmp49 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:173
+#         params.width = (v1.x*v1.x + v1.y*v1.y) / (v0.x*v0.x + v1.y*v1.y);
+	compref		$tmp50 ___431_v1 $const1 	%line{173} %argrw{"wrr"}
+	compref		$tmp51 ___431_v1 $const1 	%argrw{"wrr"}
+	mul		$tmp52 $tmp50 $tmp51 	%argrw{"wrr"}
+	compref		$tmp53 ___431_v1 $const3 	%argrw{"wrr"}
+	compref		$tmp54 ___431_v1 $const3 	%argrw{"wrr"}
+	mul		$tmp55 $tmp53 $tmp54 	%argrw{"wrr"}
+	add		$tmp56 $tmp52 $tmp55 	%argrw{"wrr"}
+	compref		$tmp57 ___431_v0 $const1 	%argrw{"wrr"}
+	compref		$tmp58 ___431_v0 $const1 	%argrw{"wrr"}
+	mul		$tmp59 $tmp57 $tmp58 	%argrw{"wrr"}
+	compref		$tmp60 ___431_v1 $const3 	%argrw{"wrr"}
+	compref		$tmp61 ___431_v1 $const3 	%argrw{"wrr"}
+	mul		$tmp62 $tmp60 $tmp61 	%argrw{"wrr"}
+	add		$tmp63 $tmp59 $tmp62 	%argrw{"wrr"}
+	div		txparams.width $tmp56 $tmp63 	%argrw{"wrr"}
+	assign		txparams.width txparams.width 	%argrw{"wr"}
+# DxTexFile.osl:365
+# 
+	functioncall	$const35 208 	%filename{"DxTexFile.osl"} %line{365} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:187
+#     int success = 0;
+	assign		___433_success $const1 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{187} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:188
+#     int nchannels = 0;
+	assign		___433_nchannels $const1 	%line{188} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:189
+#     color finalResult = 0;
+	assign		___433_finalResult $const1 	%line{189} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:191
+#     color result = texture(filename,
+	texture		___433_result finalFilename txcoords.s txcoords.t txcoords.dsdx txcoords.dtdx txcoords.dsdy txcoords.dtdy $const36 txparams.firstchannel $const37 txparams.blur $const38 txparams.missingcolor $const39 txparams.interp $const40 txparams.width 	%line{191} %argrw{"wrrrrrrrrrrrrrrrrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:201
+#     if (result == params.missingcolor) return result;
+	eq		$tmp64 ___433_result txparams.missingcolor 	%line{201} %argrw{"wrr"}
+	if		$tmp64 187 187 	%argrw{"r"}
+	assign		resultRGBA.c ___433_result 	%argrw{"wr"}
+	return
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:204
+#     finalResult = result;
+	assign		___433_finalResult ___433_result 	%line{204} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:207
+#     success = gettextureinfo(filename, "channels", nchannels);
+	gettextureinfo	___433_success finalFilename $const41 ___433_nchannels 	%line{207} %argrw{"wrrw"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:208
+#     if (success && nchannels)
+	neq		$tmp65 ___433_success $const1 	%line{208} %argrw{"wrr"}
+	if		$tmp65 193 193 	%argrw{"r"}
+	neq		$tmp66 ___433_nchannels $const1 	%argrw{"wrr"}
+	assign		$tmp65 $tmp66 	%argrw{"wr"}
+	if		$tmp65 207 207 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:210
+#         if (nchannels == 1 || nchannels == 2)
+	eq		$tmp67 ___433_nchannels $const3 	%line{210} %argrw{"wrr"}
+	neq		$tmp68 $tmp67 $const1 	%argrw{"wrr"}
+	if		$tmp68 197 200 	%argrw{"r"}
+	eq		$tmp69 ___433_nchannels $const17 	%argrw{"wrr"}
+	neq		$tmp70 $tmp69 $const1 	%argrw{"wrr"}
+	assign		$tmp68 $tmp70 	%argrw{"wr"}
+	if		$tmp68 207 207 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:213
+#             finalResult[0] = result[0];
+	compref		$tmp71 ___433_result $const1 	%line{213} %argrw{"wrr"}
+	compassign	___433_finalResult $const1 $tmp71 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:214
+#             finalResult[1] = result[0];
+	compref		$tmp72 ___433_result $const1 	%line{214} %argrw{"wrr"}
+	compassign	___433_finalResult $const3 $tmp72 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:215
+#             finalResult[2] = result[0];
+	compref		$tmp73 ___433_result $const1 	%line{215} %argrw{"wrr"}
+	compassign	___433_finalResult $const17 $tmp73 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:219
+#     return finalResult;
+	assign		resultRGBA.c ___433_finalResult 	%line{219} %argrw{"wr"}
+# DxTexFile.osl:365
+# 
+	assign		resultRGBA.c resultRGBA.c 	%filename{"DxTexFile.osl"} %line{365} %argrw{"wr"}
+# DxTexFile.osl:367
+#     {
+	if		linearize 239 239 	%line{367} %argrw{"r"}
+# DxTexFile.osl:369
+# 
+	functioncall	$const42 233 	%line{369} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:127
+#     if (!ocioEnabled())
+	functioncall	$const43 215 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{127} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:120
+#     int foo = 0;
+	assign		___422_foo $const1 	%line{120} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:121
+#     getattribute("user:ocioenabled", foo);
+	getattribute	$tmp75 $const44 ___422_foo 	%line{121} %argrw{"wrw"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:122
+#     return foo;
+	assign		$tmp74 ___422_foo 	%line{122} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:127
+#     if (!ocioEnabled())
+	eq		$tmp76 $tmp74 $const1 	%line{127} %argrw{"wrr"}
+	if		$tmp76 233 233 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:129
+#         for (int i = 0; i < 3; ++i)
+	for		$tmp78 219 221 232 233 	%line{129} %argrw{"r"}
+	assign		___425_i $const1 	%argrw{"wr"}
+	lt		$tmp77 ___425_i $const21 	%argrw{"wrr"}
+	neq		$tmp78 $tmp77 $const1 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:131
+#             if (inout[i] < 0.04045)
+	compref		$tmp79 resultRGBA.c ___425_i 	%line{131} %argrw{"wrr"}
+	lt		$tmp80 $tmp79 $const45 	%argrw{"wrr"}
+	if		$tmp80 227 232 	%argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:132
+#                 inout[i] = inout[i] * 0.07739938;
+	compref		$tmp81 resultRGBA.c ___425_i 	%line{132} %argrw{"wrr"}
+	mul		$tmp82 $tmp81 $const46 	%argrw{"wrr"}
+	compassign	resultRGBA.c ___425_i $tmp82 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:134
+#                 inout[i] = pow((inout[i] + 0.055) * 0.947867299, 2.4);
+	compref		$tmp84 resultRGBA.c ___425_i 	%line{134} %argrw{"wrr"}
+	add		$tmp85 $tmp84 $const47 	%argrw{"wrr"}
+	mul		$tmp86 $tmp85 $const48 	%argrw{"wrr"}
+	pow		$tmp83 $tmp86 $const49 	%argrw{"wrr"}
+	compassign	resultRGBA.c ___425_i $tmp83 	%argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:129
+#         for (int i = 0; i < 3; ++i)
+	add		___425_i ___425_i $const3 	%line{129} %argrw{"wrr"}
+# DxTexFile.osl:371
+#         {
+	eq		$tmp87 acescg $const3 	%filename{"DxTexFile.osl"} %line{371} %argrw{"wrr"}
+	if		$tmp87 239 239 	%argrw{"r"}
+# DxTexFile.osl:373
+#                                             0.345424,  0.934974, 0.121814, 0.0,
+	matrix		___527_rec709ToACEScg $const50 $const51 $const52 $const5 $const53 $const54 $const55 $const5 $const56 $const57 $const58 $const5 $const5 $const5 $const5 $const27 	%line{373} %argrw{"wrrrrrrrrrrrrrrrr"}
+# DxTexFile.osl:377
+#         }
+	assign		$tmp88 resultRGBA.c 	%line{377} %argrw{"wr"}
+	transformv	resultRGBA.c ___527_rec709ToACEScg $tmp88 	%argrw{"wrr"}
+	assign		resultRGBA.c resultRGBA.c 	%argrw{"wr"}
+# DxTexFile.osl:382
+#     {
+	isconnected	$tmp89 resultA 	%line{382} %argrw{"wr"}
+	if		$tmp89 258 258 	%argrw{"r"}
+# DxTexFile.osl:384
+#         int nchannels = 0;
+	assign		___528_result $const1 	%line{384} %argrw{"wr"}
+# DxTexFile.osl:385
+# 
+	assign		___528_nchannels $const1 	%line{385} %argrw{"wr"}
+# DxTexFile.osl:388
+#         if (result)
+	gettextureinfo	___528_result finalFilename $const41 ___528_nchannels 	%line{388} %argrw{"wrrw"}
+# DxTexFile.osl:389
+#         {
+	if		___528_result 258 258 	%line{389} %argrw{"r"}
+# DxTexFile.osl:392
+#                       (nchannels == 2) ? 1 :    //  ra : first chan + 1
+	eq		$tmp90 ___528_nchannels $const3 	%line{392} %argrw{"wrr"}
+	if		$tmp90 248 252 	%argrw{"r"}
+	assign		___529_ofs $const1 	%argrw{"wr"}
+# DxTexFile.osl:393
+#                       3;                        // rgba: first chan + 3
+	eq		$tmp91 ___528_nchannels $const17 	%line{393} %argrw{"wrr"}
+	if		$tmp91 251 252 	%argrw{"r"}
+	assign		___529_ofs $const3 	%argrw{"wr"}
+	assign		___529_ofs $const21 	%argrw{"wr"}
+# DxTexFile.osl:396
+#             resultRGBA.a = PxrTextureLookup(finalFilename, txcoords, txparams);
+	add		txparams.firstchannel txparams.firstchannel ___529_ofs 	%line{396} %argrw{"wrr"}
+	assign		txparams.firstchannel txparams.firstchannel 	%argrw{"wr"}
+# DxTexFile.osl:397
+#         }
+	functioncall	$const35 257 	%line{397} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:225
+#     color missingalpha = params.missingalpha;
+	assign		___436_missingalpha txparams.missingalpha 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h"} %line{225} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLTexture.h:226
+#     return texture(filename,
+	texture		resultRGBA.a finalFilename txcoords.s txcoords.t txcoords.dsdx txcoords.dtdx txcoords.dsdy txcoords.dtdy $const36 txparams.firstchannel $const37 txparams.blur $const38 ___436_missingalpha $const39 txparams.interp $const40 txparams.width 	%line{226} %argrw{"wrrrrrrrrrrrrrrrrr"}
+# DxTexFile.osl:397
+#         }
+	assign		resultRGBA.a resultRGBA.a 	%filename{"DxTexFile.osl"} %line{397} %argrw{"wr"}
+# DxTexFile.osl:402
+#     {
+	isconnected	$tmp92 resultNG 	%line{402} %argrw{"wr"}
+	if		$tmp92 273 273 	%argrw{"r"}
+# DxTexFile.osl:405
+#         resultNG = surfgradFromPerturbedNormal(bumpN, N);
+	luminance	$tmp94 resultRGBA.c 	%line{405} %argrw{"wr"}
+	sub		$tmp95 $tmp94 $const59 	%argrw{"wrr"}
+	mul		$tmp96 N $tmp95 	%argrw{"wrr"}
+	add		$tmp97 P $tmp96 	%argrw{"wrr"}
+	calculatenormal	$tmp93 $tmp97 	%argrw{"wr"} %argderivs{1}
+# DxTexFile.osl:404
+#             calculatenormal(P + N * (luminance(resultRGBA.c) - 0.5)));
+	normalize	___530_bumpN $tmp93 	%line{404} %argrw{"wr"}
+# DxTexFile.osl:406
+#     }
+	functioncall	$const60 273 	%line{406} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Bump.h:100
+# 	float k = dot(Nn, bN);
+	dot		___495_k N ___530_bumpN 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Bump.h"} %line{100} %argrw{"wrr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Bump.h:101
+# 	return (k * Nn - bN) / max(1.0e-8, abs(k));
+	mul		$tmp98 ___495_k N 	%line{101} %argrw{"wrr"}
+	sub		$tmp99 $tmp98 ___530_bumpN 	%argrw{"wrr"}
+	abs		$tmp101 ___495_k 	%argrw{"wr"}
+	max		$tmp100 $const61 $tmp101 	%argrw{"wrr"}
+	div		resultNG $tmp99 $tmp100 	%argrw{"wrr"}
+# DxTexFile.osl:409
+#     resultRGB = resultRGBA.c * colorScale + colorOffset;
+	functioncall	$const62 278 	%filename{"DxTexFile.osl"} %line{409} %argrw{"r"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLColor.h:76
+#     color tmpColor = inputColor;
+	assign		___445_tmpColor resultRGBA.c 	%filename{"/show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLColor.h"} %line{76} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLColor.h:77
+#     float intensity = luminance(tmpColor);
+	luminance	___445_intensity ___445_tmpColor 	%line{77} %argrw{"wr"}
+# /show/pipe/user/minchul/sources/renderman/25.2/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/PxrOSLColor.h:78
+#     return mix(color(intensity), tmpColor, sat);
+	assign		$tmp102 ___445_intensity 	%line{78} %argrw{"wr"}
+	mix		resultRGBA.c $tmp102 ___445_tmpColor saturation 	%argrw{"wrrr"}
+# DxTexFile.osl:409
+#     resultRGB = resultRGBA.c * colorScale + colorOffset;
+	assign		resultRGBA.c resultRGBA.c 	%filename{"DxTexFile.osl"} %line{409} %argrw{"wr"}
+# DxTexFile.osl:410
+#     resultA = resultRGBA.a * alphaScale + alphaOffset;
+	mul		$tmp103 resultRGBA.c colorScale 	%line{410} %argrw{"wrr"}
+	add		resultRGB $tmp103 colorOffset 	%argrw{"wrr"}
+# DxTexFile.osl:411
+# 
+	mul		$tmp104 resultRGBA.a alphaScale 	%line{411} %argrw{"wrr"}
+	add		resultA $tmp104 alphaOffset 	%argrw{"wrr"}
+# DxTexFile.osl:414
+#     resultG = resultRGB[1];
+	compref		resultR resultRGB $const1 	%line{414} %argrw{"wrr"}
+# DxTexFile.osl:415
+#     resultB = resultRGB[2];
+	compref		resultG resultRGB $const3 	%line{415} %argrw{"wrr"}
+# DxTexFile.osl:416
+# }
+	compref		resultB resultRGB $const17 	%line{416} %argrw{"wrr"}
+	end

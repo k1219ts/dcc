@@ -1,0 +1,30 @@
+package: DEXTER OTIO
+author: kwantae Kim
+organization: DEXTER DIGITAL
+version: 1.0
+rv: 7.7.1
+url: http://www.dexterstudios.com
+
+modes: 
+  - file: otio_reader_plugin.py
+    load: immediate
+  - file: overlay_hud.py
+    load: immediate
+  - file: otio_reader.py
+    location: Python
+  - file: gotoInput.mu
+    load: immediate
+  - file: otio_all_active.py
+    load: immediate
+
+description: |
+    <p> OTIO seq timecode Overlay </p>
+    <p></p>
+    <p></p>
+    <p> Hotkey: </p>
+    <p> [Timecode Overlay HUD]<br>
+        '/'</p>
+    <p> [jump cut in / out]<br>
+        Shift + '&lt;' or '&gt;' </p>
+    <p> [Go To Global Frame]<br>
+        Shift + G</p>

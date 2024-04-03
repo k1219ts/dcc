@@ -1,0 +1,20 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.8.2.pixar1697a56
+# options: 
+shader userattr_PRMan
+oparam	color	outRGB	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{2,2}
+local	float	value	%read{2,2} %write{0,1}
+const	int	$const1	0		%read{0,0} %write{2147483647,-1}
+temp	int	$tmp1	%read{2147483647,-1} %write{1,1}
+const	string	$const2	"user:myValue"		%read{1,1} %write{2147483647,-1}
+code ___main___
+# userattr_PRMan.osl:10
+#     float value = 0;
+	assign		value $const1 	%filename{"userattr_PRMan.osl"} %line{10} %argrw{"wr"}
+# userattr_PRMan.osl:11
+#     getattribute("user:myValue", value);
+	getattribute	$tmp1 $const2 value 	%line{11} %argrw{"wrw"}
+# userattr_PRMan.osl:12
+#     outRGB = color(value);
+	assign		outRGB value 	%line{12} %argrw{"wr"}
+	end

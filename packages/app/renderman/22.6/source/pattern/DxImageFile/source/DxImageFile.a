@@ -1,0 +1,29 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="pattern"/>
+    </shaderType>
+
+    <param name="filename" label="Filename" type="string" default=""
+           widget="fileInput" options="texture"
+           connectable="False">
+    </param>
+
+    <param name="linearize" label="Linearize"
+           type="int" default="1" widget="checkBox"
+           connectable="False">
+    </param>
+
+    <output name="resultRGB">
+        <tags>
+            <tag value="color"/>
+            <tag value="vector"/>
+            <tag value="normal"/>
+            <tag value="point"/>
+        </tags>
+    </output>
+    <output name="resultA">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </output>
+</args>

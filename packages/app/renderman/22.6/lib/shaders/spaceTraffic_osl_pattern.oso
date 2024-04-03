@@ -1,0 +1,585 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.8.2.pixar1697a56
+# options: -o ./spaceTraffic_osl_pattern.oso
+shader spaceTraffic_osl_pattern
+param	float	s	0		%meta{int,lockgeom,0}  %read{90,90} %write{2147483647,-1}
+param	float	t	0		%meta{int,lockgeom,0}  %read{89,89} %write{2147483647,-1}
+param	float	CurveWidth	0.1		%meta{int,lockgeom,0}  %read{1,1} %write{2147483647,-1}
+param	float	CurveLength	1		%meta{int,lockgeom,0}  %read{0,0} %write{2147483647,-1}
+param	float	CurveId	0		%meta{int,lockgeom,0}  %read{2,2} %write{2147483647,-1}
+param	float	Radius	0.1		%read{72,72} %write{2147483647,-1}
+param	float	Fuzzy	0.039999999		%read{98,99} %write{2147483647,-1}
+param	int	Seed	0		%read{7,7} %write{2147483647,-1}
+param	float	Density	1.6		%read{6,6} %write{2147483647,-1}
+param	int	LineNum	1		%read{22,31} %write{2147483647,-1}
+param	float	Frame	1		%read{59,59} %write{2147483647,-1}
+param	float	Speed	0.015		%read{9,9} %write{2147483647,-1}
+param	int	InvertMove	1		%meta{string,widget,"boolean"}  %read{37,37} %write{2147483647,-1}
+param	float	Random_Speed	0.0099999998		%read{10,10} %write{2147483647,-1}
+param	float	Random_Radius	0.050000001		%read{71,71} %write{2147483647,-1}
+param	float	Random_Gap	1		%read{44,44} %write{2147483647,-1}
+param	float	Intensity	5		%read{192,192} %write{2147483647,-1}
+param	float	DotRatio	0.5		%read{91,91} %write{2147483647,-1}
+param	float	DisappearDistance	1		%read{17,18} %write{2147483647,-1}
+oparam	color	outColor	0 0 0		%read{2147483647,-1} %write{192,192}
+oparam	float	outAlpha	0		%read{2147483647,-1} %write{193,193}
+global	point	P	%read{15,15} %write{2147483647,-1}
+local	float	curveLength	%read{6,10} %write{0,3}
+local	float	curveWidth	%read{8,8} %write{1,4}
+local	int	id	%read{7,7} %write{2,5}
+local	float	nums	%read{21,191} %write{6,6}
+local	int	idSeed	%read{27,191} %write{7,7}
+local	float	ratio	%read{27,191} %write{8,8}
+local	float	velocity	%read{27,191} %write{9,191}
+local	float	rand_velocity	%read{27,191} %write{10,10}
+local	color	surface_color	%read{27,192} %write{11,191}
+local	float	surface_opac	%read{27,193} %write{12,191}
+local	float	nrand	%read{27,191} %write{13,191}
+local	float	D	%read{19,191} %write{16,20}
+local	float	ygap	%read{27,191} %write{21,21}
+local	float	xgap	%read{27,191} %write{24,24}
+local	float	___327_k	%read{27,191} %write{26,191}
+local	float	___328_x	%read{27,191} %write{27,191}
+local	float	___329_j	%read{27,191} %write{27,191}
+local	float	___332_i	%read{27,191} %write{27,191}
+local	float	___333_y	%read{27,191} %write{27,191}
+local	float	___333_r	%read{27,191} %write{27,191}
+local	float	___333_vdist	%read{27,191} %write{27,191}
+local	float	___333_dist	%read{27,191} %write{27,191}
+local	float	___333_inDisk	%read{27,191} %write{27,191}
+local	color	___333_fcolor	%read{27,191} %write{27,191}
+local	color	___333_bcolor	%read{27,191} %write{27,191}
+local	color	___333_layer_color	%read{27,191} %write{27,191}
+temp	int	$tmp1	%read{2147483647,-1} %write{3,3}
+const	string	$const1	"CurveLength"		%read{3,3} %write{2147483647,-1}
+temp	int	$tmp2	%read{2147483647,-1} %write{4,4}
+const	string	$const2	"CurveWidth"		%read{4,4} %write{2147483647,-1}
+temp	int	$tmp3	%read{2147483647,-1} %write{5,5}
+const	string	$const3	"CurveId"		%read{5,5} %write{2147483647,-1}
+const	color	$const4	0 0 0		%read{11,11} %write{2147483647,-1}
+const	float	$const5	0		%read{12,156} %write{2147483647,-1}
+const	int	$const6	0		%read{13,37} %write{2147483647,-1}
+temp	point	$tmp4	%read{16,16} %write{15,15}
+const	string	$const7	"camera"		%read{15,15} %write{2147483647,-1}
+const	string	$const8	"transform"		%read{14,14} %write{2147483647,-1}
+const	string	$const9	"common"		%read{15,15} %write{2147483647,-1}
+const	int	$const10	1		%read{22,22} %write{2147483647,-1}
+temp	float	$tmp5	%read{20,20} %write{19,19}
+temp	float	$tmp6	%read{19,19} %write{17,17}
+const	float	$const12	400000		%read{17,17} %write{2147483647,-1}
+temp	float	$tmp7	%read{19,19} %write{18,18}
+const	float	$const14	4000000		%read{18,18} %write{2147483647,-1}
+const	float	$const15	1		%read{20,191} %write{2147483647,-1}
+const	float	$const16	0.5		%read{24,153} %write{2147483647,-1}
+temp	int	$tmp8	%read{23,23} %write{22,22}
+temp	float	$tmp9	%read{24,24} %write{23,23}
+const	int	$const17	2		%read{27,27} %write{2147483647,-1}
+temp	int	$tmp10	%read{25,191} %write{26,191}
+temp	int	$tmp11	%read{27,191} %write{27,191}
+temp	int	$tmp12	%read{27,191} %write{27,191}
+const	float	$const19	-1		%read{35,39} %write{2147483647,-1}
+temp	int	$tmp13	%read{27,191} %write{27,191}
+temp	int	$tmp14	%read{27,191} %write{27,191}
+temp	float	$tmp15	%read{27,191} %write{27,191}
+temp	float	$tmp16	%read{27,191} %write{27,191}
+temp	float	$tmp17	%read{27,191} %write{27,191}
+const	string	$const20	"urand"		%read{45,147} %write{2147483647,-1}
+temp	float	$tmp18	%read{27,191} %write{27,191}
+temp	float	$tmp19	%read{27,191} %write{27,191}
+temp	float	$tmp20	%read{27,191} %write{27,191}
+temp	float	$tmp21	%read{27,191} %write{27,191}
+temp	float	$tmp22	%read{27,191} %write{27,191}
+temp	float	$tmp23	%read{27,191} %write{27,191}
+temp	float	$tmp24	%read{27,191} %write{27,191}
+temp	float	$tmp25	%read{27,191} %write{27,191}
+temp	float	$tmp26	%read{27,191} %write{27,191}
+const	string	$const21	"mod"		%read{61,135} %write{2147483647,-1}
+temp	float	$tmp27	%read{27,191} %write{27,191}
+temp	float	$tmp28	%read{27,191} %write{27,191}
+temp	float	$tmp29	%read{27,191} %write{27,191}
+temp	float	$tmp30	%read{27,191} %write{27,191}
+temp	float	$tmp31	%read{27,191} %write{27,191}
+temp	float	$tmp32	%read{27,191} %write{27,191}
+temp	float	$tmp33	%read{27,191} %write{27,191}
+temp	float	$tmp34	%read{27,191} %write{27,191}
+const	float	$const22	0.99000001		%read{74,74} %write{2147483647,-1}
+temp	int	$tmp35	%read{27,191} %write{27,191}
+temp	float	$tmp36	%read{27,191} %write{27,191}
+temp	float	$tmp37	%read{27,191} %write{27,191}
+temp	float	$tmp38	%read{27,191} %write{27,191}
+const	float	$const23	0.80000001		%read{80,146} %write{2147483647,-1}
+temp	int	$tmp39	%read{27,191} %write{27,191}
+temp	float	$tmp40	%read{27,191} %write{27,191}
+const	float	$const24	2.3		%read{83,85} %write{2147483647,-1}
+const	float	$const25	0.1		%read{87,87} %write{2147483647,-1}
+const	float	$const26	0.89999998		%read{86,86} %write{2147483647,-1}
+temp	float	$tmp41	%read{27,191} %write{27,191}
+temp	float	$tmp42	%read{27,191} %write{27,191}
+temp	float	$tmp43	%read{27,191} %write{27,191}
+temp	float	$tmp44	%read{27,191} %write{27,191}
+temp	float	$tmp45	%read{27,191} %write{27,191}
+temp	float	$tmp46	%read{27,191} %write{27,191}
+const	string	$const27	"hypot"		%read{93,93} %write{2147483647,-1}
+temp	float	$tmp47	%read{27,191} %write{27,191}
+temp	float	$tmp48	%read{27,191} %write{27,191}
+temp	float	$tmp49	%read{27,191} %write{27,191}
+temp	float	$tmp50	%read{27,191} %write{27,191}
+temp	float	$tmp51	%read{27,191} %write{27,191}
+temp	float	$tmp52	%read{27,191} %write{27,191}
+const	string	$const28	"hsv"		%read{127,154} %write{2147483647,-1}
+temp	float	$tmp53	%read{27,191} %write{27,191}
+const	float	$const29	0.60000002		%read{107,133} %write{2147483647,-1}
+temp	float	$tmp54	%read{27,191} %write{27,191}
+temp	float	$tmp55	%read{27,191} %write{27,191}
+temp	float	$tmp56	%read{27,191} %write{27,191}
+temp	float	$tmp57	%read{27,191} %write{27,191}
+temp	float	$tmp58	%read{27,191} %write{27,191}
+temp	float	$tmp59	%read{27,191} %write{27,191}
+temp	float	$tmp60	%read{27,191} %write{27,191}
+temp	float	$tmp61	%read{27,191} %write{27,191}
+const	float	$const30	0.30000001		%read{119,119} %write{2147483647,-1}
+temp	float	$tmp62	%read{27,191} %write{27,191}
+temp	float	$tmp63	%read{27,191} %write{27,191}
+temp	float	$tmp64	%read{27,191} %write{27,191}
+temp	float	$tmp65	%read{27,191} %write{27,191}
+temp	float	$tmp66	%read{27,191} %write{27,191}
+const	float	$const31	0.40000001		%read{125,125} %write{2147483647,-1}
+temp	float	$tmp67	%read{27,191} %write{27,191}
+temp	float	$tmp68	%read{27,191} %write{27,191}
+temp	float	$tmp69	%read{27,191} %write{27,191}
+temp	float	$tmp70	%read{27,191} %write{27,191}
+temp	float	$tmp71	%read{27,191} %write{27,191}
+temp	float	$tmp72	%read{27,191} %write{27,191}
+temp	float	$tmp73	%read{27,191} %write{27,191}
+temp	float	$tmp74	%read{27,191} %write{27,191}
+temp	float	$tmp75	%read{27,191} %write{27,191}
+temp	float	$tmp76	%read{27,191} %write{27,191}
+temp	float	$tmp77	%read{27,191} %write{27,191}
+temp	float	$tmp78	%read{27,191} %write{27,191}
+temp	float	$tmp79	%read{27,191} %write{27,191}
+const	float	$const32	0.2		%read{145,174} %write{2147483647,-1}
+temp	float	$tmp80	%read{27,191} %write{27,191}
+temp	float	$tmp81	%read{27,191} %write{27,191}
+temp	float	$tmp82	%read{27,191} %write{27,191}
+temp	float	$tmp83	%read{27,191} %write{27,191}
+temp	float	$tmp84	%read{27,191} %write{27,191}
+temp	float	$tmp85	%read{27,191} %write{27,191}
+temp	float	$tmp86	%read{27,191} %write{27,191}
+temp	float	$tmp87	%read{27,191} %write{27,191}
+temp	float	$tmp88	%read{27,191} %write{27,191}
+temp	float	$tmp89	%read{27,191} %write{27,191}
+temp	int	$tmp90	%read{27,191} %write{27,191}
+temp	float	$tmp91	%read{27,191} %write{27,191}
+temp	float	$tmp92	%read{27,191} %write{27,191}
+temp	float	$tmp93	%read{27,191} %write{27,191}
+temp	float	$tmp94	%read{27,191} %write{27,191}
+const	float	$const33	-0.2		%read{162,167} %write{2147483647,-1}
+temp	float	$tmp95	%read{27,191} %write{27,191}
+temp	float	$tmp96	%read{27,191} %write{27,191}
+temp	float	$tmp97	%read{27,191} %write{27,191}
+temp	float	$tmp98	%read{27,191} %write{27,191}
+temp	float	$tmp99	%read{27,191} %write{27,191}
+temp	float	$tmp100	%read{27,191} %write{27,191}
+temp	float	$tmp101	%read{27,191} %write{27,191}
+temp	float	$tmp102	%read{27,191} %write{27,191}
+temp	float	$tmp103	%read{27,191} %write{27,191}
+temp	float	$tmp104	%read{27,191} %write{27,191}
+temp	float	$tmp105	%read{27,191} %write{27,191}
+temp	color	$tmp106	%read{27,191} %write{27,191}
+const	string	$const34	"blend"		%read{181,181} %write{2147483647,-1}
+temp	color	$tmp107	%read{27,191} %write{27,191}
+temp	color	$tmp108	%read{27,191} %write{27,191}
+temp	color	$tmp109	%read{27,191} %write{27,191}
+temp	float	$tmp110	%read{2147483647,-1} %write{27,191}
+temp	float	$tmp111	%read{2147483647,-1} %write{27,191}
+temp	float	$tmp112	%read{2147483647,-1} %write{27,191}
+code ___main___
+# ./spaceTraffic.osl:52
+# 	float curveLength = CurveLength;
+	assign		curveLength CurveLength 	%filename{"./spaceTraffic.osl"} %line{52} %argrw{"wr"}
+# ./spaceTraffic.osl:53
+#     float curveWidth = CurveWidth;
+	assign		curveWidth CurveWidth 	%line{53} %argrw{"wr"}
+# ./spaceTraffic.osl:54
+#     int   id = int(CurveId);
+	assign		id CurveId 	%line{54} %argrw{"wr"}
+# ./spaceTraffic.osl:57
+# 	getattribute("CurveLength", curveLength);
+	getattribute	$tmp1 $const1 curveLength 	%line{57} %argrw{"wrw"}
+# ./spaceTraffic.osl:58
+# 	getattribute("CurveWidth", curveWidth);
+	getattribute	$tmp2 $const2 curveWidth 	%line{58} %argrw{"wrw"}
+# ./spaceTraffic.osl:59
+#     getattribute("CurveId", id);
+	getattribute	$tmp3 $const3 id 	%line{59} %argrw{"wrw"}
+# ./spaceTraffic.osl:62
+#     float nums     = curveLength / Density;
+	div		nums curveLength Density 	%line{62} %argrw{"wrr"}
+# ./spaceTraffic.osl:63
+#     int   idSeed   = id + Seed;
+	add		idSeed id Seed 	%line{63} %argrw{"wrr"}
+# ./spaceTraffic.osl:64
+#     float ratio    = curveLength / curveWidth;
+	div		ratio curveLength curveWidth 	%line{64} %argrw{"wrr"}
+# ./spaceTraffic.osl:65
+#     float velocity = Speed / curveLength;
+	div		velocity Speed curveLength 	%line{65} %argrw{"wrr"}
+# ./spaceTraffic.osl:66
+#     float rand_velocity = Random_Speed / curveLength;
+	div		rand_velocity Random_Speed curveLength 	%line{66} %argrw{"wrr"}
+# ./spaceTraffic.osl:69
+#     color surface_color = color(0.0);
+	assign		surface_color $const4 	%line{69} %argrw{"wr"}
+# ./spaceTraffic.osl:70
+#     float surface_opac  = 0.0;
+	assign		surface_opac $const5 	%line{70} %argrw{"wr"}
+# ./spaceTraffic.osl:73
+#     float nrand = 0;
+	assign		nrand $const6 	%line{73} %argrw{"wr"}
+# ./spaceTraffic.osl:82
+#     float D = length(transform("camera", P));
+	functioncall	$const8 16 	%line{82} %argrw{"r"}
+# /opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h:258
+# color  select (color  x, color  y, float cond) BUILTIN;
+	transform	$tmp4 $const9 $const7 P 	%filename{"/opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h"} %line{258} %argrw{"wrrr"}
+# ./spaceTraffic.osl:82
+#     float D = length(transform("camera", P));
+	length		D $tmp4 	%filename{"./spaceTraffic.osl"} %line{82} %argrw{"wr"}
+# ./spaceTraffic.osl:83
+#     D = 1 - smoothstep(DisappearDistance*400000, DisappearDistance*4000000, D);
+	mul		$tmp6 DisappearDistance $const12 	%line{83} %argrw{"wrr"}
+	mul		$tmp7 DisappearDistance $const14 	%argrw{"wrr"}
+	smoothstep	$tmp5 $tmp6 $tmp7 D 	%argrw{"wrrr"}
+	sub		D $const15 $tmp5 	%argrw{"wrr"}
+# ./spaceTraffic.osl:87
+#     float ygap = 1.0 / nums;
+	div		ygap $const15 nums 	%line{87} %argrw{"wrr"}
+# ./spaceTraffic.osl:88
+#     float xgap = 0.5 / (LineNum + 1);
+	add		$tmp8 LineNum $const10 	%line{88} %argrw{"wrr"}
+	assign		$tmp9 $tmp8 	%argrw{"wr"}
+	div		xgap $const16 $tmp9 	%argrw{"wrr"}
+# ./spaceTraffic.osl:89
+#     for(float k = 0.0; k < 2; k++)
+	for		$tmp10 27 28 190 192 	%line{89} %argrw{"r"}
+	assign		___327_k $const5 	%argrw{"wr"}
+	lt		$tmp10 ___327_k $const17 	%argrw{"wrr"}
+# ./spaceTraffic.osl:91
+#         float x = 0.5;
+	assign		___328_x $const16 	%line{91} %argrw{"wr"}
+# ./spaceTraffic.osl:92
+#         for(float j=0.0; j < LineNum; j++)
+	for		$tmp11 31 32 188 190 	%line{92} %argrw{"r"}
+	assign		___329_j $const5 	%argrw{"wr"}
+	lt		$tmp11 ___329_j LineNum 	%argrw{"wrr"}
+# ./spaceTraffic.osl:94
+#             if(k == 0.0)
+	eq		$tmp12 ___327_k $const5 	%line{94} %argrw{"wrr"}
+	if		$tmp12 36 37 	%argrw{"r"}
+# ./spaceTraffic.osl:96
+#                 x -= xgap;
+	sub		___328_x ___328_x xgap 	%line{96} %argrw{"wrr"}
+# ./spaceTraffic.osl:97
+#                 velocity *= -1;
+	mul		velocity velocity $const19 	%line{97} %argrw{"wrr"}
+# ./spaceTraffic.osl:100
+#                 x += xgap;
+	add		___328_x ___328_x xgap 	%line{100} %argrw{"wrr"}
+# ./spaceTraffic.osl:102
+#             if(InvertMove > 0)
+	gt		$tmp13 InvertMove $const6 	%line{102} %argrw{"wrr"}
+	if		$tmp13 40 40 	%argrw{"r"}
+# ./spaceTraffic.osl:103
+#                 velocity *= -1;
+	mul		velocity velocity $const19 	%line{103} %argrw{"wrr"}
+# ./spaceTraffic.osl:105
+#             for (float i=0.0; i<nums; i++)
+	for		$tmp14 42 43 186 188 	%line{105} %argrw{"r"}
+	assign		___332_i $const5 	%argrw{"wr"}
+	lt		$tmp14 ___332_i nums 	%argrw{"wrr"}
+# ./spaceTraffic.osl:108
+#                 float y = ygap*i + ygap*Random_Gap*(0.5 - urand());
+	mul		$tmp15 ygap ___332_i 	%line{108} %argrw{"wrr"}
+	mul		$tmp16 ygap Random_Gap 	%argrw{"wrr"}
+	functioncall	$const20 49 	%argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp18 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp17 nrand $tmp18 	%argrw{"wrr"}
+# ./spaceTraffic.osl:108
+#                 float y = ygap*i + ygap*Random_Gap*(0.5 - urand());
+	sub		$tmp19 $const16 $tmp17 	%line{108} %argrw{"wrr"}
+	mul		$tmp20 $tmp16 $tmp19 	%argrw{"wrr"}
+	add		___333_y $tmp15 $tmp20 	%argrw{"wrr"}
+# ./spaceTraffic.osl:109
+#                 y += Frame*(velocity + rand_velocity*(0.5 - urand()));
+	functioncall	$const20 56 	%line{109} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp22 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp21 nrand $tmp22 	%argrw{"wrr"}
+# ./spaceTraffic.osl:109
+#                 y += Frame*(velocity + rand_velocity*(0.5 - urand()));
+	sub		$tmp23 $const16 $tmp21 	%line{109} %argrw{"wrr"}
+	mul		$tmp24 rand_velocity $tmp23 	%argrw{"wrr"}
+	add		$tmp25 velocity $tmp24 	%argrw{"wrr"}
+	mul		$tmp26 Frame $tmp25 	%argrw{"wrr"}
+	add		___333_y ___333_y $tmp26 	%argrw{"wrr"}
+# ./spaceTraffic.osl:110
+#                 y = mod(y, 1.0);
+	functioncall	$const21 66 	%line{110} %argrw{"r"}
+# /opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h:136
+# /////////////////////////////////////////////////////////////////////////////
+	div		$tmp28 ___333_y $const15 	%filename{"/opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h"} %line{136} %argrw{"wrr"}
+	floor		$tmp27 $tmp28 	%argrw{"wr"}
+	mul		$tmp29 $const15 $tmp27 	%argrw{"wrr"}
+	sub		___333_y ___333_y $tmp29 	%argrw{"wrr"}
+# ./spaceTraffic.osl:112
+#                 float r = 0.5*(Radius + Random_Radius*(0.5 - urand()));
+	functioncall	$const20 70 	%filename{"./spaceTraffic.osl"} %line{112} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp31 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp30 nrand $tmp31 	%argrw{"wrr"}
+# ./spaceTraffic.osl:112
+#                 float r = 0.5*(Radius + Random_Radius*(0.5 - urand()));
+	sub		$tmp32 $const16 $tmp30 	%line{112} %argrw{"wrr"}
+	mul		$tmp33 Random_Radius $tmp32 	%argrw{"wrr"}
+	add		$tmp34 Radius $tmp33 	%argrw{"wrr"}
+	mul		___333_r $const16 $tmp34 	%argrw{"wrr"}
+# ./spaceTraffic.osl:113
+#                 if(D < 0.99)
+	lt		$tmp35 D $const22 	%line{113} %argrw{"wrr"}
+	if		$tmp35 89 89 	%argrw{"r"}
+# ./spaceTraffic.osl:115
+#                     if(urand() > pow(D, 0.8))
+	functioncall	$const20 80 	%line{115} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp37 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp36 nrand $tmp37 	%argrw{"wrr"}
+# ./spaceTraffic.osl:115
+#                     if(urand() > pow(D, 0.8))
+	pow		$tmp38 D $const23 	%line{115} %argrw{"wrr"}
+	gt		$tmp39 $tmp36 $tmp38 	%argrw{"wrr"}
+	if		$tmp39 85 89 	%argrw{"r"}
+# ./spaceTraffic.osl:116
+#                         r *= pow(D, 2.3);
+	pow		$tmp40 D $const24 	%line{116} %argrw{"wrr"}
+	mul		___333_r ___333_r $tmp40 	%argrw{"wrr"}
+# ./spaceTraffic.osl:118
+#                         r /= 0.1 + 0.9*pow(D, 2.3);
+	pow		$tmp41 D $const24 	%line{118} %argrw{"wrr"}
+	mul		$tmp42 $const26 $tmp41 	%argrw{"wrr"}
+	add		$tmp43 $const25 $tmp42 	%argrw{"wrr"}
+	div		___333_r ___333_r $tmp43 	%argrw{"wrr"}
+# ./spaceTraffic.osl:122
+#                 float vdist = t-y;
+	sub		___333_vdist t ___333_y 	%line{122} %argrw{"wrr"}
+# ./spaceTraffic.osl:123
+#                 float dist = hypot(x-s, ratio*DotRatio*vdist);
+	sub		$tmp44 ___328_x s 	%line{123} %argrw{"wrr"}
+	mul		$tmp45 ratio DotRatio 	%argrw{"wrr"}
+	mul		$tmp46 $tmp45 ___333_vdist 	%argrw{"wrr"}
+	functioncall	$const27 98 	%argrw{"r"}
+# /opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h:114
+# float hypot (float a, float b) { return sqrt (a*a + b*b); }
+	mul		$tmp47 $tmp44 $tmp44 	%filename{"/opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h"} %line{114} %argrw{"wrr"}
+	mul		$tmp48 $tmp46 $tmp46 	%argrw{"wrr"}
+	add		$tmp49 $tmp47 $tmp48 	%argrw{"wrr"}
+	sqrt		___333_dist $tmp49 	%argrw{"wr"}
+# ./spaceTraffic.osl:124
+# 
+	sub		$tmp51 ___333_r Fuzzy 	%filename{"./spaceTraffic.osl"} %line{124} %argrw{"wrr"}
+	add		$tmp52 ___333_r Fuzzy 	%argrw{"wrr"}
+	smoothstep	$tmp50 $tmp51 $tmp52 ___333_dist 	%argrw{"wrrr"}
+	sub		___333_inDisk $const15 $tmp50 	%argrw{"wrr"}
+# ./spaceTraffic.osl:127
+#     float b,
+	functioncall	$const20 106 	%line{127} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp55 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp54 nrand $tmp55 	%argrw{"wrr"}
+# ./spaceTraffic.osl:127
+#                                      mod(0.5 + 0.6*(0.5 - urand()), 1.0),
+	sub		$tmp56 $const16 $tmp54 	%line{127} %argrw{"wrr"}
+	mul		$tmp57 $const29 $tmp56 	%argrw{"wrr"}
+	add		$tmp58 $const16 $tmp57 	%argrw{"wrr"}
+	functioncall	$const21 114 	%argrw{"r"}
+# /opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h:136
+# // * Redistributions in binary form must reproduce the above copyright
+	div		$tmp60 $tmp58 $const15 	%filename{"/opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h"} %line{136} %argrw{"wrr"}
+	floor		$tmp59 $tmp60 	%argrw{"wr"}
+	mul		$tmp61 $const15 $tmp59 	%argrw{"wrr"}
+	sub		$tmp53 $tmp58 $tmp61 	%argrw{"wrr"}
+# ./spaceTraffic.osl:128
+#                                      0.6 + 0.3*(0.5-urand()),
+	functioncall	$const20 118 	%filename{"./spaceTraffic.osl"} %line{128} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp63 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp62 nrand $tmp63 	%argrw{"wrr"}
+# ./spaceTraffic.osl:128
+#                                      0.6 + 0.3*(0.5-urand()),
+	sub		$tmp64 $const16 $tmp62 	%line{128} %argrw{"wrr"}
+	mul		$tmp65 $const30 $tmp64 	%argrw{"wrr"}
+	add		$tmp66 $const29 $tmp65 	%argrw{"wrr"}
+# ./spaceTraffic.osl:129
+#                                      1.0 - 0.4*urand());
+	functioncall	$const20 125 	%line{129} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp68 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp67 nrand $tmp68 	%argrw{"wrr"}
+# ./spaceTraffic.osl:129
+#                                      1.0 - 0.4*urand());
+	mul		$tmp69 $const31 $tmp67 	%line{129} %argrw{"wrr"}
+	sub		$tmp70 $const15 $tmp69 	%argrw{"wrr"}
+	color		___333_fcolor $const28 $tmp53 $tmp66 $tmp70 	%argrw{"wrrrr"}
+# ./spaceTraffic.osl:131
+#                                      mod(0.0 + 0.6*(0.5 - urand()), 1.0),
+	functioncall	$const20 132 	%line{131} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp73 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp72 nrand $tmp73 	%argrw{"wrr"}
+# ./spaceTraffic.osl:131
+#                                      mod(0.0 + 0.6*(0.5 - urand()), 1.0),
+	sub		$tmp74 $const16 $tmp72 	%line{131} %argrw{"wrr"}
+	mul		$tmp75 $const29 $tmp74 	%argrw{"wrr"}
+	add		$tmp76 $const5 $tmp75 	%argrw{"wrr"}
+	functioncall	$const21 140 	%argrw{"r"}
+# /opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h:136
+# // modification, are permitted provided that the following conditions are
+	div		$tmp78 $tmp76 $const15 	%filename{"/opt/pixar/RenderManProServer-22.6/lib/osl/include/stdosl.h"} %line{136} %argrw{"wrr"}
+	floor		$tmp77 $tmp78 	%argrw{"wr"}
+	mul		$tmp79 $const15 $tmp77 	%argrw{"wrr"}
+	sub		$tmp71 $tmp76 $tmp79 	%argrw{"wrr"}
+# ./spaceTraffic.osl:132
+#                                      0.8 + 0.2*(0.5-urand()),
+	functioncall	$const20 144 	%filename{"./spaceTraffic.osl"} %line{132} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp81 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp80 nrand $tmp81 	%argrw{"wrr"}
+# ./spaceTraffic.osl:132
+#                                      0.8 + 0.2*(0.5-urand()),
+	sub		$tmp82 $const16 $tmp80 	%line{132} %argrw{"wrr"}
+	mul		$tmp83 $const32 $tmp82 	%argrw{"wrr"}
+	add		$tmp84 $const23 $tmp83 	%argrw{"wrr"}
+# ./spaceTraffic.osl:133
+#                                      0.5 + 0.5*(0.5-urand()));
+	functioncall	$const20 151 	%line{133} %argrw{"r"}
+# ./spaceTraffic.osl:77
+#         nrand += 1;
+	add		nrand nrand $const15 	%line{77} %argrw{"wrr"}
+# ./spaceTraffic.osl:78
+#         return cellnoise(nrand, idSeed);
+	assign		$tmp86 idSeed 	%line{78} %argrw{"wr"}
+	cellnoise	$tmp85 nrand $tmp86 	%argrw{"wrr"}
+# ./spaceTraffic.osl:133
+#                                      0.5 + 0.5*(0.5-urand()));
+	sub		$tmp87 $const16 $tmp85 	%line{133} %argrw{"wrr"}
+	mul		$tmp88 $const16 $tmp87 	%argrw{"wrr"}
+	add		$tmp89 $const16 $tmp88 	%argrw{"wrr"}
+	color		___333_bcolor $const28 $tmp71 $tmp84 $tmp89 	%argrw{"wrrrr"}
+# ./spaceTraffic.osl:135
+#                 r /= ratio;
+	div		___333_r ___333_r ratio 	%line{135} %argrw{"wrr"}
+# ./spaceTraffic.osl:136
+#                 if(k == 0.0)
+	eq		$tmp90 ___327_k $const5 	%line{136} %argrw{"wrr"}
+	if		$tmp90 166 174 	%argrw{"r"}
+# ./spaceTraffic.osl:138
+#                     fcolor *= smoothstep(0.2*r, r, vdist);
+	mul		$tmp92 $const32 ___333_r 	%line{138} %argrw{"wrr"}
+	smoothstep	$tmp91 $tmp92 ___333_r ___333_vdist 	%argrw{"wrrr"}
+	mul		___333_fcolor ___333_fcolor $tmp91 	%argrw{"wrr"}
+# ./spaceTraffic.osl:139
+#                     bcolor *= 1 - smoothstep(-r, -0.2*r, vdist);
+	neg		$tmp94 ___333_r 	%line{139} %argrw{"wr"}
+	mul		$tmp95 $const33 ___333_r 	%argrw{"wrr"}
+	smoothstep	$tmp93 $tmp94 $tmp95 ___333_vdist 	%argrw{"wrrr"}
+	sub		$tmp96 $const15 $tmp93 	%argrw{"wrr"}
+	mul		___333_bcolor ___333_bcolor $tmp96 	%argrw{"wrr"}
+# ./spaceTraffic.osl:143
+#                     fcolor *= 1 - smoothstep(-r, -0.2*r, vdist);
+	neg		$tmp98 ___333_r 	%line{143} %argrw{"wr"}
+	mul		$tmp99 $const33 ___333_r 	%argrw{"wrr"}
+	smoothstep	$tmp97 $tmp98 $tmp99 ___333_vdist 	%argrw{"wrrr"}
+	sub		$tmp100 $const15 $tmp97 	%argrw{"wrr"}
+	mul		___333_fcolor ___333_fcolor $tmp100 	%argrw{"wrr"}
+# ./spaceTraffic.osl:144
+#                     bcolor *= smoothstep(0.2*r, r, vdist);
+	mul		$tmp102 $const32 ___333_r 	%line{144} %argrw{"wrr"}
+	smoothstep	$tmp101 $tmp102 ___333_r ___333_vdist 	%argrw{"wrrr"}
+	mul		___333_bcolor ___333_bcolor $tmp101 	%argrw{"wrr"}
+# ./spaceTraffic.osl:146
+#                 inDisk *= smoothstep(0.2*r, r, abs(vdist));
+	mul		$tmp104 $const32 ___333_r 	%line{146} %argrw{"wrr"}
+	abs		$tmp105 ___333_vdist 	%argrw{"wr"}
+	smoothstep	$tmp103 $tmp104 ___333_r $tmp105 	%argrw{"wrrr"}
+	mul		___333_inDisk ___333_inDisk $tmp103 	%argrw{"wrr"}
+# ./spaceTraffic.osl:148
+#                 surface_opac += inDisk;
+	add		surface_opac surface_opac ___333_inDisk 	%line{148} %argrw{"wrr"}
+# ./spaceTraffic.osl:149
+#                 color layer_color = fcolor + bcolor;
+	add		___333_layer_color ___333_fcolor ___333_bcolor 	%line{149} %argrw{"wrr"}
+# ./spaceTraffic.osl:150
+#                 surface_color = blend(surface_color, layer_color, inDisk);
+	assign		$tmp106 ___333_inDisk 	%line{150} %argrw{"wr"}
+	functioncall	$const34 186 	%argrw{"r"}
+# ./spaceTraffic.osl:8
+#     return ((a) * (1-(x)) + (b) * (x));
+	sub		$tmp107 $const15 $tmp106 	%line{8} %argrw{"wrr"}
+	mul		$tmp108 surface_color $tmp107 	%argrw{"wrr"}
+	mul		$tmp109 ___333_layer_color $tmp106 	%argrw{"wrr"}
+	add		surface_color $tmp108 $tmp109 	%argrw{"wrr"}
+# ./spaceTraffic.osl:105
+#             for (float i=0.0; i<nums; i++)
+	assign		$tmp110 ___332_i 	%line{105} %argrw{"wr"}
+	add		___332_i ___332_i $const15 	%argrw{"wrr"}
+# ./spaceTraffic.osl:92
+#         for(float j=0.0; j < LineNum; j++)
+	assign		$tmp111 ___329_j 	%line{92} %argrw{"wr"}
+	add		___329_j ___329_j $const15 	%argrw{"wrr"}
+# ./spaceTraffic.osl:89
+#     for(float k = 0.0; k < 2; k++)
+	assign		$tmp112 ___327_k 	%line{89} %argrw{"wr"}
+	add		___327_k ___327_k $const15 	%argrw{"wrr"}
+# ./spaceTraffic.osl:156
+#     outColor = surface_color*Intensity;
+	mul		outColor surface_color Intensity 	%line{156} %argrw{"wrr"}
+# ./spaceTraffic.osl:157
+#     outAlpha = surface_opac;//length(surface_color);
+	assign		outAlpha surface_opac 	%line{157} %argrw{"wr"}
+	end

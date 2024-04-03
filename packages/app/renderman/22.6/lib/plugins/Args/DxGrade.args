@@ -1,0 +1,128 @@
+<args format="1.0">
+    <help>
+        Color Grade
+    </help>
+    <shaderType>
+        <tag value="pattern"/>
+    </shaderType>
+    <param name="inputRGB"
+           label="inputColor"
+           type="color"
+           default="0.0 0.0 0.0"
+           widget="color">
+        <tags>
+            <tag value="color"/>
+        </tags>
+    </param>
+    <param name="gainColor"
+           label="Gain"
+           type="color"
+           default="1.0 1.0 1.0"
+           widget="color">
+        <tags>
+            <tag value="color"/>
+        </tags>
+    </param>
+    <param name="multiply"
+           label="Multiply"
+           type="float"
+           default="1.0"
+           widget="default">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </param>
+    <param name="gamma"
+           label="Gamma"
+           type="float"
+           default="1.0"
+           min="0"
+           max="4"
+           slider="True"
+           slidermin="0"
+           slidermax="4"
+           widget="default">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </param>
+    <param name="saturation"
+           label="Saturation"
+           type="float"
+           default="1.0"
+           min="0"
+           max="1"
+           slider="True"
+           slidermin="0"
+           slidermax="1"
+           widget="default">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </param>
+    <param name="offset"
+           label="Offset"
+           type="float"
+           default="0.0"
+           widget="default">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </param>
+    <page name="Clamp" open="False">
+        <param name="clampOutput"
+               label="Enable"
+               type="int"
+               default="0"
+               widget="checkBox">
+            <tags>
+                <tag value="__noconnection"/>
+            </tags>
+        </param>
+        <param name="outputMin"
+               label="Min"
+               type="float"
+               default="0.0"
+               widget="default">
+            <tags>
+                <tag value="__noconnection"/>
+            </tags>
+        </param>
+        <param name="outputMax"
+               label="Max"
+               type="float"
+               default="10.0"
+               widget="default">
+            <tags>
+                <tag value="__noconnection"/>
+            </tags>
+        </param>
+    </page>
+
+    <output name="resultRGB">
+        <tags>
+            <tag value="color"/>
+            <tag value="vector"/>
+            <tag value="normal"/>
+            <tag value="point"/>
+        </tags>
+    </output>
+    <output name="resultR">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </output>
+    <output name="resultG">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </output>
+    <output name="resultB">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </output>
+
+    <rfmdata nodeid="2000005"
+             classification="rendernode/RenderMan/pattern/color"/>
+</args>

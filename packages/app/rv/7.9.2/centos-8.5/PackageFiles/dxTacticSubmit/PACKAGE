@@ -1,0 +1,14 @@
+package: DEXTER tactic comment submit
+author: kwantae Kim
+organization: DEXTER DIGITAL
+contact: whatever
+version: 1.2
+requires: ''
+rv: 7.7.0
+url: http://www.dexterstudios.com
+modes: 
+  - file: dxTacticSubmit.py
+    menu: Dexter/Tactic Submit
+    shortcut: 'Z'
+description: |
+    <p> Tactic snapshot & comment submit tool.</p>

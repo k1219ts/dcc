@@ -1,0 +1,331 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.11.0@OPROJECT_VERSION_RELEASE_TYPE@
+# options: -v -o /WORK_DATA/develop/dcc/packages/app/renderman/25.2/lib/shaders/DxAlligatorNoise.oso -I/opt/pixar/RenderManProServer-25.2/include -I/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl
+shader FractalAlligatorNoise	%meta{string,description,"Fractal Alligator noise"} 
+param	float	start_frequency	1		%meta{string,description,"Initial sampling position multiplier that affects the overall granularity."}  %read{26,26} %write{2147483647,-1}
+param	vector	start_offset	0 0 0		%meta{string,description,"Offsets the initial sampling position effectively shifting the pattern in the specified direction."}  %read{27,27} %write{2147483647,-1}
+param	float	lacunarity	2		%meta{string,description,"Position (frequency) multiplier per iteration."}  %read{93,93} %write{2147483647,-1}
+param	float	gain	0.5		%meta{string,description,"Amplitude multiplier per iteration."}  %read{94,94} %write{2147483647,-1}
+param	int	octaves	8		%meta{string,description,"Number of fractal iterations."}  %read{33,33} %write{2147483647,-1}
+param	float	attenuation	1		%meta{string,description,"The power of the falloff applied to the final result."}  %read{99,99} %write{2147483647,-1}
+param	struct Manifold	manifold			%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{0,0} %write{2147483647,-1} %struct{"Manifold"} %structfields{Q,QN,Qradius} %structfieldtypes{"pnf"} %structnfields{3}
+param	point	manifold.Q	0 0 0		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{22,22} %write{2147483647,-1} %mystruct{manifold} %mystructfield{0}
+param	normal	manifold.QN	0 0 1		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{23,23} %write{2147483647,-1} %mystruct{manifold} %mystructfield{1}
+param	float	manifold.Qradius	0		%meta{string,page,""} %meta{string,widget,"default"} %meta{string,readOnly,"True"}  %read{24,24} %write{2147483647,-1} %mystruct{manifold} %mystructfield{2}
+oparam	color	result	0 0 0		%read{2147483647,-1} %write{100,100}
+global	point	P	%read{4,4} %write{2147483647,-1}
+global	normal	N	%read{5,5} %write{2147483647,-1}
+local	vector	___392_vec1	%read{15,16} %write{14,15}
+local	float	___392_scale	%read{19,19} %write{18,18}
+local	vector[27]	___417_cellOffsets	%read{33,95} %write{33,95}
+local	point	___417_iPosition	%read{33,95} %write{33,95}
+local	float	___417_firstReverseSmoothPointDistance	%read{33,95} %write{33,95}
+local	float	___417_secondReverseSmoothPointDistance	%read{33,95} %write{33,95}
+local	int	___418_cellIndex	%read{33,95} %write{33,95}
+local	point	___419_cellOrigin	%read{33,95} %write{33,95}
+local	vector	___419_cellPointOffset	%read{33,95} %write{33,95}
+local	point	___419_cellPointPosition	%read{33,95} %write{33,95}
+local	float	___419_cellPointDistance	%read{33,95} %write{33,95}
+local	float	___420_reverseSmoothDistance	%read{33,95} %write{33,95}
+local	float	___420_distanceMultiplier	%read{33,95} %write{33,95}
+local	float	___424_noiseValue	%read{33,96} %write{29,95}
+local	float	___424_amplitude	%read{33,95} %write{30,95}
+local	int	___425_octave	%read{33,95} %write{32,95}
+local	point	inputManifoldRw.Q	%read{9,25} %write{4,22} %mystruct{inputManifoldRw} %mystructfield{0}
+local	normal	inputManifoldRw.QN	%read{11,13} %write{5,23} %mystruct{inputManifoldRw} %mystructfield{1}
+local	float	inputManifoldRw.Qradius	%read{19,20} %write{6,24} %mystruct{inputManifoldRw} %mystructfield{2}
+local	point	objectPosition	%read{26,26} %write{25,25}
+local	point	startPosition	%read{33,95} %write{27,95}
+local	float	noiseValue	%read{97,100} %write{96,99}
+temp	int	$tmp1	%read{1,1} %write{0,0}
+temp	int	$tmp2	%read{2,2} %write{1,1}
+const	int	$const1	0		%read{1,69} %write{2147483647,-1}
+const	string	$const2	"Manifold_Construct"		%read{3,3} %write{2147483647,-1}
+const	float	$const3	0		%read{6,78} %write{2147483647,-1}
+const	string	$const4	"object"		%read{9,15} %write{2147483647,-1}
+const	string	$const5	"Manifold_Transform"		%read{7,8} %write{2147483647,-1}
+const	string	$const6	"common"		%read{9,15} %write{2147483647,-1}
+temp	normal	$tmp3	%read{12,12} %write{11,11}
+const	vector	$const7	1 1 1		%read{14,56} %write{2147483647,-1}
+temp	float	$tmp4	%read{18,18} %write{16,16}
+temp	float	$tmp5	%read{18,18} %write{17,17}
+const	float	$const8	3		%read{17,17} %write{2147483647,-1}
+const	string	$const9	"Manifold_Copy"		%read{21,21} %write{2147483647,-1}
+temp	point	$tmp6	%read{27,27} %write{26,26}
+const	string	$const10	"fractalAlligatorNoise3D"		%read{28,28} %write{2147483647,-1}
+const	float	$const11	1		%read{30,79} %write{2147483647,-1}
+temp	int	$tmp7	%read{33,95} %write{33,95}
+temp	int	$tmp8	%read{31,95} %write{32,95}
+temp	float	$tmp9	%read{33,95} %write{33,95}
+const	string	$const12	"alligatorNoise3D"		%read{35,35} %write{2147483647,-1}
+const	vector	$const13	0 0 0		%read{36,36} %write{2147483647,-1}
+const	vector	$const14	1 0 0		%read{37,37} %write{2147483647,-1}
+const	int	$const15	1		%read{37,95} %write{2147483647,-1}
+const	vector	$const16	1 1 0		%read{38,38} %write{2147483647,-1}
+const	int	$const17	2		%read{38,38} %write{2147483647,-1}
+const	vector	$const18	0 1 0		%read{39,39} %write{2147483647,-1}
+const	int	$const19	3		%read{39,39} %write{2147483647,-1}
+const	vector	$const20	-1 1 0		%read{40,40} %write{2147483647,-1}
+const	int	$const21	4		%read{40,40} %write{2147483647,-1}
+const	vector	$const22	-1 0 0		%read{41,41} %write{2147483647,-1}
+const	int	$const23	5		%read{41,41} %write{2147483647,-1}
+const	vector	$const24	-1 -1 0		%read{42,42} %write{2147483647,-1}
+const	int	$const25	6		%read{42,42} %write{2147483647,-1}
+const	vector	$const26	0 -1 0		%read{43,43} %write{2147483647,-1}
+const	int	$const27	7		%read{43,43} %write{2147483647,-1}
+const	vector	$const28	1 -1 0		%read{44,44} %write{2147483647,-1}
+const	int	$const29	8		%read{44,44} %write{2147483647,-1}
+const	vector	$const30	0 0 -1		%read{45,45} %write{2147483647,-1}
+const	int	$const31	9		%read{45,45} %write{2147483647,-1}
+const	vector	$const32	1 0 -1		%read{46,46} %write{2147483647,-1}
+const	int	$const33	10		%read{46,46} %write{2147483647,-1}
+const	vector	$const34	1 1 -1		%read{47,47} %write{2147483647,-1}
+const	int	$const35	11		%read{47,47} %write{2147483647,-1}
+const	vector	$const36	0 1 -1		%read{48,48} %write{2147483647,-1}
+const	int	$const37	12		%read{48,48} %write{2147483647,-1}
+const	vector	$const38	-1 1 -1		%read{49,49} %write{2147483647,-1}
+const	int	$const39	13		%read{49,49} %write{2147483647,-1}
+const	vector	$const40	-1 0 -1		%read{50,50} %write{2147483647,-1}
+const	int	$const41	14		%read{50,50} %write{2147483647,-1}
+const	vector	$const42	-1 -1 -1		%read{51,51} %write{2147483647,-1}
+const	int	$const43	15		%read{51,51} %write{2147483647,-1}
+const	vector	$const44	0 -1 -1		%read{52,52} %write{2147483647,-1}
+const	int	$const45	16		%read{52,52} %write{2147483647,-1}
+const	vector	$const46	1 -1 -1		%read{53,53} %write{2147483647,-1}
+const	int	$const47	17		%read{53,53} %write{2147483647,-1}
+const	vector	$const48	0 0 1		%read{54,54} %write{2147483647,-1}
+const	int	$const49	18		%read{54,54} %write{2147483647,-1}
+const	vector	$const50	1 0 1		%read{55,55} %write{2147483647,-1}
+const	int	$const51	19		%read{55,55} %write{2147483647,-1}
+const	int	$const52	20		%read{56,56} %write{2147483647,-1}
+const	vector	$const53	0 1 1		%read{57,57} %write{2147483647,-1}
+const	int	$const54	21		%read{57,57} %write{2147483647,-1}
+const	vector	$const55	-1 1 1		%read{58,58} %write{2147483647,-1}
+const	int	$const56	22		%read{58,58} %write{2147483647,-1}
+const	vector	$const57	-1 0 1		%read{59,59} %write{2147483647,-1}
+const	int	$const58	23		%read{59,59} %write{2147483647,-1}
+const	vector	$const59	-1 -1 1		%read{60,60} %write{2147483647,-1}
+const	int	$const60	24		%read{60,60} %write{2147483647,-1}
+const	vector	$const61	0 -1 1		%read{61,61} %write{2147483647,-1}
+const	int	$const62	25		%read{61,61} %write{2147483647,-1}
+const	vector	$const63	1 -1 1		%read{62,62} %write{2147483647,-1}
+const	int	$const64	26		%read{62,62} %write{2147483647,-1}
+const	int	$const65	27		%read{68,68} %write{2147483647,-1}
+temp	int	$tmp37	%read{33,95} %write{33,95}
+temp	int	$tmp38	%read{33,95} %write{33,95}
+temp	vector	$tmp39	%read{33,95} %write{33,95}
+temp	int	$tmp40	%read{33,95} %write{33,95}
+temp	float	$tmp41	%read{33,95} %write{33,95}
+temp	int	$tmp42	%read{33,95} %write{33,95}
+temp	int	$tmp43	%read{33,95} %write{33,95}
+const	float	$const66	0.5		%read{90,98} %write{2147483647,-1}
+temp	float	$tmp44	%read{33,95} %write{33,95}
+temp	float	$tmp45	%read{33,95} %write{33,95}
+temp	float	$tmp46	%read{98,98} %write{97,97}
+code ___main___
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:155
+#     if (!isconnected(manifold))
+	isconnected	$tmp1 manifold 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl"} %line{155} %argrw{"wr"}
+	eq		$tmp2 $tmp1 $const1 	%argrw{"wrr"}
+	if		$tmp2 21 25 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:157
+#         Manifold_Construct(P,N,inputManifoldRw);
+	functioncall	$const2 7 	%line{157} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:69
+#     m.Q = inP;
+	assign		inputManifoldRw.Q P 	%filename{"/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{69} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:70
+#     m.QN = inN;
+	assign		inputManifoldRw.QN N 	%line{70} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:71
+#     m.Qradius = 0.0;
+	assign		inputManifoldRw.Qradius $const3 	%line{71} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:158
+#         Manifold_Transform(inputManifoldRw,"object");
+	functioncall	$const5 21 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl"} %line{158} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:91
+#     Manifold_Transform(ioManifold, "common", toSpace);
+	functioncall	$const5 21 	%filename{"/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{91} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:78
+#     ioManifold.Q = transform(fromSpace, toSpace, ioManifold.Q);
+	transform	inputManifoldRw.Q $const6 $const4 inputManifoldRw.Q 	%line{78} %argrw{"wrrr"}
+	assign		inputManifoldRw.Q inputManifoldRw.Q 	%argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:79
+#     ioManifold.QN = normalize(transform(fromSpace, toSpace, ioManifold.QN));
+	transformn	$tmp3 $const6 $const4 inputManifoldRw.QN 	%line{79} %argrw{"wrrr"}
+	normalize	inputManifoldRw.QN $tmp3 	%argrw{"wr"}
+	assign		inputManifoldRw.QN inputManifoldRw.QN 	%argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:81
+#     vector vec1 = vector(1.0);
+	assign		___392_vec1 $const7 	%line{81} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:82
+#     vec1 = transform(fromSpace, toSpace, vec1);
+	transformv	___392_vec1 $const6 $const4 ___392_vec1 	%line{82} %argrw{"wrrr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:83
+#     float scale = length(vec1) / sqrt(3.0);
+	length		$tmp4 ___392_vec1 	%line{83} %argrw{"wr"}
+	sqrt		$tmp5 $const8 	%argrw{"wr"}
+	div		___392_scale $tmp4 $tmp5 	%argrw{"wrr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:84
+#     ioManifold.Qradius *= scale;
+	mul		inputManifoldRw.Qradius inputManifoldRw.Qradius ___392_scale 	%line{84} %argrw{"wrr"}
+	assign		inputManifoldRw.Qradius inputManifoldRw.Qradius 	%argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:161
+#         Manifold_Copy(manifold,inputManifoldRw);
+	functioncall	$const9 25 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl"} %line{161} %argrw{"r"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:53
+#     dest.Q = src.Q;
+	assign		inputManifoldRw.Q manifold.Q 	%filename{"/WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h"} %line{53} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:54
+#     dest.QN = src.QN;
+	assign		inputManifoldRw.QN manifold.QN 	%line{54} %argrw{"wr"}
+# /WORK_DATA/develop/sources/renderman/PixarRenderMan-Examples-25.2_2282810-linuxRHEL7_gcc93icc219.x86_64/plugins/include/osl/Manifold.h:55
+#     dest.Qradius = src.Qradius;
+	assign		inputManifoldRw.Qradius manifold.Qradius 	%line{55} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:163
+#     point objectPosition = inputManifoldRw.Q;
+	assign		objectPosition inputManifoldRw.Q 	%filename{"/WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl"} %line{163} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:164
+#     point startPosition = start_frequency * objectPosition - start_offset;
+	mul		$tmp6 start_frequency objectPosition 	%line{164} %argrw{"wrr"}
+	sub		startPosition $tmp6 start_offset 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:166
+#     float noiseValue = fractalAlligatorNoise3D(startPosition, lacunarity, gain, octaves);
+	functioncall	$const10 97 	%line{166} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:118
+#     float noiseValue = 0.0;
+	assign		___424_noiseValue $const3 	%line{118} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:120
+#     float amplitude = 1.0;
+	assign		___424_amplitude $const11 	%line{120} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:122
+#     for (int octave = 0; octave < octaveCount; ++octave) {
+	for		$tmp8 33 35 95 96 	%line{122} %argrw{"r"}
+	assign		___425_octave $const1 	%argrw{"wr"}
+	lt		$tmp7 ___425_octave octaves 	%argrw{"wrr"}
+	neq		$tmp8 $tmp7 $const1 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:123
+#         noiseValue += amplitude * (alligatorNoise3D(position) - 0.5);      
+	functioncall	$const12 90 	%line{123} %argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:46
+#     vector cellOffsets[27] = {
+	aassign		___417_cellOffsets $const1 $const13 	%line{46} %argrw{"wrr"}
+	aassign		___417_cellOffsets $const15 $const14 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const17 $const16 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const19 $const18 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const21 $const20 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const23 $const22 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const25 $const24 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const27 $const26 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const29 $const28 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const31 $const30 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const33 $const32 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const35 $const34 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const37 $const36 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const39 $const38 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const41 $const40 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const43 $const42 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const45 $const44 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const47 $const46 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const49 $const48 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const51 $const50 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const52 $const7 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const54 $const53 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const56 $const55 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const58 $const57 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const60 $const59 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const62 $const61 	%argrw{"wrr"}
+	aassign		___417_cellOffsets $const64 $const63 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:78
+#     point iPosition = floor(position);
+	floor		___417_iPosition startPosition 	%line{78} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:80
+#     float firstReverseSmoothPointDistance = 0.0;
+	assign		___417_firstReverseSmoothPointDistance $const3 	%line{80} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:81
+#     float secondReverseSmoothPointDistance = 0.0;
+	assign		___417_secondReverseSmoothPointDistance $const3 	%line{81} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:83
+#     for (int cellIndex = 0; cellIndex < 27; ++cellIndex) {
+	for		$tmp38 68 70 88 89 	%line{83} %argrw{"r"}
+	assign		___418_cellIndex $const1 	%argrw{"wr"}
+	lt		$tmp37 ___418_cellIndex $const65 	%argrw{"wrr"}
+	neq		$tmp38 $tmp37 $const1 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:84
+#         point cellOrigin = iPosition + cellOffsets[cellIndex];
+	aref		$tmp39 ___417_cellOffsets ___418_cellIndex 	%line{84} %argrw{"wrr"}
+	add		___419_cellOrigin ___417_iPosition $tmp39 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:85
+#         vector cellPointOffset = cellnoise(cellOrigin, 0.0);
+	cellnoise	___419_cellPointOffset ___419_cellOrigin $const3 	%line{85} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:86
+#         point cellPointPosition = cellOrigin + cellPointOffset;
+	add		___419_cellPointPosition ___419_cellOrigin ___419_cellPointOffset 	%line{86} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:88
+#         float cellPointDistance = distance(position, cellPointPosition);
+	distance	___419_cellPointDistance startPosition ___419_cellPointPosition 	%line{88} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:90
+#         if (cellPointDistance < 1.0) {
+	lt		$tmp40 ___419_cellPointDistance $const11 	%line{90} %argrw{"wrr"}
+	if		$tmp40 88 88 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:91
+#             float reverseSmoothDistance = smoothstep(0.0, 1.0, 1.0 - cellPointDistance);
+	sub		$tmp41 $const11 ___419_cellPointDistance 	%line{91} %argrw{"wrr"}
+	smoothstep	___420_reverseSmoothDistance $const3 $const11 $tmp41 	%argrw{"wrrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:93
+#             float distanceMultiplier = float(cellnoise(cellOrigin, 1.0));
+	cellnoise	___420_distanceMultiplier ___419_cellOrigin $const11 	%line{93} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:94
+#             reverseSmoothDistance *= distanceMultiplier;
+	mul		___420_reverseSmoothDistance ___420_reverseSmoothDistance ___420_distanceMultiplier 	%line{94} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:96
+#             if (firstReverseSmoothPointDistance < reverseSmoothDistance) {
+	lt		$tmp42 ___417_firstReverseSmoothPointDistance ___420_reverseSmoothDistance 	%line{96} %argrw{"wrr"}
+	if		$tmp42 85 88 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:97
+#                 secondReverseSmoothPointDistance = firstReverseSmoothPointDistance;
+	assign		___417_secondReverseSmoothPointDistance ___417_firstReverseSmoothPointDistance 	%line{97} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:98
+#                 firstReverseSmoothPointDistance = reverseSmoothDistance;
+	assign		___417_firstReverseSmoothPointDistance ___420_reverseSmoothDistance 	%line{98} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:100
+#                 if (secondReverseSmoothPointDistance < reverseSmoothDistance) {
+	lt		$tmp43 ___417_secondReverseSmoothPointDistance ___420_reverseSmoothDistance 	%line{100} %argrw{"wrr"}
+	if		$tmp43 88 88 	%argrw{"r"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:101
+#                     secondReverseSmoothPointDistance = reverseSmoothDistance;
+	assign		___417_secondReverseSmoothPointDistance ___420_reverseSmoothDistance 	%line{101} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:83
+#     for (int cellIndex = 0; cellIndex < 27; ++cellIndex) {
+	add		___418_cellIndex ___418_cellIndex $const15 	%line{83} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:107
+#     return firstReverseSmoothPointDistance - secondReverseSmoothPointDistance;
+	sub		$tmp9 ___417_firstReverseSmoothPointDistance ___417_secondReverseSmoothPointDistance 	%line{107} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:123
+#         noiseValue += amplitude * (alligatorNoise3D(position) - 0.5);      
+	sub		$tmp44 $tmp9 $const66 	%line{123} %argrw{"wrr"}
+	mul		$tmp45 ___424_amplitude $tmp44 	%argrw{"wrr"}
+	add		___424_noiseValue ___424_noiseValue $tmp45 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:124
+#         position *= lacunarity;
+	mul		startPosition startPosition lacunarity 	%line{124} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:125
+#         amplitude *= gain;
+	mul		___424_amplitude ___424_amplitude gain 	%line{125} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:122
+#     for (int octave = 0; octave < octaveCount; ++octave) {
+	add		___425_octave ___425_octave $const15 	%line{122} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:128
+#     return noiseValue;
+	assign		noiseValue ___424_noiseValue 	%line{128} %argrw{"wr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:168
+#     noiseValue = 0.5 * noiseValue + 0.5;
+	mul		$tmp46 $const66 noiseValue 	%line{168} %argrw{"wrr"}
+	add		noiseValue $tmp46 $const66 	%argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:169
+#     noiseValue = pow(noiseValue, attenuation);
+	pow		noiseValue noiseValue attenuation 	%line{169} %argrw{"wrr"}
+# /WORK_DATA/develop/dcc/packages/app/renderman/25.2/source/osl/DxAlligatorNoise.osl:171
+#     result = color(noiseValue);
+	assign		result noiseValue 	%line{171} %argrw{"wr"}
+	end

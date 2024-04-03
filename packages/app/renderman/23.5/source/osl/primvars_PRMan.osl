@@ -1,0 +1,17 @@
+#include <stdosl.h>
+
+shader primvars_PRMan(
+    color myColor = color(0, 1, 0)
+    [[
+        string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0
+    ]],
+    output color outRGB = 0.0
+    [[
+        string widget = "null"
+    ]]
+)
+{
+    outRGB = myColor;
+}

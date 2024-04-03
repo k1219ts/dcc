@@ -1,0 +1,91 @@
+#include "stdosl.h"
+
+shader DxNCLBlendWrinkles(
+    float strength = 1
+    [[  int slider = 1,
+        int min = 0,
+        int max = 1]],
+    float depth = 1,
+    normal baseNormal = normal(0),
+    normal auNormal = normal(0),
+    float baseDisF = 0,
+    float auDisF = 0,
+
+    color AU01_x_AU02_L_x_AU02_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU04_L_x_AU04_R_x_AU06_L = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU06_R_x_AU09_L_x_AU09_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU10_L_x_AU10_R_x_AU11_L = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color AU11_R_x_AU20_L_x_AU20_R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+
+    color mask_01_02 = color(0),
+    float w_01_02 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    color mask_04_06L = color(0),
+    float w_04 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    float w_06 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    color mask_06R_09 = color(0),
+    float w_09 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    color mask_10_11L = color(0),
+    float w_10 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    float w_11 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    color mask_11R_20 = color(0),
+    float w_20 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+
+    output float outWeight = 0 [[ string widget = "null" ]],
+    output normal outNormal = N [[ string widget = "null" ]],
+    output float outDisF = 0 [[ string widget = "null" ]])
+{
+    color w_04_06L = color(w_04, w_04, w_06);
+    color w_06R_09 = color(w_06, w_09, w_09);
+    color w_10_11L = color(w_10, w_10, w_11);
+    color w_11R_20 = color(w_11, w_20, w_20);
+
+    float w = dot(AU01_x_AU02_L_x_AU02_R, w_01_02 * mask_01_02);
+    w += dot(AU04_L_x_AU04_R_x_AU06_L, w_04_06L * mask_04_06L);
+    w += dot(AU06_R_x_AU09_L_x_AU09_R, w_06R_09 * mask_06R_09);
+    w += dot(AU10_L_x_AU10_R_x_AU11_L, w_10_11L * mask_10_11L);
+    w += dot(AU11_R_x_AU20_L_x_AU20_R, w_11R_20 * mask_11R_20);
+    w = min(w, 1.0) * strength;
+
+    outWeight = w * depth;
+
+    normal dNormal = w * (auNormal - N);
+    outNormal = normalize(baseNormal + dNormal);
+
+    outDisF = baseDisF + w * auDisF;
+}

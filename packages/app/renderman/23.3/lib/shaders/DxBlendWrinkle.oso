@@ -1,0 +1,73 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.8.2.pixar1697a56
+# options: 
+shader DxBlendWrinkle
+param	float	strength	1		%meta{int,slider,1} %meta{int,min,0} %meta{int,max,1}  %read{10,10} %write{2147483647,-1}
+param	float	depth	1		%read{9,9} %write{2147483647,-1}
+param	color	baseDiffuse	1 1 1		%read{12,12} %write{2147483647,-1}
+param	color	auDiff	0 0 0		%read{11,11} %write{2147483647,-1}
+param	normal	baseNormal	0 0 0		%read{15,15} %write{2147483647,-1}
+param	normal	auNormal	0 0 0		%read{13,13} %write{2147483647,-1}
+param	color	AU01_x_AU02_L_x_AU02_R	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{1,1} %write{2147483647,-1}
+param	color	AU04_L_x_AU04_R_x_AU06_L	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{2,2} %write{2147483647,-1}
+param	color	AU06_R_x_AU11_L_x_AU11_R	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{4,4} %write{2147483647,-1}
+param	color	AU09_L_x_AU09_R	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{6,6} %write{2147483647,-1}
+param	color	dxBlend_AU01_x_AU02_L_x_AU02_R	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{1,1} %write{2147483647,-1}
+param	color	dxBlend_AU04_L_x_AU04_R_x_AU06_L	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{2,2} %write{2147483647,-1}
+param	color	dxBlend_AU06_R_x_AU11_L_x_AU11_R	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{4,4} %write{2147483647,-1}
+param	color	dxBlend_AU09_L_x_AU09_R	0 0 0		%meta{string,widget,"null"} %meta{int,connectable,0} %meta{int,lockgeom,0}  %read{6,6} %write{2147483647,-1}
+oparam	color	outDiffuse	1 1 1		%meta{string,widget,"null"}  %read{2147483647,-1} %write{12,12}
+oparam	normal	outNormal	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{0,16} %initexpr
+oparam	float	outWeight	0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{9,9}
+global	normal	N	%read{0,13} %write{2147483647,-1}
+local	float	weight	%read{3,14} %write{1,10}
+local	normal	dNormal	%read{15,15} %write{14,14}
+temp	float	$tmp1	%read{3,3} %write{2,2}
+temp	float	$tmp2	%read{5,5} %write{4,4}
+temp	float	$tmp3	%read{7,7} %write{6,6}
+const	float	$const1	1		%read{8,8} %write{2147483647,-1}
+temp	color	$tmp4	%read{12,12} %write{11,11}
+temp	normal	$tmp5	%read{14,14} %write{13,13}
+temp	normal	$tmp6	%read{16,16} %write{15,15}
+code outNormal
+# DxBlendWrinkle.osl:53
+#     output normal outNormal = N [[ string widget = "null" ]],
+	assign		outNormal N 	%filename{"DxBlendWrinkle.osl"} %line{53} %argrw{"wr"}
+code ___main___
+# DxBlendWrinkle.osl:56
+#     float weight = dot(AU01_x_AU02_L_x_AU02_R, dxBlend_AU01_x_AU02_L_x_AU02_R);
+	dot		weight AU01_x_AU02_L_x_AU02_R dxBlend_AU01_x_AU02_L_x_AU02_R 	%filename{"DxBlendWrinkle.osl"} %line{56} %argrw{"wrr"}
+# DxBlendWrinkle.osl:57
+#     weight += dot(AU04_L_x_AU04_R_x_AU06_L, dxBlend_AU04_L_x_AU04_R_x_AU06_L);
+	dot		$tmp1 AU04_L_x_AU04_R_x_AU06_L dxBlend_AU04_L_x_AU04_R_x_AU06_L 	%line{57} %argrw{"wrr"}
+	add		weight weight $tmp1 	%argrw{"wrr"}
+# DxBlendWrinkle.osl:58
+#     weight += dot(AU06_R_x_AU11_L_x_AU11_R, dxBlend_AU06_R_x_AU11_L_x_AU11_R);
+	dot		$tmp2 AU06_R_x_AU11_L_x_AU11_R dxBlend_AU06_R_x_AU11_L_x_AU11_R 	%line{58} %argrw{"wrr"}
+	add		weight weight $tmp2 	%argrw{"wrr"}
+# DxBlendWrinkle.osl:59
+#     weight += dot(AU09_L_x_AU09_R, dxBlend_AU09_L_x_AU09_R);
+	dot		$tmp3 AU09_L_x_AU09_R dxBlend_AU09_L_x_AU09_R 	%line{59} %argrw{"wrr"}
+	add		weight weight $tmp3 	%argrw{"wrr"}
+# DxBlendWrinkle.osl:60
+#     weight = min(weight, 1.0);
+	min		weight weight $const1 	%line{60} %argrw{"wrr"}
+# DxBlendWrinkle.osl:62
+#     outWeight = depth * weight;
+	mul		outWeight depth weight 	%line{62} %argrw{"wrr"}
+# DxBlendWrinkle.osl:67
+#     weight *= strength;
+	mul		weight weight strength 	%line{67} %argrw{"wrr"}
+# DxBlendWrinkle.osl:68
+#     outDiffuse = baseDiffuse - auDiff * weight;
+	mul		$tmp4 auDiff weight 	%line{68} %argrw{"wrr"}
+	sub		outDiffuse baseDiffuse $tmp4 	%argrw{"wrr"}
+# DxBlendWrinkle.osl:70
+#     normal dNormal = weight * (auNormal - N);
+	sub		$tmp5 auNormal N 	%line{70} %argrw{"wrr"}
+	mul		dNormal weight $tmp5 	%argrw{"wrr"}
+# DxBlendWrinkle.osl:71
+#     outNormal = normalize(baseNormal + dNormal);
+	add		$tmp6 baseNormal dNormal 	%line{71} %argrw{"wrr"}
+	normalize	outNormal $tmp6 	%argrw{"wr"}
+	end

@@ -1,0 +1,521 @@
+{
+    "channels": {
+        "Ci": {
+            "description": "The beauty render, all effects included.",
+            "channelType": "color",
+            "channelSource": "Ci",
+            "channelRemap": "true",
+            "group": "Standard"
+        },
+        "Oi": {
+            "description": "The opacity as a color.",
+            "channelType": "color",
+            "channelSource": "Oi",
+            "group": "Standard"
+        },
+        "Nn": {
+            "description": "Normalized shading normal, post-displacement.",
+            "channelType": "normal",
+            "channelSource": "Nn",
+            "group": "Standard"
+        },
+        "Ngn": {
+            "description": "Normalized geometric normal",
+            "channelType": "normal",
+            "channelSource": "Ngn",
+            "group": "Standard"
+        },
+        "Non": {
+            "description": "Normalized shading normal, pre-displacement",
+            "channelType": "normal",
+            "channelSource": "Non",
+            "group": "Standard"
+        },
+        "P": {
+            "description": "Shading position in world space, post-displacement.",
+            "channelType": "point",
+            "channelSource": "P",
+            "group": "Standard"
+        },
+        "Po": {
+            "description": "Shading position in world space, pre-displacement.",
+            "channelType": "point",
+            "channelSource": "Po",
+            "group": "Standard"
+        },
+        "PRadius": {
+            "channelType": "float",
+            "channelSource": "PRadius",
+            "group": "Standard"
+        },
+        "Tn": {
+            "channelType": "vector",
+            "channelSource": "Tn",
+            "group": "Standard"
+        },
+        "Vn": {
+            "channelType": "vector",
+            "channelSource": "Vn",
+            "group": "Standard"
+        },
+        "VLen": {
+            "channelType": "float",
+            "channelSource": "VLen",
+            "group": "Standard"
+        },
+        "cpuTime": {
+            "channelType": "float",
+            "channelSource": "cpuTime",
+            "filter": "sum",
+            "filterwidth": [1.0, 1.0],
+            "group": "Diagnostic"
+        },
+        "curvature": {
+            "channelType": "float",
+            "channelSource": "curvature",
+            "group": "Standard"
+        },
+        "du": {
+            "channelType": "float",
+            "channelSource": "du",
+            "group": "Standard"
+        },
+        "dv": {
+            "channelType": "float",
+            "channelSource": "dv",
+            "group": "Standard"
+        },
+        "dw": {
+            "channelType": "float",
+            "channelSource": "dw",
+            "group": "Standard"
+        },
+        "dPdu": {
+            "channelType": "vector",
+            "channelSource": "dPdu",
+            "group": "Standard"
+        },
+        "dPdv": {
+            "channelType": "vector",
+            "channelSource": "dPdv",
+            "group": "Standard"
+        },
+        "dPdw": {
+            "channelType": "vector",
+            "channelSource": "dPdw",
+            "group": "Standard"
+        },
+        "dPdtime": {
+            "channelType": "vector",
+            "channelSource": "dPdtime",
+            "group": "Standard"
+        },
+        "dPcameradtime": {
+            "channelType": "vector",
+            "channelSource": "dPcameradtime",
+            "group": "Standard"
+        },
+        "id": {
+            "channelType": "int",
+            "channelSource": "id",
+            "filter": "zmin",
+            "filterwidth": [1.0, 1.0],
+            "group": "Standard"
+        },
+        "incidentRayRadius": {
+            "channelType": "float",
+            "channelSource": "incidentRayRadius",
+            "group": "Standard"
+        },
+        "incidentRaySpread": {
+            "channelType": "float",
+            "channelSource": "incidentRaySpread",
+            "group": "Standard"
+        },
+        "motionFore": {
+            "channelType": "vector",
+            "channelSource": "motionFore",
+            "group": "Standard"
+        },
+        "motionBack": {
+            "channelType": "vector",
+            "channelSource": "motionBack",
+            "group": "Standard"
+        },
+        "mpSize": {
+            "channelType": "float",
+            "channelSource": "mpSize",
+            "group": "Standard"
+        },
+        "outsideIOR": {
+            "channelType": "float",
+            "channelSource": "outsideIOR",
+            "group": "Standard"
+        },
+        "sampleCount": {
+            "channelType": "float",
+            "channelSource": "sampleCount",
+            "filter": "sum",
+            "filterwidth": [1.0, 1.0],
+            "group": "Diagnostic"
+        },
+        "time": {
+            "channelType": "float",
+            "channelSource": "time",
+            "group": "Standard"
+        },
+        "a": {
+            "description": "alpha channel",
+            "channelType": "float",
+            "channelSource": "a",
+            "group": "Standard"
+        },
+        "u": {
+            "channelType": "float",
+            "channelSource": "u",
+            "group": "Standard"
+        },
+        "v": {
+            "channelType": "float",
+            "channelSource": "v",
+            "group": "Standard"
+        },
+        "w": {
+            "channelType": "float",
+            "channelSource": "w",
+            "group": "Standard"
+        },
+        "z": {
+            "channelType": "float",
+            "channelSource": "z",
+            "group": "Standard"
+        },
+        "albedo": {
+            "channelType": "color",
+            "channelSource": "lpe:nothruput;noinfinitecheck;noclamp;unoccluded;overwrite;C<.S'passthru'>*((U2L)|O)",
+            "channelRemap": "true",
+            "group": ["Lighting", "Denoiser"]
+        },
+        "beauty": {
+            "channelType": "color",
+            "channelSource": "lpe:C[DS]*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "emissive": {
+            "channelType": "color",
+            "channelSource": "lpe:C[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directDiffuse": {
+            "channelType": "color",
+            "channelSource": "lpe:C<RD>[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "combineDiffuse": {
+            "channelType": "color",
+            "channelSource": "lpe:C<[RT][D]>.*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directDiffuseUnoccluded": {
+            "channelType": "color",
+            "channelSource": "lpe:unoccluded;C<RD>[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecular": {
+            "channelType": "color",
+            "channelSource": "lpe:C<RS>[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "combineSpecular": {
+            "channelType": "color",
+            "channelSource": "lpe:C<[RT][S]>.*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularUnoccluded": {
+            "channelType": "color",
+            "channelSource": "lpe:unoccluded;C<RS>[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectDiffuse": {
+            "channelType": "color",
+            "channelSource": "lpe:C<RD>[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectDiffuseUnoccluded": {
+            "channelType": "color",
+            "channelSource": "lpe:unoccluded;C<RD>[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecular": {
+            "channelType": "color",
+            "channelSource": "lpe:C<RS>[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularUnoccluded": {
+            "channelType": "color",
+            "channelSource": "lpe:unoccluded;C<RS>[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "subsurface": {
+            "channelType": "color",
+            "channelSource": "lpe:C<TD>[DS]*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directDiffuseLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CD2[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularPrimaryLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS2[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularRoughLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS3[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularClearcoatLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS4[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularIridescenceLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS5[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularFuzzLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS6[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "directSpecularGlassLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:C<RS8>[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectDiffuseLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CD2[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularPrimaryLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS2[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularRoughLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS3[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularClearcoatLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS4[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularIridescenceLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS5[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularFuzzLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS6[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "indirectSpecularGlassLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:C<RS8>[DS]+[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "subsurfaceLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CD3[DS]*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "transmissive": {
+            "channelType": "color",
+            "channelSource": "lpe:C<TS>.*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "transmissiveSingleScatterLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:CS7[DS]*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "transmissiveGlassLobe": {
+            "channelType": "color",
+            "channelSource": "lpe:C<TS8>[DS]*[<L.>O]",
+            "channelRemap": "true",
+            "group": "Lighting"
+        },
+        "occluded": {
+            "channelType": "color",
+            "channelSource": "lpe:holdouts;C[DS]+<L.>",
+            "group": "Shadow"
+        },
+        "shadow": {
+            "channelType": "color",
+            "channelSource": "lpe:shadows;C[DS]<L.>",
+            "group": "Shadow"
+        },
+        "mse": {
+            "channelType": "color",
+            "channelSource": "Ci",
+            "statistics": "mse",
+            "group": "Denoiser"
+        },
+        "albedo_var": {
+            "channelType": "color",
+            "channelSource": "lpe:nothruput;noinfinitecheck;noclamp;unoccluded;overwrite;C<.S'passthru'>*((U2L)|O)",
+            "statistics": "variance",
+            "group": "Denoiser"
+        },
+        "diffuse": {
+            "channelType": "color",
+            "channelSource": "lpe:C(D[DS]*[LO])|[LO]",
+            "channelRemap": "true",
+            "group": "Denoiser"
+        },
+        "diffuse_mse": {
+            "channelType": "color",
+            "channelSource": "lpe:C(D[DS]*[LO])|[LO]",
+            "channelRemap": "true",
+            "statistics": "mse",
+            "group": "Denoiser"
+        },
+        "specular": {
+            "channelType": "color",
+            "channelSource": "lpe:CS[DS]*[LO]",
+            "channelRemap": "true",
+            "group": "Denoiser"
+        },
+        "specular_mse": {
+            "channelType": "color",
+            "channelSource": "lpe:CS[DS]*[LO]",
+            "channelRemap": "true",
+            "statistics": "mse",
+            "group": "Denoiser"
+        },
+        "zfiltered": {
+            "channelType": "float",
+            "channelSource": "zfiltered",
+            "group": "Denoiser"
+        },
+        "zfiltered_var": {
+            "channelType": "float",
+            "channelSource": "zfiltered",
+            "statistics": "variance",
+            "group": "Denoiser"
+        },
+        "normal": {
+            "channelType": "normal",
+            "channelSource": "Nnx",
+            "group": "Denoiser"
+        },
+        "normal_var": {
+            "channelType": "normal",
+            "channelSource": "Nnx",
+            "statistics": "variance",
+            "group": "Denoiser"
+        },
+        "forward": {
+            "channelType": "vector",
+            "channelSource": "motionFore",
+            "group": "Denoiser"
+        },
+        "backward": {
+            "channelType": "vector",
+            "channelSource": "motionBack",
+            "group": "Denoiser"
+        },
+        "__Pworld":{
+            "channelType": "color",
+            "channelSource": "__Pworld",
+            "group": "Integrator"
+        },
+        "__Nworld":{
+            "channelType": "color",
+            "channelSource": "__Nworld",
+            "group": "Integrator"
+        },
+        "__depth":{
+            "channelType": "color",
+            "channelSource": "__depth",
+            "group": "Integrator"
+        },
+        "__st":{
+            "channelType": "color",
+            "channelSource": "__st",
+            "group": "Integrator"
+        },
+        "__Pref":{
+            "channelType": "color",
+            "channelSource": "__Pref",
+            "group": "Integrator"
+        },
+        "__Nref":{
+            "channelType": "color",
+            "channelSource": "__Nref",
+            "group": "Integrator"
+        },
+        "__WPref":{
+            "channelType": "color",
+            "channelSource": "__WPref",
+            "group": "Integrator"
+        },
+        "__WNref":{
+            "channelType": "color",
+            "channelSource": "__WNref",
+            "group": "Integrator"
+        },
+        "z": {
+            "channelType": "float",
+            "channelSource": "float z",
+            "filter": "gaussian"
+        },
+        "z_var": {
+            "channelType": "float",
+            "channelSource": "float z",
+            "filter": "gaussian",
+            "statistics": "variance"
+        },
+        "MV": {
+            "channelType": "color",
+            "channelSource": "MV"
+        }
+    }
+}

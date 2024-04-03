@@ -1,0 +1,26 @@
+echo "build DxCustomAOV"
+cd DxCustomAOV; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxFoam"
+cd DxFoam; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxGeometryAOVs"
+cd DxGeometryAOVs; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxGrade"
+cd DxGrade; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxManifold2D"
+cd DxManifold2D; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxManifold3D"
+cd DxManifold3D; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxHoudiniOcean"
+cd DxHoudiniOcean; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxTexFile"
+cd DxTexFile; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxTo"
+cd DxTo; scl enable devtoolset-9 "make clean && make"; cd ..;

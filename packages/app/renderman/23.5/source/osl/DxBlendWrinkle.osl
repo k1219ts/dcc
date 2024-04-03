@@ -1,0 +1,55 @@
+#include "stdosl.h"
+
+shader DxBlendWrinkle(
+    float strength = 1
+    [[  int slider = 1,
+        int min = 0,
+        int max = 1]],
+    normal baseNormal = normal(0),
+    normal auNormal = normal(0),
+
+    // prim
+    color au01_02LR = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color au04LR_06L = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+    color au09LR_6R = color(0)
+    [[  string widget = "null",
+        int connectable = 0,
+        int lockgeom = 0 ]],
+
+    color mask01_02LR = color(0),
+    float w01_02 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    color mask04LR_06L = color(0),
+    float w04 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    float w06 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+    color mask09LR_06R = color(0),
+    float w09 = 1
+    [[  int slider = 1,
+        int min = 0, int max = 1,
+        int connectable = 0]],
+
+    output normal outNormal = N [[ string widget = "null" ]],
+    output float outWeight = 0 [[ string widget = "null" ]])
+{
+    float weight = dot(au01_02LR, w01_02 * mask01_02LR);
+    weight += dot(au04LR_06L, color(w04, w04, w06) * mask04LR_06L);
+    weight += dot(au09LR_6R, color(w09, w09, w06) * mask09LR_06R);
+    outWeight = weight = min(weight, 1.0);
+
+    normal dNormal = strength * weight * (auNormal - N);
+    outNormal = normalize(baseNormal + dNormal);
+}

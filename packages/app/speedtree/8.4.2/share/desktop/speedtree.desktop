@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name=speedtree 8.4.2
+Comment=speedtree
+Exec=sh /backstage/dcc/DCC rez-env speedtree-8.4.2 -- speedtree
+Icon=/backstage/share/icons/speedtree_logo.png
+Terminal=false
+Type=Application
+Categories=dexter

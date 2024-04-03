@@ -1,0 +1,32 @@
+<args format="1.0">
+    <help>
+        DxTo
+    </help>
+    <shaderType>
+        <tag value="pattern"/>
+    </shaderType>
+    <param name="inputF" label="inputF" type="float" default="0.0" widget="default">
+        <tags>
+            <tag value="float"/>
+        </tags>
+    </param>
+    <param name="inputRGB" label="inputRGB" type="color" default="0.0 0.0 0.0" widget="default">
+        <tags>
+            <tag value="color"/>
+        </tags>
+    </param>
+    <param name="inputN" label="inputN" type="normal" default="0.0 0.0 0.0" widget="default">
+        <tags>
+            <tag value="normal"/>
+        </tags>
+    </param>
+
+    <output name="resultRGB">
+        <tags>
+            <tag value="color"/>
+            <tag value="vector"/>
+            <tag value="normal"/>
+            <tag value="point"/>
+        </tags>
+    </output>
+</args>

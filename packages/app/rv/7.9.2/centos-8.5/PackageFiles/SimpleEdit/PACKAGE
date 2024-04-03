@@ -1,0 +1,33 @@
+package: SimpleEdit
+author: Kim Sang Hun
+organization: Dexter Digital
+contact: whatever
+version: 1.0
+requires: ''
+rv: 7.3.4
+url: http://www.tweaksoftware.com
+
+modes: 
+  - file: simple_edit.py
+    load: immediate
+
+description: |
+    <p> Simple edit in SequenceEdit.</p>
+    <h2>Source Cut</h2>
+    <p>
+    in  : ctrl + [
+    </p>
+    <p>
+    out : ctrl + ]
+    </p>
+    <h2>Source Reset Cut</h2>
+    <p>
+    in  : ctrl + {
+    </p>
+    <p>
+    out : ctrl + }
+    </p>
+    <p>
+    all : ctrl + backspace
+    </p>
+

@@ -1,0 +1,102 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="pattern"/>
+    </shaderType>
+    <help>
+        An implementation of a foam noise function by Sungmin Lee.
+    </help>
+
+    <param name="softness"
+           label="Softness"
+           type="int"
+           default="0"
+           widget="checkBox"
+           connectable="False">
+        <help>When turned on, it results soft foam.</help>
+    </param>
+    <param name="frequency"
+           label="Frequency" type="float" default="1.0f" min="0" widget="default"
+		   connectable="False">
+        <tags>
+            <tag value="float"/>
+        </tags>
+        <help>Controls the size of the patterns. Higher
+              frequencies make smaller patterns.</help>
+    </param>
+    <param name="jitter"
+           label="Jitter"
+           type="float" default="0.75f" min="0" max="1"  widget="default"
+		   connectable="False">
+        <tags>
+            <tag value="float"/>
+        </tags>
+        <help>Controls the distortion of the patterns.</help>
+    </param>
+    <param name="fbmScale"
+           label="FbmScale"
+           type="float" default="0.5f" min="0" max="1"  widget="default"
+		   connectable="False">
+        <tags>
+            <tag value="float"/>
+        </tags>
+        <help>The fbm* params can be used to distort the noise field.
+			  When fbmScale is zero, there is no distortion.</help>
+    </param>
+    <param name="fbmOctaves"
+           label="FbmOctaves"
+           type="int" default="12" min="0" max="32"  widget="default"
+		   connectable="False">
+        <tags>
+            <tag value="int"/>
+        </tags>
+        <help>The total number of frequencies is controlled by octaves.</help>
+    </param>
+    <param name="fbmLacunarity"
+           label="FbmLacunarity"
+           type="float" default="2.0f" min="0" max="10"  widget="default"
+		   connectable="False">
+        <tags>
+            <tag value="float"/>
+        </tags>
+        <help>The lacunarity is the spacing between the frequencies - a value of 2 means
+			  each octave is twice the previous frequency</help>
+    </param>
+    <param name="fbmGain"
+           label="FbmGain"
+           type="float" default="0.6f" min="0" max="1"  widget="default"
+		   connectable="False">
+        <tags>
+            <tag value="float"/>
+        </tags>
+        <help>The gain controls how much each frequency is scaled relative to the previous frequency.</help>
+    </param>
+	<page name="Gamma" open="True">
+		<param name="seGamma"
+			   label="Gamma"
+			   type="float" default="1.0f" min="0" max="1" widget="default"
+			   connectable="False">
+			<tags>
+			   <tag value="float"/>
+			</tags>
+		</param>
+	</page>
+	<page name="Coordinates" open="False">
+		<param name="manifold"
+			   label="Manifold"
+			   type="struct" >
+			<tags>
+				<tag value="Manifold"/>
+			</tags>
+			<help>The manifold over which to apply the noise.</help>
+		</param>
+	</page>
+
+	<output name="resultF">
+		<tags>
+			<tag value ="float"/>
+        </tags>
+    </output>
+
+    <rfmdata nodeid="3000020"
+        classification="rendernode/RenderMan/pattern"/>
+</args>

@@ -1,0 +1,38 @@
+<args format="1.0">
+	<help>
+		dexter object, group id, Motion Vector
+	</help>
+	<shaderType>
+		<tag value="pattern"/>
+	</shaderType>
+    <page name="Parameters" open="True">
+        <param name="inputAOV"
+            label="Input AOV"
+            type="int">
+            <tags>
+                <tag value="int"/>
+            </tags>
+            <help>This input can only be used to daisy-chain other nodes that
+            don't produce any output</help>
+        </param>
+        <param name="enable"
+            label="Enable"
+            type="int"
+            default="1"
+            widget="checkbox">
+            <tags>
+                <tag value="int"/>
+            </tags>
+            <help>Controls MatteID AOV output</help>
+        </param>
+    </page>
+
+    <output name="resultAOV">   
+        <tags>
+            <tag value="int"/>
+        </tags>
+    </output>
+
+    <rfmdata nodeid="2000024"
+             classification="rendernode/RenderMan/pattern"/>
+</args>

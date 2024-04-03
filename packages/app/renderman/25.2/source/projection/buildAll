@@ -1,0 +1,8 @@
+echo "build DxBeyondScreen"
+cd DxBeyondScreen; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxFisheye"
+cd DxFisheye; scl enable devtoolset-9 "make clean && make"; cd ..;
+
+echo "build DxOmniDirectionalStereo"
+cd DxOmniDirectionalStereo; scl enable devtoolset-9 "make clean && make"; cd ..;

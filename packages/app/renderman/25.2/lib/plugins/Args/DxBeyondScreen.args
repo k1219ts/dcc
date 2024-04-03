@@ -1,0 +1,22 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="projection"/>
+    </shaderType>
+
+    <param name="datafile" label="BeyondScreen Data" type="string" default=""
+           widget="fileInput" connectable="False">
+           <help>
+                BeyondScreen Data File
+           </help>
+    </param>
+
+    <param name="useScreenUV" label="Use Screen UV Aspect Ratio"
+           type="int" default="1" widget="checkBox" connectable="False">
+           <help>
+                Use aspect ratio from screen mesh's uv.
+                If unchecked, use output resolution's ratio.
+           </help>
+    </param>
+
+	<rfmdata nodeid="3000110" classification="RenderMan/projection"/>
+</args>

@@ -1,0 +1,48 @@
+// SmoothStep function
+// SmoothStep.osl, by Zap Andersson
+// Modified: 2019-11-22
+// Copyright 2019 Autodesk Inc, All rights reserved. This file is licensed under Apache 2.0 license
+//    https://github.com/ADN-DevTech/3dsMax-OSL-Shaders/blob/master/LICENSE.txt
+
+shader FloatSmoothStep
+[[ string help = "A Smooth step-function between two bounds",
+   string label= "SmoothStep",
+   string category = "Math Float" ]]
+(
+    int computeMode = 0
+    [[
+        string widget = "mapper",
+        string options = "Linear:0|Smooth:1",
+        string label = "Step Mode",
+        string help="Linear or Smooth",
+        int connectable = 0
+    ]],
+
+	float Input = 0.5 
+		[[ string help="The Input value" ]],
+	float Low  = 0.4 
+		[[ string help = "The lower bound of the step function" ]],
+	float High = 0.6 
+		[[ string help = "The higher bound of the step function" ]],
+	int Invert = 0
+	    [[
+	        string widget = "checkBox",
+	        string label = "Invert",
+	        string help = "Invert"
+        ]],
+
+	output float Out = 0.0
+		[[ string help = "The result. Zero if below lower bound, one if above high bound, and a smooth step funciton in between." ]],
+)
+{
+    if (computeMode == 0)
+        if (Invert == 0)
+            Out = linearstep(Low, High, Input);
+        else
+            Out = 1 - linearstep(Low, High, Input);
+    else
+        if (Invert == 0)
+            Out = smoothstep(Low, High, Input);
+        else
+            Out = 1 - smoothstep(Low, High, Input);
+}

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python ${EXTEND_RMAN_PATH}/bin/Denoise.py $*
