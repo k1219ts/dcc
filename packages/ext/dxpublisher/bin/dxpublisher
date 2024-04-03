@@ -1,0 +1,2 @@
+#!/bin/sh
+python ${REZ_DXPUBLISHER_ROOT}/scripts/dxpublisherUI.py $1
