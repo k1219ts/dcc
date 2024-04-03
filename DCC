@@ -1,0 +1,150 @@
+#!/bin/bash
+
+function join { local IFS="$1"; shift; echo "$*"; }
+
+function findPaths() {
+    local dirs=(`find ${1}/ -mindepth 1 -maxdepth 1 -type d`)
+    local tostr=$(join : ${dirs[@]})
+    echo $tostr
+}
+
+unset PYTHONHOME
+unset PYTHONPATH
+
+DCCROOT="$(dirname "$(readlink -f "$0")")"
+export DCCPROC=${DCCROOT}/DCC
+
+export BACKSTAGE_LIBS="/backstage/libs"
+export BACKSTAGE_DCC_ROOT="/backstage/dcc"
+export HOUBUNDLE_PATH="/backstage/dcc/packages/hfs/houBundle"
+export DEPT1_PATH="/backstage/dept1"
+export REZ_PACKAGES_PATH=${BACKSTAGE_LIBS}:$(findPaths ${BACKSTAGE_DCC_ROOT}/packages):${DEPT1_PATH}
+export PATH="/opt/rez/bin/rez":${PATH}
+# echo $(findPaths ${BACKSTAGE_DCC_ROOT}/packages)
+# Developer mode
+ARGSPOS=()
+while [[ $# -gt 0 ]]
+do
+    key=$1
+    case $key in
+        dev)
+            if [ $DEVELOPER_LOCATION ]; then
+                export DEV_LOCATION=${DEVELOPER_LOCATION}
+                export HOUBUNDLE_PATH=${DEV_LOCATION}/dcc/packages/hfs/houBundle
+                # export REZ_PACKAGES_PATH=$(findPaths ${DEV_LOCATION}/dcc/packages):${REZ_PACKAGES_PATH}
+                export REZ_PACKAGES_PATH=${BACKSTAGE_LIBS}:$(findPaths ${DEV_LOCATION}/dcc/packages):${DEV_LOCATION}/dept1
+                export DCCPROC="${DCCROOT}/DCC dev"
+            fi
+            shift
+            ;;
+        *)
+            ARGSPOS+=($1)
+            shift
+            ;;
+    esac
+done
+set -- ${ARGSPOS[@]}
+
+function HelpPrint() {
+    echo -e "\e[1;34m"
+    echo "Dexter rez-env Application Launcher (CLI)"
+    echo "  release : 2020.05.11"
+    echo ""
+    echo "Support Applications"
+    echo "  maya, mayapy"
+    echo "  motionbuilder"
+    echo "  houdini, hython"
+    echo "  katana, rfk"
+    echo "  mari"
+    echo "  nuke",
+    echo "  3de",
+    echo "  usdmanager",
+    echo "  rulebookviewer",
+    echo "  rez-env, developer",
+    echo -e "\e[m"
+}
+
+if [ $# -eq 0 ]; then
+    HelpPrint
+    exit 2
+fi
+
+# Project Config
+if [ $# -gt 0 ]; then
+    cfg=$(python ${DCCROOT}/config/projConfig.py $@ 2>&1 >/dev/null)
+    if [ $cfg ]; then
+        export $cfg
+    fi
+
+    ARGSPOS=()
+    while [[ $# -gt 0 ]]
+    do
+        key=$1
+        case $key in
+            --show)
+                shift
+                export SHOW="$1"
+                export DXRULEBOOKFILE="/show/$1/_config/DXRulebook.yaml"
+                export DXCONFIGPATH="/show/$1/_config"
+                shift
+                if [ $1 ] && [ $1 == '--seq' ]; then
+                    shift
+                    shift
+                fi
+                if [ $1 ] && [ $1 == '--shot' ]; then
+                    shift
+                    shift
+                fi
+                ;;
+            *)
+                ARGSPOS+=($1)
+                shift
+                ;;
+        esac
+    done
+    set -- ${ARGSPOS[@]}
+fi
+
+ospkg=""
+if [ -f /etc/centos-release ]; then
+    distro="centos"
+    version=`cat /etc/centos-release | sed s/.*release\ // | sed 's/^\([0-9]*.[0-9]*\)\(.*\)/\1/'`
+    majorver=`cat /etc/centos-release | sed s/.*release\ // | sed 's/^\([0-9]*\)\(.*\)/\1/'`
+    #if [ -f $BACKSTAGE_LIBS/$distro/$version/package.py ]; then
+    #    ospkg=$distro-$majorver
+    #fi
+    if [ -d $BACKSTAGE_LIBS/centos ]; then
+        ospkg=$distro-$majorver
+        export REZ_CENTOS_MAJOR_VERSION=$majorver
+    fi
+fi
+
+preloads=($ospkg)
+proc=("maya" "mayapy" "motionbuilder" "houdini" "hython" "katana" "rfk" "mari"
+      "nuke" "nukeX" "nukeS" "nukeP" "3dequalizer" "clarisse" "rv", "golaem")
+if [ $# -gt 0 ]; then
+    if [[ ${proc[@]} == *$1* ]]; then
+        # Find Application
+        proc=$(python ${DCCROOT}/config/findProc.py $@ 2>&1 >/dev/null)
+        pycmd="python ${DCCROOT}/config/${proc}.py"
+        if [[ ${@} == *--help ]]; then
+            $pycmd --help
+        else
+            args=`$pycmd $@ 2>&1 >/dev/null`
+            # echo $args
+            export DCCARGS=${args}
+            rez-env ${preloads[@]} ${args}
+        fi
+    elif [ $1 == "usdmanager" ]; then
+        rez-env ${preloads[@]} usdmanager -- usdmanager
+    elif [ $1 == "rulebookviewer" ]; then
+        rez-env ${preloads[@]} python-2 dxrulebook -- RulebookViewer.py
+    elif [ $1 == "rez-env" ]; then
+        rez-env ${preloads[@]} ${@:2}
+    elif [ $1 == "developer" ]; then
+        python ${DCCROOT}/config/developerSetup ${@:2} $(pwd)
+    else
+        rez-env ${preloads[@]} $@
+    fi
+fi
+# exit 0
