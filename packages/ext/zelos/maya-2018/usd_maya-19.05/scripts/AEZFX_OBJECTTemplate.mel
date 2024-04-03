@@ -1,0 +1,28 @@
+//-------------------------------------------------------//
+// AEZFX_OBJECTTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.04.20                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_OBJECTTemplate( string $nodeName )
+{
+    editorTemplate -beginScrollLayout;
+    { 
+        editorTemplate -l "Object Type"             -ac "type";
+        editorTemplate -l "Display Levelset"        -ac "displayLS"; 
+            
+        editorTemplate -addExtraControls;    
+    }
+    editorTemplate -endScrollLayout;
+    
+    editorTemplate -suppress "inXForm";
+    editorTemplate -suppress "inTime";
+    editorTemplate -suppress "inMesh";
+    editorTemplate -suppress "outObj";
+    
+}

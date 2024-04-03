@@ -1,0 +1,21 @@
+//-------------------------------//
+// ZN_FlowCurveDrawCtxValues.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2015.07.21                               //
+//-------------------------------------------------------//
+
+global proc ZN_FlowCurveDrawCtxValues( string $ctxName ) 
+{
+	string $parent = (`toolPropertyWindow -q -location` + "|ZN_FlowCurveDrawCtxLayout");
+	setParent $parent;
+
+	frameLayout -e -en true -cl false ZN_FlowCurveDrawCtxFrame;
+
+	float $distance = eval( "ZN_FlowCurveDrawCtx -q -distance " + $ctxName );
+	floatSliderGrp -e -value $distance ZN_FlowCurveDrawCtxDistance;
+
+	toolPropertySelect ZN_FlowCurveDrawCtxLayout;
+}
+

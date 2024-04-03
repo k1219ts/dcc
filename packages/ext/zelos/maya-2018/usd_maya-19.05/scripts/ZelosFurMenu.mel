@@ -1,0 +1,55 @@
+//------------------//
+// ZelosFurMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurMenu()
+{
+	menuItem -to 1 -l "ZelosFur" -ec 1 -subMenu true ZelosFur_Item;
+	{
+		menuItem -l "Guide Curves Tools"                  -ec 1 -c "ZelosFurGuideCurveToolsWin"                     ZelosFur_GuideCurvesTool_Item;
+		menuItem -l "Grooming" -ec 1 -subMenu true ZelosFur_Grooming_Item;
+			menuItem -l "Create Base Graph"               -ec 1 -c "CreateZelosFurBaseGraphWin"                     ZelosFur_CreateZelosFurBaseGraph_Item;
+			menuItem -divider true;
+			menuItem -l "Create Nodes" -ec -1 -subMenu true ZelosFur_CreateNodes_Item;
+				menuItem -l "ZelosFurGlobal"              -ec 1 -c "CreateZelosFurGlobal"                           ZelosFur_CreateZelosFurGlobal_Item;
+				menuItem -divider true;
+				menuItem -l "ZelosFurSampler"             -ec 1 -c "CreateZelosFurSampler"                          ZelosFur_CreateZelosFurSampler_Item;
+				menuItem -l "ZelosFurSimulator"           -ec 1 -c "CreateZelosFurSimulator"                        ZelosFur_CreateZelosFurSimulator_Item;
+				menuItem -l "ZelosFurGenerator"           -ec 1 -c "CreateZelosFurGenerator"                        ZelosFur_CreateZelosFurGenerator_Item;
+				menuItem -divider true;
+				menuItem -l "ZelosFurModifier_Clump"      -ec 1 -c "createNode ZelosFurModifier_Clump"              ZelosFur_CreateZelosFurModifier_Clump_Item;
+				menuItem -l "ZelosFurModifier_Scale"      -ec 1 -c "createNode ZelosFurModifier_Scale"              ZelosFur_CreateZelosFurModifier_Scale_Item;
+				menuItem -l "ZelosFurModifier_Bend"       -ec 1 -c "createNode ZelosFurModifier_Bend"               ZelosFur_CreateZelosFurModifier_Bend_Item;
+				menuItem -l "ZelosFurModifier_Direction"  -ec 1 -c "createNode ZelosFurModifier_Direction"          ZelosFur_CreateZelosFurModifier_Direction_Item;
+				menuItem -l "ZelosFurModifier_Offset"     -ec 1 -c "createNode ZelosFurModifier_Offset"             ZelosFur_CreateZelosFurModifier_Offset_Item;
+				menuItem -l "ZelosFurModifier_Cut"        -ec 1 -c "createNode ZelosFurModifier_Cut"                ZelosFur_CreateZelosFurModifier_Cut_Item;
+				menuItem -l "ZelosFurModifier_Scraggle"   -ec 1 -c "createNode ZelosFurModifier_Scraggle"           ZelosFur_CreateZelosFurModifier_Scraggle_Item;
+				menuItem -l "ZelosFurModifier_Width"      -ec 1 -c "createNode ZelosFurModifier_Width"              ZelosFur_CreateZelosFurModifier_Width_Item;
+				menuItem -l "ZelosFurModifier_Opacity"    -ec 1 -c "createNode ZelosFurModifier_Opacity"            ZelosFur_CreateZelosFurModifier_Opacity_Item;
+				menuItem -divider true;
+				menuItem -l "ZelosFurTexture"             -ec 1 -c "createNode ZelosFurTexture"                     ZelosFur_CreateZelosFurTexture_Item;
+				menuItem -l "ZelosFurTextureViewer"       -ec 1 -c "createNode ZelosFurTextureViewer"               ZelosFur_CreateZelosFurTextureViewer_Item;
+				setParent -menu ..;
+			menuItem -divider true;
+			menuItem -l "Set Update Region"               -ec 1 -c "ZelosFurSetUpdateRegion"                        ZelosFur_SetUpdateRegion_Item;
+			menuItem -l "Reset Update Region"             -ec 1 -c "ZelosFurResetUpdateRegion"                      ZelosFur_ResetUpdateRegion_Item;
+			setParent -menu ..;
+		menuItem -l "Simulation" -ec 1 -subMenu true ZelosFur_Simulation_Item;
+			menuItem -l "Add Collider"                    -ec 1 -c "AddZelosFurCollider"                            ZelosFur_AddCollider_Item;
+			setParent -menu ..;
+		menuItem -l "Cache" -ec 1 -subMenu true ZelosFur_Cache_Item;
+			menuItem -l "Bake Cache"                      -ec 1 -c "ZelosFurCacheGenWin"                            ZelosFur_CacheGen_Item;
+			menuItem -l "Create Cache Viewer"             -ec 1 -c "ZelosFurCacheViewerWin"                         ZelosFur_CreateZelosFurCacheViewer_Item;
+			setParent -menu ..;
+		menuItem -l "Utilities" -ec 1 -subMenu true ZelosFur_Utilities_Item;
+			menuItem -l "Delete Unused ZelosFur nodes"    -ec 1 -c "DeleteUnusedZelosFurNodes"                      ZelosFur_DeleteUnusedZelosFurNodes_Item;
+			menuItem -l "Make Paintable Attributes"       -ec 1 -c "ZelosFurMakePaintable"                          ZelosFur_MakePaintable_Item;
+			menuItem -l "Attatch objects to fur curves"   -ec 1 -c "ZelosFurPtcBinderWin"                           ZelosFur_CreateZelosFurPtcBinder_Item;
+			setParent -menu ..;
+	}
+	setParent -menu ..;
+}
+

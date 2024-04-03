@@ -1,0 +1,374 @@
+//----------------------------//
+// AEZVOceanBlendTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.04.24                               //
+//-------------------------------------------------------//
+
+///////////////////////
+// Use Exprs Changed //
+global proc ZVOceanBlendUseExprsChanged( string $node )
+{
+	int $use = `getAttr ($node+".useExprs")`;
+
+	if( $use == 0 )
+	{
+		editorTemplate -dc $node "expressions" 1;
+		editorTemplate -dc $node "updateExprs" 1;
+
+		return;
+	}
+
+	if( $use == 1 )
+	{
+		editorTemplate -dc $node "expressions" 0;
+		editorTemplate -dc $node "updateExprs" 0;
+
+		return;
+	}
+}
+
+//////////
+// Expr //
+global proc ZVOceanBlendExprsNew( string $attr )
+{
+	ZVOceanBlendExprsReplace $attr;
+}
+
+global proc ZVOceanBlendExprsReplace( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	int $i = 0;
+	string $portIdxStrs[];
+	string $ZVOceanWaves[];
+	{
+		string $connectedPlgs[] = `listAttr -multi ($ZVOceanBlend+".inOceans")`;
+
+		for( $plg in $connectedPlgs )
+		{
+			if( !`connectionInfo -id ($ZVOceanBlend+"."+$plg)` )
+			{
+				continue;
+			}
+
+			tokenize $plg "inOceans" $tokens;
+			$portIdxStrs[$i] = $tokens[0];
+
+			string $nodeAttr = `connectionInfo -sfd ($ZVOceanBlend+"."+$plg)`;
+
+			tokenize $nodeAttr "." $tokens;
+			string $ZVOceanWave = $tokens[0];
+
+			string $parents[] = `listRelatives -p $ZVOceanWave`;
+			$ZVOceanWaves[$i] = $parents[0];
+
+			$i++;
+		}
+	}
+
+	int $numZVOceanWaves = size( $ZVOceanWaves );
+	if( $numZVOceanWaves == 0 ) { return; }
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		if( `scrollLayout -exists "ZVOceanBlendExprsList"` )
+		{
+			deleteUI -layout "ZVOceanBlendExprsList";
+		}
+
+		scrollLayout -cr 1 "ZVOceanBlendExprsList";
+		{
+			for( $i=0; $i<$numZVOceanWaves; $i++ )
+			{
+				string $expr = `getAttr ($ZVOceanBlend+".expressions"+$portIdxStrs[$i])`;
+
+				rowLayout -nc 2 -cw2 330 80;
+				{
+					textFieldGrp -l ($ZVOceanWaves[$i]+" * ") -tx $expr -w 330 ("txZVOceanBlendExpr"+$i);
+					optionMenu -w 80 -cc ("ZVOceanBlendExprMenuSel "+$attr+" "+$i) ("omZVOceanBlendExpr"+$i);
+					{
+						menuItem -label "default";
+						menuItem -label "noise";
+						menuItem -label "turbulence";
+						menuItem -label "fbm";
+					}
+				}
+				setParent ..;
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZVOceanBlendExprMenuSel( string $attr, int $i )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	int $sel = `optionMenu -q -sl ("omZVOceanBlendExpr"+$i)`;
+
+	if( $sel == 1 ) {			// default
+
+		textFieldGrp -e -tx "1.0" ("txZVOceanBlendExpr"+$i);
+
+	} else if( $sel == 2 ) {	// noise
+
+		textFieldGrp -e -tx "noise(P)" ("txZVOceanBlendExpr"+$i);
+
+	} else if( $sel == 3 ) {	// turbulence
+
+		textFieldGrp -e -tx "turbulence(P,6,2,0.5)" ("txZVOceanBlendExpr"+$i);
+
+	} else if( $sel == 4 ) {	// fbm
+
+		textFieldGrp -e -tx "fbm(P,6,2,0.5)" ("txZVOceanBlendExpr"+$i);
+	}
+}
+
+//////////////////
+// Update Exprs //
+global proc ZVOceanBlendUpdateExprsNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Update" -c ("ZVOceanBlendUpdateExprsExe "+$attr) ZVOceanBlendUpdateExprs;
+	}
+	setUITemplate -ppt;
+
+	ZVOceanBlendUpdateExprsReplace $attr;
+}
+
+global proc ZVOceanBlendUpdateExprsReplace( string $attr )
+{
+	button -e -c ("ZVOceanBlendUpdateExprsExe "+$attr) ZVOceanBlendUpdateExprs;
+}
+
+global proc ZVOceanBlendUpdateExprsExe( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	int $i = 0;
+	string $portIdxStrs[];
+	string $ZVOceanWaves[];
+	{
+		string $connectedPlgs[] = `listAttr -multi ($ZVOceanBlend+".inOceans")`;
+
+		for( $plg in $connectedPlgs )
+		{
+			if( !`connectionInfo -id ($ZVOceanBlend+"."+$plg)` )
+			{
+				continue;
+			}
+
+			tokenize $plg "inOceans" $tokens;
+			$portIdxStrs[$i] = $tokens[0];
+
+			string $nodeAttr = `connectionInfo -sfd ($ZVOceanBlend+"."+$plg)`;
+
+			tokenize $nodeAttr "." $tokens;
+			string $ZVOceanWave = $tokens[0];
+
+			string $parents[] = `listRelatives -p $ZVOceanWave`;
+			$ZVOceanWaves[$i] = $parents[0];
+
+			$i++;
+		}
+	}
+
+	int $numZVOceanWaves = size( $ZVOceanWaves );
+	if( $numZVOceanWaves == 0 ) { return; }
+
+	for( $i=0; $i<$numZVOceanWaves; $i++ )
+	{
+		string $expr = `textFieldGrp -q -tx ("txZVOceanBlendExpr"+$i)`;
+		setAttr -type "string" ($ZVOceanBlend+".expressions"+$portIdxStrs[$i]) $expr;
+	}
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZVOceanBlend;
+}
+
+////////////////////////
+// Ocean Mesh Extract //
+global proc ZVOceanBlendMeshExtractNew( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	rowLayout;
+	{
+		button -l "Create Ocean Mesh" -w 200 -c ("ZVOceanBlendMeshExtractExe "+$ZVOceanBlend) btZVOceanBlendMeshExtract;
+	}
+	setParent ..;
+
+	ZVOceanBlendMeshExtractReplace( $attr );
+}
+
+global proc ZVOceanBlendMeshExtractReplace( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	button -e -l "Create Ocean Mesh" -w 200 -c ("ZVOceanBlendMeshExtractExe "+$ZVOceanBlend) btZVOceanBlendMeshExtract;
+}
+
+global proc ZVOceanBlendMeshExtractExe( string $node )
+{
+	string $mesh = `createNode mesh -n ($node+"_oceanMesh")`;
+
+	connectAttr ($node+".outMesh") ($mesh+".inMesh");
+	assignShadingGroup initialShadingGroup;
+
+	setAttr ($node+".useMeshExtract") true;
+}
+
+//////////////////////////////
+// Create Directional Light //
+global proc ZVOceanBlendCreateLightNew( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	rowLayout;
+	{
+		button -l "Create Directional Light" -w 200 -c ("ZVOceanBlendCreateLightExe "+$ZVOceanBlend) btZVOceanBlendCreateLight;
+	}
+	setParent ..;
+
+	ZVOceanBlendCreateLightReplace( $attr );
+}
+
+global proc ZVOceanBlendCreateLightReplace( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanBlend = $tokens[0];
+
+	//button -e -l "Create Directional Light" -w 200 -c ("ZVOceanBlendCreateLightExe "+$ZVOceanBlend) btZVOceanBlendCreateLight;
+	int $lightExists = `button -ex btZVOceanBlendCreateLight`;
+	print $lightExists;
+	if( ! $lightExists ) return;
+
+	int $displayMode = `getAttr ($ZVOceanBlend+".displayMode")`;
+	if( $displayMode == 1 ) // wireframe
+	{
+		button -e -en false -l "Create Directional Light" -w 200 -c ("ZVOceanBlendCreateLightExe "+$ZVOceanBlend) btZVOceanBlendCreateLight;
+
+	}
+	if( $displayMode == 2 ) //surface
+	{
+		button -e -en true -l "Create Directional Light" -w 200 -c ("ZVOceanBlendCreateLightExe "+$ZVOceanBlend) btZVOceanBlendCreateLight;
+	}
+
+}
+
+global proc ZVOceanBlendCreateLightExe( string $node )
+{
+	string $source = `connectionInfo -sfd ($node+".inLightMat")`;
+
+	if( $source == "" )
+	{
+		string $result = `directionalLight`;
+		scale -r 5 5 5;
+
+		connectAttr ($result+".worldMatrix") ($node+".inLightMat");
+	}
+
+}
+
+global proc ZVOceanBlendDisplayModeChanged( string $node )
+{
+
+	int $displayMode = `getAttr ($node+".displayMode")`;
+	ZVOceanBlendCreateLightReplace $node;
+	if( $displayMode == 1 ) // wireframe
+	{
+		editorTemplate -dc $node "inResolution"       	1;
+		editorTemplate -dc $node "inIsFoam"         	1;
+		editorTemplate -dc $node "inShallowColor"       1;
+		editorTemplate -dc $node "inDeepColor"      	1;
+		editorTemplate -dc $node "inWaveTipColor"       1;
+		editorTemplate -dc $node "inHeightMixer" 		1;
+		editorTemplate -dc $node "inExposure" 			1;
+		editorTemplate -dc $node "inPhongCoefficient" 	1;
+		editorTemplate -dc $node "inLightIntensity" 	1;
+		return;
+	}
+
+	if( $displayMode == 2 ) // surface
+	{
+		editorTemplate -dc $node "inResolution"       	0;
+		editorTemplate -dc $node "inIsFoam"         	0;
+		editorTemplate -dc $node "inShallowColor"       0;
+		editorTemplate -dc $node "inDeepColor"      	0;
+		editorTemplate -dc $node "inWaveTipColor"       0;
+		editorTemplate -dc $node "inHeightMixer" 		0;
+		editorTemplate -dc $node "inExposure" 			0;
+		editorTemplate -dc $node "inPhongCoefficient" 	0;
+		editorTemplate -dc $node "inLightIntensity" 	0;
+		return;
+	}
+}
+
+//////////
+// main //
+global proc AEZVOceanBlendTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display" -collapse 1;
+		{
+			editorTemplate -l "Mode" -ac "displayMode" ZVOceanBlendDisplayModeChanged;
+			editorTemplate -as;
+			editorTemplate -ccu ZVOceanBlendCreateLightNew ZVOceanBlendCreateLightReplace "";
+			editorTemplate -l "Grid Resolution" -ac "inResolution";
+			editorTemplate -l "Draw Foam" -ac "inIsFoam";
+			editorTemplate -l "Shallow Color" -ac "inShallowColor";
+			editorTemplate -l "Deep Color" -ac "inDeepColor";
+			editorTemplate -l "Wave Tip Color" -ac "inWaveTipColor";
+			editorTemplate -l "Height Mixer" -ac "inHeightMixer";
+			editorTemplate -l "Exposure" -ac "inExposure";
+			editorTemplate -l "Phong Coefficient" -ac "inPhongCoefficient";
+			editorTemplate -l "Light Intensity" -ac "inLightIntensity";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Weight Expressions" -collapse 1;
+		{
+//			editorTemplate -l "Use Expressions" -ac "useExprs" ZVOceanBlendUseExprsChanged;
+//			editorTemplate -ccu ZVOceanBlendExprsNew ZVOceanBlendExprsReplace "expressions";
+//			editorTemplate -ccu ZVOceanBlendUpdateExprsNew ZVOceanBlendUpdateExprsReplace "updateExprs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Ocean Mesh Extract" -collapse 0;
+		{
+			editorTemplate -ccu ZVOceanBlendMeshExtractNew ZVOceanBlendMeshExtractReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inOceans";
+	editorTemplate -suppress "inWeights";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "outMesh";
+	editorTemplate -suppress "inLightMat";
+}
+

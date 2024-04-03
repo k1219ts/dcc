@@ -1,0 +1,192 @@
+//-------------------------//
+// ZelosClothSimulator.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         inyong Jeon @ SNU University                  //
+// last update: 2015.05.06                               //
+//-------------------------------------------------------//
+
+global proc CreateZelosClothSimulators()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	string $xforms[] = `ls -sl -l -type transform`;
+
+	for( $xform in $xforms )
+	{
+		CreateZelosClothSimulator( $xform );
+	}
+}
+
+global proc CreateZelosClothSimulator( string $xform )
+{
+	// Get the selected mesh.
+	string $inMeshXForm;
+	string $inMeshShape;
+	{
+		$inMeshXForm = $xform;
+
+		string $shapes[] = `listRelatives -f -c -ni $inMeshXForm`;
+
+		if( size($shapes) == 0 ) { error("No shape node."); return; }
+		if( size($shapes) != 1 ) { error("Too many shape nodes."); return; }
+
+		$inMeshShape = $shapes[0];
+
+		if( `nodeType $inMeshShape` != "mesh" )
+		{
+			error("No mesh shape node.");
+			return;
+		}
+	}
+
+	// Check if the mesh is already connected to a ZelosClothSimulator node as an input.
+	if( `connectionInfo -is ($inMeshShape+".w")` )
+	{
+		string $nodeAttrs[] = `connectionInfo -dfs ($inMeshShape+".w")`;
+
+		for( $nodeAttr in $nodeAttrs )
+		{
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+			string $node = $tokens[0];
+
+			if( `nodeType $node` == "ZelosClothSimulator" )
+			{
+				error($inMeshShape+" has already a connection to "+$node+" as an input.");
+				return;
+			}
+		}
+	}
+
+	// Check if the mesh is already connected to a ZelosClothSimulator node as an output.
+	if( `connectionInfo -id ($inMeshShape+".inMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($inMeshShape+".inMesh")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZelosClothSimulator" )
+		{
+			error($inMeshShape+" has already a connection to "+$node+" as an output.");
+			return;
+		}
+	}
+
+	// Set the attributes of the transform node.
+	{
+		setAttr -lock true ($inMeshXForm+".translate");
+		setAttr -lock true ($inMeshXForm+".rotate"   );
+		setAttr -lock true ($inMeshXForm+".scale"    );
+
+		setAttr ($inMeshShape+".intermediateObject") 1;
+	}
+
+	// Create a cloth group.
+	string $ZelosClothGlobal = `CreateZelosClothGlobal`;
+
+	// Get the simulator node.
+	string $ZelosClothSimulator = `GetZelosClothSimulator $ZelosClothGlobal`;
+
+	// Get the outMesh shape node.
+	string $outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+
+	// Connect attributes.
+	{
+		connectAttr time1.outTime ($ZelosClothSimulator+".time");
+		connectAttr ($inMeshShape+".w") ($ZelosClothSimulator+".inMesh1");
+		connectAttr ($ZelosClothSimulator+".outMesh") ($outMeshShape+".inMesh");
+	}
+
+	// Select the simulator.
+	select -r $ZelosClothSimulator;
+}
+
+global proc string GetZelosClothSimulatorFromOutMesh( string $outMeshShape )
+{
+	if( `nodeType $outMeshShape` != "mesh" ) { return ""; }
+
+	if( !`connectionInfo -id ($outMeshShape+".inMesh")` ) { return ""; }
+
+	string $nodeAttr = `connectionInfo -sfd ($outMeshShape+".inMesh")`;
+
+	if( $nodeAttr == "" ) { return ""; }
+
+	string $tokens[];
+	tokenize( $nodeAttr, ".", $tokens );
+	string $node = $tokens[0];
+
+	if( `nodeType $node` != "ZelosClothSimulator" ) { return ""; }
+
+	string $fullPaths[] = `ls -l $node`;
+	if( size($fullPaths) != 1 ) { return ""; }
+
+	return $fullPaths[0];
+}
+
+
+global proc SaveAsInitialMesh()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+    int $meshCount = 0;
+    string $meshShape;
+    string $objs[] = `ls -sl -type transform`;
+    for( $obj in $objs )
+    {
+        string $shapes[] = `listRelatives -shapes $obj`;
+        $meshShape = $shapes[0];
+        $meshCount++;
+    }
+    
+    if( $meshCount == 0 )
+    {
+        error( "No selected mesh." );
+        return;
+    }
+
+    if( $meshCount != 1 )
+    {
+        error( "Too many selected mesh." );
+        return;
+    }
+    
+    string $ZelosClothSim;
+    {
+        if( !`connectionInfo -id ($meshShape+".inMesh")` ) { return; }
+    
+        string $nodeAttr = `connectionInfo -sfd ($meshShape+".inMesh")`;
+
+        string $tokens[];
+        tokenize( $nodeAttr, ".", $tokens );
+        string $node = $tokens[0];
+        
+        string $nodeType = `nodeType $node`;
+        if( $nodeType != "ZelosClothSimulator" )
+        {
+            error( "Failed to find ZelosClothSimulator node." );
+            return;
+        }
+        
+        $ZelosClothSim = $node;
+    }
+
+
+    if( $ZelosClothSim == "" )
+    {
+        error( "Failed to find ZelosClothSimulator node." );
+        return;
+    }
+
+	ZelosClothSetInitMesh -nodeName $ZelosClothSim;
+}

@@ -1,0 +1,25 @@
+//----------------//
+// ZNoiseTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZNoiseTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	playbackOptions -e -maxTime 10000 -aet 10000;
+
+	createNode ZNoiseTest;
+
+	connectAttr time1.outTime ZNoiseTest1.time;
+	connectAttr ZNoiseTest1.output transform1.shearXY;
+}
+

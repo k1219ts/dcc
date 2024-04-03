@@ -1,0 +1,30 @@
+//------------------------//
+// AEZN_MergeTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.08.06                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZN_MergeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Output Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+	editorTemplate -suppress "polygonList";
+	editorTemplate -suppress "triangleList";
+}
+

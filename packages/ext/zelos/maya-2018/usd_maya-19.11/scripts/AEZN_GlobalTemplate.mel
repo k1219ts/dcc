@@ -1,0 +1,78 @@
+//-------------------------//
+// AEZN_GlobalTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.10.28                               //
+//-------------------------------------------------------//
+
+////////////
+// active //
+global proc ZN_GlobalActiveNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout;
+		{
+			checkBox -l "Current ZN_Global" -cc ("ZN_GlobalActive "+$attr) ZN_GlobalActive;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_GlobalActiveReplace( $attr );
+}
+
+global proc ZN_GlobalActiveReplace( string $attr )
+{
+	connectControl ZN_GlobalActive $attr;
+	checkBox -e -cc ("ZN_GlobalActive " +$attr) ZN_GlobalActive;
+}
+
+global proc ZN_GlobalActive( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $global = $node[0];
+
+	string $ZN_Globals[] = `ls -type ZN_Global`;
+
+	for( $ZN_Global in $ZN_Globals )
+	{
+		if( $global != $ZN_Global )
+		{
+			setAttr ($ZN_Global+".active") 0;
+		}
+	}
+}
+
+//////////
+// main //
+global proc AEZN_GlobalTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "ZENN" -collapse 0;
+		{
+			editorTemplate -ccu ZN_GlobalActiveNew ZN_GlobalActiveReplace "active";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -addExtraControls;
+
+	editorTemplate -suppress "translate";
+	editorTemplate -suppress "rotate";
+	editorTemplate -suppress "scale";
+	editorTemplate -suppress "shear";
+	editorTemplate -suppress "rotationOrder";
+	editorTemplate -suppress "rotationAxis";
+	editorTemplate -suppress "inheritsTransform";
+	editorTemplate -suppress "mentalRayControls";
+	editorTemplate -suppress "update";
+
+	setAttr -lock true ($nodeName+".translate");
+	setAttr -lock true ($nodeName+".rotate"   );
+	setAttr -lock true ($nodeName+".scale"    );
+}
+

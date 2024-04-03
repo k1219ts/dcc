@@ -1,0 +1,31 @@
+//--------------------//
+// ZField3DViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZField3DViewer()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $name = "ZField3DViewer";
+	string $numOfNode[] = `ls -type ZField3DViewer`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZField3DViewerXFormName = $name + "XForm" + $number;
+	string $ZField3DViewerShapeName = $name + "Shape" + $number;
+	string $ZField3DViewerXForm = `createNode transform -n $ZField3DViewerXFormName`;
+	string $ZField3DViewer = `createNode ZField3DViewer -n $ZField3DViewerShapeName -p $ZField3DViewerXForm`;
+
+	connectAttr time1.outTime ( $ZField3DViewer + ".time" );
+	connectAttr ( $ZField3DViewer + ".output" ) ( $ZField3DViewerXForm + ".dynamics" );
+
+	select -r $ZField3DViewer;
+}
+

@@ -1,0 +1,25 @@
+//-----------------//
+// ZMeshLoader.mel //
+//-------------------------------------------------------//
+// author: Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+global proc CreateZMeshLoader()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	string $ZMeshLoader = `createNode ZMeshLoader`;
+	string $outMesh = `createNode mesh`;
+	assignShadingGroup initialShadingGroup;
+
+	connectAttr time1.outTime ($ZMeshLoader+".time");
+	connectAttr ($ZMeshLoader+".outMesh") ($outMesh+".inMesh");
+
+	select -r $ZMeshLoader;
+}
+

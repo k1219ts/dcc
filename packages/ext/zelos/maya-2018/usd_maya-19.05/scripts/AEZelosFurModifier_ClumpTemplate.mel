@@ -1,0 +1,468 @@
+//--------------------------------------//
+// AEZelosFurModifier_ClumpTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_ClumpSeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Clump Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ClumpSeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ClumpSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpSeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpSeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ClumpSeExpr0;
+	button -e -c ("ZelosFurModifier_ClumpSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr0;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ClumpSeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ClumpSeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ClumpSeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ClumpSeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr0;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr0Reset( string $attr )
+{
+	string $txt = "clump + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_ClumpSeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_ClumpSeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Rate Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ClumpSeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ClumpSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpSeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpSeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ClumpSeExpr1;
+	button -e -c ("ZelosFurModifier_ClumpSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr1;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ClumpSeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ClumpSeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ClumpSeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ClumpSeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr1;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr1Reset( string $attr )
+{
+	string $txt = "rate + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_ClumpSeExpr1;
+}
+
+//////////////
+// Se.Expr2 // 
+global proc ZelosFurModifier_ClumpSeExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ClumpSeExpr2;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ClumpSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr2;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpSeExpr2Replace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpSeExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ClumpSeExpr2;
+	button -e -c ("ZelosFurModifier_ClumpSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr2;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr2Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ClumpSeExpr2;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ClumpSeExpr2Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ClumpSeExpr2Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ClumpSeExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr2;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr2Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr2;
+	scrollField -e -tx $txt sfZelosFurModifier_ClumpSeExpr2;
+}
+
+//////////////
+// Se.Expr3 // 
+global proc ZelosFurModifier_ClumpSeExpr3New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ClumpSeExpr3;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ClumpSeExpr3Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr3;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpSeExpr3Replace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpSeExpr3Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ClumpSeExpr3;
+	button -e -c ("ZelosFurModifier_ClumpSeExpr3Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr3;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr3Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ClumpSeExpr3;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ClumpSeExpr3Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ClumpSeExpr3Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr3Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ClumpSeExpr3`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr3;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr3Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr3;
+	scrollField -e -tx $txt sfZelosFurModifier_ClumpSeExpr3;
+}
+
+//////////////
+// Se.Expr4 // 
+global proc ZelosFurModifier_ClumpSeExpr4New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Weight Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ClumpSeExpr4;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ClumpSeExpr4Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr4;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpSeExpr4Replace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpSeExpr4Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ClumpSeExpr4;
+	button -e -c ("ZelosFurModifier_ClumpSeExpr4Win(\""+$attr+"\")") btnZelosFurModifier_ClumpSeExpr4;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr4Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ClumpSeExpr4;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ClumpSeExpr4Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ClumpSeExpr4Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr4Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ClumpSeExpr4`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr4;
+}
+
+global proc ZelosFurModifier_ClumpSeExpr4Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_ClumpSeExpr4;
+	scrollField -e -tx $txt sfZelosFurModifier_ClumpSeExpr4;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_ClumpUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_ClumpUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_ClumpUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_ClumpUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_ClumpTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_ClumpTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_ClumpTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_ClumpTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Clump node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_ClumpNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_ClumpNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_ClumpNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_ClumpNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_ClumpTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_ClumpGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_ClumpGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_ClumpGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ClumpGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_ClumpGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_ClumpGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Clump node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_ClumpNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_ClumpNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_ClumpNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_ClumpNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_ClumpGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_ClumpTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Clump Value";
+			editorTemplate -l "Formula"                                   -ac "formula";
+			editorTemplate -as;
+			editorTemplate -l "Clump [clump]"                             -ac "clump";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ClumpSeExpr0New ZelosFurModifier_ClumpSeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Rate Value";
+			editorTemplate -l "Rate [rate]"                               -ac "rate";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand1";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq1";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ClumpSeExpr1New ZelosFurModifier_ClumpSeExpr1Replace "seExpr1Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZelosFurModifier_ClumpSeExpr2New ZelosFurModifier_ClumpSeExpr2Replace "seExpr2Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Fly-Away Ratio / Weight";
+			editorTemplate -ccu ZelosFurModifier_ClumpSeExpr3New ZelosFurModifier_ClumpSeExpr3Replace "seExpr3Str";
+			editorTemplate -ccu ZelosFurModifier_ClumpSeExpr4New ZelosFurModifier_ClumpSeExpr4Replace "seExpr4Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Maintain Curve Length";
+			editorTemplate -l "On/Off"                                    -ac "maintainLength";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ClumpUpdateNew ZelosFurModifier_ClumpUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_ClumpTextureListNew ZelosFurModifier_ClumpTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_ClumpGeneratorListNew ZelosFurModifier_ClumpGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+	editorTemplate -suppress "seed1";
+}
+

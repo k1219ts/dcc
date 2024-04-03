@@ -1,0 +1,54 @@
+//-----------------------------------//
+// AEZN_FeatherMeshesGenTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.02.21                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Create Button //
+global proc ZN_FeatherMeshesGenCreateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Convert Feathers to Maya Mesh" -bgc 1.0 0.8 0.5 -c ("ZN_FeatherMeshesGenCreateExe "+$attr) ZN_FeatherMeshesGenCreate;
+	setUITemplate -ppt;
+
+	ZN_FeatherMeshesGenCreateReplace $attr;
+}
+
+global proc ZN_FeatherMeshesGenCreateReplace( string $attr )
+{
+	button -e -c ("ZN_FeatherMeshesGenCreateExe "+$attr) ZN_FeatherMeshesGenCreate;
+}
+
+//////////
+// main //
+global proc AEZN_FeatherMeshesGenTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Output Transforms" -ac "numOutputXForms";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connection Creation" -collapse 0;
+		{
+			editorTemplate -ccu ZN_FeatherMeshesGenCreateNew ZN_FeatherMeshesGenCreateReplace "numOutputXForms";	// dummy
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inFeatherSet";
+	editorTemplate -suppress "outMeshes";
+	editorTemplate -suppress "outTranslates";
+	editorTemplate -suppress "outScales";
+	editorTemplate -suppress "outRotates";
+}
+

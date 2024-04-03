@@ -1,0 +1,70 @@
+//--------------//
+// ZFXMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+global proc ZFXMenu()
+{
+	menuItem -to 1 -l "ZFX (Zelos for Effects)" -ec 1 -subMenu true ZFX_Item;
+	{
+		menuItem -to 1 -l "ZFX_BreakingWave" -ec 1 -subMenu true ZFX_BreakingWave_Item;
+			menuItem -l "Create Breaking Wave" -c "ZFX_BreakingWaveCreate" ZFX_CreateBreakingWave_Item;
+			setParent -menu ..;
+		menuItem -to 1 -l "ZFX_OCEAN" -ec 1 -subMenu true ZFX_OCEAN_Item;
+			menuItem -l "Create an Ocean on Mesh" -c "CreateZFX_OCEAN" ZFX_CreateZFX_OCEAN_Item;
+			menuItem -l "Add an Ocean Node" -c "AddZFX_OCEANNode" ZFX_AddZFX_OCEANNode_Item;
+
+			menuItem -divider true;
+
+			menuItem -l "Create a Partial Mesh for Ocean Preview" -c "ZFX_PartialMeshGen" ZFX_PartialMeshGen_Item;
+
+			menuItem -divider true;
+
+			menuItem -l "Export the Ocean Data" -c "ZFX_OceanExportWin" ZFX_OceanExportData_Item;
+
+			setParent -menu ..;
+	}
+	setParent -menu ..;
+}
+
+global proc ZFX_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		error -n "ZFXForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZFXMenu;
+}
+
+global proc ZFX_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZFXMenu;
+
+	if( `menu -exists mainZFXMenu` ) { deleteUI mainZFXMenu; }
+
+	setParent $gMainWindow;
+
+	$gZFXMenu = `menu -l "ZFX" -to true -pmo true mainZFXMenu`;
+	menu -e -pmc ( "ZFX_Menu " + $gZFXMenu ) $gZFXMenu;
+
+	hotBox -um;
+}
+
+global proc ZFX_DeleteMenu()
+{
+	if( `menu -exists mainZFXMenu` ) { deleteUI mainZFXMenu; }
+}
+

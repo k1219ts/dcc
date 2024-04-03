@@ -1,0 +1,35 @@
+//-----------------------------------//
+// AEZJiggleMeshDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.06.17                               //
+//-------------------------------------------------------//
+
+global proc AEZJiggleMeshDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Options" -collapse 0;
+			editorTemplate -l "Device"                 -ac "computingMethod";
+			editorTemplate -l "Start frame"            -ac "startFrame";
+			editorTemplate -l "Time Scale"             -ac "timeScale";
+			editorTemplate -l "Damping"                -ac "damping";
+			editorTemplate -l "Stiffness"              -ac "stiffness";
+			editorTemplate -l "Normal strength"        -ac "normalStrength";
+			editorTemplate -l "Scale"                  -ac "scale";
+			editorTemplate -l "Distance limit"         -ac "distanceLimit";
+			editorTemplate -l "Direction bias"         -ac "directionBias";
+			editorTemplate -l "More accurate tangent"  -ac "moreAccurateTangent";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "worldMatrix";
+	editorTemplate -suppress "dampingMap";
+	editorTemplate -suppress "stiffnessMap";
+	editorTemplate -suppress "normalStrengthMap";
+}
+

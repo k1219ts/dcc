@@ -1,0 +1,149 @@
+//-----------------------//
+// AEZFX_PTCTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.09.29                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_PTCTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Count"                   -ac "count";
+			editorTemplate -l "Capacity"				-ac "capacity";
+			editorTemplate -as;
+			editorTemplate -l "Reset Time"              -ac "resetTime";
+			editorTemplate -as;
+			editorTemplate -l "Type"                    -ac "type";
+			editorTemplate -as;
+			editorTemplate -l "Rate"                    -ac "rate";
+			editorTemplate -as;
+			editorTemplate -l "Enable Wave splash"      -ac "useWaveSplash";
+			editorTemplate -as;
+			editorTemplate -l "MeshGroup Path"          -ac "groupName";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Ocean Ptc Controls" -collapse 0;
+		{
+			editorTemplate -l "Thickness"               -ac "thickness";
+			editorTemplate -l "Depth"                   -ac "depth";
+			editorTemplate -l "Friction"                -ac "friction";
+		}
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "Noise Scale"   			-ac "noiseScale";
+			editorTemplate -l "Freq Scale"  			-ac "frequencyScale";
+			editorTemplate -l "Offset Scale" 			-ac "offsetScale";			
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Attribute Controls" -collapse 1;
+		{
+			editorTemplate -l "Unique ID"               -ac "uid";
+			editorTemplate -l "Position"                -ac "pos";
+			editorTemplate -l "Velocity"                -ac "vel";
+			editorTemplate -l "Radius"                  -ac "rad";
+			editorTemplate -l "Color"                   -ac "clr";
+			editorTemplate -l "Normal"                  -ac "nrm";
+			editorTemplate -l "Vorticity"               -ac "vrt";
+			editorTemplate -l "Density"                 -ac "dst";
+			editorTemplate -l "Signed Distance"         -ac "sdt";
+			editorTemplate -l "Texture Coordinate"      -ac "uvw";
+			editorTemplate -l "Age"                     -ac "age";
+			editorTemplate -l "Lifespan"                -ac "lfs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Initial Position Controls" -collapse 1;
+		{
+			editorTemplate -l "Cutoff Noise Value"      -ac "noiseValue";
+			editorTemplate -l "Spatial Frequency"       -ac "noiseSFreq";
+			editorTemplate -l "Temporal Frequency"      -ac "noiseTFreq";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Initial Velocity Controls" -collapse 1;
+		{
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "User Defined Velocity";
+			editorTemplate -l "Direction"               -ac "direction0";
+			editorTemplate -l "Scale"                   -ac "scale0";
+			editorTemplate -l "Randomness"              -ac "randomness0";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Normal Velocity";
+			editorTemplate -l "Scale"                   -ac "scale1";
+			editorTemplate -l "Randomness"              -ac "randomness1";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Inherit Velocity";
+			editorTemplate -l "Scale"                   -ac "scale2";
+			editorTemplate -l "Randomness"              -ac "randomness2";
+		}
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Cache Controls" -collapse 1;
+		{
+			editorTemplate -l "Export"          		-ac "cacheExport";
+			editorTemplate -l "Path"            		-ac "cachePath";
+			
+        	editorTemplate -ccu ZFX_PTCControlPtcNew ZFX_PTCControlPtcReplace "";
+			
+			editorTemplate -l "Prefix"                  -ac "cachePrefix";
+			editorTemplate -l "Extention"               -ac "cacheExtention";
+		}
+		editorTemplate -endLayout;		
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "inOcean";
+	editorTemplate -suppress "outPtc";
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+
+global proc ZFX_PTCControlPtcNew( string $nodeName )
+{
+	string $buffer[];
+	tokenize $nodeName "." $buffer;
+	$nodeName = $buffer[0];	
+
+	rowLayout -nc 2 -cw2 280 20;
+	{
+		textField -w 280 -ed 1 -vis false tfFilePath;		
+		symbolButton btFileBrowser;				
+	}
+	setParent ..;	
+	
+	ZFX_PTCControlPtcReplace($nodeName);
+}
+
+global proc ZFX_PTCControlPtcReplace( string $nodeName )
+{
+	string $buffer[];
+	tokenize $nodeName "." $buffer;
+	$nodeName = $buffer[0];				
+	
+	symbolButton -e -image "navButtonBrowse.xpm" -command ("ZFX_PTCCommandFileBrowser "+$nodeName) btFileBrowser; 
+}
+
+global proc ZFX_PTCCommandFileBrowser( string $nodeName )
+{
+	$attr = $nodeName+".cachePath";
+	ZLoadDirectory( $attr, "tfFilePath" );  
+}

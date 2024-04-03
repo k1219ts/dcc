@@ -1,0 +1,24 @@
+//---------------------------------//
+// ZelosFurGuideBrushCtxValues.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2015.02.24                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurGuideBrushCtxValues( string $ctxName ) 
+{
+	string $parent = (`toolPropertyWindow -q -location` + "|ZelosFurGuideBrushCtxLayout");
+	setParent $parent;
+
+	frameLayout -e -en true -cl false ZelosFurGuideBrushCtxFrame;
+
+	int $radius = eval( "ZelosFurGuideBrushCtx -q -radius " + $ctxName );
+	intSliderGrp -e -value $radius ZelosFurGuideBrushCtxRadius;
+
+	float $strength = eval( "ZelosFurGuideBrushCtx -q -strength " + $ctxName );
+	floatSliderGrp -e -value $strength ZelosFurGuideBrushCtxStrength;
+
+	toolPropertySelect ZelosFurGuideBrushCtxLayout;
+}
+

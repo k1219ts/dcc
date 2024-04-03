@@ -1,0 +1,128 @@
+//--------------------//
+// ZelosFurGlobal.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.06.10                               //
+//-------------------------------------------------------//
+
+global proc CreateZelosFurGlobal()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	createNode ZelosFurGlobal;
+}
+
+// MGlobal::executeCommand( "scriptJob -event DagObjectCreted SetZelosFurGlobal" );
+global proc SetZelosFurGlobal()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -shapes`;
+	if( !size($selected) ) { return; }
+	string $shapeNode = $selected[0];
+
+	int $toHandle = 0;
+	string $nodeType = `nodeType $shapeNode`;
+	if( $nodeType=="ZelosFurSampler"   ) { $toHandle = 1; }
+	if( $nodeType=="ZelosFurSimulator" ) { $toHandle = 1; }
+	if( $nodeType=="ZelosFurGenerator" ) { $toHandle = 1; }
+	if( $nodeType=="ZelosFurTextureViewer" )
+	{
+		string $parent[] = `listRelatives -parent $shapeNode`;
+		connectAttr ($shapeNode+".output") ($parent[0]+".shearXY");
+		return;
+	}
+	if( $toHandle==0 ) { return; }
+
+	string $parents[] = `listRelatives -parent $shapeNode`;
+	string $currentParent = $parents[0];
+	$nodeType = `nodeType $currentParent`;
+	if( $nodeType == "ZelosFurGlobal" ) { return; }
+
+	string $ZelosFurGlobal;
+	string $ZelosFurGlobals[] = `ls -type ZelosFurGlobal`;
+	int $numZelosFurGlobals = size($ZelosFurGlobals);
+
+	if( $numZelosFurGlobals == 0 ) {
+
+		$ZelosFurGlobal = `createNode ZelosFurGlobal`;
+		parent -r -s $shapeNode $ZelosFurGlobal;
+		delete $currentParent;
+		select -r $shapeNode;
+
+	} else if( $numZelosFurGlobals == 1 ) {
+
+		$ZelosFurGlobal = $ZelosFurGlobals[0];
+		parent -r -s $shapeNode $ZelosFurGlobal;
+		delete $currentParent;
+		select -r $shapeNode;
+
+	} else {
+
+		SetZelosFurGlobalWin $shapeNode;
+
+	}
+}
+
+global proc SetZelosFurGlobalWin( string $shapeNode )
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+    if( `window -q -exists SetZelosFurGlobalWin` )
+	{
+    	deleteUI SetZelosFurGlobalWin;
+    	return;
+	}
+
+	string $ZelosFurGlobalNodes[] = `ls -type ZelosFurGlobal`;
+
+	window -wh 10 10 -rtf 1 -tb 1 -s 0 -t "Parent Node" -mnb 0 -mxb 0 -bgc 0.8 0.7 0.2 SetZelosFurGlobalWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 10 -style "none";
+
+		optionMenu -bgc 1.0 0.4 0.7 SetZelosFurGlobalList;
+		for( $ZelosFurGlobalNode in $ZelosFurGlobalNodes )
+		{
+			menuItem -label $ZelosFurGlobalNode;
+		}
+
+		separator -h 10 -style "none";
+
+		button -l "Parent" -w 110 -al "center" -bgc 0.4 1.0 0.7 -c ("SetZelosFurGlobalExec "+$shapeNode);
+
+		separator -h 10 -style "none";
+
+	showWindow SetZelosFurGlobalWin;
+}
+
+global proc SetZelosFurGlobalExec( string $shapeNode )
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $currentParent[] = `listRelatives -parent $shapeNode`;
+	string $newParent = `optionMenu -q -v SetZelosFurGlobalList`;
+
+	parent -r -s $shapeNode $newParent;
+	delete $currentParent[0];
+	deleteUI SetZelosFurGlobalWin;
+	select -r $shapeNode;
+}
+

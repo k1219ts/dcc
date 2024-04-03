@@ -1,0 +1,81 @@
+//---------------//
+// ZN_Global.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+global proc ZN_AddNewGlobal()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $xform;
+	{
+		string $xforms[] = `ls -sl -l -type transform`;
+		if( size($xforms) == 0 ) { ZPrintError "No selected object."; return; }
+		if( size($xforms) != 1 ) { ZPrintError "Too many selected objects."; return; }
+		$xform = $xforms[0];
+	}
+
+	// Create a new global node.
+	string $ZN_Global = `createNode ZN_Global`;
+
+	// Lock the transform not to move.
+	setAttr -lock true ($ZN_Global+".translate");
+	setAttr -lock true ($ZN_Global+".rotate"   );
+	setAttr -lock true ($ZN_Global+".scale"    );
+
+	// to the full path
+	string $fullPaths[] = `ls -l $ZN_Global`;
+	$ZN_Global = $fullPaths[0];
+
+	// Set the current global.
+	string $globals[] = `ls -l -type ZN_Global`;
+	for( $global in $globals ) { setAttr ($global+".active") false; }
+	setAttr ($ZN_Global+".active") true;
+
+	select -r $xform;
+
+	ZN_AddNewGroup;
+}
+
+global proc int GetZN_GlobalNumber( string $ZN_Global )
+{
+	if( `nodeType $ZN_Global` != "ZN_Global" ) { return 0; }
+	int $number = `match "[0-9]+$" $ZN_Global`;
+	return $number;
+}
+
+global proc int NumCurrentZN_Globals()
+{
+	int $count = 0;
+
+	string $ZN_Globals[] = `ls -l -type ZN_Global`;
+
+	for( $ZN_Global in $ZN_Globals )
+	{
+		if(`getAttr ($ZN_Global+".active")`) { $count++; }
+	}
+
+	return $count;
+}
+
+global proc string GetCurrentZN_Global()
+{
+	int $count = `NumCurrentZN_Globals`;
+	if( $count != 1 ) { return ""; }
+
+	string $ZN_Globals[] = `ls -l -type ZN_Global`;
+
+	for( $ZN_Global in $ZN_Globals )
+	{
+		if(`getAttr ($ZN_Global+".active")`) { return $ZN_Global; }
+	}
+
+	return "";
+}
+

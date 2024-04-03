@@ -1,0 +1,80 @@
+//--------------------//
+// ZelosClothMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothMenu()
+{
+	menuItem -to 1 -l "ZWiSS (Cloth)" -ec 1 -subMenu true ZelosCloth_Item;
+	{
+		menuItem -l "Create Cloth from Mesh" -ec 1 -c "CreateZelosClothSimulators"      ZelosCloth_CreateClothFromMesh_Item;
+		menuItem -divider true;
+		menuItem -l "Create Cloth from Patch" -to 1 -ec 1 -subMenu 1                    ZelosCloth_CreateClothFromPatch_Item;
+			menuItem -l "Create a Patch"     -ec 1 -c "CreateZelosClothPatch"           ZelosCloth_CreatePatch_Item;
+			menuItem -divider true;
+			menuItem -l "Add a Hole"         -ec 1 -c "AddZelosClothPatchHole"          ZelosCloth_AddPatchHole_Item;
+			menuItem -l "Add a Inline"       -ec 1 -c "AddZelosClothPatchInline"        ZelosCloth_AddPatchInline_Item;
+			menuItem -divider true;
+			menuItem -l "Create a Seam"      -ec 1 -c "CreateZelosClothSeam"            ZelosCloth_CreateSeam_Item;
+			setParent -menu ..;
+		menuItem -divider true;
+		menuItem -l "Add Colliders"          -ec 1 -c "AddZelosClothColliders"          ZelosCloth_AddColliders_Item;
+		menuItem -l "Add Constraint" -to 1 -ec 1 -subMenu 1                             ZelosCloth_AddConstraint_Item;
+			menuItem -l "Pin Constraints"    -ec 1 -c "AddZelosClothPins"               ZelosCloth_AddPinConstraints_Item;
+			menuItem -l "Attach Constraints" -ec 1 -c "AddZelosClothAttaches"           ZelosCloth_AddAttachConstraints_Item;
+			menuItem -l "Spring Constraints" -ec 1 -c "AddZelosClothSprings"            ZelosCloth_AddSpringConstraints_Item;
+			menuItem -l "Weld Constraints"   -ec 1 -c "AddZelosClothWelds"              ZelosCloth_AddWeldConstraints_Item;
+			menuItem -l "Angle Constraints"  -ec 1 -c "AddZelosClothAngles"             ZelosCloth_AddAngleConstraints_Item;
+			setParent -menu ..;
+		menuItem -l "Add Goal Meshes"        -ec 1 -c "AddZelosClothGoalMeshes"         ZelosCloth_AddGoalMeshes_Item;
+		menuItem -l "Set Tweak"              -ec 1 -c "SetZelosClothTweak"              ZelosCloth_SetTweak_Item;
+		menuItem -divider true;
+		menuItem -l "Create Cloth Group"     -ec 1 -c "CreateZelosClothGlobal"          ZelosCloth_CreateGlobal_Item;
+		menuItem -divider true;
+		menuItem -l "Curve CV Move Tool"     -ec 1 -c "setToolTo `ZelosClothCVMoveCtx`" ZelosCloth_CVMoveCtx_Item;
+		menuItem -l "Delete UV Tweaks"       -ec 1 -c "DeleteZelosClothMeshUVTweaks"    ZelosCloth_DeleteUVTweaks_Item;
+		menuItem -l "Set Paintable"          -ec 1 -c "SetZelosClothPaintable"          ZelosCloth_SetPaintable_Item;
+		menuItem -l "Save As Initial Mesh"   -ec 1 -c "SaveAsInitialMesh"				ZelosCloth_SaveAsInitialmesh_Item;
+	}
+	setParent -menu ..;
+}
+
+global proc ZelosCloth_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZelosClothMenu;
+}
+
+global proc ZelosCloth_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZelosClothMenu;
+
+	if( `menu -exists mainZelosClothMenu` ) { deleteUI mainZelosClothMenu; }
+
+	setParent $gMainWindow;
+
+	$gZelosClothMenu = `menu -l "ZelosCloth" -to true -pmo true mainZelosClothMenu`;
+	menu -e -pmc ( "ZelosCloth_Menu " + $gZelosClothMenu ) $gZelosClothMenu;
+
+	hotBox -um;
+}
+
+global proc ZelosCloth_DeleteMenu()
+{
+	if( `menu -exists mainZelosClothMenu` ) { deleteUI mainZelosClothMenu; }
+}
+

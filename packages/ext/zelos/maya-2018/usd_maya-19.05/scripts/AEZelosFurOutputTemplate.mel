@@ -1,0 +1,19 @@
+//-------------------------------//
+// AEZelosFurOutputTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.07.02                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZelosFurOutputTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+		editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "input";
+	editorTemplate -suppress "output";
+}
+

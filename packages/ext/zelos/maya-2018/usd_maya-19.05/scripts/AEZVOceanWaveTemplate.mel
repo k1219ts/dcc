@@ -1,0 +1,293 @@
+//---------------------------//
+// AEZVOceanWaveTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.04.25                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Space Changed //
+global proc ZVOceanWaveSpaceChanged( string $node )
+{
+	int $space = `getAttr ($node+".evaluationSpace")`;
+	// World
+	if( $space == 0 )
+	{
+		editorTemplate -dc $node "scaleS" 1;
+		editorTemplate -dc $node "scaleT" 1;
+		editorTemplate -dc $node "flowS"  1;
+		editorTemplate -dc $node "flowT"  1;
+	}
+
+	// UV
+	if( $space == 1 )
+	{
+		editorTemplate -dc $node "scaleS" 0;
+		editorTemplate -dc $node "scaleT" 0;
+		editorTemplate -dc $node "flowS"  0;
+		editorTemplate -dc $node "flowT"  0;
+	}
+}
+
+////////////////////////
+// Grid Level Changed //
+global proc ZVOceanWaveGridLevelChanged( string $node )
+{
+	int $gridLevel = `getAttr ($node+".gridLevel")`;
+
+	int $gridResolution = `pow 2 $gridLevel`;
+
+	setAttr ($node+".gridResolution") $gridResolution;
+}
+
+////////////////////////////
+// Spectrum Model Changed //
+global proc ZVOceanSpectrumModelChanged( string $node )
+{
+	int $spectrumModel = `getAttr ($node+".spectrumModel")`;
+
+	// Phillips
+	if( $spectrumModel == 0 )
+	{
+		editorTemplate -dc $node "windFetchSize" 1;
+		return;
+	}
+
+	// Pierson-Moskowitz
+	if( $spectrumModel == 1 )
+	{
+		editorTemplate -dc $node "windFetchSize" 1;
+		return;
+	}
+
+	// JONSWAP
+	if( $spectrumModel == 2 )
+	{
+		editorTemplate -dc $node "windFetchSize" 0;
+		return;
+	}
+
+	// TMA
+	if( $spectrumModel == 2 )
+	{
+		editorTemplate -dc $node "windFetchSize" 0;
+		return;
+	}
+}
+
+/////////////////////////////////////
+// Dispersion Relationship Changed //
+global proc ZVOceanDispersionChanged( string $node )
+{
+	int $dispersionRelation = `getAttr ($node+".dispersionRelation")`;
+
+	// deep water
+	if( $dispersionRelation == 0 )
+	{
+		editorTemplate -dc $node "waterDepth" 1;
+		return;
+	}
+
+	// finite depth water
+	if( $dispersionRelation == 1 )
+	{
+		editorTemplate -dc $node "waterDepth" 0;
+		return;
+	}
+
+	// very small depth water
+	if( $dispersionRelation == 2 )
+	{
+		editorTemplate -dc $node "waterDepth" 0;
+		return;
+	}
+}
+
+/////////////////////////
+// Foam Method Changed //
+global proc ZVOceanFoamMethodChanged( string $node )
+{
+	int $foamMethod = `getAttr ($node+".foamMethod")`;
+	int $foamAccumulation = `getAttr ($node+".foamAccumulation")`;
+
+	if( $foamMethod == 0 )
+	{
+		editorTemplate -dc $node "foamPower"        1;
+		editorTemplate -dc $node "foamScale"        1;
+		editorTemplate -dc $node "foamAdd"          1;
+		editorTemplate -dc $node "foamAccumulation" 1;
+		editorTemplate -dc $node "foamDecay"        1;
+		editorTemplate -dc $node "foamResetTime"    1;
+		return;
+	}
+
+	if( $foamMethod == 1 )
+	{
+		editorTemplate -dc $node "foamPower"        0;
+		editorTemplate -dc $node "foamScale"        0;
+		editorTemplate -dc $node "foamAdd"          0;
+		editorTemplate -dc $node "foamAccumulation" 0;
+		editorTemplate -dc $node "foamDecay"        0;
+		editorTemplate -dc $node "foamResetTime"    0;
+
+		return;
+	}
+}
+
+///////////////////////////////
+// Foam Accumulation Changed //
+global proc ZVOceanFoamAccumulationChanged( string $node )
+{
+	int $foamAccumulation = `getAttr ($node+".foamAccumulation")`;
+
+	if( $foamAccumulation == 0 )
+	{
+		editorTemplate -dc $node "foamDecay"     1;
+		editorTemplate -dc $node "foamResetTime" 1;
+		return;
+	}
+
+	if( $foamAccumulation == 1 )
+	{
+		editorTemplate -dc $node "foamDecay"     0;
+		editorTemplate -dc $node "foamResetTime" 0;
+		return;
+	}
+}
+
+////////////////////////
+// Ocean Mesh Extract //
+global proc ZVOceanWaveMeshExtractNew( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanWave = $tokens[0];
+
+	rowLayout;
+	{
+		button -l "Create Ocean Mesh" -w 200 -c ("ZVOceanWaveMeshExtractExe "+$ZVOceanWave) btZVOceanWaveMeshExtract;
+	}
+	setParent ..;
+
+	ZVOceanWaveMeshExtractReplace( $attr );
+}
+
+global proc ZVOceanWaveMeshExtractReplace( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZVOceanWave = $tokens[0];
+
+	button -e -l "Create Ocean Mesh" -w 200 -c ("ZVOceanWaveMeshExtractExe "+$ZVOceanWave) btZVOceanWaveMeshExtract;
+}
+
+global proc ZVOceanWaveMeshExtractExe( string $node )
+{
+	string $mesh = `createNode mesh -n ($node+"_oceanMesh")`;
+
+	connectAttr ($node+".outMesh") ($mesh+".inMesh");
+	assignShadingGroup initialShadingGroup;
+
+	setAttr ($node+".useMeshExtract") true;
+}
+
+//////////
+// main //
+global proc AEZVOceanWaveTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Ocean";
+			editorTemplate -l "Display Mode"              -ac "displayMode";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Patch Guide Lines";
+			editorTemplate -l "Display"                   -ac "displayPatchGuideLines";
+			editorTemplate -l "Color"                     -ac "displayPatchGuideLinesColor";
+			editorTemplate -l "Width"                     -ac "displayPatchGuideLinesWidth";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Basic Ocean Controls" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Mode";
+			editorTemplate -l "Space"                     -ac "evaluationSpace" ZVOceanWaveSpaceChanged;
+			editorTemplate -l "Device"                    -ac "device";
+			editorTemplate -l "Interpolation"             -ac "interpolation";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Resolution";
+			editorTemplate -l "Grid Resolution"           -ac "gridResolution";
+			editorTemplate -l "Grid Level"                -ac "gridLevel" ZVOceanWaveGridLevelChanged;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Dimension";
+			editorTemplate -l "Physical Domain Size (m)"  -ac "domainSize";
+			editorTemplate -l "Patch Size"                -ac "patchSize";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Time";
+			editorTemplate -l "Time Scale"                -ac "timeScale";
+			editorTemplate -l "Looping Duration (frames)" -ac "loopingDuration";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Wind";
+			editorTemplate -l "Wind Speed (m/s)"          -ac "windSpeed";
+			editorTemplate -l "Wind Direction (degrees)"  -ac "windDirection";
+			editorTemplate -as;
+			editorTemplate -l "Wind Alignment"            -ac "windAlignment";
+			editorTemplate -l "Directionality"            -ac "directionality";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Modification";
+			editorTemplate -l "Shortest Wave Length (m)"  -ac "shortestWaveLength";
+			editorTemplate -l "Choppiness"                -ac "choppiness";
+			editorTemplate -l "Wave Scale"                -ac "waveScale";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Advanced Ocean Controls" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Spectrum";
+			editorTemplate -l "Type"                      -ac "spectrumModel" ZVOceanSpectrumModelChanged;
+			editorTemplate -l "Spectrum Blend Alpha"      -ac "spectrumBlendAlpha";
+			editorTemplate -l "Wind Fetch Size (km)"      -ac "windFetchSize";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Dispersion Relationship";
+			editorTemplate -l "Type"                      -ac "dispersionRelation" ZVOceanDispersionChanged;
+			editorTemplate -l "Water Depth (m)"           -ac "waterDepth";
+			editorTemplate -l "Gravity (m/sec^2)"         -ac "gravity";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Random Distribution";
+			editorTemplate -l "Type"                      -ac "randomDistribution";
+			editorTemplate -l "Random Seed"               -ac "randomSeed";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Foam Controls" -collapse 1;
+		{
+			editorTemplate -l "Foam Method"               -ac "foamMethod" ZVOceanFoamMethodChanged;
+			editorTemplate -as;
+			editorTemplate -l "Foam Power"                -ac "foamPower";
+			editorTemplate -l "Foam Scale"                -ac "foamScale";
+			editorTemplate -l "Foam Add"                  -ac "foamAdd";
+			editorTemplate -l "Shortest Foam Length (m)"  -ac "shortestFoamLength";
+			editorTemplate -as;
+			editorTemplate -l "Foam Accumulation"         -ac "foamAccumulation" ZVOceanFoamAccumulationChanged;
+			editorTemplate -l "Decay"                     -ac "foamDecay";
+			editorTemplate -l "Reset Time"                -ac "foamResetTime";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Manifold Controls" -collapse 1;
+		{
+			editorTemplate -l "Scale S"              -ac "scaleS";
+			editorTemplate -l "Scale T"              -ac "scaleT";
+			editorTemplate -l "Flow S"               -ann "offsetS = frame / constS" -ac "flowS";
+			editorTemplate -l "Flow T"               -ann "offsetT = frame / constT" -ac "flowT";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Ocean Mesh Extract" -collapse 1;
+		{
+			editorTemplate -ccu ZVOceanWaveMeshExtractNew ZVOceanWaveMeshExtractReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "outOcean";
+}
+

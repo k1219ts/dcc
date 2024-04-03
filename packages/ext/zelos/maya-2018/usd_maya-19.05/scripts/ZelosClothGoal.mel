@@ -1,0 +1,168 @@
+//--------------------//
+// ZelosClothGoal.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.04.30                               //
+//-------------------------------------------------------//
+
+global proc AddZelosClothGoalMeshes()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	string $xforms[] = `ls -sl -l -type transform`;
+	if( size($xforms) < 2 ) { error("Not enough selected objects."); return; }
+
+	// Get the selected out mesh shape node.
+	string $outMeshShape;
+	{
+		string $xform = $xforms[0]; // the last one
+		string $shapes[] = `listRelatives -f -s -ni $xform`;
+		if( size($shapes) != 1 ) { error("Invalid number of shapes."); return; }
+		string $shape = $shapes[0];
+
+		if( `connectionInfo -id ($shape+".inMesh")` )
+		{
+			string $nodeAttr = `connectionInfo -sfd ($shape+".inMesh")`;
+			if( $nodeAttr == "" ) { error("No out mesh shape."); return; }
+
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+			string $node = $tokens[0];
+
+			string $nodeType = `nodeType $node`;
+			if( $nodeType != "ZelosClothSimulator" ) { error("Invalid out mesh shape."); return; }
+		}
+
+		$outMeshShape = $shape;
+	}
+
+	// Get the ZelosClothGlobal node.
+	string $global;
+	{
+		string $tokens[];
+		tokenize( $outMeshShape, "|", $tokens );
+		int $nTokens = size($tokens);
+
+		int $i = 0;
+		for( ; $i<($nTokens-2); $i++ )
+		{
+			$global += "|" + $tokens[$i];
+		}
+	}
+
+	string $simShape;
+	{
+		string $shapes[] = `listRelatives -c -f -ni -ad $global`;
+
+		int $count = 0;
+		for( $shape in $shapes )
+		{
+			if( `nodeType $shape` == "ZelosClothSimulator" )
+			{
+				$simShape = $shape;
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("Failed to find ZelosClothSimulator node."); return; }
+		if( $count != 1 ) { error("Too many ZelosClothSimulator nodes."); return; }
+	}
+
+	// Get the goalMeshes group node.
+	string $goalMeshesGrp;
+	{
+		string $shapes[] = `listRelatives -f -c -ni $global`;
+
+		int $count = 0;
+		for( $shape in $shapes )
+		{
+			if( $shape == ($global+"|goalMeshes") )
+			{
+				$goalMeshesGrp = $shape;
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("Failed to find goalMeshes group node."); return; }
+		if( $count != 1 ) { error("Too many goalMeshes group nodes."); return; }
+	}
+
+	// Get selected goalMeshe shape nodes.
+	string $goalMeshShapes[];
+	{
+		int $i = 0;
+		int $count = 0;
+		for( $xform in $xforms )
+		{
+			if( $count == 0 ) { $count++; continue; } // skip the out mesh
+
+			string $shapes[] = `listRelatives -f -s -ni $xform`;
+			if( size($shapes) != 1 ) { error("Invalid number of shapes."); return; }
+			string $shape = $shapes[0];
+
+			int $j = 0;
+			string $goals[];
+			if( `connectionInfo -is ($shape+".worldMesh[0]")` )
+			{
+				string $nodeAttrs[] = `connectionInfo -dfs ($shape+".worldMesh[0]")`;
+
+				for( $nodeAttr in $nodeAttrs )
+				{
+					string $tokens[];
+					tokenize( $nodeAttr, ".", $tokens );
+					string $node = $tokens[0];
+
+					string $nodeType = `nodeType $node`;
+					if( $nodeType != "ZelosClothGoal" ) { continue; }
+					$goals[$j++] = $node;
+				}
+			}
+
+			for( $goal in $goals )
+			{
+				if( !`connectionInfo -is ($goal+".output")` ) { continue; }
+				string $nodeAttrs[] = `connectionInfo -dfs ($goal+".output")`;
+
+				for( $nodeAttr in $nodeAttrs )
+				{
+					string $tokens[];
+					tokenize( $nodeAttr, ".", $tokens );
+					string $node = $tokens[0];
+
+					string $nodeType = `nodeType $node`;
+					if( $nodeType != "ZelosClothSimulator" ) { continue; }
+
+					if( $node == $simShape ) { error("Already connected."); return; }
+				}
+			}
+
+			$goalMeshShapes[$i++] = $shape;
+		}
+	}
+
+	// Connect attributes.
+	for( $goalMeshShape in $goalMeshShapes )
+	{
+		string $goalShape = `createNode ZelosClothGoal`;
+		connectAttr ($goalMeshShape+".worldMesh[0]") ($goalShape+".inMesh");
+
+		int $port = ZEmptyPort( $simShape, "goalMeshes" );
+		connectAttr ($goalShape+".output") ($simShape+".goalMeshes["+$port+"]");
+
+		string $parents[] = `listRelatives -p $goalShape`;
+		string $parent = $parents[0];
+
+		string $tokens[];
+		tokenize( $goalShape, "ZelosClothGoal", $tokens );
+		int $number = $tokens[size($tokens)-1];
+		string $xform = `rename $parent ("goalMesh"+$number)`;
+
+		parent $xform $goalMeshesGrp;
+	}
+}
+

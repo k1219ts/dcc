@@ -1,0 +1,230 @@
+//-------------------------------------//
+// ZN_ConvertFeathersToMayaObjects.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.19                               //
+//-------------------------------------------------------//
+
+global proc ZN_ConvertFeathersToMayaObjects()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_FeatherInstances[] = `ls -sl -type ZN_FeatherInstance`;
+
+	if( size($ZN_FeatherInstances) == 0 )
+	{
+		ZPrintError "No selected ZN_FeatherInstance node.";
+		return;
+	}
+
+	for( $ZN_FeatherInstance in $ZN_FeatherInstances )
+	{
+		int $count = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -attribute count`;
+		if( $count == 0 ) { continue; }
+
+		string $featherMeshXForms[];
+		string $featherCurveGroups[];
+		{
+			string $ZN_FeatherImports[] = `GetZN_FeatherImportNodes $ZN_FeatherInstance`;
+
+			for( $ZN_FeatherImport in $ZN_FeatherImports )
+			{
+				string $sources[] = `GetZN_FeatherSources $ZN_FeatherImport 2`;
+				int $numSources = size($sources);
+
+				if( $numSources == 0 ) { // no feather sources (just as a strand)
+
+					$featherMeshXForms[size($featherMeshXForms)]   = "";
+					$featherCurveGroups[size($featherCurveGroups)] = "";
+
+				} else if( $numSources == 1 ) { // a feather mesh or a feather curves
+
+					for( $source in $sources )
+					{
+						if( `nodeType $source` == "mesh" ) // polygon mesh
+						{
+							string $parents[] = `listRelatives -p $source`;
+							$featherMeshXForms[size($featherMeshXForms)]   = $parents[0];
+							$featherCurveGroups[size($featherCurveGroups)] = "";
+						}
+
+						if( `nodeType $source` == "transform" ) // curve group
+						{
+							$featherMeshXForms[size($featherMeshXForms)]   = "";
+							$featherCurveGroups[size($featherCurveGroups)] = $source;
+						}
+					}
+
+				} else if( $numSources ==2 ) { // both feather types
+
+					for( $source in $sources )
+					{
+						if( `nodeType $source` == "mesh" ) // polygon mesh
+						{
+							string $parents[] = `listRelatives -p $source`;
+							$featherMeshXForms[size($featherMeshXForms)] = $parents[0];
+						}
+
+						if( `nodeType $source` == "transform" ) // curve group
+						{
+							$featherCurveGroups[size($featherCurveGroups)] = $source;
+						}
+					}
+
+				}
+			}
+		}
+
+		string $duplicatedFeatherMeshXForms;
+		string $duplicatedCurveGroups;
+		{
+			int $i = 0;
+			for( ; $i<$count; $i++ )
+			{
+				int $id = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute id`;
+
+				string $featherMeshXForm = $featherMeshXForms[$id];
+				{
+					if( $featherMeshXForm == "" ) {
+
+						$duplicatedFeatherMeshXForms += "+++ "; // null node name
+
+					} else {
+
+						string $xforms[] = `duplicate -rr $featherMeshXForm`;
+						string $xform = $xforms[0];
+
+						select -r $xform;
+						makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+						move -rpr 0 0 0 ($xform+".scalePivot") ($xform+".rotatePivot");
+
+						$duplicatedFeatherMeshXForms += $xform + " ";
+
+					}
+				}
+
+				string $featherCurveGroup = $featherCurveGroups[$id];
+				{
+					if( $featherCurveGroup == "" ) {
+
+						$duplicatedCurveGroups += "+++ "; // null node name
+
+					} else {
+
+						string $xforms[] = `duplicate -rr $featherCurveGroup`;
+						string $xform = $xforms[0];
+
+						select -r $xform;
+						makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+						move -rpr 0 0 0 ($xform+".scalePivot") ($xform+".rotatePivot");
+
+						$duplicatedCurveGroups += $xform + " ";
+
+					}
+				}
+			}
+		}
+
+		ZN_ConvertFeathersToMayaObjectsCmd -nodeName $ZN_FeatherInstance -mList $duplicatedFeatherMeshXForms -cList $duplicatedCurveGroups;
+	}
+}
+
+//global proc ZN_ConvertFeathersToMayaObjects()
+//{
+//    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+//	{
+//		ZPrintError "ZENNForMaya is not loaded.";
+//		return;
+//	}
+//
+//	string $ZN_FeatherInstances[] = `ls -sl -type ZN_FeatherInstance`;
+//
+//	if( size($ZN_FeatherInstances) == 0 )
+//	{
+//		ZPrintError "No selected ZN_FeatherInstance node.";
+//		return;
+//	}
+//
+//	for( $ZN_FeatherInstance in $ZN_FeatherInstances )
+//	{
+//		int $bindingScheme = `getAttr ($ZN_FeatherInstance+".bindingScheme")`;
+//
+//		if( $bindingScheme > 3 )
+//		{
+//			ZPrintError ( $ZN_FeatherInstance + " has an invalid binding scheme." );
+//			return;
+//		}
+//	}
+//
+//	for( $ZN_FeatherInstance in $ZN_FeatherInstances )
+//	{
+//		string $feathers[];
+//		{
+//			string $ZN_FeatherImports[] = `GetZN_FeatherImportNodes $ZN_FeatherInstance`;
+//
+//			for( $ZN_FeatherImport in $ZN_FeatherImports )
+//			{
+//				string $sources[] = `GetZN_FeatherSources $ZN_FeatherImport 2`;
+//
+//				for( $source in $sources )
+//				{
+//					if( `nodeType $source` == "mesh" ) { // polygon mesh
+//
+//						string $parents[] = `listRelatives -p $source`;
+//						$feathers[size($feathers)] = $parents[0];
+//
+//					} else { // curve group
+//
+//						$feathers[size($feathers)] = $source;
+//
+//					}
+//				}
+//			}
+//		}
+//
+//		int $count = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -attribute count`;
+//
+//		int $i = 0;
+//		for( ; $i<$count; $i++ )
+//		{
+//			int $id = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute id`;
+//
+//			string $feather = $feathers[$id];
+//			if( $feather == "" ) { continue; }
+//
+//			float $tx = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute tx`;
+//			float $ty = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute ty`;
+//			float $tz = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute tz`;
+//
+//			float $rx = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute rx`;
+//			float $ry = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute ry`;
+//			float $rz = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute rz`;
+//
+//			float $sx = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute sc`;
+//			float $sy = $sx;
+//			float $sz = $sy;
+//
+//			string $xforms[] = `duplicate -rr $feather`;
+//			string $xform = $xforms[0];
+//
+//			move -rpr 0 0 0 ($xform+".scalePivot") ($xform+".rotatePivot");
+//
+//			setAttr ($xform+".tx") $tx;
+//			setAttr ($xform+".ty") $ty;
+//			setAttr ($xform+".tz") $tz;
+//
+//			setAttr ($xform+".rx") $rx;
+//			setAttr ($xform+".ry") $ry;
+//			setAttr ($xform+".rz") $rz;
+//
+//			setAttr ($xform+".sx") $sx;
+//			setAttr ($xform+".sy") $sy;
+//			setAttr ($xform+".sz") $sz;
+//		}
+//	}
+//}
+//

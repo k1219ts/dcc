@@ -1,0 +1,208 @@
+//------------------------//
+// AEZN_ImageTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_ImageUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_ImageUpdateExe "+$attr) ZN_ImageUpdate;
+	setUITemplate -ppt;
+
+	ZN_ImageUpdateReplace $attr;
+}
+
+global proc ZN_ImageUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_ImageUpdateExe "+$attr) ZN_ImageUpdate;
+}
+
+global proc ZN_ImageUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Image = $node[0];
+
+	updateAE $ZN_Image;
+}
+
+/////////////
+// preview //
+global proc ZN_ImagePreviewNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Image = $node[0];
+
+	formLayout swatchDisplayForm;
+	{
+		text -l "" swatchLabel;
+		swatchDisplayPort -wh 64 64 -rs 64 swatchDisplay;
+	}	
+	setParent ..;
+
+	global int $gTextColumnWidthIndex;
+
+	formLayout -e 
+		-ac swatchDisplay left 100 swatchLabel
+		-af swatchDisplay top 0
+		-af swatchDisplay bottom 0
+		-an swatchDisplay right
+		swatchDisplayForm;
+
+	columnLayout -parent swatchDisplayForm swatchFileInfo;
+	{
+		text -l "Name"  txSwatchFileName;
+		text -l "Size"  txSwatchFileSize;
+		text -l "Alpha" txSwatchFileAlpha;
+		text -l "Ext"   txSwatchFileExt;
+	}
+	setParent ..;
+
+	formLayout -e
+		-ac swatchFileInfo left 5 swatchDisplay
+		-af swatchFileInfo top 0
+		-af swatchFileInfo bottom 0
+		-an swatchFileInfo right
+		swatchDisplayForm;
+
+	ZN_ImagePreviewReplace( $attr );
+}
+
+global proc ZN_ImagePreviewReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Image = $node[0];
+
+	string $ZN_File = "ZN_File";
+	{
+		if( !`objExists ZN_File` )
+		{
+			$ZN_File = `createNode file -n ZN_File`;
+			select -r $ZN_Image;
+		}
+	}
+
+	string $fileName = `getAttr ($ZN_Image+".filePathName")`;
+	setAttr ZN_File.fileTextureName -type "string" $fileName;
+
+    // Please make sure that the render priority specified by -rp 
+    // has the same value with the predefined priority for AE.
+    // For details, please refer to the documentation of swatchDisplayPort command.
+	//swatchDisplayPort -e -sn "ZN_File" -rp 3 swatchDisplay;
+	swatchDisplayPort -e -sn "ZN_File" swatchDisplay;
+
+	float $size[] = `getAttr ZN_File.outSize`;
+	int $hasAlpha = `getAttr ZN_File.fileHasAlpha`;
+	string $path  = `getAttr ZN_File.fileTextureName`;
+	string $name  = `basenameEx $path`;
+	string $type  = `fileExtension $path`;
+
+	string $fileName  = "Name: " + $name;
+	string $fileSize  = "Size: " + $size[0] + " x " + $size[1];
+	string $fileAlpha = "Alpha: ";
+	if( $hasAlpha ) { $fileAlpha += "Exists"; }
+	else            { $fileAlpha += "None";   }
+	string $fileExt   = "Format: " + $type;
+
+	text -e -l $fileName  txSwatchFileName;
+	text -e -l $fileSize  txSwatchFileSize;
+	text -e -l $fileAlpha txSwatchFileAlpha;
+	text -e -l $fileExt   txSwatchFileExt;
+}
+
+///////////////////
+// modifier list //
+global proc ZN_ImageModifierListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_ImageModifierList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_ImageModifierList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_ImageModifierListReplace( $attr );
+}
+
+global proc ZN_ImageModifierListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_ImageModifierList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Image node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Image = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Image + ".outImage" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		menuItem -l $node -p omZN_ImageModifierList;
+	}
+}
+
+//////////
+// main //
+global proc AEZN_ImageTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Preview" -collapse 0;
+		{
+			editorTemplate -ccu ZN_ImagePreviewNew ZN_ImagePreviewReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Attributes" -collapse 0;
+		{
+			editorTemplate -l "File"           -ac "filePathName";
+			editorTemplate -l "Attribute Name" -ac "attributeName";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Modifier List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_ImageModifierListNew ZN_ImageModifierListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -as;
+		editorTemplate -ccu ZN_ImageUpdateNew ZN_ImageUpdateReplace "update";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+}
+

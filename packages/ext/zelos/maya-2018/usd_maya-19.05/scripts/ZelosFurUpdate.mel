@@ -1,0 +1,282 @@
+//--------------------//
+// ZelosFurUpdate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.25                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurSetUpdateRegion()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $MeshShape;
+	{
+		string $selection[] = `ls -sl -l`;
+		if( size($selection) == 0 ) { return; }
+
+		string $str = $selection[0];
+		int $strLen = size($str);
+
+		//This does not work.
+		//string $tokens[];
+		//tokenize( $str, ".f[", $tokens );
+		//$MeshShape = $tokens[0];
+
+		// tokenization
+		int $index = 0;
+		int $i=1;
+		for( ; $i<$strLen-1; $i++ )
+		{
+			string $subStr = `substring $str $i ($i+2)`;
+
+			if( $subStr == ".f[" )
+			{
+				$index = $i-1;
+				break;
+			}
+		}
+
+		$MeshShape = `substring $str 1 $index`;
+	}
+
+	string $ZelosFurNode;
+	{
+		if( `connectionInfo -is ($MeshShape+".worldMesh[0]")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($MeshShape+".worldMesh[0]")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+
+				string $node = $tokens[0];
+				string $type = `nodeType $node`;
+
+				if( $type=="ZelosFurGenerator" || $type=="ZelosFurSimulator" || $type=="ZelosFurSampler" )
+				{
+					$ZelosFurNode = $node;
+				}
+			}
+		}
+
+		if( !size($ZelosFurNode) )
+		{
+			if( `connectionInfo -id ($MeshShape+".inMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($MeshShape+".inMesh")`;
+
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+
+				string $node = $tokens[0];
+				string $type = `nodeType $node`;
+
+				if( $type=="ZelosFurGenerator" || $type=="ZelosFurSimulator" || $type=="ZelosFurSampler" )
+				{
+					$ZelosFurNode = $node;
+				}
+			}
+		}
+	}
+
+	if( size($ZelosFurNode) == 0 )
+	{
+		error( "Failed to find any ZelosFur node." );
+		return;
+	}
+
+	string $ZelosFurGlobal = ZGetTopMostParent( $ZelosFurNode );
+
+	if( size($ZelosFurGlobal) == 0 )
+	{
+		error( "Failed to find ZelosFurGlobal node." );
+		return;
+	}
+
+	int $selectedTriList[] = `ZelosFurGetSelectedTriangleList`;
+	int $numSelectedTri = size($selectedTriList);
+
+	string $selectedTriListStr = intArrayToString( $selectedTriList, " " );
+
+	string $shapes[] = `listRelatives -ad $ZelosFurGlobal`;
+
+	for( $shape in $shapes )
+	{
+		if( `nodeType $shape` != "ZelosFurGenerator" ) { continue; }
+
+		string $ZelosFurGenerator = $shape;
+
+		if( `connectionInfo -is ($ZelosFurGenerator+".outMesh")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($ZelosFurGenerator+".outMesh")`;
+
+			int $isIntermediateGenNode = 0;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+
+				string $node = $tokens[0];
+				string $type = `nodeType $node`;
+
+				if( $type == "ZelosFurGenerator" ) // It is not a final generator node.
+				{
+					$isIntermediateGenNode = 1;
+					break;
+				}
+			}
+
+			if( $isIntermediateGenNode ) { continue; }
+
+			string $cmd;
+			if( $numSelectedTri == 0 ) {
+				$cmd = "setAttr " + $shape + ".updateMap -type Int32Array 0";
+			} else {
+				$cmd = "setAttr " + $shape + ".updateMap -type Int32Array " + $numSelectedTri + " " + $selectedTriListStr;
+			}
+			eval( $cmd );
+		}
+	}	
+}
+
+global proc ZelosFurResetUpdateRegion()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $MeshShape;
+	{
+		string $selection[] = `ls -sl -l`;
+		if( size($selection) == 0 ) { return; }
+
+		string $str = $selection[0];
+		int $strLen = size($str);
+
+		//This does not work.
+		//string $tokens[];
+		//tokenize( $str, ".f[", $tokens );
+		//$MeshShape = $tokens[0];
+
+		// tokenization
+		int $index = 0;
+		int $i=1;
+		for( ; $i<$strLen-1; $i++ )
+		{
+			string $subStr = `substring $str $i ($i+2)`;
+
+			if( $subStr == ".f[" )
+			{
+				$index = $i-1;
+				break;
+			}
+		}
+
+		$MeshShape = `substring $str 1 $index`;
+	}
+
+	string $ZelosFurNode;
+	{
+		if( `connectionInfo -is ($MeshShape+".worldMesh[0]")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($MeshShape+".worldMesh[0]")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+
+				string $node = $tokens[0];
+				string $type = `nodeType $node`;
+
+				if( $type=="ZelosFurGenerator" || $type=="ZelosFurSimulator" || $type=="ZelosFurSampler" )
+				{
+					$ZelosFurNode = $node;
+				}
+			}
+		}
+
+		if( !size($ZelosFurNode) )
+		{
+			if( `connectionInfo -id ($MeshShape+".inMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($MeshShape+".inMesh")`;
+
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+
+				string $node = $tokens[0];
+				string $type = `nodeType $node`;
+
+				if( $type=="ZelosFurGenerator" || $type=="ZelosFurSimulator" || $type=="ZelosFurSampler" )
+				{
+					$ZelosFurNode = $node;
+				}
+			}
+		}
+	}
+
+	if( size($ZelosFurNode) == 0 )
+	{
+		error( "Failed to find any ZelosFur node." );
+		return;
+	}
+
+	string $ZelosFurGlobal = ZGetTopMostParent( $ZelosFurNode );
+
+	if( size($ZelosFurGlobal) == 0 )
+	{
+		error( "Failed to find ZelosFurGlobal node." );
+		return;
+	}
+
+	int $selectedTriList[] = `ZelosFurGetSelectedTriangleList`;
+	int $numSelectedTri = size($selectedTriList);
+
+	string $selectedTriListStr = intArrayToString( $selectedTriList, " " );
+
+	string $shapes[] = `listRelatives -ad $ZelosFurGlobal`;
+
+	for( $shape in $shapes )
+	{
+		if( `nodeType $shape` != "ZelosFurGenerator" ) { continue; }
+
+		string $ZelosFurGenerator = $shape;
+
+		if( `connectionInfo -is ($ZelosFurGenerator+".outMesh")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($ZelosFurGenerator+".outMesh")`;
+
+			int $isIntermediateGenNode = 0;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+
+				string $node = $tokens[0];
+				string $type = `nodeType $node`;
+
+				if( $type == "ZelosFurGenerator" ) // It is not a final generator node.
+				{
+					$isIntermediateGenNode = 1;
+					break;
+				}
+			}
+
+			if( $isIntermediateGenNode ) { continue; }
+
+			string $cmd = "setAttr " + $shape + ".updateMap -type Int32Array 0";
+			eval( $cmd );
+		}
+	}	
+}
+

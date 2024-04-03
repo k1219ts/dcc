@@ -1,0 +1,79 @@
+//-------------------------------//
+// AEZelosFurTextureTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.13                               //
+//-------------------------------------------------------//
+
+///////////////////
+// modifier list //
+global proc ZelosFurTextureModifierListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurTextureModifierList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurTextureModifierList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurTextureModifierListReplace( $attr );
+}
+
+global proc ZelosFurTextureModifierListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurTextureModifierList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurTexture node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurTextureNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurTextureNode + ".filePathName" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurTextureNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurTextureNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurTextureModifierList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurTextureTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Parameters" -collapse 0;
+			editorTemplate -l "File"                     -ac "filePathName";
+			editorTemplate -l "Attribute"                -ac "attribute";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Modifier List" -collapse 0;
+			editorTemplate -ccu ZelosFurTextureModifierListNew ZelosFurTextureModifierListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+}
+

@@ -1,0 +1,414 @@
+//-----------------------------------------//
+// AEZelosFurModifier_ScraggleTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_ScraggleSeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Scraggle Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ScraggleSeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ScraggleSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScraggleSeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ScraggleSeExpr0;
+	button -e -c ("ZelosFurModifier_ScraggleSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr0;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ScraggleSeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ScraggleSeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ScraggleSeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ScraggleSeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr0;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr0Reset( string $attr )
+{
+	string $txt = "scraggle + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_ScraggleSeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_ScraggleSeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "tipWidth Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ScraggleSeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ScraggleSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScraggleSeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ScraggleSeExpr1;
+	button -e -c ("ZelosFurModifier_ScraggleSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr1;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ScraggleSeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ScraggleSeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ScraggleSeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ScraggleSeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr1;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr1Reset( string $attr )
+{
+	string $txt = "tWidth + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_ScraggleSeExpr1;
+}
+
+//////////////
+// Se.Expr2 // 
+global proc ZelosFurModifier_ScraggleSeExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "rootWidth Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ScraggleSeExpr2;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ScraggleSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr2;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScraggleSeExpr2Replace( $attr );
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ScraggleSeExpr2;
+	button -e -c ("ZelosFurModifier_ScraggleSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr2;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr2Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ScraggleSeExpr2;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ScraggleSeExpr2Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ScraggleSeExpr2Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ScraggleSeExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr2;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr2Reset( string $attr )
+{
+	string $txt = "rWidth + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr2;
+	scrollField -e -tx $txt sfZelosFurModifier_ScraggleSeExpr2;
+}
+
+//////////////
+// Se.Expr3 // 
+global proc ZelosFurModifier_ScraggleSeExpr3New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ScraggleSeExpr3;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ScraggleSeExpr3Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr3;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScraggleSeExpr3Replace( $attr );
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr3Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ScraggleSeExpr3;
+	button -e -c ("ZelosFurModifier_ScraggleSeExpr3Win(\""+$attr+"\")") btnZelosFurModifier_ScraggleSeExpr3;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr3Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ScraggleSeExpr3;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ScraggleSeExpr3Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ScraggleSeExpr3Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr3Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ScraggleSeExpr3`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr3;
+}
+
+global proc ZelosFurModifier_ScraggleSeExpr3Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_ScraggleSeExpr3;
+	scrollField -e -tx $txt sfZelosFurModifier_ScraggleSeExpr3;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_ScraggleUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_ScraggleUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_ScraggleUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_ScraggleUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_ScraggleTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_ScraggleTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_ScraggleTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScraggleTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_ScraggleTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_ScraggleTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Scraggle node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_ScraggleNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_ScraggleNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_ScraggleNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_ScraggleNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_ScraggleTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_ScraggleGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_ScraggleGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_ScraggleGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScraggleGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_ScraggleGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_ScraggleGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Scraggle node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_ScraggleNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_ScraggleNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_ScraggleNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_ScraggleNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_ScraggleGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_ScraggleTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Scraggle";
+			editorTemplate -l "Scraggle [scraggle]"                       -ac "scraggle";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ScraggleSeExpr0New ZelosFurModifier_ScraggleSeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Tip Width";
+			editorTemplate -l "tipWidth [tWidth]"                         -ac "tipWidth";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand1";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq1";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ScraggleSeExpr1New ZelosFurModifier_ScraggleSeExpr1Replace "seExpr1Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Root Width";
+			editorTemplate -l "rootWidth [rWidth]"                        -ac "rootWidth";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand2";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq2";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ScraggleSeExpr2New ZelosFurModifier_ScraggleSeExpr2Replace "seExpr2Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZelosFurModifier_ScraggleSeExpr3New ZelosFurModifier_ScraggleSeExpr3Replace "seExpr3Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Smoothness";
+			editorTemplate -l "Tip Smoothness"                            -ac "tipSmoothness";
+			editorTemplate -l "Root Smoothness"                           -ac "rootSmoothness";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ScraggleUpdateNew ZelosFurModifier_ScraggleUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_ScraggleTextureListNew ZelosFurModifier_ScraggleTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_ScraggleGeneratorListNew ZelosFurModifier_ScraggleGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+	editorTemplate -suppress "seed1";
+	editorTemplate -suppress "seed2";
+}
+

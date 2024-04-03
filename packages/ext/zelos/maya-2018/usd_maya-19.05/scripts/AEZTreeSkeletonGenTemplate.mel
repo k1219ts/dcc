@@ -1,0 +1,97 @@
+//--------------------------------//
+// AEZTreeSkeletonGenTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.03.07                               //
+//-------------------------------------------------------//
+
+///////////////////////////////////////
+// ZTreeSkeletonGen Resample Changed //
+global proc ZTreeSkeletonGenResampleChanged( string $node )
+{
+	int $mode = `getAttr ($node+".resample")`;
+
+	if( $mode == 1 )
+	{
+		editorTemplate -dc $node "resampleUnit" 0;
+		return;
+	}
+
+	editorTemplate -dc $node "resampleUnit" 1;
+}
+
+///////////////////////
+// Set Output Button //
+global proc ZTreeSkeletonGenSetOutputNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Generate" -c ("ZTreeSkeletonGenSetOutputExe "+$attr) ZTreeSkeletonGenSetOutputBtn;
+	}
+	setUITemplate -ppt;
+
+	ZTreeSkeletonGenSetOutputReplace $attr;
+}
+
+global proc ZTreeSkeletonGenSetOutputReplace( string $attr )
+{
+	button -e -c ("ZTreeSkeletonGenSetOutputExe "+$attr) ZTreeSkeletonGenSetOutputBtn;
+}
+
+global proc ZTreeSkeletonGenSetOutputExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZTreeSkeletonGen = $node[0];
+
+	updateAE $ZTreeSkeletonGen;
+
+	// Curve create.
+	string $curveNames[] = `ZTreeSkeletonGenCmd -nodeName $ZTreeSkeletonGen`;
+
+	string $curveNamesStr = "";
+	for( $name in $curveNames )
+	{
+		$curveNamesStr += $name;
+		$curveNamesStr += " ";
+	}
+
+	// Update node itself.
+	refresh;
+
+	// Joint create.
+	CreateZTreeSkeletonJoints $ZTreeSkeletonGen $curveNamesStr;
+}
+
+//////////
+// main //
+global proc AEZTreeSkeletonGenTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Preview Settings" -collapse 0;
+		{
+			editorTemplate -l "Iterations"           -ac "iter";
+			editorTemplate -l "Sample Distance"      -ac "dist";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Output Settings" -collapse 0;
+		{
+//			editorTemplate -l "Resample"             -ac "resample" ZTreeSkeletonGenResampleChanged;
+//			editorTemplate -l "Resample Unit Length" -ac "resampleUnit";
+//			editorTemplate -as;
+			editorTemplate -l "Number of Outputs"    -ac "numOutput";
+			editorTemplate -ccu ZTreeSkeletonGenSetOutputNew ZTreeSkeletonGenSetOutputReplace "numOutput";	// dummy
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMeshes";
+	editorTemplate -suppress "output";
+}
+

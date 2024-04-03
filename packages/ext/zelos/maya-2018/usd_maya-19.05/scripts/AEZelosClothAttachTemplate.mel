@@ -1,0 +1,88 @@
+//--------------------------------//
+// AEZelosClothAttachTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.08                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Select Button //
+global proc ZelosClothAttachSelectNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Select" -c  ("ZelosClothAttachSelect "+$attr) ZelosClothAttachSelect;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosClothAttachSelectReplace( string $attr )
+{
+	button -e -c ("ZelosClothAttachSelect "+$attr) ZelosClothAttachSelect;
+}
+
+global proc ZelosClothAttachSelect( string $attr )
+{
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZelosClothAttach = $tokens[0];
+
+	string $ZelosClothSimulator = `GetZelosClothSimulatorFromAttach $ZelosClothAttach`;
+	if( $ZelosClothSimulator == "" ) { return; }
+
+	string $ZelosClothGlobal = `GetZelosClothGlobal $ZelosClothSimulator`;
+	if( $ZelosClothGlobal == "" ) { return; }
+
+	string $outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+	if( $outMeshShape == "" ) { return; }
+
+	string $vtxListStr = `getAttr $attr`;
+	tokenize( $vtxListStr, " ", $tokens );
+
+	if( $vtxListStr == "" ) { return; }
+
+	string $cmd = "select -r ";
+
+	for( $token in $tokens )
+	{
+		$cmd += $outMeshShape + ".vtx[" + $token + "] ";
+	}
+
+	eval $cmd;
+}
+
+//////////
+// main //
+global proc AEZelosClothAttachTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display"  -collapse 0;
+			editorTemplate -l "Attach Size"    -ac "attachSize";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Active"         -ac "active";
+			editorTemplate -l "Time Range"	   -ac "timeRange";
+			editorTemplate -l "Soft"		   -ac "soft";
+			editorTemplate -l "Stiffness"	   -ac "stiffness";
+			editorTemplate -l "Damping"		   -ac "damping";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosClothAttachSelectNew ZelosClothAttachSelectReplace "vtxList";
+
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "vtxList";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "vtxPositions";
+	editorTemplate -suppress "triIndices";
+	editorTemplate -suppress "triBarys";
+	editorTemplate -suppress "triOffsets";
+}
+

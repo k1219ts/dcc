@@ -1,0 +1,73 @@
+//--------------------------//
+// AEZFX_PtcDSOTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.09.26                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_PtcDSOTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Cache Controls" -collapse 0;
+		{
+			editorTemplate -l "Path"            -ac "cachePath";
+        	editorTemplate -ccu zfxPtcDSOUINew zfxPtcDSOUIReplace "";
+			editorTemplate -l "Prefix"          -ac "cachePrefix";
+			editorTemplate -l "Extention"       -ac "cacheExtention";
+			editorTemplate -l "Padding"         -ac "cachePadNum";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Render Controls" -collapse 0;
+		{
+			editorTemplate -l "Particle Radius" -ac "particleRadius";
+			editorTemplate -l "Motion Blur"     -ac "motionBlurFactor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+ 	editorTemplate -suppress "inTime";    
+	editorTemplate -suppress "triggCache";
+}
+
+
+global proc zfxPtcDSOUINew( string $nodeName )
+{
+	string $buffer[];
+	tokenize $nodeName "." $buffer;
+	$nodeName = $buffer[0];
+    
+    rowLayout -nc 2;
+	{
+		textField -vis false tfPtcFilePath;		
+		button btPtcFileBrowser;				
+	}
+	setParent ..;	
+	
+	zfxPtcDSOUIReplace( $nodeName );
+}
+
+global proc zfxPtcDSOUIReplace( string $nodeName )
+{
+	string $buffer[];
+	tokenize $nodeName "." $buffer;
+	$nodeName = $buffer[0];	
+    
+    button -e -l "Open Folder" -command ("commandPtcFileBrowser "+$nodeName) btPtcFileBrowser; 
+}
+
+global proc commandPtcFileBrowser( string $nodeName )
+{
+	$attr = $nodeName+".cachePath";
+	ZLoadDirectory( $attr, "tfPtcFilePath" );  
+	
+	//setAttr ($nodeName+".triggCache) true;
+}

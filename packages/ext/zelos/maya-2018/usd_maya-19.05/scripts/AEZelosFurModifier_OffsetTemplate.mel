@@ -1,0 +1,279 @@
+//---------------------------------------//
+// AEZelosFurModifier_OffsetTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_OffsetSeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Offset Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_OffsetSeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_OffsetSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_OffsetSeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OffsetSeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_OffsetSeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_OffsetSeExpr0;
+	button -e -c ("ZelosFurModifier_OffsetSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_OffsetSeExpr0;
+}
+
+global proc ZelosFurModifier_OffsetSeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_OffsetSeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_OffsetSeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_OffsetSeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_OffsetSeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_OffsetSeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_OffsetSeExpr0;
+}
+
+global proc ZelosFurModifier_OffsetSeExpr0Reset( string $attr )
+{
+	string $txt = "offset + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_OffsetSeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_OffsetSeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_OffsetSeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_OffsetSeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_OffsetSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_OffsetSeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OffsetSeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_OffsetSeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_OffsetSeExpr1;
+	button -e -c ("ZelosFurModifier_OffsetSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_OffsetSeExpr1;
+}
+
+global proc ZelosFurModifier_OffsetSeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_OffsetSeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_OffsetSeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_OffsetSeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_OffsetSeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_OffsetSeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_OffsetSeExpr1;
+}
+
+global proc ZelosFurModifier_OffsetSeExpr1Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_OffsetSeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_OffsetSeExpr1;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_OffsetUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_OffsetUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_OffsetUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_OffsetUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_OffsetTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_OffsetTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_OffsetTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OffsetTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_OffsetTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_OffsetTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Offset node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_OffsetNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_OffsetNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_OffsetNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_OffsetNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_OffsetTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_OffsetGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_OffsetGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_OffsetGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OffsetGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_OffsetGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_OffsetGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Offset node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_OffsetNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_OffsetNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_OffsetNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_OffsetNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_OffsetGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_OffsetTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Offset Value";
+			editorTemplate -l "Offset [offset]"                           -ac "offset";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_OffsetSeExpr0New ZelosFurModifier_OffsetSeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZelosFurModifier_OffsetSeExpr1New ZelosFurModifier_OffsetSeExpr1Replace "seExpr1Str";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_OffsetUpdateNew ZelosFurModifier_OffsetUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_OffsetTextureListNew ZelosFurModifier_OffsetTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_OffsetGeneratorListNew ZelosFurModifier_OffsetGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+}
+

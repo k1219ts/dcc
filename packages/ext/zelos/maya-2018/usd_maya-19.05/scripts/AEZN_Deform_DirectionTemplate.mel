@@ -1,0 +1,428 @@
+//-----------------------------------//
+// AEZN_Deform_DirectionTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_DirectionExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Direction Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_DirectionExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_DirectionExpr1Win(\""+$attr+"\")") btnZN_Deform_DirectionExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_DirectionExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_DirectionExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_DirectionExpr1;
+	button -e -c ("ZN_Deform_DirectionExpr1Win(\""+$attr+"\")") btnZN_Deform_DirectionExpr1;
+}
+
+global proc ZN_Deform_DirectionExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_DirectionExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_DirectionExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_DirectionExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_DirectionExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_DirectionExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_DirectionExpr1;
+}
+
+global proc ZN_Deform_DirectionExpr1Reset( string $attr )
+{
+	string $txt = "pitch + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_DirectionExpr1;
+	scrollField -e -tx $txt sfZN_Deform_DirectionExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_DirectionExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Yaw Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_DirectionExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_DirectionExpr2Win(\""+$attr+"\")") btnZN_Deform_DirectionExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_DirectionExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_DirectionExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_DirectionExpr2;
+	button -e -c ("ZN_Deform_DirectionExpr2Win(\""+$attr+"\")") btnZN_Deform_DirectionExpr2;
+}
+
+global proc ZN_Deform_DirectionExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_DirectionExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_DirectionExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_DirectionExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_DirectionExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_DirectionExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_DirectionExpr2;
+}
+
+global proc ZN_Deform_DirectionExpr2Reset( string $attr )
+{
+	string $txt = "yaw + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_DirectionExpr2;
+	scrollField -e -tx $txt sfZN_Deform_DirectionExpr2;
+}
+
+////////////////////////
+// the 3rd expression //
+global proc ZN_Deform_DirectionExpr3New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_DirectionExpr3;
+			button -w 40 -l "Edit" -c ("ZN_Deform_DirectionExpr3Win(\""+$attr+"\")") btnZN_Deform_DirectionExpr3;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_DirectionExpr3Replace( $attr );
+}
+
+global proc ZN_Deform_DirectionExpr3Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_DirectionExpr3;
+	button -e -c ("ZN_Deform_DirectionExpr3Win(\""+$attr+"\")") btnZN_Deform_DirectionExpr3;
+}
+
+global proc ZN_Deform_DirectionExpr3Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_DirectionExpr3;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_DirectionExpr3Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_DirectionExpr3Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_DirectionExpr3Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_DirectionExpr3`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_DirectionExpr3;
+}
+
+global proc ZN_Deform_DirectionExpr3Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZN_Deform_DirectionExpr3;
+	scrollField -e -tx $txt sfZN_Deform_DirectionExpr3;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_DirectionImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_DirectionImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_DirectionImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_DirectionImageListReplace( $attr );
+}
+
+global proc ZN_Deform_DirectionImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_DirectionImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Direction node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Direction = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Direction + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Direction + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Direction + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_DirectionImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_DirectionDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_DirectionDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_DirectionDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_DirectionDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_DirectionDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_DirectionDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Direction node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Direction = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Direction + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_DirectionDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_DirectionUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_DirectionUpdateExe "+$attr) ZN_Deform_DirectionUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_DirectionUpdateReplace $attr;
+}
+
+global proc ZN_Deform_DirectionUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_DirectionUpdateExe "+$attr) ZN_Deform_DirectionUpdate;
+}
+
+global proc ZN_Deform_DirectionUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Direction = $node[0];
+
+	updateAE $ZN_Deform_Direction;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_DirectionTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Direction Value";
+			editorTemplate -l "Pitch [pitch]"     -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r1";
+			editorTemplate -l "Frequency [freq]"  -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_DirectionExpr1New ZN_Deform_DirectionExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Yaw Value";
+			editorTemplate -l "Yaw [yaw]"         -ac "v2";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r2";
+			editorTemplate -l "Frequency [freq]"  -ac "f2";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_DirectionExpr2New ZN_Deform_DirectionExpr2Replace "e2";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZN_Deform_DirectionExpr3New ZN_Deform_DirectionExpr3Replace "e3";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_DirectionImageListNew ZN_Deform_DirectionImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_DirectionDeformerListNew ZN_Deform_DirectionDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

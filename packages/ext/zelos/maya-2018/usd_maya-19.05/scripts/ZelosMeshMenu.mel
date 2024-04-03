@@ -1,0 +1,62 @@
+//-------------------//
+// ZelosMeshMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc ZelosMeshMenu()
+{
+	menuItem -to 1 -l "Zello (deformers)" -ec 1 -subMenu true ZelosMesh_Item;
+	{
+		menuItem -l "ZOffsetMeshDeformer"             -ec 1 -c "CreateZOffsetMeshDeformer"                 ZelosMesh_CreateZOffsetMeshDeformer_Item;
+		menuItem -l "ZJiggleMeshDeformer"             -ec 1 -c "CreateZJiggleMeshDeformer"                 ZelosMesh_CreateZJiggleMeshDeformer_Item;
+		menuItem -to 1 -l "ZRelaxationMeshDeformer" -ec 1 -subMenu true Zelos_RelaxationDeformer_Item;
+			menuItem -l "Create ZRelaxationMeshDeformer" -c "CreateZRelaxationMeshDeformer"                ZelosMesh_CreateZRelaxationMeshDeformer_Item;
+			menuItem -l "Add Collider"                   -c "AddColliderToZRelaxationMeshDeformer"         ZelosMesh_AddColliderToZRelaxationMeshDeformer_Item;
+			menuItem -l "Remove Collider"                -c "RemoveColliderFromZRelaxationMeshDeformer"    ZelosMesh_RemoveColliderFromZRelaxationMeshDeformer_Item;
+			menuItem -l "Set as Current Collider"        -c "SetCurrentColliderForZRelaxationMeshDeformer" ZelosMesh_SetCurrentColliderForZRelaxationMeshDeformer_Item;
+			setParent -menu ..;
+		menuItem -l "ZDeltaMush"                      -ec 1 -c "CreateZDeltaMush"                          ZelosMesh_CreateZDeltaMush_Item;
+		menuItem -l "ZDeformationTransfer"			  -ec 1 -c "ZDeformationTransferSetCorresWin"		   ZelosMesh_ZDeformationTransferCorresWin_Item;
+	}
+	setParent -menu ..;
+}
+
+global proc ZelosMesh_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		ZPrintError "ZelosMeshForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZelosMeshMenu;
+}
+
+global proc ZelosMesh_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZelosMeshMenu;
+
+	if( `menu -exists mainZelosMeshMenu` ) { deleteUI mainZelosMeshMenu; }
+
+	setParent $gMainWindow;
+
+	$gZelosMeshMenu = `menu -l "ZelosMesh" -to true -pmo true mainZelosMeshMenu`;
+	menu -e -pmc ( "ZelosMesh_Menu " + $gZelosMeshMenu ) $gZelosMeshMenu;
+
+	hotBox -um;
+}
+
+global proc ZelosMesh_DeleteMenu()
+{
+	if( `menu -exists mainZelosMeshMenu` ) { deleteUI mainZelosMeshMenu; }
+}
+

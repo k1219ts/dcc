@@ -1,0 +1,29 @@
+//--------------------------------//
+// AEZFX_PtcAdvectionTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.11.04                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_PtcAdvectionTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Gravity"				-ac "gravity";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inGrid";
+	editorTemplate -suppress "inPtc";
+	editorTemplate -suppress "outPtc";
+}
+

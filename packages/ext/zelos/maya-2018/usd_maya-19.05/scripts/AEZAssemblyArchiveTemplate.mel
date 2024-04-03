@@ -1,0 +1,248 @@
+//--------------------------------//
+// AEZAssemblyArchiveTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Dohyun Yang @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.03.17                               //
+//-------------------------------------------------------//
+
+//////////
+// Path //
+global proc ZAssemblyArchivePathNew( string $attr )
+{
+	$filter = "*.asb";
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 4;
+		{
+			text "Assembly File Path";
+			textField -ed 0 -tx `getAttr $attr` tfZAssemblyArchivePath;
+			symbolButton -image "navButtonBrowse.xpm" -c ("ZLoadFile(\""+$attr+"\",\"tfZAssemblyArchivePath\","+"\""+$filter+"\")" ) tfZAssemblyArchivePathBtn;
+			setParent ..;
+		}
+	}
+	setUITemplate -ppt;
+
+	setAttr -type "string" $attr `textField -q -tx tfZAssemblyArchivePath`;
+}
+
+global proc ZAssemblyArchivePathReplace( string $attr )
+{
+	$filter = "*.asb";
+	textField -e -tx `getAttr $attr` tfZAssemblyArchivePath;
+	symbolButton -e -c ( "ZLoadFile(\""+$attr+"\",\"tfZAssemblyArchivePath\","+"\""+$filter+"\")" ) tfZAssemblyArchivePathBtn;
+
+	setAttr -type "string" $attr `textField -q -tx tfZAssemblyArchivePath`;
+}
+
+//////////////////////////
+// Display Mode Changed //
+global proc ZAssemblyArchiveDisplayModeCallback(string $node)
+{
+	int $mode = `getAttr( $node+".dmod" )`;
+
+	if( $mode == 0 || $mode == 1 )	// points / bBox
+	{
+		editorTemplate -dc $node "displayEdge" 1;
+		return;
+	}
+
+	if( $mode == 2 )				// proxy mesh
+	{
+		editorTemplate -dc $node "displayEdge" 0;
+		return;
+	}
+}
+
+
+global proc dxpiaArcFilesReplace( string $attr )
+{
+	textScrollList -e -ra dxpiaArcFileListWidget;
+	string $files[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($files); $i++ ) {
+		textScrollList -e -a $files[$i] dxpiaArcFileListWidget;
+	}
+}
+
+global proc dxpiaArcFilesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 2 -cw2 100 390;
+			text -l "" -w 100;
+			textScrollList -h 120 -w 390 dxpiaArcFileListWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxpiaArcFilesReplace $attr;
+}
+
+//--------------------------------------------------------------------------------
+// Instance Source
+global proc dxpiaInstSourceAdd( string $attr )
+{
+	python( "import lgtUI; lgtUI.pointInstArchive_AddSourceSelected(\"" + $attr + "\")" );
+	dxpiaInstReplace $attr;
+}
+
+global proc dxpiaInstSourceClear( string $attr )
+{
+	textScrollList -edit -removeAll dxpiaInstSourceListWidget;
+	setAttr $attr -type stringArray 0;
+	dxpiaInstReplace $attr;
+}
+
+global proc dxpiaInstSourceSelect( string $attr )
+{
+	string $source[] = `getAttr $attr`;
+	select $source;
+}
+
+global proc dxpiaInstSourceMenuSelect( string $attr )
+{
+	string $items[] = `textScrollList -q -si dxpiaInstSourceListWidget`;
+	select $items;
+}
+
+global proc dxpiaInstSourceMenuRemove( string $attr )
+{
+	string $items[] = `textScrollList -q -si dxpiaInstSourceListWidget`;
+	python( "import lgtUI; lgtUI.pointInstArchive_RemoveSourceItems(\"" + $attr + "\", \"" + stringArrayToString($items,",") + "\")" );
+	dxpiaInstReplace $attr;
+}
+
+
+global proc dxpiaInstReplace( string $attr )
+{
+	string $widget = `textScrollList -e dxpiaInstSourceListWidget`;
+
+	button -e -c ("dxpiaInstSourceAdd(\"" + $attr + "\")") dxpiaInstSourceAddWidget;
+	button -e -c ("dxpiaInstSourceClear(\"" + $attr + "\")") dxpiaInstSourceClearWidget;
+	button -e -c ("dxpiaInstSourceSelect(\"" + $attr + "\")") dxpiaInstSourceSelectWidget;
+
+	// popupMenu
+	menuItem -e -c ("dxpiaInstSourceMenuSelect(\"" + $attr + "\")") dxpiaInstSourceMenuSelectWidget;
+	menuItem -e -c ("dxpiaInstSourceMenuRemove(\"" + $attr + "\")") dxpiaInstSourceMenuRemoveWidget;
+
+	textScrollList -e -ra dxpiaInstSourceListWidget;
+	string $objects[] = `getAttr $attr`;
+	int $i;
+	for( $i=0; $i<size($objects); $i++ ) {
+		textScrollList -e -a $objects[$i] dxpiaInstSourceListWidget;
+	}
+}
+
+global proc dxpiaInstNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4 -cw4 100 130 130 130;
+			text -l "" -w 100;
+			button -l "Add" -h 18 -w 130 dxpiaInstSourceAddWidget;
+			button -l "Clear" -h 18 -w 130 dxpiaInstSourceClearWidget;
+			button -l "Select" -h 18 -w 125 dxpiaInstSourceSelectWidget;
+		setParent ..;
+		rowLayout -nc 2 -cw2 100 390;
+			text -l "" -w 100;
+			textScrollList -ams true -h 150 -w 390 dxpiaInstSourceListWidget;
+			popupMenu -p dxpiaInstSourceListWidget -b 3;
+			menuItem -l "Select" dxpiaInstSourceMenuSelectWidget;
+			menuItem -l "Remove" dxpiaInstSourceMenuRemoveWidget;
+		setParent ..;
+	setUITemplate -ppt;
+	dxpiaInstReplace $attr;
+}
+
+/////////////////
+// Frame Range //
+global proc ZAssemblyArchiveRangeNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout -adj 1;
+		{
+			rowLayout -nc 1 -adj 1;
+			{
+				button -l "Set Playback" -c ("ZAssemblyArchiveSetRange "+$attr) ZAssemblyArchiveRangeBtn;
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZAssemblyArchiveRangeReplace( string $attr )
+{
+	button -e -c ("ZAssemblyArchiveSetRange "+$attr) ZAssemblyArchiveRangeBtn;
+}
+
+global proc ZAssemblyArchiveSetRange( string $attr )
+{
+	float $frameRange[] = `getAttr $attr`;
+
+	playbackOptions -e -ast $frameRange[0];
+	playbackOptions -e -min $frameRange[0];
+
+	playbackOptions -e -max $frameRange[1];
+	playbackOptions -e -aet $frameRange[1];
+}
+
+
+//////////
+// main //
+global proc AEZAssemblyArchiveTemplate( string $node )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Archive" -collapse 0;
+		{
+			editorTemplate -l "Points"        -ac "npt";
+
+			editorTemplate -l "Frame Range"   -ac "frameRange";
+			editorTemplate -ccu ZAssemblyArchivePathNew ZAssemblyArchivePathReplace "asbFilePath";
+            editorTemplate -ccu ZAssemblyArchiveRangeNew ZAssemblyArchiveRangeReplace "frameRange";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+		{
+			editorTemplate -l "Display Mode"  -ac "dmod" ;
+ 			editorTemplate -l "Display Color" -ac "dcol";
+			//editorTemplate -l "Display Ratio" -ac "dratio";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Render Attribute" -collapse 1;
+		{
+			editorTemplate -l "Velocity Delta Time" -ac "vdt";
+			//editorTemplate -l "Global Scale (not work)" -ac "gsc";
+            editorTemplate -l "Index of Primitive"			-ac "groupId";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Alembic Attribute " -collapse 1;
+		{
+			editorTemplate -l "Attribute Subdiv" -ac "fsdv";
+			editorTemplate -addControl "";
+			editorTemplate -l "Object ID" -ac "foid";
+ 			editorTemplate -addControl "";
+			editorTemplate -l "Group ID" -ac "fgid";
+ 			editorTemplate -addControl "";
+		   	editorTemplate -l "Custom Primvar" -ac "fcpv";
+ 			editorTemplate -addControl "";
+	       	editorTemplate -l "Texture Variation" -ac "ftxv";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Instance Attribute " -collapse 1;
+		{
+			editorTemplate -l "Distance Length" -ac "dln";
+        	editorTemplate -l "Single LOD" -ac "slod";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+}

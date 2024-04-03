@@ -1,0 +1,82 @@
+//---------------------------------//
+// AEZN_PartialMeshGenTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.01.14                               //
+//-------------------------------------------------------//
+
+global proc ZN_PartialMeshGenModeChanged( string $node )
+{
+	int $mode = `getAttr ($node+".mode")`;
+
+	if( $mode == 0 )
+	{
+		editorTemplate -dc $node "maskMap"   1;
+		editorTemplate -dc $node "maskValue" 1;
+
+		return;
+	}
+
+	if( $mode == 1 )
+	{
+		editorTemplate -dc $node "maskMap"   0;
+		editorTemplate -dc $node "maskValue" 0;
+
+		return;
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_PartialMeshGenUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_PartialMeshGenUpdateExe "+$attr) ZN_PartialMeshGenUpdate;
+	setUITemplate -ppt;
+
+	ZN_PartialMeshGenUpdateReplace $attr;
+}
+
+global proc ZN_PartialMeshGenUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_PartialMeshGenUpdateExe "+$attr) ZN_PartialMeshGenUpdate;
+}
+
+global proc ZN_PartialMeshGenUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_PartialMeshGen = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_PartialMeshGen;
+}
+
+//////////
+// main //
+global proc AEZN_PartialMeshGenTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Mode"        -ac "mode" ZN_PartialMeshGenModeChanged;
+			editorTemplate -l "Mask Map"    -ac "maskMap";
+			editorTemplate -l "Mask Value"  -ac "maskValue";
+			editorTemplate -l "UV Set Name" -ac "uvSetName";
+			editorTemplate -l "Invert"      -ac "invert";
+			editorTemplate -ccu ZN_PartialMeshGenUpdateNew ZN_PartialMeshGenUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "outMesh";
+	editorTemplate -suppress "maskMap";
+}
+

@@ -1,0 +1,151 @@
+//----------------------//
+// ZelosClothSpring.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2016.03.25                               //
+//-------------------------------------------------------//
+
+global proc AddZelosClothSprings()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	// Get the selection list.
+	string $selection[] = `ls -sl -l`;
+	if( size($selection) == 0 ) { error("No selected object."); return; }
+
+	// Get the selected vertex list.
+	string $vtxListStr;
+	{
+		string $vtxList[] = ZGetSelectedVtxIndices();
+		if( size($vtxList) == 0 ) { error("No selected vertices."); return; }
+		if( size($vtxList) == 1 ) { error("Not enough selected vertices."); return; }
+		$vtxListStr = stringArrayToString( $vtxList, " " );
+	}
+
+	// Get the out mesh xform node.
+	string $outMeshXForm;
+	{
+		string $mesh_vtx_list = $selection[0];
+		$outMeshXForm = `match "^[^\.]*" $mesh_vtx_list`;
+		string $shapes[] = `listRelatives -f -c -ni $outMeshXForm`;
+		string $shape = $shapes[0];
+		if( `nodeType $shape` != "mesh" ) { error("Invalid object type."); return; }
+	}
+
+	// Get the ZelosClothGlobal node.
+	string $global;
+	{
+		string $tokens[];
+		tokenize( $outMeshXForm, "|", $tokens );
+		int $nTokens = size($tokens);
+
+		int $i = 0;
+		for( ; $i<($nTokens-1); $i++ )
+		{
+			$global += "|" + $tokens[$i];
+		}
+	}
+
+	// Get the ZelosClothSimulator node.
+	string $simShape;
+	{
+		string $shapes[] = `listRelatives -f -c -ad -ni $global`;
+
+		int $count = 0;
+		for( $shape in $shapes )
+		{
+			if( `nodeType $shape` == "ZelosClothSimulator" )
+			{
+				$simShape = $shape;
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("Failed to find ZelosClothSimulator node."); return; }
+		if( $count != 1 ) { error("Too many ZelosClothSimulator nodes."); return; }
+	}
+
+	// Get the constraints group node.
+	string $constraintsGrp;
+	{
+		string $shapes[] = `listRelatives -f -c -ni $global`;
+
+		int $count = 0;
+		for( $shape in $shapes )
+		{
+			if( $shape == $global + "|constraints" )
+			{
+				$constraintsGrp = $shape;
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("Failed to find constraints group node."); return; }
+		if( $count != 1 ) { error("Too many constraints group nodes."); return; }
+	}
+
+	// Create a ZelosClothSpring node.
+	string $springShape;
+	{
+		$springShape = `createNode ZelosClothSpring`;
+	}
+
+	// Get the xform nodes of the ZelosClothSpring nodes.
+	string $springXForm;
+	{
+		string $parents[] = `listRelatives -p $springShape`;
+		$xform = $parents[0];
+
+		setAttr -lock true ($xform+".translate");
+		setAttr -lock true ($xform+".rotate"   );
+		setAttr -lock true ($xform+".scale"    );
+
+		string $tokens[];
+		tokenize( $springShape, "ZelosClothSpring", $tokens );
+		int $number = $tokens[size($tokens)-1];
+		$springXForm = `rename $xform ("spring"+$number)`;
+	}
+
+	// Connect attributes;
+	{
+		setAttr ($springShape+".vtxList") -type "string" $vtxListStr;
+		int $port = ZEmptyPort( $simShape, "springConstraints" );
+		connectAttr ($springShape+".output") ($simShape+".springConstraints["+$port+"]");
+	}
+
+	select -r $springShape;
+
+	// |ZelosClothGlobal#|constraints
+	{
+		parent $springXForm $constraintsGrp;
+	}
+}
+
+global proc string GetZelosClothSimulatorFromSpring( string $ZelosClothSpring )
+{
+	if( `nodeType $ZelosClothSpring` != "ZelosClothSpring" ) { return ""; }
+
+	if( !`connectionInfo -is ($ZelosClothSpring+".output")` ) { return ""; }
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothSpring+".output")`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZelosClothSimulator" )
+		{
+			return $node;
+		}
+	}
+
+	return "";
+}
+

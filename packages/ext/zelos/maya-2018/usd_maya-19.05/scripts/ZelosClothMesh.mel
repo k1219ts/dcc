@@ -1,0 +1,37 @@
+//--------------------//
+// ZelosClothMesh.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.07                               //
+//-------------------------------------------------------//
+
+global proc DeleteZelosClothMeshUVTweaks()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	string $shapes[] = `ls -dag -lf -ap -sl -l`;
+
+	for( $shape in $shapes )
+	{
+		if( `nodeType $shape` != "mesh" ) { continue; }
+
+		if( !`connectionInfo -id ($shape+".inMesh")` ) { continue; }
+
+		string $nodeAttr = `connectionInfo -sfd ($shape+".inMesh")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "polyTweakUV" )
+		{
+			delete $node;
+		}
+	}
+}
+

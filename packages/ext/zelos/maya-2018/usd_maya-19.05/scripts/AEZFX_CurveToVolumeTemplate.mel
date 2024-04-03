@@ -1,0 +1,67 @@
+//---------------------------------//
+// AEZFX_CurveToVolumeTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.12.29                               //
+//-------------------------------------------------------//
+
+global proc AEZFX_CurveToVolumeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Radius"          	-ac "radius";
+			editorTemplate -l "OutRadius Scale"		-ac "outRadScale";
+			editorTemplate -l "Voxel Size"      	-ac "voxelSize";
+			editorTemplate -l "Seed"				-ac "seed";
+			editorTemplate -l "Enable Gradient"		-ac "gradient";
+			editorTemplate -as;
+			editorTemplate -l "Begin FallOff"   	-ac "falloffBegin";
+			editorTemplate -l "End FallOff"			-ac "falloffEnd";
+			editorTemplate -l "Radial FallOff"		-ac "falloffRad";
+			editorTemplate -ccu ZFX_CurveToVolumeNew ZFX_CurveToVolumeRep "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Developments" -collapse 1;
+		{
+			editorTemplate -l "Curve SegmentScale" -ac "segScale";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inCurves";
+	editorTemplate -suppress "inDistNoise";
+	editorTemplate -suppress "inDensNoise";
+	editorTemplate -suppress "outVolPrim";
+}
+
+global proc ZFX_CurveToVolumeNew( string $node )
+{
+	/*
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Build" -bgc 0.4 0.3 0.3 bt_ZFX_CurveToVolumeBuild;
+	}
+	setUITemplate -ppt;
+
+	ZFX_CurveToVolumeRep $node;
+	*/
+}
+
+global proc ZFX_CurveToVolumeRep( string $node )
+{
+	/*
+	string $buffer[];
+	tokenize $node "." $buffer;
+	$node = $buffer[0];
+
+	button -e -command ("setAttr "+$node+".triggBuild true") bt_ZFX_CurveToVolumeBuild;
+	*/
+}
+

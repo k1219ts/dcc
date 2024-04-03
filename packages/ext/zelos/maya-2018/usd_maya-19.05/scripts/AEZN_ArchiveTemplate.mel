@@ -1,0 +1,106 @@
+//---------------------------//
+// AEZNArchiveTemplate.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2017.03.23                               //
+//-------------------------------------------------------//
+
+//////////
+// Path //
+global proc ZNArchivePathNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 4;
+		{
+			text "Cache Path";
+			textField -ed 0 -tx `getAttr $attr` tfZNArchivePath;
+			symbolButton -image "navButtonBrowse.xpm" -c ("ZLoadDirectory "+$attr+" tfZNArchivePath; refresh;") tfZNArchivePathBtn;
+			setParent ..;
+		}
+	}
+	setUITemplate -ppt;
+
+	setAttr -type "string" $attr `textField -q -tx tfZNArchivePath`;
+}
+
+global proc ZNArchivePathReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZNArchivePath;
+	symbolButton -e -c ("ZLoadDirectory "+$attr+" tfZNArchivePath; refresh;") tfZNArchivePathBtn;
+
+	setAttr -type "string" $attr `textField -q -tx tfZNArchivePath`;
+}
+
+
+global proc ZNArchiveDisplayModeChangeCallBack(string $node)
+{
+ 	int $mode = `getAttr ($node + ".displayMode")`;
+
+ 	if( $mode == 0 || $mode == 1 ) //draw as points or draw as bbox
+	{
+		editorTemplate -dc $node "displayEdge" 1;
+		return;
+	}
+
+	if( $mode == 2 )				//draw as proxy mesh
+	{
+	 	editorTemplate -dc $node "displayEdge" 0;
+	
+	}
+
+}
+
+
+//////////
+// main //
+global proc AEZN_ArchiveTemplate( string $node )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Archive" -collapse 0;
+		{
+			
+			editorTemplate -l "Time"				-ac "inTime";
+			//editorTemplate -l "Use Sequence"		-ac "useSequence";
+			
+			editorTemplate -l "Points"				-ac "numPoints";
+			editorTemplate -ccu ZNArchivePathNew ZNArchivePathReplace "cachePath"; 
+
+			editorTemplate -l "Display mode"		-ac "displayMode" ZNArchiveDisplayModeChangeCallBack;
+			editorTemplate -l "Display Edge"		-ac "displayEdge";
+ 			editorTemplate -l "Color"				-ac "color";
+			editorTemplate -l "Display Ratio"		-ac "displayRatio";
+
+			//editorTemplate -l "frameOffset (not work)"			-ac "frameOffset";
+			
+			//editorTemplate -l "visibility"			-ac "visibility";
+
+		}
+		editorTemplate -endLayout;
+
+
+		//editorTemplate -beginLayout "RenderStat" -collapse 1;
+		//{
+		//	editorTemplate -l "Receive Shadows		"	-ac "receiveShadows";
+		//	editorTemplate -l "Motion Blur			"	-ac "motionBlur";
+		//	editorTemplate -l "Camera Visibility		"	-ac "primaryVisibility";
+		//	editorTemplate -l "Transmission Visibillity	"	-ac "castsShadows";
+
+		//	editorTemplate -l "Viable In Reflections"	-ac "visibleInReflections";
+		//	editorTemplate -l "Viable In Refractions"	-ac "visibleInRefractions";
+		
+		//	editorTemplate -l "Camera Visibility		"	-ac "rman__riattr__visibility_camera";
+		//	editorTemplate -l "Indirect Visibility		"	-ac "rman__riattr__visibility_indirect";
+		//	editorTemplate -l "Transmission Visibility	"	-ac "rman__riattr__visibility_transmission";
+		//}
+		//editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

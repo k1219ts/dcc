@@ -1,0 +1,157 @@
+//-------------------------//
+// AEZN_ImportTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2019.01.16                               //
+//-------------------------------------------------------//
+
+global proc ZN_ImportCurveDataFromChanged( string $node )
+{
+    int $curveDataFrom = `getAttr ($node+".curveDataFrom")`;
+
+    if( $curveDataFrom == 0 ) // from Curve Group
+    {
+        editorTemplate -dc $node "maxRootDist"    0;
+        editorTemplate -dc $node "perFrameImport" 0;
+        editorTemplate -dc $node "resampleCVs"    0;
+
+        return;
+    }
+
+    if( $curveDataFrom == 1 ) // from Outside
+    {
+        editorTemplate -dc $node "maxRootDist"    1;
+        editorTemplate -dc $node "perFrameImport" 1;
+        editorTemplate -dc $node "resampleCVs"    1;
+
+        return;
+    }
+}
+
+///////////////////////////////
+// Update Button (Body Mesh) //
+global proc ZN_ImportUpdateMeshNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_ImportUpdateMeshExe "+$attr) ZN_ImportUpdateMesh;
+	setUITemplate -ppt;
+
+	ZN_ImportUpdateMeshReplace $attr;
+}
+
+global proc ZN_ImportUpdateMeshReplace( string $attr )
+{
+	button -e -c ("ZN_ImportUpdateMeshExe "+$attr) ZN_ImportUpdateMesh;
+}
+
+global proc ZN_ImportUpdateMeshExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Import = $node[0];
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZN_Import;
+}
+
+//////////////////////////////////
+// Update Button (Guide Curves) //
+global proc ZN_ImportUpdateCurvesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_ImportUpdateCurvesExe "+$attr) ZN_ImportUpdateCurves;
+	setUITemplate -ppt;
+
+	ZN_ImportUpdateCurvesReplace $attr;
+}
+
+global proc ZN_ImportUpdateCurvesReplace( string $attr )
+{
+	button -e -c ("ZN_ImportUpdateCurvesExe "+$attr) ZN_ImportUpdateCurves;
+}
+
+global proc ZN_ImportUpdateCurvesExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Import = $node[0];
+
+    int $curveDataFrom = `getAttr ($ZN_Import+".curveDataFrom")`;
+
+    if( $curveDataFrom == 1 ) // from Outside
+    {
+        string $xgen_desc = ZConnectedNode( $ZN_Import, "inGuideCurves" );
+
+        if( $xgen_desc == "" )
+        {
+            ZPrintError "No connected xgmSplineDescription node.";
+            return;
+        }
+
+        ZN_ImportXGenCmd -input1 $xgen_desc -input2 $ZN_Import;
+    }
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZN_Import;
+}
+
+//////////
+// main //
+global proc AEZN_ImportTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Body Mesh" -collapse 0;
+		{
+			editorTemplate -l "Vertex Count"          -ac "numVertices";
+			editorTemplate -l "Triangle Count"        -ac "numTriangles";
+			editorTemplate -l "UV Count"              -ac "numUVs";
+			editorTemplate -as;
+			editorTemplate -l "UV Set Name"           -ac "uvSetName";
+			editorTemplate -as;
+			editorTemplate -l "Rest Time"             -ac "restTimeDisp";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_ImportUpdateMeshNew ZN_ImportUpdateMeshReplace "updateMesh";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Guide Curves" -collapse 0;
+		{
+			editorTemplate -l "Curve Count"           -ac "numStrands";
+			editorTemplate -l "Total CVs"             -ac "numTotalCVs";
+			editorTemplate -l "Average CVs"           -ac "numAverageCVs";
+			editorTemplate -l "Used Memory Size (MB)" -ac "megaBytes";
+			editorTemplate -as;
+            editorTemplate -l "Curve Data From"       -ac "curveDataFrom" ZN_ImportCurveDataFromChanged;
+			editorTemplate -l "Resample CVs"          -ac "resampleCVs";
+			editorTemplate -l "Max. Root Distance"    -ac "maxRootDist";
+			editorTemplate -l "Per Frame Import"      -ac "perFrameImport";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_ImportUpdateCurvesNew ZN_ImportUpdateCurvesReplace "updateCurves";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inBodyMesh";
+	editorTemplate -suppress "inGuideCurves";
+	editorTemplate -suppress "inZNGroup";
+	editorTemplate -suppress "restMeshP";
+	editorTemplate -suppress "restMeshV012";
+	editorTemplate -suppress "restMeshUV";
+	editorTemplate -suppress "outData";
+	editorTemplate -suppress "fromGlobal";
+	editorTemplate -suppress "fromGroup";
+	editorTemplate -suppress "restTime";
+    editorTemplate -suppress "xgenNCVs";
+    editorTemplate -suppress "xgenCVs";
+}
+

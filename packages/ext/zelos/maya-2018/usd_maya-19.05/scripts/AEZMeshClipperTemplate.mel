@@ -1,0 +1,30 @@
+//----------------------------//
+// AEZMeshClipperTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZMeshClipperTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Options" -collapse 0;
+		{
+			editorTemplate -l "Delete Mode" -ac "deleteMode";
+			editorTemplate -l "Vice Versa"  -ac "viceVersa";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "bBoxMesh";
+	editorTemplate -suppress "outMesh";
+}
+

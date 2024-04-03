@@ -1,0 +1,51 @@
+//-----------------------------------//
+// ZelosFurFlowDrawCtxProperties.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2015.02.13                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurFlowDrawCtxProperties()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	if( `control -exists ZelosFurFlowDrawCtxLayout` )
+	{
+		return;
+	}
+
+	string $parent = `toolPropertyWindow -q -location`;
+	setParent $parent;
+
+	setUITemplate -pushTemplate DefaultTemplate;
+	{
+		columnLayout ZelosFurFlowDrawCtxLayout;
+		{
+			frameLayout -collapsable true -collapse false -l "ZelosFurFlowDrawCtxTool" ZelosFurFlowDrawCtxFrame;
+			{
+				columnLayout ZelosFurFlowDrawCtxOptions;
+				{
+					$parent = `setParent -query`;
+					separator -style "none";
+					floatSliderGrp -l "Distance" -f true -min 0.1 -max 100 -fmn 0.1 -fmx 100 -v 0.2 -s 0.1 -fs 0.1 -ss 0.1
+						-cc "ZelosFurFlowDrawCtxDistance(`floatSliderGrp -q -v ZelosFurFlowDrawCtxDistance`)" ZelosFurFlowDrawCtxDistance;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -popTemplate;
+}
+
+global proc ZelosFurFlowDrawCtxDistance( float $val )
+{
+	ZelosFurFlowDrawCtx -e -distance $val `currentCtx`;
+}
+

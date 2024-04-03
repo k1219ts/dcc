@@ -1,0 +1,116 @@
+//---------------------------//
+// AEZTwoOceanPtcEmitter.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.04.28                               //
+//-------------------------------------------------------//
+
+/////////////////////////
+// when "foam" changed //
+global proc ZTwoOceanPtcEmitterUseOceanVelChanged( string $node )
+{
+	if( `getAttr ($node+".useOceanVel")` ) {
+		editorTemplate -dc $node "minPtcDir" 1;
+		editorTemplate -dc $node "maxPtcDir" 1;
+	} else {
+		editorTemplate -dc $node "minPtcDir" 0;
+		editorTemplate -dc $node "maxPtcDir" 0;
+	}
+}
+
+//////////
+// main //
+global proc AEZTwoOceanPtcEmitterTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+		editorTemplate -beginLayout "Ocean" -collapse 0;
+			editorTemplate -l "Computing Method"        -ac "computingMethod";
+			editorTemplate -l "Mode"			        -ac "mode";
+			editorTemplate -beginLayout "Ocean Parameters1" -collapse 0;
+				editorTemplate -l "Time Scale"              -ac "timeScale";
+				editorTemplate -l "Global Scale"            -ac "globalScale";
+				editorTemplate -l "Grid Level"              -ac "gridLevel";
+				editorTemplate -l "Domain Size"             -ac "domainSize";
+				editorTemplate -l "Gravity"                 -ac "gravity";
+				editorTemplate -l "Wind Speed"              -ac "windSpeed";
+				editorTemplate -l "Wind Direction"          -ac "windDirection";
+				editorTemplate -l "Wind Alignment"          -ac "windAlignment";
+				editorTemplate -l "Wave Scale"              -ac "waveScale";
+				editorTemplate -l "Shortest Wave"           -ac "shortestWave";
+				editorTemplate -l "Choppiness"              -ac "choppiness";
+				editorTemplate -l "Damp Reflection"         -ac "dampReflection";
+				editorTemplate -l "Water Depth"             -ac "waterDepth";
+				editorTemplate -l "Random Seed"             -ac "randomSeed";
+				editorTemplate -l "Dispersion Relationship" -ac "whichOmega";
+				editorTemplate -l "Global Offset"           -ac "globalOffset";
+				editorTemplate -l "Smooth Interpolation"    -ac "smoothInterpolation";
+				editorTemplate -as;
+				editorTemplate -l "Foam Gamma"              -ac "foamGamma";
+				editorTemplate -l "Foam Brightness"         -ac "foamBrightness";
+				editorTemplate -l "Foam Fade"               -ac "foamFade";
+			editorTemplate -endLayout;
+	
+			editorTemplate -beginLayout "Ocean Parameters2" -collapse 0;
+				editorTemplate -l "Time Scale2"              -ac "timeScale2";
+				editorTemplate -l "Global Scale2"            -ac "globalScale2";
+				editorTemplate -l "Grid Level2"              -ac "gridLevel2";
+				editorTemplate -l "Domain Size2"             -ac "domainSize2";
+				editorTemplate -l "Gravity2"                 -ac "gravity2";
+				editorTemplate -l "Wind Speed2"              -ac "windSpeed2";
+				editorTemplate -l "Wind Direction2"          -ac "windDirection2";
+				editorTemplate -l "Wind Alignment2"          -ac "windAlignment2";
+				editorTemplate -l "Wave Scale2"              -ac "waveScale2";
+				editorTemplate -l "Shortest Wave2"           -ac "shortestWave2";
+				editorTemplate -l "Choppiness2"              -ac "choppiness2";
+				editorTemplate -l "Damp Reflection2"         -ac "dampReflection2";
+				editorTemplate -l "Water Depth2"             -ac "waterDepth2";
+				editorTemplate -l "Random Seed2"             -ac "randomSeed2";
+				editorTemplate -l "Dispersion Relationship2" -ac "whichOmega2";
+				editorTemplate -l "Global Offset2"           -ac "globalOffset2";
+				editorTemplate -l "Smooth Interpolation2"    -ac "smoothInterpolation2";
+				editorTemplate -as;
+				editorTemplate -l "Foam Gamma2"              -ac "foamGamma2";
+				editorTemplate -l "Foam Brightness2"         -ac "foamBrightness2";
+				editorTemplate -l "Foam Fade2"               -ac "foamFade2";
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Noise" -collapse 0;
+				editorTemplate -l "Spatial Frequency"      -ac "noiseSFreq";
+				editorTemplate -l "Time"      			   -ac "noiseTime";
+				editorTemplate -l "Ocean1 Ratio(0-1)" 	   -ac "ocean1Ratio";
+				editorTemplate -l "Ocean2 Ratio(0-1)"      -ac "ocean2Ratio";
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -l "Draw Ocean"          -ac "drawOcean";
+			editorTemplate -l "Draw Ocean Mode"     -ac "drawOceanMode";
+			editorTemplate -as;
+			editorTemplate -l "Draw Ocean Velocity" -ac "drawOceanVel";
+			editorTemplate -l "Velocity Color(End)"	-ac "vVelColor";
+			editorTemplate -l "Velocity Scale" 		-ac "vVelDispScale";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Generate Particles" -collapse 0;
+			editorTemplate -l "Start Frame"     			 -ac "startSimFrame";
+			editorTemplate -l "Foam Value"      			 -ac "foamValueRange";
+			editorTemplate -l "# Particles(each node)"       -ac "numPtcRange";
+			editorTemplate -l "Radius(each node)"      		 -ac "radiusRange";
+			editorTemplate -l "Min. Height Value"      		 -ac "minHeight";
+			editorTemplate -l "Particle Direction(Min.)" 	 -ac "minPtcDir";
+			editorTemplate -l "Particle Direction(Max.)"   	 -ac "maxPtcDir";
+			editorTemplate -l "Use Ocean Velocity Direction" -ac "useOceanVel" ZTwoOceanPtcEmitterUseOceanVelChanged;
+			editorTemplate -l "Velocity Maginitude(Min~Max)" -ac "ptcVelMagRange";
+			editorTemplate -l "Emit only Positive Velocity Y" -ac "emitOnlyPosVelY";
+
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+}
+
+

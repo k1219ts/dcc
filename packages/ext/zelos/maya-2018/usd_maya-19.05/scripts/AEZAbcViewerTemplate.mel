@@ -1,0 +1,133 @@
+//--------------------------//
+// AEZAbcViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.02.14                               //
+//-------------------------------------------------------//
+
+//////////
+// File //
+global proc ZAbcViewerFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text -label "File (.abc)";
+			textField -ed 0 -tx `getAttr $attr` ZAbcViewerFile;
+			symbolButton -image "navButtonBrowse.xpm" ZAbcViewerFileBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZAbcViewerFileReplace $attr;
+}
+
+global proc ZAbcViewerFileReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` ZAbcViewerFile;
+	button -e -c ("ZAbcViewerSetFile "+$attr) ZAbcViewerFileBtn;
+}
+
+global proc ZAbcViewerSetFile( string $attr )
+{
+	string $fileNames[] = `fileDialog2 -caption "Alembic(.abc) File" -ff "Alembic File(*.abc)" -fileMode 1`;
+
+	if( size($fileNames) > 0 )
+	{
+		eval( "setAttr -type \"string\" " + $attr + " \"" + $fileNames[0] + "\"" );
+		textField -e -tx $fileNames[0] ZAbcViewerFile;
+	}
+}
+
+/////////////////
+// Frame Range //
+global proc ZAbcViewerRangeNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout -adj 1;
+		{
+			rowLayout -nc 1 -adj 1;
+			{
+				button -l "Set Playback" -c ("ZAbcViewerSetRange "+$attr) ZAbcViewerRangeBtn;
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZAbcViewerRangeReplace( string $attr )
+{
+	button -e -c ("ZAbcViewerSetRange "+$attr) ZAbcViewerRangeBtn;
+}
+
+global proc ZAbcViewerSetRange( string $attr )
+{
+	float $frameRange[] = `getAttr $attr`;
+
+	playbackOptions -e -ast $frameRange[0];
+	playbackOptions -e -min $frameRange[0];
+
+	playbackOptions -e -max $frameRange[1];
+	playbackOptions -e -aet $frameRange[1];
+}
+
+//////////
+// main //
+global proc AEZAbcViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Enable"            -ac "enable";
+			editorTemplate -as; 
+			editorTemplate -l "File Format"       -ac "fileFormat";
+			editorTemplate -l "Time Sampling"     -ac "timeSamplingScheme";
+			editorTemplate -as; 
+			editorTemplate -l "Vertex Count"      -ac "vertexCount";
+			editorTemplate -l "Polygon Count"     -ac "polygonCount";
+			editorTemplate -as; 
+			editorTemplate -l "Frame Range"       -ac "frameRange";
+			editorTemplate -ccu ZAbcViewerRangeNew ZAbcViewerRangeReplace "frameRange";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+		{
+			editorTemplate -l "Mode"              -ac "displayMode";
+			editorTemplate -as; 
+			editorTemplate -l "Surface Color"     -ac "surfaceColor";
+			editorTemplate -l "Shading Mode"      -ac "shadingMode";
+			editorTemplate -l "Lighting Effect"   -ac "lightingEffect";
+			editorTemplate -as; 
+			editorTemplate -l "Line Width"        -ac "lineWidth";
+			editorTemplate -l "Line Color"        -ac "lineColor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Alembic File (.abc)" -collapse 0;
+		{
+			editorTemplate -l "Input Frame"       -ac "inputFrame";
+			editorTemplate -l "Frame Offset"      -ac "frameOffset";
+			editorTemplate -as; 
+			editorTemplate -l "Variable Topology" -ac "variableTopology";
+			editorTemplate -as; 
+			editorTemplate -l "Per Frame Loading" -ac "perFrameLoading";
+			editorTemplate -as; 
+			editorTemplate -ccu ZAbcViewerFileNew ZAbcViewerFileReplace "file";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

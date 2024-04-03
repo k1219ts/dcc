@@ -1,0 +1,112 @@
+//---------------------------//
+// ZN_CurvesToMeshBinder.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.06.17                               //
+//-------------------------------------------------------//
+
+global proc CreateZN_CurvesToMeshBinder()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $xforms[] = `ls -sl -type transform`;
+
+	int $meshCount = 0;
+	string $meshXForm;
+	string $meshShape;
+
+	int $curveCount = 0;
+	string $curveXForms[];
+	string $curveShapes[];
+
+	for( $xform in $xforms )
+	{
+		string $shapes[] = `listRelatives -c -shapes -ni $xform`;
+
+		for( $shape in $shapes )
+		{
+			string $nodeType = `nodeType $shape`;
+
+			if( $nodeType == "mesh" ) {
+
+				$meshXForm = $xform;
+				$meshShape = $shape;
+
+				$meshCount++;
+
+			} else if( $nodeType == "nurbsCurve" ) {
+
+				$curveXForms[$curveCount] = $xform;
+				$curveShapes[$curveCount] = $shape;
+
+				$curveCount++;
+
+			}
+		}
+	}
+
+	if( $meshCount == 0 )
+	{
+		ZPrintError "No selected body mesh.";
+		return;
+	}
+
+	if( $meshCount > 1 )
+	{
+		ZPrintError "Too many selected body meshes.";
+		return;
+	}
+
+	if( $curveCount == 0 )
+	{
+		ZPrintError "No selected curves.";
+		return;
+	}
+
+	string $rootCVStr = " " + $curveCount;
+	string $tipCVStr = " " + $curveCount;
+
+	int $i = 0;
+	for( ; $i<$curveCount; $i++ )
+	{
+		string $xform = $curveXForms[$i];
+		string $shape = $curveShapes[$i];
+
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1 $xform;
+
+		float $rootCV[] = `getAttr ($xform+".cv[0]")`;
+		float $tipCV[] = `getAttr ($xform+".cv[10000]")`;
+
+		setAttr ($xform+".scalePivot") $rootCV[0] $rootCV[1] $rootCV[2];
+		setAttr ($xform+".rotatePivot") $rootCV[0] $rootCV[1] $rootCV[2];
+
+        $rootCVStr += " " + $rootCV[0] + " " + $rootCV[1] + " " + $rootCV[2] + " 1";
+        $tipCVStr += " " + $tipCV[0] + " " + $tipCV[1] + " " + $tipCV[2] + " 1";
+	}
+
+	string $ZN_CurvesToMeshBinder = `createNode ZN_CurvesToMeshBinder`;
+
+    string $rootCmd = "setAttr " + $ZN_CurvesToMeshBinder+ ".rootCVs -type pointArray" + $rootCVStr;
+    eval($rootCmd);
+
+    string $tipCmd = "setAttr " + $ZN_CurvesToMeshBinder+ ".tipCVs -type pointArray" + $tipCVStr;
+    eval($tipCmd);
+
+	connectAttr ($meshShape+".w") ($ZN_CurvesToMeshBinder+".inMesh");
+
+	for( $i=0; $i<$curveCount; $i++ )
+	{
+		string $xform = $curveXForms[$i];
+		string $shape = $curveShapes[$i];
+
+		connectAttr ($ZN_CurvesToMeshBinder+".outTranslates["+$i+"]") ($xform+".translate");
+		connectAttr ($ZN_CurvesToMeshBinder+".outRotates["+$i+"]") ($xform+".rotate");
+	}
+
+	select -r $ZN_CurvesToMeshBinder;
+}
+

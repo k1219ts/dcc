@@ -1,0 +1,23 @@
+//-----------------------//
+// ZMeshSamplingTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZMeshSamplingTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	polySphere;
+	createNode ZMeshSamplingTest;
+	connectAttr pSphereShape1.worldMesh[0] ZMeshSamplingTest1.inMesh;
+	connectAttr ZMeshSamplingTest1.output transform1.dynamics;
+}
+

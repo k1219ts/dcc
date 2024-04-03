@@ -1,0 +1,19 @@
+//---------------------------//
+// ZN_CurveDrawCtxValues.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2015.07.21                               //
+//-------------------------------------------------------//
+
+global proc ZN_CurveDrawCtxValues( string $ctxName ) 
+{
+	string $parent = `toolPropertyWindow -q -location` + "|ZN_CurveDrawCtxLayout";
+	setParent $parent;
+
+	float $distance = `ZN_CurveDrawCtx -q -distance $ctxName`;
+	floatSliderGrp -e -v $distance ZN_CurveDrawCtxDistance;
+
+	toolPropertySelect ZN_CurveDrawCtxLayout;
+}
+

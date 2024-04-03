@@ -1,0 +1,21 @@
+//-----------------------------//
+// AEZGpuMeshShapeTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.02.23                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZGpuMeshShapeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "input";
+	editorTemplate -suppress "output";
+}
+

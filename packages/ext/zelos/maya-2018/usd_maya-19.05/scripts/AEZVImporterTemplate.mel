@@ -1,0 +1,60 @@
+//--------------------------//
+// AEZVImporterTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.02.27                               //
+//-------------------------------------------------------//
+
+global proc AEZVImporterTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Caches" -collapse 0;
+		{
+			editorTemplate -ccu ZVImporterLoadFileNew ZVImporterLoadFileRep "cachePath";
+			editorTemplate -l "Enable Data Construction" -ac "makeData";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "outPtcData";
+}
+
+global proc ZVImporterLoadFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -nc 3;
+
+	text "Cache Path";
+	textField tf_ZVImporter_CachePath;
+	symbolButton sb_ZVImporter_CachePath;
+
+	setParent ..;
+
+	setUITemplate -ppt;
+	
+	ZVImporterLoadFileRep( $attr );
+}
+
+global proc ZVImporterLoadFileRep( string $attr )
+{
+	string $buffer[];
+    tokenize $attr "." $buffer;
+    string $nodeName = $buffer[0];
+
+	textField -e -cc ("ZVImporter_CacheFileChange "+$attr) -tx `getAttr ($attr)` tf_ZVImporter_CachePath;
+
+	symbolButton -e -image "navButtonBrowse.xpm" -c ( "ZLoadDirectory(\""+$attr+"\",\"tf_ZVImporter_CachePath\")" ) sb_ZVImporter_CachePath;
+}
+
+global proc ZVImporter_CacheFileChange( string $attr )
+{
+	print "view";
+	setAttr -type "string" $attr (`textField -q -tx tf_ZVImporter_CachePath`);
+}
+

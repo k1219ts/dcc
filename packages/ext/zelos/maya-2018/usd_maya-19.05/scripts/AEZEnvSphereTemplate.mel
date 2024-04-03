@@ -1,0 +1,29 @@
+//--------------------------//
+// AEZEnvSphereTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.03.20                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZEnvSphereTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Options" -collapse 0;
+			editorTemplate -l "Line Color" -ac "lineColor";
+			editorTemplate -l "Opacity"    -ac "opacity";
+			editorTemplate -l "Slices"     -ac "slices";
+			editorTemplate -l "Stacks"     -ac "stacks";
+			editorTemplate -l "Color"      -ac "color";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "file";
+	editorTemplate -suppress "output";
+}
+

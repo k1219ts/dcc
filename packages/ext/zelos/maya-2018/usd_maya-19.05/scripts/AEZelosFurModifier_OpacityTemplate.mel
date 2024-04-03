@@ -1,0 +1,285 @@
+//----------------------------------------//
+// AEZelosFurModifier_OpacityTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_OpacitySeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Opacity Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_OpacitySeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_OpacitySeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_OpacitySeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OpacitySeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_OpacitySeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_OpacitySeExpr0;
+	button -e -c ("ZelosFurModifier_OpacitySeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_OpacitySeExpr0;
+}
+
+global proc ZelosFurModifier_OpacitySeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_OpacitySeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_OpacitySeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_OpacitySeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_OpacitySeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_OpacitySeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_OpacitySeExpr0;
+}
+
+global proc ZelosFurModifier_OpacitySeExpr0Reset( string $attr )
+{
+	string $txt = "tOpacity + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_OpacitySeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_OpacitySeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_OpacitySeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Opacity Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_OpacitySeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_OpacitySeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_OpacitySeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OpacitySeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_OpacitySeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_OpacitySeExpr1;
+	button -e -c ("ZelosFurModifier_OpacitySeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_OpacitySeExpr1;
+}
+
+global proc ZelosFurModifier_OpacitySeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_OpacitySeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_OpacitySeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_OpacitySeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_OpacitySeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_OpacitySeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_OpacitySeExpr1;
+}
+
+global proc ZelosFurModifier_OpacitySeExpr1Reset( string $attr )
+{
+	string $txt = "rOpacity + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_OpacitySeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_OpacitySeExpr1;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_OpacityUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_OpacityUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_OpacityUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_OpacityUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_OpacityTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_OpacityTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_OpacityTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OpacityTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_OpacityTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_OpacityTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Opacity node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_OpacityNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_OpacityNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_OpacityNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_OpacityNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_OpacityTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_OpacityGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_OpacityGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_OpacityGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_OpacityGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_OpacityGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_OpacityGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Opacity node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_OpacityNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_OpacityNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_OpacityNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_OpacityNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_OpacityGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_OpacityTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Tip Opacity Value";
+			editorTemplate -l "Tip Opacity [tOpacity]"                    -ac "tipOpacity";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_OpacitySeExpr0New ZelosFurModifier_OpacitySeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Root Opacity Value";
+			editorTemplate -l "Root Opacity [rOpacity]"                    -ac "rootOpacity";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                          -ac "rand1";
+			editorTemplate -l "Frequency [freq]"                           -ac "freq1";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_OpacitySeExpr1New ZelosFurModifier_OpacitySeExpr1Replace "seExpr1Str";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_OpacityUpdateNew ZelosFurModifier_OpacityUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_OpacityTextureListNew ZelosFurModifier_OpacityTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_OpacityGeneratorListNew ZelosFurModifier_OpacityGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+	editorTemplate -suppress "seed1";
+}
+

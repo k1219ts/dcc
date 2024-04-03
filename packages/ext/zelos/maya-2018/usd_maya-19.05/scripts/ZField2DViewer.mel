@@ -1,0 +1,31 @@
+//--------------------//
+// ZField2DViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZField2DViewer()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $name = "ZField2DViewer";
+	string $numOfNode[] = `ls -type ZField2DViewer`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZField2DViewerXFormName = $name + "XForm" + $number;
+	string $ZField2DViewerShapeName = $name + "Shape" + $number;
+	string $ZField2DViewerXForm = `createNode transform -n $ZField2DViewerXFormName`;
+	string $ZField2DViewer = `createNode ZField2DViewer -n $ZField2DViewerShapeName -p $ZField2DViewerXForm`;
+
+	connectAttr time1.outTime ( $ZField2DViewer + ".time" );
+	connectAttr ( $ZField2DViewer + ".output" ) ( $ZField2DViewerXForm + ".dynamics" );
+
+	select -r $ZField2DViewer;
+}
+

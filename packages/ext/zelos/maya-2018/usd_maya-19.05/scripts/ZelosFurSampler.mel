@@ -1,0 +1,18 @@
+//---------------------//
+// ZelosFurSampler.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.05.03                               //
+//-------------------------------------------------------//
+
+global proc CreateZelosFurSampler()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	createNode ZelosFurSampler;
+}
+

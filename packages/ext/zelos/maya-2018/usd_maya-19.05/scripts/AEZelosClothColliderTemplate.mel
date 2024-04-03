@@ -1,0 +1,32 @@
+//----------------------------------//
+// AEZelosClothColliderTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2014.11.13                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZelosClothColliderTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 0;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Collider Offset"       -ac "solidOffset";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "output";
+}
+

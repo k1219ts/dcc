@@ -1,0 +1,133 @@
+//---------------------------------//
+// AEZENNStrandArchiveTemplate.mel //
+//--------------------------------------------------//
+//   author		 : Dohyeon Yang @Dexter Studios		//
+//	last updates : 2017.05.29						//
+//--------------------------------------------------//
+
+//------------------------------------------------------------------------ ZN_StrandsArchiveAbcFilePath
+global proc ZN_StrandsArchiveAbcFilePathNew(string $attr)
+{
+	$filter = "*.abc";
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+	    rowLayout -nc 4;
+        {
+            text -label "Abc Cache Path";
+
+        	textField -ed 1
+				      -tx `getAttr $attr`
+					  -cc ("ZN_StrandsArchiveAbcFilePathChange(\"" + $attr + "\")")
+					  tfZN_StrandsArchiveAbcFilePath;
+
+			symbolButton -image "navButtonBrowse.xpm"
+						 -c ("ZLoadFile(\""+$attr+"\",\"tfZN_StrandsArchiveAbcFilePath\","+"\""+$filter+"\")" )
+						 tfZN_StrandsArchiveAbcFilePathBtn;
+
+			setParent ..;
+			setAttr -type "string" $attr `textField -q -tx tfZN_StrandsArchiveAbcFilePath`;
+        }
+	}
+    setUITemplate -ppt;
+}
+
+global proc ZN_StrandsArchiveAbcFilePathChange(string $attr)
+{
+	setAttr -type "string" $attr `textField -q -tx tfZN_StrandsArchiveAbcFilePath`;
+	ZN_StrandsArchiveAbcFilePathReplace $attr;
+}
+global proc ZN_StrandsArchiveAbcFilePathReplace(string $attr )
+{
+	$filter = "*.abc";
+	textField -e
+			  -tx `getAttr $attr`
+              -cc ("ZN_StrandsArchiveAbcFilePathChange(\"" + $attr + "\")")
+			  tfZN_StrandsArchiveAbcFilePath;
+
+	symbolButton -e 
+				 -c ( "ZLoadFile(\""+$attr+"\",\"tfZN_StrandsArchiveAbcFilePath\","+"\""+$filter+"\")" )
+				 tfZN_StrandsArchiveAbcFilePathBtn;
+
+	setAttr -type "string" $attr `textField -q -tx tfZN_StrandsArchiveAbcFilePath`;
+}
+
+//------------------------------------------------------------------------ ZN_StrandsArchiveStrandsPath
+global proc ZN_StrandsArchiveStrandsPathNew(string $attr)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+	    rowLayout -nc 4;
+        {
+            text -label "Strand Cache Path";
+
+        	textField -ed 1
+				      -tx `getAttr $attr`
+					  -cc ("ZN_StrandsArchiveStrandsPathChange(\"" + $attr + "\")")
+					  tfZN_StrandsArchiveStrandsPath;
+
+			symbolButton -image "navButtonBrowse.xpm"
+			             -c ("ZLoadDirectory "+$attr+" tfZN_StrandsArchiveStrandsPath; refresh;")
+			             tfZN_StrandsArchiveStrandsPathBtn;
+
+			setParent ..;
+			setAttr -type "string" $attr `textField -q -tx tfZN_StrandsArchiveStrandsPath`;
+        }
+	}
+    setUITemplate -ppt;
+}
+
+global proc ZN_StrandsArchiveStrandsPathChange(string $attr)
+{
+	setAttr -type "string" $attr `textField -q -tx tfZN_StrandsArchiveStrandsPath`;
+	ZN_StrandsArchiveStrandsPathReplace $attr;
+}
+global proc ZN_StrandsArchiveStrandsPathReplace(string $attr )
+{
+	$filter = "*.abc";
+	textField -e
+			  -tx `getAttr $attr`
+              -cc ("ZN_StrandsArchiveStrandsPathChange(\"" + $attr + "\")")
+			  tfZN_StrandsArchiveStrandsPath;
+
+	symbolButton -e
+	             -c ("ZLoadDirectory "+$attr+" tfZN_StrandsArchiveStrandsPath; refresh;")
+				 tfZN_StrandsArchiveStrandsPathBtn;
+
+	setAttr -type "string" $attr `textField -q -tx tfZN_StrandsArchiveStrandsPath`;
+}
+
+//------------------------------------------------------------------------ main
+global proc AEZN_StrandsArchiveTemplate( string $node )
+{
+	editorTemplate -beginScrollLayout;
+	{
+        //editorTemplate -l   "Cache Mode"	        -ac "inBindingMode";
+
+		editorTemplate -beginLayout "Archive" -collapse 0;
+		{
+            //editorTemplate -l   "Draw Abc Cache"	-ac "drawAbc";
+			editorTemplate -ccu ZN_StrandsArchiveAbcFilePathNew ZN_StrandsArchiveAbcFilePathReplace "inAbcCachePath";
+
+            editorTemplate -l   "Draw Strands"  	-ac "drawStrands";
+			editorTemplate -ccu ZN_StrandsArchiveStrandsPathNew ZN_StrandsArchiveStrandsPathReplace "inZennCachePath";
+            editorTemplate -l   "ZENN Cache Name"	-ac "inZennCacheName";
+            //editorTemplate -l   "Rest Pose Frame"	-ac "efr";
+
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Render Attribute" -collapse 0;
+		{
+            editorTemplate -l   "Root Width Scale"	-ac "rws";
+            editorTemplate -l   "Tip Width Scale"	-ac "tws";
+            editorTemplate -l   "Opacity Scale"	    -ac "ops";
+            editorTemplate -l   "Length Scale"	    -ac "lns";
+		}
+        editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+}
+

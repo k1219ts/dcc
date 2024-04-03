@@ -1,0 +1,279 @@
+//--------------------------------------//
+// AEZelosFurModifier_ScaleTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_ScaleSeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Scale Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ScaleSeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ScaleSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_ScaleSeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScaleSeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_ScaleSeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ScaleSeExpr0;
+	button -e -c ("ZelosFurModifier_ScaleSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_ScaleSeExpr0;
+}
+
+global proc ZelosFurModifier_ScaleSeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ScaleSeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ScaleSeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ScaleSeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ScaleSeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ScaleSeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ScaleSeExpr0;
+}
+
+global proc ZelosFurModifier_ScaleSeExpr0Reset( string $attr )
+{
+	string $txt = "scale + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_ScaleSeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_ScaleSeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_ScaleSeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_ScaleSeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_ScaleSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_ScaleSeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScaleSeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_ScaleSeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_ScaleSeExpr1;
+	button -e -c ("ZelosFurModifier_ScaleSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_ScaleSeExpr1;
+}
+
+global proc ZelosFurModifier_ScaleSeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_ScaleSeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_ScaleSeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_ScaleSeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_ScaleSeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_ScaleSeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_ScaleSeExpr1;
+}
+
+global proc ZelosFurModifier_ScaleSeExpr1Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_ScaleSeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_ScaleSeExpr1;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_ScaleUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_ScaleUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_ScaleUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_ScaleUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_ScaleTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_ScaleTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_ScaleTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScaleTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_ScaleTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_ScaleTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Scale node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_ScaleNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_ScaleNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_ScaleNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_ScaleNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_ScaleTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_ScaleGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_ScaleGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_ScaleGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_ScaleGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_ScaleGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_ScaleGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Scale node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_ScaleNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_ScaleNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_ScaleNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_ScaleNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_ScaleGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_ScaleTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Scale Value";
+			editorTemplate -l "Scale [scale]"                             -ac "scale";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ScaleSeExpr0New ZelosFurModifier_ScaleSeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZelosFurModifier_ScaleSeExpr1New ZelosFurModifier_ScaleSeExpr1Replace "seExpr1Str";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_ScaleUpdateNew ZelosFurModifier_ScaleUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_ScaleTextureListNew ZelosFurModifier_ScaleTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_ScaleGeneratorListNew ZelosFurModifier_ScaleGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+}
+

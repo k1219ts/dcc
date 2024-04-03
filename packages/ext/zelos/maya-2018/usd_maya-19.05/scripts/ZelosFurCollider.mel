@@ -1,0 +1,69 @@
+//----------------------//
+// ZelosFurCollider.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.20                               //
+//-------------------------------------------------------//
+
+global proc AddZelosFurCollider()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $objs[] = `ls -sl`;
+	if( size($objs) < 2 ) { error("Not enough selected objects."); return; }
+
+	string $ZelosFurSimulator;
+	string $colliderMesh;
+
+	for( $obj in $objs )
+	{
+		string $objType = `nodeType $obj`;
+
+		if( $objType == "ZelosFurSimulator" ) {
+
+			$ZelosFurSimulator = $obj;
+
+		} else if( $objType == "transform" ) {
+
+			string $shapes[] = `listRelatives -f -s -ni $obj`;
+			if( size($shapes) != 1 ) { error("Invalid number of shapes."); return; }
+			$colliderMesh = $shapes[0];
+
+		} else if( $objType == "mesh" ) {
+
+			$colliderMesh = $obj;
+
+		}
+	}
+
+	if( $ZelosFurSimulator == "" ) { error("No ZelosFurSimulator node."); return; }
+	if( $colliderMesh      == "" ) { error("No collider mesh."); return; }
+
+	if( `connectionInfo -is ($colliderMesh+".worldMesh[0]")` )
+	{
+		string $nodeAttrs[] = `connectionInfo -dfs ($colliderMesh+".worldMesh[0]")`;
+
+		for( $nodeAttr in $nodeAttrs )
+		{
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+			string $node = $tokens[0];
+
+			if( $ZelosFurSimulator == $node )
+			{
+				error("Already connected to the ZelosFurSimulator");
+				return;
+			}
+		}
+	}
+
+
+	int $port = ZEmptyPort( $ZelosFurSimulator, "colliders" );
+
+	connectAttr ($colliderMesh+".worldMesh[0]") ($ZelosFurSimulator+".colliders["+$port+"]");
+}
+

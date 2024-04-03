@@ -1,0 +1,48 @@
+//---------------//
+// ZN_Select.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_SetPolygons()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_Selects[];
+	{
+		string $objs[] = `ls -sl -l -type ZN_Select`;
+		if( size($objs) == 0 ) { return; }
+
+		for( $obj in $objs )
+		{
+			$ZN_Selects[size($ZN_Selects)] = $obj;
+		}
+	}
+
+	int $selectedPolygonList[] = `ZN_GetSelPolyListCmd`;
+	int $numSelectedPolygons = size($selectedPolygonList);
+	string $selectedPolygonListStr = intArrayToString( $selectedPolygonList, " " );
+
+	int $selectedTriangleList[] = `ZN_GetSelTriListCmd`;
+	int $numSelectedTriangles = size($selectedTriangleList);
+	string $selectedTriangleListStr = intArrayToString( $selectedTriangleList, " " );
+
+	for( $ZN_Select in $ZN_Selects )
+	{
+		string $cmd;
+
+		$cmd = "setAttr " + $ZN_Select + ".polygonList -type Int32Array " + $numSelectedPolygons + " " + $selectedPolygonListStr;
+		eval( $cmd );
+
+		$cmd = "setAttr " + $ZN_Select + ".triangleList -type Int32Array " + $numSelectedTriangles + " " + $selectedTriangleListStr;
+		eval( $cmd );
+
+		setAttr ($ZN_Select+".update") 1;
+	}
+}
+

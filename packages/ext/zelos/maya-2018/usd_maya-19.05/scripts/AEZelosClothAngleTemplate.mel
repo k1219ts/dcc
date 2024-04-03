@@ -1,0 +1,82 @@
+//-----------------------------//
+// AEZelosClothAngleTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.08                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Select Button //
+global proc ZelosClothAngleSelectNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Select" -c  ("ZelosClothAngleSelect "+$attr) ZelosClothAngleSelect;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosClothAngleSelectReplace( string $attr )
+{
+	button -e -c ("ZelosClothAngleSelect "+$attr) ZelosClothAngleSelect;
+}
+
+global proc ZelosClothAngleSelect( string $attr )
+{
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZelosClothAngle = $tokens[0];
+
+	string $ZelosClothSimulator = `GetZelosClothSimulatorFromAngle $ZelosClothAngle`;
+	if( $ZelosClothSimulator == "" ) { return; }
+
+	string $ZelosClothGlobal = `GetZelosClothGlobal $ZelosClothSimulator`;
+	if( $ZelosClothGlobal == "" ) { return; }
+
+	string $outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+	if( $outMeshShape == "" ) { return; }
+
+	string $triListStr = `getAttr $attr`;
+	tokenize( $triListStr, " ", $tokens );
+
+	if( $triListStr == "" ) { return; }
+
+	string $cmd = "select -r ";
+
+	for( $token in $tokens )
+	{
+		$cmd += $outMeshShape + ".f[" + $token + "] ";
+	}
+
+	eval $cmd;
+}
+
+
+//////////
+// main //
+global proc AEZelosClothAngleTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Active"       -ac "active";
+			editorTemplate -l "Time Range"	 -ac "timeRange";
+			editorTemplate -l "Angle"		 -ac "angle";
+			editorTemplate -l "Stiffness"	 -ac "stiffness";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosClothAngleSelectNew ZelosClothAngleSelectReplace "triList";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "vtxList";
+	editorTemplate -suppress "triList";
+	editorTemplate -suppress "output";
+}
+

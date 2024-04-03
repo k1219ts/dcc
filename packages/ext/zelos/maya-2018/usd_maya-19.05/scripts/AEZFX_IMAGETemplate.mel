@@ -1,0 +1,244 @@
+//-------------------------//
+// AEZFX_IMAGETemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.07.08                               //
+//-------------------------------------------------------//
+
+/////////////
+// Preview //
+global proc ZFX_IMAGEPreviewNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_IMAGE = $node[0];
+
+	formLayout swatchDisplayForm;
+	{
+		text -l "" swatchLabel;
+		swatchDisplayPort -wh 64 64 -rs 64 swatchDisplay;
+	}
+	setParent ..;
+
+	global int $gTextColumnWidthIndex;
+
+	formLayout -e
+		-ac swatchDisplay left 100 swatchLabel
+		-af swatchDisplay top 0
+		-af swatchDisplay bottom 0
+		-an swatchDisplay right
+		swatchDisplayForm;
+
+	columnLayout -parent swatchDisplayForm swatchFileInfo;
+	{
+		text -l "Name"  txSwatchFileName;
+		text -l "Size"  txSwatchFileSize;
+		text -l "Alpha" txSwatchFileAlpha;
+		text -l "Ext"   txSwatchFileExt;
+	}
+	setParent ..;
+
+	formLayout -e
+		-ac swatchFileInfo left 5 swatchDisplay
+		-af swatchFileInfo top 0
+		-af swatchFileInfo bottom 0
+		-an swatchFileInfo right
+		swatchDisplayForm;
+
+	ZFX_IMAGEPreviewReplace( $attr );
+}
+
+global proc ZFX_IMAGEPreviewReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_IMAGE = $node[0];
+
+	string $ZFX_File = "ZFX_File";
+	{
+		if( !`objExists ZFX_File` )
+		{
+			$ZFX_File = `createNode file -n ZFX_File`;
+			select -r $ZFX_IMAGE;
+		}
+	}
+
+	string $fileName = `getAttr ($ZFX_IMAGE+".filePathName")`;
+	setAttr ZFX_File.fileTextureName -type "string" $fileName;
+
+    // Please make sure that the render priority specified by -rp 
+    // has the same value with the predefined priority for AE.
+    // For details, please refer to the documentation of swatchDisplayPort command.
+	//swatchDisplayPort -e -sn "ZN_File" -rp 3 swatchDisplay;
+	swatchDisplayPort -e -sn "ZFX_File" swatchDisplay;
+
+	float $size[] = `getAttr ZFX_File.outSize`;
+	int $hasAlpha = `getAttr ZFX_File.fileHasAlpha`;
+	string $path  = `getAttr ZFX_File.fileTextureName`;
+	string $name  = `basenameEx $path`;
+	string $type  = `fileExtension $path`;
+
+	string $fileNames = "Name: " + $name;
+	string $fileSize  = "Size: " + $size[0] + " x " + $size[1];
+	string $fileAlpha = "Alpha: ";
+	if( $hasAlpha ) { $fileAlpha += "Exists"; }
+	else            { $fileAlpha += "None";   }
+	string $fileExt   = "Format: " + $type;
+
+	text -e -l $fileNames txSwatchFileName;
+	text -e -l $fileSize  txSwatchFileSize;
+	text -e -l $fileAlpha txSwatchFileAlpha;
+	text -e -l $fileExt   txSwatchFileExt;
+}
+
+//////////////////////////
+// Use Sequence Changed //
+global proc ZFX_IMAGEUseSequenceChanged( string $node )
+{
+	int $useSequence = `getAttr ($node+".useSequence")`;
+
+	if( $useSequence == 0 )
+	{
+		editorTemplate -dc $node "frameOffset" 1;
+	}
+
+	if( $useSequence == 1 )
+	{
+		editorTemplate -dc $node "frameOffset" 0;
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZFX_IMAGEUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -bgc 0.6 0.6 0.6 -l "Update" -c ("ZFX_IMAGEUpdateExe "+$attr) ZFX_IMAGEUpdate;
+	setUITemplate -ppt;
+
+	ZFX_IMAGEUpdateReplace $attr;
+}
+
+global proc ZFX_IMAGEUpdateReplace( string $attr )
+{
+	button -e -bgc 0.6 0.6 0.6 -c ("ZFX_IMAGEUpdateExe "+$attr) ZFX_IMAGEUpdate;
+}
+
+global proc ZFX_IMAGEUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_IMAGE = $node[0];
+
+	updateAE $ZFX_IMAGE;
+}
+
+//////////////////////////
+// Use Manifold Changed //
+global proc ZFX_IMAGEUseManifoldChanged( string $node )
+{
+	int $useManifold = `getAttr ($node+".useManifold")`;
+
+	if( $useManifold == 0 )
+	{
+		editorTemplate -dc $node "scaleS" 1;
+		editorTemplate -dc $node "scaleT" 1;
+		editorTemplate -dc $node "constS" 1;
+		editorTemplate -dc $node "constT" 1;
+	}
+
+	if( $useManifold == 1 )
+	{
+		editorTemplate -dc $node "scaleS" 0;
+		editorTemplate -dc $node "scaleT" 0;
+		editorTemplate -dc $node "constS" 0;
+		editorTemplate -dc $node "constT" 0;
+	}
+}
+
+
+//////////////////////////////////
+// Time Input Connection Button //
+global proc ZFX_IMAGETimeConnectBtnNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_IMAGE = $node[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -bgc 0.6 0.6 0.6 -l "Connect Time Input" -c ("connectAttr time1.outTime "+$ZFX_IMAGE+".inTime") ZFX_IMAGETimeConnectBtn;
+	}
+	setUITemplate -ppt;
+
+	ZFX_IMAGETimeConnectBtnReplace $attr;
+}
+
+global proc ZFX_IMAGETimeConnectBtnReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_IMAGE = $node[0];
+
+	connectControl ZFX_IMAGETimeConnectBtn $attr;
+	button -e -bgc 0.6 0.6 0.6 -c ("connectAttr time1.outTime "+$ZFX_IMAGE+".inTime") ZFX_IMAGETimeConnectBtn;
+}
+
+//////////
+// main //
+global proc AEZFX_IMAGETemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Preview" -collapse 0;
+		{
+			editorTemplate -ccu ZFX_IMAGEPreviewNew ZFX_IMAGEPreviewReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "File Attribute" -collapse 0;
+		{
+			editorTemplate -l "File Path"    -ac "filePathName";
+			editorTemplate -as;
+			editorTemplate -l "Use Sequence" -ac "useSequence" ZFX_IMAGEUseSequenceChanged;
+			editorTemplate -l "Frame Offset" -ac "frameOffset";
+			editorTemplate -as;
+			editorTemplate -ccu ZFX_IMAGEUpdateNew ZFX_IMAGEUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Ocean Manifold Controls" -collapse 0;
+		{
+			editorTemplate -l "Use Manifold" -ac "useManifold" ZFX_IMAGEUseManifoldChanged;
+			editorTemplate -as;
+			editorTemplate -l "Scale S"      -ac "scaleS";
+			editorTemplate -l "Scale T"      -ac "scaleT";
+			editorTemplate -l "Const S"      -ann "offsetS = frame / constS" -ac "constS";
+			editorTemplate -l "Const T"      -ann "offsetT = frame / constT" -ac "constT";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Weight Map Controls" -collapse 0;
+		{
+			editorTemplate -l "Invert"       -ac "invert";
+			editorTemplate -as;
+			editorTemplate -l "Multiplier"   -ann "Contribution factor for the weight maps." -ac "factor";
+			editorTemplate -as;
+		}
+		editorTemplate -endLayout;
+
+//		editorTemplate -addExtraControls;
+
+		editorTemplate -as;
+		editorTemplate -ccu ZFX_IMAGETimeConnectBtnNew ZFX_IMAGETimeConnectBtnReplace "";
+
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+}

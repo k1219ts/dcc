@@ -1,0 +1,28 @@
+//------------------------//
+// ZMeshesConvertTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZMeshesConvertTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZMeshesConvertTest;
+	polySphere;
+	connectAttr pSphereShape1.worldMesh ZMeshesConvertTest1.inMesh[0];
+	polyCube;
+	setAttr "pCube1.translateZ" 3;
+	setAttr "pCube1.translateX" 3;
+	setAttr "pCube1.translateY" 3;
+	connectAttr pCubeShape1.worldMesh ZMeshesConvertTest1.inMesh[1];
+	connectAttr ZMeshesConvertTest1.output transform1.shearXY;
+}
+

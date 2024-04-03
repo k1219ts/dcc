@@ -1,0 +1,370 @@
+//----------------------//
+// ZelosClothGlobal.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.06.25                               //
+//-------------------------------------------------------//
+
+// as a full path name
+global proc string CreateZelosClothGlobal()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return "";
+	}
+
+	// Create a global node.
+	// |ZelosClothGlobal#
+	string $global;
+	{
+		$global = `createNode ZelosClothGlobal`;
+
+		setAttr -lock true ($global+".translate");
+		setAttr -lock true ($global+".rotate"   );
+		setAttr -lock true ($global+".scale"    );
+
+		// to the full path
+		$global = "|" + $global;
+	}
+
+	// Get the global number.
+	int $globalNumber = 0;
+	{
+		$globalNumber = `GetZelosClothGlobalNumber $global`;
+	}
+
+	// Create an output mesh.
+	// |ZelosClothGlobal#|outMesh
+	string $outMeshXForm;
+	string $outMeshShape;
+	{
+		$outMeshShape = `createNode mesh`;
+		assignShadingGroup initialShadingGroup;
+
+		string $parents[] = `listRelatives -p $outMeshShape`;
+		$outMeshXForm = $parents[0];
+
+		setAttr -lock true ($outMeshXForm+".translate");
+		setAttr -lock true ($outMeshXForm+".rotate"   );
+		setAttr -lock true ($outMeshXForm+".scale"    );
+
+		$outMeshXForm = `rename $outMeshXForm outMesh`;
+
+		string $shapes[] = `listRelatives -c $outMeshXForm`;
+		$outMeshShape = $shapes[0];
+
+		$outMeshShape = `rename $outMeshShape ($outMeshShape+$globalNumber)`;
+
+		parent $outMeshXForm $global;
+
+		// to the full path
+		$outMeshXForm = $global + "|" + $outMeshXForm;
+		$outMeshShape = $outMeshXForm + "|" + $outMeshShape;
+	}
+
+	// Create a ZelosClothSimulator node.
+	// |ZelosClothGlobal#|simulator
+	string $simXForm;
+	string $simShape;
+	{
+		$simShape = `createNode ZelosClothSimulator`;
+
+		string $parents[] = `listRelatives -p $simShape`;
+		$simXForm = $parents[0];
+
+		setAttr -lock true ($simXForm+".translate");
+		setAttr -lock true ($simXForm+".rotate"   );
+		setAttr -lock true ($simXForm+".scale"    );
+
+		$simXForm = `rename $simXForm simulator`;
+
+		parent $simXForm $global;
+
+		// to the full path
+		$simXForm = $global + "|" + $simXForm;
+		$simShape = $simXForm + "|" + $simShape;
+	}
+
+	// |ZelosClothGlobal#|colliders
+	string $colliderGrp;
+	{
+		$colliderGrp = `createNode transform -p $global -n colliders`;
+
+		setAttr -lock true ($colliderGrp+".translate");
+		setAttr -lock true ($colliderGrp+".rotate"   );
+		setAttr -lock true ($colliderGrp+".scale"    );
+
+		// to the full path
+		string $fullPaths[] = `ls -l $colliderGrp`;
+		$colliderGrp = $fullPaths[0];
+	}
+
+	// |ZelosClothGlobal#|constraints
+	string $constraintGrp;
+	{
+		$constraintGrp = `createNode transform -p $global -n constraints`;
+
+		setAttr -lock true ($constraintGrp+".translate");
+		setAttr -lock true ($constraintGrp+".rotate"   );
+		setAttr -lock true ($constraintGrp+".scale"    );
+
+		// to the full path
+		string $fullPaths[] = `ls -l $constraintGrp`;
+		$constraintGrp = $fullPaths[0];
+	}
+
+	// |ZelosClothGlobal#|goalMesh
+	string $goalMeshGrp;
+	{
+		$goalMeshGrp = `createNode transform -p $global -n goalMeshes`;
+
+		setAttr -lock true ($goalMeshGrp+".translate");
+		setAttr -lock true ($goalMeshGrp+".rotate"   );
+		setAttr -lock true ($goalMeshGrp+".scale"    );
+
+		// to the full path
+		string $fullPaths[] = `ls -l $goalMeshGrp`;
+		$goalMeshGrp = $fullPaths[0];
+	}
+
+	// |ZelosClothGlobal#|designPatterns
+	string $designPatternGrp;
+	{
+		$designPatternGrp = `createNode transform -p $global -n designPatterns`;
+
+		setAttr -lock true ($designPatternGrp+".translate");
+		setAttr -lock true ($designPatternGrp+".rotate"   );
+		setAttr -lock true ($designPatternGrp+".scale"    );
+
+		// to the full path
+		string $fullPaths[] = `ls -l $designPatternGrp`;
+		$designPatternGrp = $fullPaths[0];
+	}
+
+	// Create a ZelosClothMesh node.
+	string $meshShape;
+	{
+		$meshShape = `createNode ZelosClothMesh -p $designPatternGrp`;
+	}
+
+	// Set active global node.
+	{
+		string $ZelosClothGlobals[] = `ls -l -type ZelosClothGlobal`;
+
+		for( $ZelosClothGlobal in $ZelosClothGlobals )
+		{
+			if( $ZelosClothGlobal == $global ) {
+				setAttr ($ZelosClothGlobal+".active") true;
+			} else {
+				setAttr ($ZelosClothGlobal+".active") false;
+			}
+		}
+	}
+
+	SetZelosClothPaintable;
+
+	// Select the newly created global node.
+	select -r $global;
+
+	// Return the name of the newly created global node.
+	return $global;
+}
+
+global proc string GetCurrentZelosClothGlobal()
+{
+	string $ZelosClothGlobals[] = `ls -l -type ZelosClothGlobal`;
+
+	int $count = 0;
+
+	for( $ZelosClothGlobal in $ZelosClothGlobals )
+	{
+		if( `getAttr ($ZelosClothGlobal+".active")` )
+		{
+			$count++;
+		}
+	}
+
+	if( $count == 0 ) { return ""; }
+
+	if( $count != 1 )
+	{
+		error("Too many current ZelosClothGlobal nodes.");
+		return "";
+	}
+
+	for( $ZelosClothGlobal in $ZelosClothGlobals )
+	{
+		if( `getAttr ($ZelosClothGlobal+".active")` )
+		{
+			return $ZelosClothGlobal;
+		}
+	}
+
+	return "";
+}
+
+global proc int GetZelosClothGlobalNumber( string $ZelosClothGlobal )
+{
+	if( `nodeType $ZelosClothGlobal` != "ZelosClothGlobal" )
+	{
+		return 0;
+	}
+
+	int $number = `match "[0-9]+$" $ZelosClothGlobal`;
+
+	return $number;
+}
+
+global proc string GetZelosClothMesh( string $ZelosClothGlobal )
+{
+	if( `nodeType $ZelosClothGlobal` != "ZelosClothGlobal" )
+	{
+		return "";
+	}
+
+	string $children[] = `listRelatives -f -ad $ZelosClothGlobal`;
+
+	for( $child in $children )
+	{
+		if( `nodeType $child` == "ZelosClothMesh" )
+		{
+			return $child;
+		}
+	}
+
+	return "";
+}
+
+global proc string GetZelosClothSimulator( string $ZelosClothGlobal )
+{
+	if( `nodeType $ZelosClothGlobal` != "ZelosClothGlobal" )
+	{
+		return "";
+	}
+
+	string $children[] = `listRelatives -f -ad $ZelosClothGlobal`;
+
+	for( $child in $children )
+	{
+		if( `nodeType $child` == "ZelosClothSimulator" )
+		{
+			return $child;
+		}
+	}
+
+	return "";
+}
+
+global proc string GetZelosClothOutMeshShape( string $ZelosClothGlobal )
+{
+	if( `nodeType $ZelosClothGlobal` != "ZelosClothGlobal" )
+	{
+		return "";
+	}
+
+	string $outMeshXForm;
+	{
+		$outMeshXForm = $ZelosClothGlobal + "|outMesh";
+
+		if( !`objExists $outMeshXForm` )
+		{
+			error( $outMeshXForm + " doesn't exist." );
+			return "";
+		}
+	}
+
+	string $outMeshShape;
+	{
+		string $shapes[] = `listRelatives -f -shapes $outMeshXForm`;
+
+		if( size($shapes) == 0 )
+		{
+			error( $outMeshXForm + " doesn't have shape node." );
+			return "";
+		}
+
+		if( size($shapes) != 1 )
+		{
+			error( $outMeshXForm + " has too many shape nodes." );
+			return "";
+		}
+
+		$outMeshShape = $shapes[0];
+
+		if( `nodeType $outMeshShape` != "mesh" )
+		{
+			error( $outMeshShape + " isn't a mesh." );
+			return "";
+		}
+	}
+
+	return $outMeshShape;
+}
+
+global proc string GetZelosClothGlobal( string $ZelosClothSimulator )
+{
+	if( $ZelosClothSimulator == "" ) { return ""; }
+
+	string $parents[] = `listRelatives -f -p $ZelosClothSimulator`;
+	string $simulator = $parents[0];
+
+	$parents = `listRelatives -f -p $simulator`;
+	if( size($parents) == 0 ) { return ""; }
+
+	string $node= $parents[0];
+
+	if( `nodeType $node` != "ZelosClothGlobal" ) { return ""; }
+
+	string $fullPaths[] = `ls -l $node`;
+	if( size($fullPaths) != 1 ) { return ""; }
+
+	return $fullPaths[0];
+}
+
+global proc SetZelosClothPaintable()
+{
+	makePaintable -rm ZelosClothSimulator selfCollisionMap;
+	makePaintable -rm ZelosClothSimulator objCollisionMap;
+	makePaintable -rm ZelosClothSimulator densityMap;
+	makePaintable -rm ZelosClothSimulator frictionMap;
+	makePaintable -rm ZelosClothSimulator stretchStiffnessUMap;
+	makePaintable -rm ZelosClothSimulator stretchStiffnessVMap;
+	makePaintable -rm ZelosClothSimulator shearStiffnessMap;
+	makePaintable -rm ZelosClothSimulator bendStiffnessMap;
+	makePaintable -rm ZelosClothSimulator stretchDampingUMap;
+	makePaintable -rm ZelosClothSimulator stretchDampingVMap;
+	makePaintable -rm ZelosClothSimulator shearDampingMap;
+	makePaintable -rm ZelosClothSimulator bendDampingMap;
+	makePaintable -rm ZelosClothSimulator viscousDampingMap;
+	makePaintable -rm ZelosClothSimulator rubberUMap;
+	makePaintable -rm ZelosClothSimulator rubberVMap;
+	makePaintable -rm ZelosClothSimulator airDragMap;
+	makePaintable -rm ZelosClothSimulator fieldScaleMap;
+	makePaintable -rm ZelosClothSimulator goalStiffnessMap;
+	makePaintable -rm ZelosClothSimulator goalDampingMap;
+
+	makePaintable -at doubleArray ZelosClothSimulator selfCollisionMap;
+	makePaintable -at doubleArray ZelosClothSimulator objCollisionMap;
+	makePaintable -at doubleArray ZelosClothSimulator densityMap;
+	makePaintable -at doubleArray ZelosClothSimulator frictionMap;
+	makePaintable -at doubleArray ZelosClothSimulator stretchStiffnessUMap;
+	makePaintable -at doubleArray ZelosClothSimulator stretchStiffnessVMap;
+	makePaintable -at doubleArray ZelosClothSimulator shearStiffnessMap;
+	makePaintable -at doubleArray ZelosClothSimulator bendStiffnessMap;
+	makePaintable -at doubleArray ZelosClothSimulator stretchDampingUMap;
+	makePaintable -at doubleArray ZelosClothSimulator stretchDampingVMap;
+	makePaintable -at doubleArray ZelosClothSimulator shearDampingMap;
+	makePaintable -at doubleArray ZelosClothSimulator bendDampingMap;
+	makePaintable -at doubleArray ZelosClothSimulator viscousDampingMap;
+	makePaintable -at doubleArray ZelosClothSimulator rubberUMap;
+	makePaintable -at doubleArray ZelosClothSimulator rubberVMap;
+	makePaintable -at doubleArray ZelosClothSimulator airDragMap;
+	makePaintable -at doubleArray ZelosClothSimulator fieldScaleMap;
+	makePaintable -at doubleArray ZelosClothSimulator goalStiffnessMap;
+	makePaintable -at doubleArray ZelosClothSimulator goalDampingMap;
+
+	// obsolte
+	makePaintable -rm ZelosClothSimulator collisionOnOff;
+}
+

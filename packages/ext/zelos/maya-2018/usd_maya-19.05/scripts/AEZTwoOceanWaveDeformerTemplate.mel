@@ -1,0 +1,140 @@
+//-------------------------------------//
+// AEZTwoOceanWaveDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.03.25                               //
+//-------------------------------------------------------//
+
+///////////////////////////
+// when "normal" changed //
+global proc ZTwoOceanWaveDeformerNormalChanged( string $node )
+{
+}
+
+/////////////////////////
+// when "foam" changed //
+global proc ZTwoOceanWaveDeformerFoamChanged( string $node )
+{
+	if( `getAttr ($node+".foam")` ) {
+		editorTemplate -dc $node "foamGamma" 0;
+		editorTemplate -dc $node "foamBrightness" 0;
+		editorTemplate -dc $node "foamFade" 0;
+		editorTemplate -dc $node "foamGamma2" 0;
+		editorTemplate -dc $node "foamBrightness2" 0;
+		editorTemplate -dc $node "foamFade2" 0;
+	} else {
+		editorTemplate -dc $node "foamGamma" 1;
+		editorTemplate -dc $node "foamBrightness" 1;
+		editorTemplate -dc $node "foamFade" 1;
+		editorTemplate -dc $node "foamGamma2" 1;
+		editorTemplate -dc $node "foamBrightness2" 1;
+		editorTemplate -dc $node "foamFade2" 1;
+	}
+}
+
+////////////////
+// Image Path //
+global proc ZTwoOceanWaveDeformerImagePathNew( string $attr )
+{
+	string $filter = "All Files (*.*)";
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4;
+			text "Image Path";
+			textField -ed 1 tfZTwoOceanWaveDeformerImagePath;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "ZLoadFile(\""+$attr+"\",\"tfZTwoOceanWaveDeformerImagePath\","+"\""+$filter+"\")" ) tfZTwoOceanWaveDeformerImagePathBtn;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZTwoOceanWaveDeformerImagePathReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZTwoOceanWaveDeformerImagePath;
+	string $filter = "All Files (*.*)";
+	symbolButton -e -c ( "ZLoadFile(\""+$attr+"\",\"tfZTwoOceanWaveDeformerImagePath\","+"\""+$filter+"\")" ) tfZTwoOceanWaveDeformerImagePathBtn;
+}
+
+
+//////////
+// main //
+global proc AEZTwoOceanWaveDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+			editorTemplate -l "Mode"                    -ac "mode";
+			editorTemplate -l "Computing Method"        -ac "computingMethod";
+		editorTemplate -beginLayout "Control Parameters1" -collapse 0;
+			editorTemplate -l "Time Scale"              -ac "timeScale";
+			editorTemplate -l "Global Scale"            -ac "globalScale";
+			editorTemplate -l "Grid Level"              -ac "gridLevel";
+			editorTemplate -l "Domain Size"             -ac "domainSize";
+			editorTemplate -l "Gravity"                 -ac "gravity";
+			editorTemplate -l "Wind Speed"              -ac "windSpeed";
+			editorTemplate -l "Wind Direction"          -ac "windDirection";
+			editorTemplate -l "Wind Alignment"          -ac "windAlignment";
+			editorTemplate -l "Wave Scale"              -ac "waveScale";
+			editorTemplate -l "Shortest Wave"           -ac "shortestWave";
+			editorTemplate -l "Choppiness"              -ac "choppiness";
+			editorTemplate -l "Damp Reflection"         -ac "dampReflection";
+			editorTemplate -l "Water Depth"             -ac "waterDepth";
+			editorTemplate -l "Random Seed"             -ac "randomSeed";
+			editorTemplate -l "Dispersion Relationship" -ac "whichOmega";
+			editorTemplate -l "Global Offset"           -ac "globalOffset";
+			editorTemplate -l "Smooth Interpolation"    -ac "smoothInterpolation";
+		editorTemplate -endLayout;
+		editorTemplate -beginLayout "Control Parameters2" -collapse 0;
+			editorTemplate -l "Time Scale"              -ac "timeScale2";
+			editorTemplate -l "Global Scale"            -ac "globalScale2";
+			editorTemplate -l "Grid Level"              -ac "gridLevel2";
+			editorTemplate -l "Domain Size"             -ac "domainSize2";
+			editorTemplate -l "Gravity"                 -ac "gravity2";
+			editorTemplate -l "Wind Speed"              -ac "windSpeed2";
+			editorTemplate -l "Wind Direction"          -ac "windDirection2";
+			editorTemplate -l "Wind Alignment"          -ac "windAlignment2";
+			editorTemplate -l "Wave Scale"              -ac "waveScale2";
+			editorTemplate -l "Shortest Wave"           -ac "shortestWave2";
+			editorTemplate -l "Choppiness"              -ac "choppiness2";
+			editorTemplate -l "Damp Reflection"         -ac "dampReflection2";
+			editorTemplate -l "Water Depth"             -ac "waterDepth2";
+			editorTemplate -l "Random Seed"             -ac "randomSeed2";
+			editorTemplate -l "Dispersion Relationship" -ac "whichOmega2";
+			editorTemplate -l "Global Offset"           -ac "globalOffset2";
+			editorTemplate -l "Smooth Interpolation"    -ac "smoothInterpolation2";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Normal" -collapse 0;
+			editorTemplate -l "Calculate"               -ac "normal" ZTwoOceanWaveDeformerNormalChanged;
+		editorTemplate -endLayout;
+		editorTemplate -beginLayout "Foam" -collapse 0;
+			editorTemplate -l "Calculate"               -ac "foam" ZTwoOceanWaveDeformerFoamChanged;
+			editorTemplate -l "Foam Gamma"              -ac "foamGamma";
+			editorTemplate -l "Foam Brightness"         -ac "foamBrightness";
+			editorTemplate -l "Foam Fade"               -ac "foamFade";
+			editorTemplate -as;
+			editorTemplate -l "Foam Gamma2"              -ac "foamGamma2";
+			editorTemplate -l "Foam Brightness2"         -ac "foamBrightness2";
+			editorTemplate -l "Foam Fade2"               -ac "foamFade2";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise" -collapse 0;
+			editorTemplate -l "Spatial Frequency"      -ac "noiseSFreq";
+			editorTemplate -l "Time"      			   -ac "noiseTime";
+			editorTemplate -l "Ocean1 Ratio(0-1)" 	   -ac "ocean1Ratio";
+			editorTemplate -l "Ocean2 Ratio(0-1)"      -ac "ocean2Ratio";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Image" -collapse 0;
+			editorTemplate -l "Min Point of Ocean Mesh " -ac "bBoxMinPt";
+			editorTemplate -l "Max Point of Ocean Mesh " -ac "bBoxMaxPt";
+			editorTemplate -ccu	ZTextBarNew ZTextBarReplace "command : exactWorldBoundingBox";
+			editorTemplate -ccu ZTwoOceanWaveDeformerImagePathNew ZTwoOceanWaveDeformerImagePathReplace "imageFilePath";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "foamMap";
+	editorTemplate -suppress "hasExporter";
+}
+

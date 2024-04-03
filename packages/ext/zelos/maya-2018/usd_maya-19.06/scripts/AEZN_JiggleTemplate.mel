@@ -1,0 +1,131 @@
+//-------------------------//
+// AEZN_JiggleTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.05.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_JiggleModeChanged( string $node )
+{
+	int $mode = `getAttr ($node+".mode")`;
+
+	if( $mode == 0 ) {
+
+		editorTemplate -dc $node "rigidity" 1;
+
+	} else if( $mode == 1 ) {
+
+		editorTemplate -dc $node "rigidity" 0;
+
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_JiggleUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_JiggleUpdateExe "+$attr) ZN_JiggleUpdate;
+	setUITemplate -ppt;
+
+	ZN_JiggleUpdateReplace $attr;
+}
+
+global proc ZN_JiggleUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_JiggleUpdateExe "+$attr) ZN_JiggleUpdate;
+}
+
+global proc ZN_JiggleUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Jiggle = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Jiggle;
+}
+
+//////////
+// main //
+global proc AEZN_JiggleTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands"    -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -beginLayout "General" -collapse 0;
+			{
+				editorTemplate -l "Mode"           -ac "mode" ZN_JiggleModeChanged;
+				editorTemplate -l "Rigidity"       -ac "rigidity";
+				editorTemplate -l "Outward Only"   -ac "outward";
+				editorTemplate -l "On/Off Map"     -ac "jiggleOnOffMap";
+				editorTemplate -l "Time Scale"     -ac "timeScale";
+				editorTemplate -l "Start Time"     -ac "startTime";
+				editorTemplate -l "Gravity"        -ac "gravity";
+			}
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Stiffness" -collapse 0;
+			{
+				editorTemplate -l "Value"          -ac "stiffnessValue";
+				editorTemplate -l "Scale Map"      -ac "stiffnessMap";
+				editorTemplate -l "Randomness"     -ac "stiffnessRandomness";
+			}
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Damping" -collapse 0;
+			{
+				editorTemplate -l "Value"          -ac "dampingValue";
+				editorTemplate -l "Scale Map"      -ac "dampingMap";
+				editorTemplate -l "Randomness"     -ac "dampingRandomness";
+			}
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Amplitude" -collapse 0;
+			{
+				editorTemplate -l "Value"          -ac "amplitudeValue";
+				editorTemplate -l "Scale Map"      -ac "amplitudeMap";
+				editorTemplate -l "Randomness"     -ac "amplitudeRandomness";
+			}
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Wind" -collapse 1;
+			{
+				editorTemplate -l "Direction" -ac "windDirection";
+				editorTemplate -l "Scale"     -ac "windScale";
+				editorTemplate -l "Scale Map" -ac "windMap";
+			}
+			editorTemplate -endLayout;
+
+			editorTemplate -beginLayout "Turbulence" -collapse 1;
+			{
+				editorTemplate -l "Type"           -ac "turbulenceType";
+				editorTemplate -l "Spatial Freq."  -ac "turbulenceSFreq";
+				editorTemplate -l "Temporal Freq." -ac "turbulenceTFreq";
+				editorTemplate -l "Scale"          -ac "turbulenceScale";
+				editorTemplate -l "Scale Map"      -ac "turbulenceMap";
+			}
+			editorTemplate -endLayout;
+
+			editorTemplate -as;
+			editorTemplate -ccu ZN_JiggleUpdateNew ZN_JiggleUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

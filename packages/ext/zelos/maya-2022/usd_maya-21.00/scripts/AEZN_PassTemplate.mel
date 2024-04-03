@@ -1,0 +1,28 @@
+//-----------------------//
+// AEZN_PassTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.07.24                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZN_PassTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

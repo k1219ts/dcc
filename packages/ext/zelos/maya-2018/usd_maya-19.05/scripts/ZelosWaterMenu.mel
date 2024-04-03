@@ -1,0 +1,85 @@
+//--------------------//
+// ZelosWaterMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc ZelosWaterMenu()
+{
+	menuItem -to 1 -l "ZelosWater (Zephyrus)" -ec 1 -subMenu true ZelosWater_Item;
+	{
+		menuItem -to 1 -l "Simulators" -ec 1 -subMenu true ZelosWaterSimulators_Item;
+			setParent -menu ..;
+		menuItem -to 1 -l "Deformers" -ec 1 -subMenu true ZelosWaterDeformers_Item;
+			menuItem -l "ZOceanWaveDeformer"              -ec 1 -c "CreateZOceanWaveDeformer"                       ZelosWater_CreateZOceanWaveDeformer_Item;
+			menuItem -l "Save Parameters"                 -ec 1 -c "SaveZOceanWaveDeformerParams"                   ZelosWater_SaveZOceanWaveDeformer_Item;
+			menuItem -l "Load Parameters"                 -ec 1 -c "LoadZOceanWaveDeformerParams"                   ZelosWater_LoadZOceanWaveDeformer_Item;
+			menuItem -divider true;
+			menuItem -l "ZTwoOceanWaveDeformer"           -ec 1 -c "CreateZTwoOceanWaveDeformer"                    ZelosWater_CreateZTwoOceanWaveDeformer_Item;
+			menuItem -l "Save Parameters"                 -ec 1 -c "SaveZTwoOceanWaveDeformerParams"                ZelosWater_SaveZTwoOceanWaveDeformer_Item;
+			menuItem -l "Load Parameters"                 -ec 1 -c "LoadZTwoOceanWaveDeformerParams"                ZelosWater_LoadZTwoOceanWaveDeformer_Item;
+			menuItem -divider true;
+			menuItem -l "ZKelvinWaveDeformer"             -ec 1 -c "CreateZKelvinWaveDeformer"                      ZelosWater_CreateZKelvinWaveDeformer_Item;
+			menuItem -divider true;
+			menuItem -l "ZBreakingWaveDeformer"           -ec 1 -c "CreateZBreakingWaveDeformer"                    ZelosWater_CreateZBreakingWaveDeformer_Item;
+			menuItem -divider true;
+			menuItem -l "ZRippleDeformer"           	  -ec 1 -c "CreateZRippleDeformerWin"                    	ZelosWater_CreateZRippleDeformer_Item;
+			menuItem -l "ZRipplDefomer Modifier"          -ec 1 -c "UpdateZRippleDeformerWin"                    	ZelosWater_UpdateZRippleDeformer_Item;
+			setParent -menu ..;
+		menuItem -divider true;
+		menuItem -to 1 -l "Viewers" -ec 1 -subMenu true ZelosWaterViewers_Item;
+			menuItem -l "Create ZWaterPtcViewer"          -ec 1 -c "CreateZWaterPtcViewer"                          ZelosWater_CreateZWaterPtcViewer_Item;
+			menuItem -l "Create ZWaterMeshViewer"         -ec 1 -c "CreateZWaterMeshViewer"                         ZelosWater_CreateZWaterMeshViewer_Item;
+			menuItem -l "Create ZField2DViewer"           -ec 1 -c "CreateZField2DViewer"                           ZelosWater_CreateZField2DViewer_Item;
+			menuItem -l "Create ZField3DViewer"           -ec 1 -c "CreateZField3DViewer"                           ZelosWater_CreateZField3DViewer_Item;
+			menuItem -l "Create ZNoiseViewer"             -ec 1 -c "CreateZNoiseViewer"                             ZelosWater_CreateZNoiseViewer_Item;
+			menuItem -l "Create ZOceanWaveViewer"         -ec 1 -c "CreateZOceanWaveViewer"                         ZelosWater_CreateZOceanWaveViewer_Item;
+			menuItem -l "Create ZMayaFieldViewer"         -ec 1 -c "CreateZMayaFieldViewer"                         ZelosWater_CreateZMayaFieldViewer_Item;
+			setParent -menu ..;
+		menuItem -to 1 -l "Emitter" -ec 1 -subMenu true ZelosWaterEmitters_Item;
+			menuItem -l "Create ZOceanPtcEmitter" 		  -ec 1 -c "CreateZOceanPtcEmitter"          				ZelosWater_CreateZOceanPtcEmitter_Item;
+			menuItem -l "Load ZOceanDeformer Parameters"  -ec 1 -c "LoadZOceanWaveDeformerParamsAtZOceanPtcEmitter" ZelosWater_LoadZOceanWaveDeformerParamsAtZOceanPtcEmitter_Item;
+			menuItem -l "Create ZTwoOceanPtcEmitter" 	  -ec 1 -c "CreateZTwoOceanPtcEmitter"         				ZelosWater_CreateZTwoOceanPtcEmitter_Item;
+			setParent -menu ..;
+	}
+	setParent -menu ..;
+}
+
+global proc ZelosWater_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		ZPrintError "ZelosWaterForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZelosWaterMenu;
+}
+
+global proc ZelosWater_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZelosWaterMenu;
+
+	if( `menu -exists mainZelosWaterMenu` ) { deleteUI mainZelosWaterMenu; }
+
+	setParent $gMainWindow;
+
+	$gZelosWaterMenu = `menu -l "ZelosWater" -to true -pmo true mainZelosWaterMenu`;
+	menu -e -pmc ( "ZelosWater_Menu " + $gZelosWaterMenu ) $gZelosWaterMenu;
+
+	hotBox -um;
+}
+
+global proc ZelosWater_DeleteMenu()
+{
+	if( `menu -exists mainZelosWaterMenu` ) { deleteUI mainZelosWaterMenu; }
+}
+

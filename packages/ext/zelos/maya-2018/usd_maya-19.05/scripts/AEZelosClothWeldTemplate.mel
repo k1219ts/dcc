@@ -1,0 +1,80 @@
+//------------------------------//
+// AEZelosClothWeldTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.08                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Select Button //
+global proc ZelosClothWeldSelectNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Select" -c  ("ZelosClothWeldSelect "+$attr) ZelosClothWeldSelect;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosClothWeldSelectReplace( string $attr )
+{
+	button -e -c ("ZelosClothWeldSelect "+$attr) ZelosClothWeldSelect;
+}
+
+global proc ZelosClothWeldSelect( string $attr )
+{
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZelosClothWeld = $tokens[0];
+
+	string $ZelosClothSimulator = `GetZelosClothSimulatorFromWeld $ZelosClothWeld`;
+	if( $ZelosClothSimulator == "" ) { return; }
+
+	string $ZelosClothGlobal = `GetZelosClothGlobal $ZelosClothSimulator`;
+	if( $ZelosClothGlobal == "" ) { return; }
+
+	string $outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+	if( $outMeshShape == "" ) { return; }
+
+	string $vtxListStr = `getAttr $attr`;
+	tokenize( $vtxListStr, " ", $tokens );
+
+	if( $vtxListStr == "" ) { return; }
+
+	string $cmd = "select -r ";
+
+	for( $token in $tokens )
+	{
+		$cmd += $outMeshShape + ".vtx[" + $token + "] ";
+	}
+
+	eval $cmd;
+}
+
+//////////
+// main //
+global proc AEZelosClothWeldTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Active"					-ac "active";
+			editorTemplate -l "Time Range"				-ac "timeRange";
+			editorTemplate -l "Vertex Index"			-ac "vtxIndex";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosClothWeldSelectNew ZelosClothWeldSelectReplace "vtxList";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "vtxList";
+	editorTemplate -suppress "vtxListPos";
+	editorTemplate -suppress "output";
+}
+

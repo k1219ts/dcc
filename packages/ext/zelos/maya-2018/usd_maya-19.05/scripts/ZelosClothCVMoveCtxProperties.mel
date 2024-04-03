@@ -1,0 +1,74 @@
+//-----------------------------------//
+// ZelosClothCVMoveCtxProperties.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.03.03                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothCVMoveCtxProperties()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	if( `control -exists ZelosClothCVMoveCtxLayout` )
+	{
+		return;
+	}
+
+	string $parent = `toolPropertyWindow -q -location`;
+	setParent $parent;
+
+	setUITemplate -pushTemplate DefaultTemplate;
+	{
+		columnLayout ZelosClothCVMoveCtxLayout;
+		{
+			frameLayout -collapsable true -collapse false -l "ZelosClothCVMoveCtxTool" ZelosClothCVMoveCtxFrame;
+			{
+				columnLayout ZelosClothCVMoveCtxOptions;
+				{
+					$parent = `setParent -query`;
+					separator -style "none";
+					intSliderGrp -l "Radius" -f 1 -v 100 -min 10 -max 400 -fmn 10 -fmx 400
+						-cc "ZelosClothCVMoveCtxRadius(`intSliderGrp -q -v ZelosClothCVMoveCtxRadius`)" ZelosClothCVMoveCtxRadius;
+					optionMenuGrp -l "D.O.F"
+						-cc "ZelosClothCVMoveCtxDOF(`optionMenuGrp -q ZelosClothCVMoveCtxDOF`)" ZelosClothCVMoveCtxDOF;
+						menuItem -l "xy"; menuItem -l "yz"; menuItem -l "zx"; menuItem -l "xyz";
+					floatSliderGrp -l "Strength" -f 1 -v 0.01 -min 0.00 -max 2.00 -fmn 0.00 -fmx 2.0 -s 0.01
+						-cc "ZelosClothCVMoveCtxStrength(`floatSliderGrp -q -v ZelosClothCVMoveCtxStrength`)" ZelosClothCVMoveCtxStrength;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -popTemplate;
+}
+
+global proc ZelosClothCVMoveCtxRadius( float $val )
+{
+	ZelosClothCVMoveCtx -e -radius $val `currentCtx`;
+}
+
+global proc ZelosClothCVMoveCtxDOF( int $val )
+{
+	$str = `optionMenuGrp -q -v ZelosClothCVMoveCtxDOF`;
+
+	int $val = 0;
+	if( $str == "xy" ) { $val = 0; }
+	else if( $str == "yz" ) { $val = 1; }
+	else if( $str == "zx" ) { $val = 2; }
+	else if( $str == "xyz" ) { $val = 3; }
+
+	ZelosClothCVMoveCtx -e -dof $val `currentCtx`;
+}
+
+global proc ZelosClothCVMoveCtxStrength( float $val )
+{
+	ZelosClothCVMoveCtx -e -strength $val `currentCtx`;
+}
+

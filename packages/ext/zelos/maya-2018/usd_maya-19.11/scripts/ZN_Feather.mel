@@ -1,0 +1,249 @@
+//----------------//
+// ZN_Feather.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_ImportFeatherWin()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZN_ImportFeatherWin` )
+	{
+    	deleteUI ZN_ImportFeatherWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZENN Feather Import" ZN_ImportFeatherWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 350 -style "none";
+
+		text -l "Mesh" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfZN_FeatherImportMesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZN_FeatherImportMesh\",\"mesh\");");
+		}
+		setParent ..;
+
+		separator -h 30 -w 300 -style "none";
+
+		text -l "Curve Group" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfZN_FeatherImportCurveGroup;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZN_FeatherImportCurveGroup\",\"transform\");");
+		}
+		setParent ..;
+
+		separator -h 30 -w 300 -style "none";
+
+		text -l "ZN_FeatherInstance" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfZN_FeatherImportAssignNode;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZN_FeatherImportAssignNode\",\"ZN_FeatherInstance\");");
+		}
+		setParent ..;
+
+		separator -h 30 -w 300 -style "none";
+
+		button -l "Create" -w 330 -al "center" -c "ZN_CreateFeatherImport";
+
+		separator -h 15 -w 350 -style "none";
+	}
+	setParent ..;
+
+	showWindow ZN_ImportFeatherWin;
+}
+
+global proc ZN_CreateFeatherImport()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $meshXForm          = `textField -q -tx tfZN_FeatherImportMesh`;
+	string $curveGroup         = `textField -q -tx tfZN_FeatherImportCurveGroup`;
+	string $ZN_FeatherInstance = `textField -q -tx tfZN_FeatherImportAssignNode`;
+
+	string $meshShape;
+
+	if( $meshXForm != "" )
+	{
+		if( !`objExists $meshXForm` )
+		{
+			ZPrintError ("Failed to find "+$meshXForm);
+			return;
+		}
+
+		if( !`ZIsFreezed $meshXForm` )
+		{
+			ZPrintError ($meshXForm+" is not freezed.");
+			return;
+		}
+
+		string $shapes[] = `listRelatives -f -c -ni -shapes $meshXForm`;
+
+		if( size($shapes) != 1 )
+		{
+			if( size($shapes) == 0 ) { ZPrintError ($meshXForm+" has no shape node."); }
+			if( size($shapes) > 1 ) { ZPrintError ($meshXForm+" has too many shape nodes."); }
+			return;
+		}
+
+		if( `nodeType $shapes[0]` != "mesh" )
+		{
+			ZPrintError ($meshShape+" is not a polygon mesh.");
+			return;
+		}
+
+		$meshShape = $shapes[0];
+	}
+
+	// Check the curve group.
+	if( $curveGroup != "" )
+	{
+		if( !`objExists $curveGroup` )
+		{
+			ZPrintError ("Failed to find "+$curveGroup);
+			return;
+		}
+
+		string $xforms[] = `listRelatives -f -c $curveGroup`;
+
+		for( $xform in $xforms )
+		{
+			if( `nodeType $xform` != "transform" )
+			{
+				continue;
+			}
+
+			if( !`ZIsFreezed $xform` )
+			{
+				ZPrintError ($xform+" is not freezed.");
+				return;
+			}
+
+			string $shapes[] = `listRelatives -f -c -ni -shapes $xform`;
+
+			if( size($shapes) == 0 )
+			{
+				ZPrintError ($xform+" has no shape node.");
+				return;
+			}
+
+			if( size($shapes) > 1 )
+			{
+				ZPrintError ($xform+" has too many shape nodes.");
+				return;
+			}
+			string $shape = $shapes[0];
+
+			if( `nodeType $shape` != "nurbsCurve" )
+			{
+				ZPrintError ($shape+" is not a nurbsCurve.");
+				return;
+			}
+		}
+	}
+
+	string $ZN_FeatherImport = `createNode ZN_FeatherImport`;
+
+	if( $meshShape != "" )
+	{
+		connectAttr ($meshShape+".w") ($ZN_FeatherImport+".inMesh");
+	}
+
+	if( $curveGroup != "" )
+	{
+		connectAttr ($curveGroup+".message") ($ZN_FeatherImport+".inCurveGroup");
+	}
+
+	int $port = `ZEmptyPort $ZN_FeatherInstance "inFeather"`;
+	connectAttr ($ZN_FeatherImport+".outFeather") ($ZN_FeatherInstance+".inFeather["+$port+"]");
+}
+
+global proc string[] GetZN_FeatherImportNodes( string $ZN_FeatherInstance )
+{
+	string $nodes[];
+
+	if( `nodeType $ZN_FeatherInstance` != "ZN_FeatherInstance" )
+	{
+		return $nodes;
+	}
+
+	string $connectedPlgs[] = `listAttr -multi ( $ZN_FeatherInstance + ".inFeather" )`;
+
+	if( size($connectedPlgs) == 0 )
+	{
+		return $nodes;
+	}
+
+	for( $connectedPlg in $connectedPlgs )
+	{
+		if( !`connectionInfo -id ($ZN_FeatherInstance+"."+$connectedPlg)` ) { continue; }
+
+		string $nodeAttr = `connectionInfo -sfd ($ZN_FeatherInstance+"."+$connectedPlg)`;
+
+		string $tokens[];		
+		tokenize( $nodeAttr, ".", $tokens );
+
+		$nodes[size($nodes)] = $tokens[0];
+	}
+
+	return $nodes;
+}
+
+// type=0: only mesh
+// type=1: only curve group
+// type=2: both
+global proc string[] GetZN_FeatherSources( string $ZN_FeatherImport, int $type )
+{
+	string $nodes[];
+
+	if( `nodeType $ZN_FeatherImport` != "ZN_FeatherImport" )
+	{
+		return $nodes;
+	}
+
+	if( $type==0 || $type==2 )
+	{
+		if( `connectionInfo -id ($ZN_FeatherImport+".inMesh")` )
+		{
+			string $nodeAttr = `connectionInfo -sfd ($ZN_FeatherImport+".inMesh")`;
+
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+
+			string $node = $tokens[0];
+			$nodes[size($nodes)] = $node;
+		}
+	}
+
+	if( $type==1 || $type==2 )
+	{
+		if( `connectionInfo -id ($ZN_FeatherImport+".inCurveGroup")` )
+		{
+			string $nodeAttr = `connectionInfo -sfd ($ZN_FeatherImport+".inCurveGroup")`;
+
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+
+			string $node = $tokens[0];
+			$nodes[size($nodes)] = $node;
+		}
+	}
+
+	return $nodes;
+}
+

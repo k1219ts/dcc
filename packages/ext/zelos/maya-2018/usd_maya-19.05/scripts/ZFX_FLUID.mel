@@ -1,0 +1,36 @@
+//---------------//
+// ZFX_OCEAN.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.06.03                               //
+//-------------------------------------------------------//
+
+global proc CreateZFX_GRID()
+{
+    createNode ZFX_FLIP;    
+    createNode ZFX_GRID;
+    
+}
+
+global proc CreateZFX_Collider()
+{
+   
+    
+    
+}
+
+global proc CreateZFX_Remover()
+{
+    
+}
+
+global proc CreateZFX_Emitter()
+{
+    
+}
+
+global proc CreateZFX_Boundary()
+{
+    
+    
+}

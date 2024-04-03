@@ -1,0 +1,347 @@
+//-----------------------------//
+// AEZN_Deform_CutTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_CutExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Cut Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_CutExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_CutExpr1Win(\""+$attr+"\")") btnZN_Deform_CutExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_CutExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_CutExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_CutExpr1;
+	button -e -c ("ZN_Deform_CutExpr1Win(\""+$attr+"\")") btnZN_Deform_CutExpr1;
+}
+
+global proc ZN_Deform_CutExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_CutExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_CutExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_CutExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_CutExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_CutExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_CutExpr1;
+}
+
+global proc ZN_Deform_CutExpr1Reset( string $attr )
+{
+	string $txt = "cut + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_CutExpr1;
+	scrollField -e -tx $txt sfZN_Deform_CutExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_CutExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_CutExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_CutExpr2Win(\""+$attr+"\")") btnZN_Deform_CutExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_CutExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_CutExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_CutExpr2;
+	button -e -c ("ZN_Deform_CutExpr2Win(\""+$attr+"\")") btnZN_Deform_CutExpr2;
+}
+
+global proc ZN_Deform_CutExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_CutExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_CutExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_CutExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_CutExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_CutExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_CutExpr2;
+}
+
+global proc ZN_Deform_CutExpr2Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZN_Deform_CutExpr2;
+	scrollField -e -tx $txt sfZN_Deform_CutExpr2;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_CutImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_CutImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_CutImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_CutImageListReplace( $attr );
+}
+
+global proc ZN_Deform_CutImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_CutImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Cut node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Cut = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Cut + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Cut + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Cut + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_CutImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_CutDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_CutDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_CutDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_CutDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_CutDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_CutDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Cut node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Cut = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Cut + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_CutDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_CutUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_CutUpdateExe "+$attr) ZN_Deform_CutUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_CutUpdateReplace $attr;
+}
+
+global proc ZN_Deform_CutUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_CutUpdateExe "+$attr) ZN_Deform_CutUpdate;
+}
+
+global proc ZN_Deform_CutUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Cut = $node[0];
+
+	updateAE $ZN_Deform_Cut;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_CutTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Cut Value";
+			editorTemplate -l "Cut [cut]"     -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r1";
+			editorTemplate -l "Frequency [freq]"  -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_CutExpr1New ZN_Deform_CutExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZN_Deform_CutExpr2New ZN_Deform_CutExpr2Replace "e2";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_CutImageListNew ZN_Deform_CutImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_CutDeformerListNew ZN_Deform_CutDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

@@ -1,0 +1,76 @@
+//--------------------------//
+// AEZN_FlutterTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2018.10.02                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_FlutterUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_FlutterUpdateExe "+$attr) ZN_FlutterUpdate;
+	setUITemplate -ppt;
+
+	ZN_FlutterUpdateReplace $attr;
+}
+
+global proc ZN_FlutterUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_FlutterUpdateExe "+$attr) ZN_FlutterUpdate;
+}
+
+global proc ZN_FlutterUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Flutter = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Flutter;
+}
+
+//////////
+// main //
+global proc AEZN_FlutterTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Rigid"            -ac "rigid";
+			editorTemplate -l "Randomness"       -ac "randomness";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Pitch";
+			editorTemplate -l "Amplitude"        -ac "a0";
+			editorTemplate -l "Frequency"        -ac "f0";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Sway";
+			editorTemplate -l "Amplitude"        -ac "a1";
+			editorTemplate -l "Frequency"        -ac "f1";
+			editorTemplate -as;
+			editorTemplate -l "Outward Only"     -ac "outward";
+			editorTemplate -as;
+			editorTemplate -l "Scale Map"        -ac "scaleMap";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_FlutterUpdateNew ZN_FlutterUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

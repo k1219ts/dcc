@@ -1,0 +1,99 @@
+//--------------------------//
+// AEZVExporterTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.04.04                               //
+//-------------------------------------------------------//
+
+global proc AEZVExporterTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Caches" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Cache File Path";
+			editorTemplate -ccu ZVExporterLoadFileNew ZVExporterLoadFileRep "cachePath";
+			editorTemplate -l "Prefix"        -ac "prefix";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Range";
+			editorTemplate -l "Start Frame"   -ac "startFrame";
+			editorTemplate -l "End Frame"     -ac "endFrame";
+
+			editorTemplate -ccu ZVExporterButtonNew ZVExporterButtonRep "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inPtcData";
+	editorTemplate -suppress "inFieldData";
+	editorTemplate -suppress "output";
+}
+
+global proc ZVExporterButtonNew( string $attr )
+{	
+	string $buffer[];
+    tokenize $attr "." $buffer;
+    string $nodeName = $buffer[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Bake" -bgc 0.4 0.3 0.3 -c( "ZVExporterBake "+$nodeName ) bt_ZVExporter_bake;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZVExporterButtonRep( string $attr )
+{
+}
+
+global proc ZVExporterBake( string $attr )
+{
+	int $ff = `getAttr ($attr+".startFrame")`;
+	$ff = $ff;
+
+	currentTime $ff;
+
+	playbackOptions -l "once";
+	play -forward true;
+
+	setAttr ($attr+".run") true;
+}
+
+global proc ZVExporterLoadFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -nc 3;
+
+	text "Cache Path";
+	textField tf_ZVExporter_CachePath;
+	symbolButton sb_ZVExporter_CachePath;
+
+	setParent ..;
+
+	setUITemplate -ppt;
+	
+	ZVExporterLoadFileRep( $attr );
+}
+
+global proc ZVExporterLoadFileRep( string $attr )
+{
+	string $buffer[];
+    tokenize $attr "." $buffer;
+    string $nodeName = $buffer[0];
+
+	textField -e -cc ("ZVExporter_CacheFileChange "+$attr) -tx `getAttr ($attr)` tf_ZVExporter_CachePath;
+
+	symbolButton -e -image "navButtonBrowse.xpm" -c ( "ZLoadDirectory(\""+$attr+"\",\"tf_ZVExporter_CachePath\")" ) sb_ZVExporter_CachePath;
+}
+
+global proc ZVExporter_CacheFileChange( string $attr )
+{
+	print "view";
+	setAttr -type "string" $attr (`textField -q -tx tf_ZVExporter_CachePath`);
+}
+

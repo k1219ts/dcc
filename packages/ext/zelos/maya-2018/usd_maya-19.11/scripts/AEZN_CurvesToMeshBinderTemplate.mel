@@ -1,0 +1,71 @@
+//-------------------------------------//
+// AEZN_CurvesToMeshBinderTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.29                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_CurvesToMeshBinderUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_CurvesToMeshBinderUpdateExe "+$attr) ZN_CurvesToMeshBinderUpdate;
+	setUITemplate -ppt;
+
+	ZN_CurvesToMeshBinderUpdateReplace $attr;
+}
+
+global proc ZN_CurvesToMeshBinderUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_CurvesToMeshBinderUpdateExe "+$attr) ZN_CurvesToMeshBinderUpdate;
+}
+
+global proc ZN_CurvesToMeshBinderUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_CurvesToMeshBinder = $node[0];
+
+	setAttr $attr 1;
+}
+
+//////////
+// main //
+global proc AEZN_CurvesToMeshBinderTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Curve Count" -ac "curveCount";
+			editorTemplate -l "Rest Time"   -ac "restTime";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Mode"        -ac "mode";
+			editorTemplate -l "UV Set Name" -ac "uvSetName";
+			editorTemplate -l "Angle"       -ac "angle";
+			editorTemplate -ccu ZN_CurvesToMeshBinderUpdateNew ZN_CurvesToMeshBinderUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "rootCVs";
+	editorTemplate -suppress "tipCVs";
+	editorTemplate -suppress "tipCVs";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inColliders";
+	editorTemplate -suppress "outTranslates";
+	editorTemplate -suppress "outRotates";
+	editorTemplate -suppress "meshP";
+	editorTemplate -suppress "meshV012";
+	editorTemplate -suppress "meshUV";
+}
+

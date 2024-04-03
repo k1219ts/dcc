@@ -1,0 +1,31 @@
+//-------------------------//
+// ZOffsetMeshDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.03.31                               //
+//-------------------------------------------------------//
+
+global proc CreateZOffsetMeshDeformer()
+{
+	if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	for( $xForm in $selected )
+	{
+		$shape = `listRelatives -c $xForm`;
+		string $ZOffsetMeshDeformer[] = `deformer -type ZOffsetMeshDeformer`;
+		select $ZOffsetMeshDeformer[0];
+	}
+}
+

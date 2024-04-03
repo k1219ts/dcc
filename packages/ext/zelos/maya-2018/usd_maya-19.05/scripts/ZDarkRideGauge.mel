@@ -1,0 +1,17 @@
+//-----------------//
+// CreateZDarkRideGauge.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Dohyun Yang @ Dexter Studios                  //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZDarkRideGauge()
+{
+    if( !`pluginInfo -q -loaded "ZMayaTools"`)
+	{
+		ZPrintError "ZMayaTools is not loaded.";
+		return;
+    }
+}
+

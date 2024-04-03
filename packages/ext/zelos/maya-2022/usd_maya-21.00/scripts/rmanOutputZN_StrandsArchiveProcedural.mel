@@ -1,0 +1,19 @@
+global proc rmanOutputZN_StrandsArchiveStandardBindingProcedrual()
+{
+	//*.py file name name
+	string $moduleName	             = "rmanOutputZN_StrandsArchiveProcedural";
+	//proc name
+	string $rmanOutputProceduralName = "rmanOutputZN_StrandsArchiveDefaultBindingProcedrual";
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+}
+
+global proc rmanOutputZN_StrandsArchiveRigidBindingProcedrual()
+{
+	//*.py file name
+	string $moduleName	             = "rmanOutputZN_StrandsArchiveProcedural";
+	//proc name
+	string $rmanOutputProceduralName = "rmanOutputZN_StrandsArchiveRigidBindingProcedrual";
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+}

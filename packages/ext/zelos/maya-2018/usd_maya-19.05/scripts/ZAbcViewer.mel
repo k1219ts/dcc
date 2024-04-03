@@ -1,0 +1,64 @@
+//----------------//
+// ZAbcViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.24                               //
+//-------------------------------------------------------//
+
+global proc CreateZAbcViewer()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		error( "You must load the ZeomForMaya plug-in first!" );
+		return;
+	}
+
+	createNode ZAbcViewer;
+}
+
+global proc CreateZAbcViewerInstance()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		error( "You must load the ZeomForMaya plug-in first!" );
+		return;
+	}
+
+	string $objs[] = `ls -sl -type transform`;
+
+	if( size($objs) == 0 )
+	{
+		error( "No selected ZAbcViewer node." );
+		return;
+	}
+
+	for( $obj in $objs )
+	{
+		string $shapes[] = `listRelatives -f -c -ni -shapes $obj`;
+
+		if( size($shapes) == 0 )
+		{
+			error( "No shape node.");
+			return;
+		}
+
+		if( size($shapes) > 1 )
+		{
+			error( "Too many shape nodes.");
+			return;
+		}
+
+		if( `nodeType $shapes[0]` != "ZAbcViewer" )
+		{
+			error( "The selected node is not a ZAbcViewer type." );
+			return;
+		}
+
+		string $ZAbcViewer = $shapes[0];
+
+		string $ZAbcViewerInstance = `createNode ZAbcViewerInstance`;
+
+		connectAttr ($ZAbcViewer+".output") ($ZAbcViewerInstance+".input");
+	}
+}
+

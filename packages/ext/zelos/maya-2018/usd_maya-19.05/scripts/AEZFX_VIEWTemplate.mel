@@ -1,0 +1,33 @@
+//------------------------//
+// AEZFX_VIEWTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.06.22                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_VIEWTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "View Controls" -collapse 0;
+		{		
+			editorTemplate -l "Render Mode"     -ac "renderMode";            
+            editorTemplate -l "Point Size"      -ac "pointSize" ;
+			editorTemplate -l "Line Width"      -ac "lineWidth" ;
+            editorTemplate -l "Velocity Scale"  -ac "velScale"  ;
+			editorTemplate -l "Velocity Range"  -ac "velRange"  ;
+			
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inPtcs";
+	editorTemplate -suppress "inPtcSet";
+	editorTemplate -suppress "output";
+}
+

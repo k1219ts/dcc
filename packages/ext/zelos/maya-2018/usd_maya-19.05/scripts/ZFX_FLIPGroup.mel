@@ -1,0 +1,31 @@
+//-------------------//
+// ZFX_FLIPGroup.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.04.04                               //
+//-------------------------------------------------------//
+
+global proc ZFX_AddNewFLIPGroup()
+{
+    if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		ZPrintError "ZFXForMaya is not loaded.";
+		return;
+	}
+
+	string $ZFX_FLIPGroups[] = `ls -l -type ZFX_FLIPGroup`;
+
+	for( $ZFX_FLIPGroup in $ZFX_FLIPGroups )
+	{
+		setAttr ($ZFX_FLIPGroup+".active") 0;
+	}
+
+	string $ZFX_FLIPGroup = `createNode ZFX_FLIPGroup`;
+
+	setAttr ($ZFX_FLIPGroup+".active") 1;
+
+	select -r $ZFX_FLIPGroup;
+}
+

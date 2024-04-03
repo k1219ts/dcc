@@ -1,0 +1,106 @@
+//-------------------------//
+// AEZN_SelectTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.29                               //
+//-------------------------------------------------------//
+
+///////////////////////////////
+// Update Button (Body ) //
+global proc ZN_SelectUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_SelectUpdateExe "+$attr) ZN_SelectUpdate;
+	setUITemplate -ppt;
+
+	ZN_SelectUpdateReplace $attr;
+}
+
+global proc ZN_SelectUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_SelectUpdateExe "+$attr) ZN_SelectUpdate;
+}
+
+global proc ZN_SelectUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Select = $node[0];
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZN_Select;
+}
+
+/////////////////////////
+// When "Mode" changed //
+global proc ZN_SelectModeChanged( string $node )
+{
+	// Set initial dimming state
+	{
+		editorTemplate -dc $node "ratio"      1;
+		editorTemplate -dc $node "randomSeed" 1;
+	}
+
+	int $mode = `getAttr ($node+".mode")`;
+
+	if( $mode == 3 ) // By Specified Ratio
+	{
+		editorTemplate -dc $node "ratio"      0;
+		editorTemplate -dc $node "randomSeed" 0;
+		editorTemplate -dc $node "maskMap"    1;
+		editorTemplate -dc $node "maskValue"  1;
+
+		return;
+	}
+
+	if( $mode == 4 ) // By Texture Map
+	{
+		editorTemplate -dc $node "ratio"      1;
+		editorTemplate -dc $node "randomSeed" 1;
+		editorTemplate -dc $node "maskMap"    0;
+		editorTemplate -dc $node "maskValue"  0;
+
+		return;
+	}
+}
+
+//////////
+// main //
+global proc AEZN_SelectTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Input Strands"  -ac "numInputStrands";
+			editorTemplate -l "Output Strands" -ac "numOutputStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Mode"           -ac "mode" ZN_SelectModeChanged;
+			editorTemplate -as;
+			editorTemplate -l "Ratio"          -ac "ratio";
+			editorTemplate -l "Random Seed"    -ac "randomSeed";
+			editorTemplate -as;
+			editorTemplate -l "Mask Map"    -ac "maskMap";
+			editorTemplate -l "Mask Value"  -ac "maskValue";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_SelectUpdateNew ZN_SelectUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+	editorTemplate -suppress "polygonList";
+	editorTemplate -suppress "triangleList";
+}
+

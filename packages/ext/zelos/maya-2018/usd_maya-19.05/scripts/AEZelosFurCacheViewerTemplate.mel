@@ -1,0 +1,133 @@
+//-----------------------------------//
+// AEZelosFurCacheViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.13                               //
+//-------------------------------------------------------//
+
+/////////////////////////////////
+// When "Display Mode" changed //
+global proc ZelosFurCacheViewerDisplayModeChanged( string $node )
+{
+	int $mode = `getAttr ($node+".displayMode")`;
+
+	if( $mode == 0 ) // none
+	{
+		editorTemplate -dc $node "color"           1;
+		editorTemplate -dc $node "lineWidth"       1;
+		editorTemplate -dc $node "pointSize"       1;
+		editorTemplate -dc $node "displayCVs"      1;
+		editorTemplate -dc $node "displayIndices"  1;
+		editorTemplate -dc $node "rootColorMap"    1;
+		return;
+	}
+
+	if( $mode == 1 ) // solid color
+	{
+		editorTemplate -dc $node "color"           0;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    1;
+		return;
+	}
+
+	if( $mode == 2 ) // group color
+	{
+		editorTemplate -dc $node "color"           1;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    1;
+		return;
+	}
+
+	if( $mode == 3 ) // random color
+	{
+		editorTemplate -dc $node "color"           1;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    1;
+		return;
+	}
+
+	if( $mode == 4 ) // root color
+	{
+		editorTemplate -dc $node "color"           1;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    0;
+		return;
+	}
+}
+
+//////////
+// Path //
+global proc ZelosFurCacheViewerPathNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4;
+			text "Cache Path";
+			textField -ed 1 tfZelosFurCacheViewerPath;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "ZLoadDirectory(\""+$attr+"\",\"tfZelosFurCacheViewerPath\")" ) tfZelosFurCacheViewerPathBtn;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurCacheViewerPathReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurCacheViewerPath;
+	symbolButton -e -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZelosFurCacheViewerPath\")" ) tfZelosFurCacheViewerPathBtn;
+}
+
+//////////
+// main //
+global proc AEZelosFurCacheViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -l "Display Mode"                -ac "displayMode" ZelosFurCacheViewerDisplayModeChanged;
+			editorTemplate -as;
+			editorTemplate -l "Color"                       -ac "color";
+			editorTemplate -l "Line Width"                  -ac "lineWidth";
+			editorTemplate -l "Point Size"                  -ac "pointSize";
+			editorTemplate -l "CVs"                         -ac "displayCVs";
+			editorTemplate -l "Indices"                     -ac "displayIndices";
+			editorTemplate -l "Bounding Boxes"              -ac "displayBBox";
+			editorTemplate -as;
+			editorTemplate -l "Root Color Map"              -ac "rootColorMap";
+			editorTemplate -as;
+			editorTemplate -l "Per Group On/Off"            -ac "groupDisplayStr";
+			editorTemplate -l "Display Ratio"               -ac "displayRatio";
+			editorTemplate -l "Draw While Interaction"      -ac "drawWhileInteraction";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 0;
+			editorTemplate -l "Cache Version"               -ac "version";
+			editorTemplate -as;
+			editorTemplate -l "Groups"                      -ac "numGroups";
+			editorTemplate -l "Curves"                      -ac "numCurves";
+			editorTemplate -l "Total CVs"                   -ac "numTotalCVs";
+			editorTemplate -l "Avg. Curves"                 -ac "avgCurvesPerGrp";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Cache" -collapse 0;
+			editorTemplate -ccu ZelosFurCacheViewerPathNew ZelosFurCacheViewerPathReplace "path";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+

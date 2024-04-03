@@ -1,0 +1,22 @@
+//-------------------//
+// ZSamplingTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZSamplingTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZSamplingTest;
+	createNode transform;
+	connectAttr ZSamplingTest1.output transform1.shearXY;
+}
+

@@ -1,0 +1,58 @@
+//-------------------------------------//
+// ZelosFurGuideBrushCtxProperties.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2015.02.24                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurGuideBrushCtxProperties()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	if( `control -exists ZelosFurGuideBrushCtxLayout` )
+	{
+		return;
+	}
+
+	string $parent = `toolPropertyWindow -q -location`;
+	setParent $parent;
+
+	setUITemplate -pushTemplate DefaultTemplate;
+	{
+		columnLayout ZelosFurGuideBrushCtxLayout;
+		{
+			frameLayout -collapsable true -collapse false -l "ZelosFurGuideBrushCtxTool" ZelosFurGuideBrushCtxFrame;
+			{
+				columnLayout ZelosFurGuideBrushCtxOptions;
+				{
+					$parent = `setParent -query`;
+					separator -style "none";
+					intSliderGrp -l "Radius" -f 1 -v 100 -min 10 -max 400 -fmn 10 -fmx 400
+						-cc "ZelosFurGuideBrushCtxRadius(`intSliderGrp -q -v ZelosFurGuideBrushCtxRadius`)" ZelosFurGuideBrushCtxRadius;
+					floatSliderGrp -l "Strength" -f 1 -v 0.5 -min 0.0 -max 2.0 -fmn 0.0 -fmx 2.0 -s 0.1
+						-cc "ZelosFurGuideBrushCtxStrength(`floatSliderGrp -q -v ZelosFurGuideBrushCtxStrength`)" ZelosFurGuideBrushCtxStrength;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -popTemplate;
+}
+
+global proc ZelosFurGuideBrushCtxRadius( float $val )
+{
+	ZelosFurGuideBrushCtx -e -radius $val `currentCtx`;
+}
+
+global proc ZelosFurGuideBrushCtxStrength( float $val )
+{
+	ZelosFurGuideBrushCtx -e -strength $val `currentCtx`;
+}
+

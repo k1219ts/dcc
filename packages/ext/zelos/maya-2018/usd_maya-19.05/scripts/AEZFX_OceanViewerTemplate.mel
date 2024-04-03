@@ -1,0 +1,119 @@
+//-------------------------------//
+// AEZFX_OceanViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.09.19                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_OceanViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display Controls" -collapse 0;
+		{
+			editorTemplate -l "Display Mode"     			-ac "displayMode";
+			editorTemplate -l "Display Color"    			-ac "displayColor";
+			editorTemplate -as;
+			editorTemplate -l "Display Velocity"            -ac "displayOceanVel";
+			editorTemplate -as;
+			editorTemplate -l "Check Self Collisions"       -ac "selfCol";
+			editorTemplate -as;
+			editorTemplate -l "Enable Directional Light"    -ac "enableLight";
+			editorTemplate -as;
+			editorTemplate -l "Specular"                    -ac "specular";
+			editorTemplate -l "Exponent"                    -ac "exponent";
+			editorTemplate -as;
+			editorTemplate -ccu oceanViewerDisNew oceanViewerDisReplace "";
+        }
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Developement Tools" -collapse 1;
+		{
+			editorTemplate -ccu oceanViewerDevNew oceanViewerDevReplace "";
+        }
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "outMesh";
+ 	editorTemplate -suppress "inData";
+	editorTemplate -suppress "inLightMat";
+}
+
+global proc oceanViewerDisNew( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+	
+	rowLayout;
+	{
+		button btCreateDirLight;
+	}
+	setParent ..;
+	
+	oceanViewerDisReplace( $nodeName );		
+}
+
+global proc oceanViewerDisReplace( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];	
+
+	button -e -l "Create Directional Light" -w 200 -command ("commandCreateDirLight "+$nodeName ) btCreateDirLight;	
+}
+
+global proc oceanViewerDevNew( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];		
+	
+	rowLayout;
+	{
+		button btCreateOceanMesh;
+	}
+	setParent ..;
+	
+	oceanViewerDevReplace( $nodeName );
+}
+
+global proc oceanViewerDevReplace( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+	
+	button -e -l "Create OceanMesh" -w 200 -command ("commandCreateOceanMesh "+$nodeName ) btCreateOceanMesh;	
+}
+
+global proc commandCreateOceanMesh( string $nodeName )
+{
+	string $result = `createNode mesh`;
+	
+	connectAttr ($nodeName + ".outMesh ") ($result + ".inMesh");
+	assignShadingGroup initialShadingGroup;	
+	
+	setAttr ($nodeName+".useNodeMesh") true;
+}
+
+global proc commandCreateDirLight( string $nodeName )
+{	
+	string $source = `connectionInfo -sfd ($nodeName+".inLightMat")`;
+	
+	if($source == "")
+	{		
+		string $result = `directionalLight`;		
+		scale -r 5 5 5;
+			
+		connectAttr ($result+".worldMatrix") ($nodeName+".inLightMat");			
+	}            
+}

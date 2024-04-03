@@ -1,0 +1,60 @@
+//---------------------------//
+// AEZMeshLoaderTemplate.mel //
+//-------------------------------------------------------//
+// author: Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+//////////////////
+// Export Cache //
+global proc ZMeshLoaderFilePathNameNew( string $attr )
+{
+	string $filter = "All Files (*.obj)";
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 4;
+		{
+			text "File Path";
+			textField -ed 1 tfZelosFurSimPath;
+			symbolButton -image "navButtonBrowse.xpm" -c ( "ZLoadFile(\""+$attr+"\",\"tfZelosFurSimPath\","+"\""+$filter+"\")" ) tfZelosFurSimPathBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZMeshLoaderFilePathNameReplace( $attr );
+}
+
+global proc ZMeshLoaderFilePathNameReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	string $filter = "All Files (*.obj)";
+
+	textField -e -tx `getAttr $attr` tfZelosFurSimPath;
+	symbolButton -e -c ( "ZLoadFile(\""+$attr+"\",\"tfZelosFurSimPath\","+"\""+$filter+"\")" ) tfZelosFurSimPathBtn;
+}
+
+//////////
+// main //
+global proc AEZMeshLoaderTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Options" -collapse 0;
+		{
+			editorTemplate -ccu ZMeshLoaderFilePathNameNew ZMeshLoaderFilePathNameReplace "filePathName";
+			editorTemplate -l "Frame Offset" -ac "frameOffset";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "frame";
+	editorTemplate -suppress "outMesh";
+}
+

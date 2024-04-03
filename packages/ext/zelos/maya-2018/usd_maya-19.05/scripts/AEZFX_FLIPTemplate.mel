@@ -1,0 +1,113 @@
+//------------------------//
+// AEZFX_FLIPTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.04.07                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_FLIPTemplate( string $nodeName )
+{        
+        
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Simulation Parameters" -collapse 0;
+		{
+			editorTemplate -l "Start Time"              -ac "startTime";
+			editorTemplate -l "Time Scale"              -ac "timeScale";
+			editorTemplate -l "Gravity"                 -ac "gravity";
+			editorTemplate -l "CFL Condition No."       -ac "cfl";
+			editorTemplate -l "Max. Sub-Steps"          -ac "maxSubSteps";         
+		}
+		editorTemplate -endLayout;
+		
+		editorTemplate -beginLayout "Simulation Controls" -collapse 0;
+		{
+        	editorTemplate -ccu controlBoxNew controlBoxReplace "";			
+		}
+		editorTemplate -endLayout;		       
+
+		editorTemplate -beginLayout "Cache Controls" -collapse 1;
+		{
+			editorTemplate -l "Export"                  -ac "cacheExport";
+			editorTemplate -l "Path"                    -ac "cachePath";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+            
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inGrids";
+	editorTemplate -suppress "inPtcs";
+	editorTemplate -suppress "outPtcSet";
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+	editorTemplate -suppress "inObjs";
+	editorTemplate -suppress "frame";
+	editorTemplate -suppress "cacheExport";
+	editorTemplate -suppress "cachePath";
+	editorTemplate -suppress "reset";
+}
+
+global proc controlBoxNew( string $nodeName )
+{   
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+        
+    rowLayout;
+    {
+		button btReset;	
+    }
+	setParent ..;
+
+    controlBoxReplace($nodeName);
+}
+
+global proc controlBoxReplace( string $nodeName )
+{    
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+	
+	button -e -l "Reset" -command ("commandReset "+$nodeName) btReset;
+}
+
+global proc commandReset( string $nodeName )
+{	
+	string $allNodes[] = `ls -dep`;
+	
+	for($i=0; $i<size($allNodes); $i++)
+	{
+		if(`attributeExists "reset" $allNodes[$i]`)
+		{		
+			setAttr ($allNodes[$i]+".reset") true;
+		} 		
+	}
+}
+
+global proc commandAddCollider( string $nodeName )
+{
+    setAttr ($nodeName+".addCollider") true;
+}
+
+global proc commandRemoveCollider( string $nodeName )
+{
+    setAttr ($nodeName+".removeCollider") true;    
+}
+
+global proc clickButton( string $nodeName )
+{
+    //setAttr ($nodeName+".startTime") 3.0;
+    //print $nodeName;
+}
+

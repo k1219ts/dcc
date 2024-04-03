@@ -1,0 +1,335 @@
+//---------------------------//
+// AEZN_GenerateTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.12.01                               //
+//-------------------------------------------------------//
+
+global proc ZN_GenerateDirectRadiusControlChanged( string $node )
+{
+	int $directRadiusControl = `getAttr ($node+".directRadiusControl")`;
+
+	if( $directRadiusControl ) {
+
+		editorTemplate -dc $node "dValueRange"  0;
+		editorTemplate -dc $node "dValueLift"   0;
+		editorTemplate -dc $node "diskVariance" 1;
+
+	} else {
+
+		editorTemplate -dc $node "dValueRange"  1;
+		editorTemplate -dc $node "dValueLift"   1;
+		editorTemplate -dc $node "diskVariance" 0;
+
+	}
+}
+
+global proc ZN_GenerateSubdivisionChanged( string $node )
+{
+	int $subdivision = `getAttr ($node+".subdivision")`;
+
+	if( $subdivision == 0 ) {
+
+		editorTemplate -dc $node "subdivFactor" 1;
+
+	} else {
+
+		editorTemplate -dc $node "subdivFactor" 0;
+
+	}
+}
+
+global proc ZN_GenerateSamplingMethodChanged( string $node )
+{
+	// Set initial dimming state.
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 0;
+		editorTemplate -dc $node "dValueRange"         0;
+		editorTemplate -dc $node "dValueLift"          0;
+		editorTemplate -dc $node "diskVariance"        0;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          0;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+	}
+
+	int $samplingMethod = `getAttr ($node+".samplingMethod")`;
+
+	if( $samplingMethod == 0 ) // None
+	{
+		editorTemplate -dc $node "targetCount"         1;
+		editorTemplate -dc $node "randomSeed"          1;
+		editorTemplate -dc $node "directRadiusControl" 1;
+		editorTemplate -dc $node "dValueRange"         1;
+		editorTemplate -dc $node "dValueLift"          1;
+		editorTemplate -dc $node "diskVariance"        1;
+		editorTemplate -dc $node "densityMap"          1;
+		editorTemplate -dc $node "removeMap"           1;
+		editorTemplate -dc $node "removeValue"         1;
+		editorTemplate -dc $node "wispRadius"          1;
+		editorTemplate -dc $node "startID"             1;
+		editorTemplate -dc $node "numToBind"           1;
+		editorTemplate -dc $node "cvSamplingRatio"     1;
+		editorTemplate -dc $node "device"              1;
+		editorTemplate -dc $node "numToBind"           1;
+		editorTemplate -dc $node "cvSamplingRatio"     1;
+		editorTemplate -dc $node "interpolation"       1;
+		editorTemplate -dc $node "subdivision"         1;
+		editorTemplate -dc $node "subdivFactor"        1;
+		return;
+	}
+
+	if( $samplingMethod == 1 ) // Random Barycentric 1
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 1;
+		editorTemplate -dc $node "dValueRange"         1;
+		editorTemplate -dc $node "dValueLift"          1;
+		editorTemplate -dc $node "diskVariance"        1;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          1;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+		return;
+	}
+
+	if( $samplingMethod == 2 ) // Random Barycentric 2
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 1;
+		editorTemplate -dc $node "dValueRange"         1;
+		editorTemplate -dc $node "dValueLift"          1;
+		editorTemplate -dc $node "diskVariance"        1;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          1;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+		return;
+	}
+
+	if( $samplingMethod == 3 ) // Poisson Disk on UV
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 1;
+		editorTemplate -dc $node "dValueRange"         1;
+		editorTemplate -dc $node "dValueLift"          1;
+		editorTemplate -dc $node "diskVariance"        1;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          1;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+		return;
+	}
+
+	if( $samplingMethod == 4 ) // Monte Carlo
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 1;
+		editorTemplate -dc $node "dValueRange"         1;
+		editorTemplate -dc $node "dValueLift"          1;
+		editorTemplate -dc $node "diskVariance"        1;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          1;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+		return;
+	}
+
+	if( $samplingMethod == 5 ) // Poisson Disk on Mesh
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 0;
+		editorTemplate -dc $node "dValueRange"         0;
+		editorTemplate -dc $node "dValueLift"          0;
+		editorTemplate -dc $node "diskVariance"        0;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          1;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+		ZN_GenerateDirectRadiusControlChanged( $node );
+		return;
+	}
+
+	if( $samplingMethod == 6 ) // Wisp
+	{
+		editorTemplate -dc $node "targetCount"         0;
+		editorTemplate -dc $node "randomSeed"          0;
+		editorTemplate -dc $node "directRadiusControl" 1;
+		editorTemplate -dc $node "dValueRange"         1;
+		editorTemplate -dc $node "dValueLift"          1;
+		editorTemplate -dc $node "diskVariance"        1;
+		editorTemplate -dc $node "densityMap"          0;
+		editorTemplate -dc $node "removeMap"           0;
+		editorTemplate -dc $node "removeValue"         0;
+		editorTemplate -dc $node "wispRadius"          0;
+		editorTemplate -dc $node "startID"             0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "device"              0;
+		editorTemplate -dc $node "numToBind"           0;
+		editorTemplate -dc $node "cvSamplingRatio"     0;
+		editorTemplate -dc $node "interpolation"       0;
+		editorTemplate -dc $node "subdivision"         0;
+		editorTemplate -dc $node "subdivFactor"        0;
+		return;
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_GenerateUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_GenerateUpdateExe "+$attr) ZN_GenerateUpdate;
+	setUITemplate -ppt;
+
+	ZN_GenerateUpdateReplace $attr;
+}
+
+global proc ZN_GenerateUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_GenerateUpdateExe "+$attr) ZN_GenerateUpdate;
+}
+
+global proc ZN_GenerateUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Generate = $node[0];
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZN_Generate;
+}
+
+//////////
+// main //
+global proc AEZN_GenerateTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Input";
+			editorTemplate -l "Strands"                 -ac "numInputStrands";
+			editorTemplate -l "Total CVs"               -ac "numInputTotalCVs";
+			editorTemplate -l "Average CVs"             -ac "numInputAverageCVs";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "output";
+			editorTemplate -l "Strands"                 -ac "numOutputStrands";
+			editorTemplate -l "Total CVs"               -ac "numOutputTotalCVs";
+			editorTemplate -l "Average CVs"             -ac "numOutputAverageCVs";
+			editorTemplate -l "Used Memory Size (MB)"   -ac "megaBytes";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Sampling Controls" -collapse 0;
+		{
+			editorTemplate -l "Method"                  -ac "samplingMethod" ZN_GenerateSamplingMethodChanged;
+			editorTemplate -l "Target Count"            -ac "targetCount";
+			editorTemplate -l "Random Seed"             -ac "randomSeed";
+			editorTemplate -as; 
+			editorTemplate -l "Direct Radius Control"   -ac "directRadiusControl" ZN_GenerateDirectRadiusControlChanged;
+			editorTemplate -as; 
+			editorTemplate -l "Disk Radius Value Range" -ac "dValueRange";
+			editorTemplate -l "Disk Radius Value Lift"  -ac "dValueLift";
+			editorTemplate -as; 
+			editorTemplate -l "Disk Radius Variance"    -ac "diskVariance";
+			editorTemplate -as; 
+			editorTemplate -l "Density Map"             -ac "densityMap";
+			editorTemplate -as; 
+			editorTemplate -l "Remove Map"              -ac "removeMap";
+			editorTemplate -l "Remove Value"            -ac "removeValue";
+			editorTemplate -as; 
+			editorTemplate -l "Wisp Radius"             -ac "wispRadius";
+			editorTemplate -as; 
+			editorTemplate -l "Start ID"                -ac "startId";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Binding & Interpolation Controls" -collapse 0;
+		{
+			editorTemplate -l "Device"                  -ac "device";
+			editorTemplate -as; 
+			editorTemplate -l "# to Bind"               -ac "numToBind";
+			editorTemplate -l "CV Sampling Ratio"       -ac "cvSamplingRatio";
+			editorTemplate -l "Interpolation"           -ac "interpolation";
+			editorTemplate -as; 
+			editorTemplate -l "Subdivision"             -ac "subdivision" ZN_GenerateSubdivisionChanged;
+			editorTemplate -l "Subdivision Factor"      -ac "subdivFactor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -as;
+		editorTemplate -ccu ZN_GenerateUpdateNew ZN_GenerateUpdateReplace "update";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

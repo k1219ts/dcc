@@ -1,0 +1,21 @@
+//--------------------------------//
+// AEZFX_OceanToImageTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.07.01                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_OceanToImageTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inOcean";
+	editorTemplate -suppress "outImage";
+}

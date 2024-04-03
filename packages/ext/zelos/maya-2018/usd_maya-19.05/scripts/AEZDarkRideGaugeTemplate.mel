@@ -1,0 +1,227 @@
+//------------------------------//
+// AEZDarkRideGaugeTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2018.09.14                               //
+//-------------------------------------------------------//
+
+//---------------------------------------------------------- Clear Button
+global proc ZDarkRideGauge_ClearBtnCallback(string $attr)
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $nodename = $tokens[0];
+	string $attrname = $tokens[1];
+
+
+    setAttr ($nodename + ".prevRailPos") 0.0;
+    setAttr ($nodename + ".prevRailVel") 0.0;
+
+    setAttr ($nodename + ".prevSpindleAngle") 0.0 0.0 0.0;
+    setAttr ($nodename + ".prevSpindleAngularVel") 0.0 0.0 0.0;
+
+    setAttr ($nodename + ".prevMPPos") 0.0 0.0 0.0;
+    setAttr ($nodename + ".prevMPLinearVel") 0.0 0.0 0.0;
+
+    setAttr ($nodename + ".prevMPAngle") 0.0 0.0 0.0;
+    setAttr ($nodename + ".prevMPAngularVel") 0.0 0.0 0.0;
+
+    setAttr ($nodename + ".clear") 1;
+
+}
+global proc ZDarkRideGauge_ClearBuild(string $attr)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+        button -l "Clear" -w 10 ZDarkRideGauge_ClearBtn;
+
+        string $cmd;
+        $cmd = "ZDarkRideGauge_ClearBtnCallback ";
+        $cmd += $attr;
+        button -e -c $cmd ZDarkRideGauge_ClearBtn;
+	}
+	setUITemplate -ppt;
+}
+global proc ZDarkRideGauge_ClearUpdate(string $attr)
+{
+
+    string $cmd;
+    $cmd = "ZDarkRideGauge_ClearBtnCallback ";
+    $cmd += $attr;
+    button -e -c $cmd ZDarkRideGauge_ClearBtn;
+}
+//---------------------------------------------------------- Export Button
+global proc ZDarkRideGauge_ExportBtnCallback(string $attr)
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $nodename = $tokens[0];
+	string $attrname = $tokens[1];
+
+    string $filePath = `getAttr "ZDarkRideGaugeShape1.filePath"`;
+    int $sz = size($filePath);
+    if($sz == 0)
+        return;
+
+    ZDrakRideGaugeCmd -n $nodename -op $filePath;
+}
+global proc ZDarkRideGauge_ExportFileBuild(string $attr)
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+        button -l "Export" -al "right" ZDarkRideGauge_ExportFileBtn;
+        string $cmd;
+        $cmd = "ZDarkRideGauge_ExportBtnCallback ";
+        $cmd += $attr;
+        button -e -c $cmd ZDarkRideGauge_ExportFileBtn;
+	}
+	setUITemplate -ppt;
+}
+global proc ZDarkRideGauge_ExportFileUpdate(string $attr)
+{
+    string $cmd;
+    $cmd = "ZDarkRideGauge_ExportBtnCallback ";
+    $cmd += $attr;
+
+    button -e -c $cmd ZDarkRideGauge_ExportFileBtn;
+}
+
+//---------------------------------------------------------- Export File Browser
+global proc ZDarkRideGauge_LoadFile(string $attr, string $textField, string $filter)
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $nodename = $tokens[0];
+	string $attrname = $tokens[1];
+
+	string $file[] = `fileDialog2 -fm 0 -ds 1 -ff $filter`;
+	if( !size($file) )
+	{
+		return;
+	}
+	string $renderpath = $file[0];
+
+	setAttr -type "string" ($nodename + "." + $attrname) $renderpath;
+	textField -e -tx `getAttr $attr` $textField;
+}
+
+global proc ZDarkRideGauge_FileBrowerBuild(string $attr)
+{
+    string $tokens[];
+	tokenize $attr "." $tokens;
+	string $nodename = $tokens[0];
+	string $attrname = $tokens[1];
+
+    string $labelName = "excel file";
+
+    setUITemplate -pst attributeEditorTemplate;
+	{
+        rowLayout -nc 3;
+        {
+        	text -label $labelName;
+        	string $tfName = ("ZDarkRideGauge_" + $attrname + "_TextField");
+
+	        textField -ed 1 -tx `getAttr $attr` $tfName;
+        	connectControl $tfName $attr;
+
+            string $btnName = ("ZDarkRideGauge_" + $attrname + "_Button");
+            symbolButton -image "navButtonBrowse.xpm" $btnName;
+
+            string $filefilter  = "Exel Files(*.xls);;All Files (*.*)";
+            string $cmd;
+            $cmd = "ZDarkRideGauge_LoadFile ";
+            $cmd += ($attr + " ");
+            $cmd += ($tfName);
+            $cmd += ("\"" + $filefilter + "\"; refresh;");
+
+            symbolButton -e -c $cmd $btnName;
+
+    		setParent ..;
+        }
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZDarkRideGauge_FileBrowerUpdate(string $attr)
+{
+    string $tokens[];
+	tokenize $attr "." $tokens;
+	string $nodename = $tokens[0];
+	string $attrname = $tokens[1];
+
+    string $tfName  = ("ZDarkRideGauge_" + $attrname + "_TextField");
+    string $btnName = ("ZDarkRideGauge_" + $attrname + "_Button");
+
+	connectControl $tfName $attr;
+
+    string $filefilter  = "Exel Files(*.xls);;All Files (*.*)";
+	string $cmd;
+	$cmd = "ZDarkRideGauge_LoadFile ";
+	$cmd += ($attr + " ");
+    $cmd += ($tfName);
+	$cmd += ("\"" + $filefilter + "\"; refresh;");
+
+	symbolButton -e -c $cmd $btnName;
+}
+
+
+// main //
+global proc AEZDarkRideGaugeTemplate( string $node )
+{
+	editorTemplate -beginScrollLayout;
+	{
+        editorTemplate -beginLayout "ZDarkRideGauge" -collapse 0;
+        {
+            editorTemplate -l "Scene Scale"	                -ac "sceneScale";
+            editorTemplate -as;
+
+            editorTemplate -l "InTime"	                    -ac "inTime";
+            editorTemplate -l "InCurve"	                    -ac "inCurve";
+            editorTemplate -as;
+
+            editorTemplate -l "InTime Offset (frame)"	        -ac "inTimeOffset";
+            editorTemplate -l "InDistanceOffset (m)"	        -ac "inDistanceOffset";
+            editorTemplate -l "inSpindleAngleOffset (degree)"	-ac "inSpindleAngleOffset";
+            editorTemplate -l "inMPPosOffset (m)"	            -ac "inMPPosOffset";
+            editorTemplate -l "inMPAngleOffset (degree)"	    -ac "inMPAngleOffset";
+            editorTemplate -as;
+
+            editorTemplate -l "In Rail Position"	        -ac "inPos";
+            editorTemplate -l "In Spindle Rotation"	        -ac "inSpindleAngle";
+            editorTemplate -l "In MP Position"	            -ac "inMPPos";
+            editorTemplate -l "In MP Angle"	                -ac "inMPAngle";
+            editorTemplate -as;
+
+            editorTemplate -ccu ZDarkRideGauge_ClearBuild   ZDarkRideGauge_ClearUpdate      "clear";
+            editorTemplate -as;
+
+            editorTemplate -l "Previous Rail Position"	        -ac "prevRailPos";
+            editorTemplate -l "Previous Spindle Angle"	        -ac "prevSpindleAngle";
+            editorTemplate -l "Previous MP Pos"	                -ac "prevMPPos";
+            editorTemplate -l "Previous MP Position"	        -ac "prevMPAngle";
+
+        }
+		editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Display Options" -collapse 0;
+        {
+            editorTemplate -as;
+
+            editorTemplate -l "Font Size"	                            -ac "fontSize";
+            editorTemplate -as;
+            editorTemplate -l "Display Rail Data Info"	                -ac "displayRailInfo";
+            editorTemplate -as;
+            editorTemplate -l "Display Spindle  Info"	                -ac "displaySpindleInfo";
+            editorTemplate -as;
+            editorTemplate -l "Display MotionPlatform Translate Info"   -ac "displayMotionPlatformTInfo";
+            editorTemplate -as;
+            editorTemplate -l "Display MotionPlatform Rotation Info"    -ac "displayMotionPlatformRInfo";
+            editorTemplate -as;
+            editorTemplate -l "Display Check List Info"	                -ac "displayCheckListInfo";
+            editorTemplate -as;
+        }
+		editorTemplate -endLayout;
+	}
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}

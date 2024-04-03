@@ -1,0 +1,37 @@
+//----------------------//
+// ZOceanWaveViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.03.07                               //
+//-------------------------------------------------------//
+
+global proc CreateZOceanWaveViewer()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selectedT[] = `ls -sl -dag -type transform`;
+	string $selectedM[] = `ls -sl -dag -type mesh`;
+
+	string $name = "ZOceanWaveViewer";
+	string $numOfNode[] = `ls -type ZOceanWaveViewer`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZOceanWaveViewerXFormName = $name + "XForm" + $number;
+	string $ZOceanWaveViewerShapeName = $name + "Shape" + $number;
+	string $ZOceanWaveViewerXForm = `createNode transform -n $ZOceanWaveViewerXFormName`;
+	string $ZOceanWaveViewer = `createNode ZOceanWaveViewer -n $ZOceanWaveViewerShapeName -p $ZOceanWaveViewerXForm`;
+
+	connectAttr time1.outTime ( $ZOceanWaveViewer + ".time" );
+	connectAttr ( $ZOceanWaveViewer + ".output" ) ( $ZOceanWaveViewerXForm + ".dynamics" );
+
+	string $inMeshShape[] = `listRelatives -shapes $selectedT`;
+	connectAttr ( $inMeshShape[0] + ".worldMesh[0]" ) ( $ZOceanWaveViewer + ".inMesh" );
+
+	select -r $ZOceanWaveViewer;
+}
+

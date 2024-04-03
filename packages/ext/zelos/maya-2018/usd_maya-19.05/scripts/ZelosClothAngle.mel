@@ -1,0 +1,151 @@
+//-------------------//
+// ZelosClothAngle.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.08                               //
+//-------------------------------------------------------//
+
+global proc AddZelosClothAngles()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+	
+    string $xforms[] = `ls -sl -type transform`;
+    
+	string $triListStr;
+    for( $xform in $xforms )
+    {
+        string $shapes[] = `listRelatives -f -c -ni -shapes -type ZelosClothSeam $xforms[0]`;
+
+        for( $shape in $shapes )
+        {
+            string $ZelosClothSeam = $shape;
+            
+            string $ZelosClothCurve[] = `GetConnectedZelosClothCurveFromSeam $ZelosClothSeam`;
+            string $ZelosClothMesh = `GetConnectedZelosClothMeshFromSeam $ZelosClothSeam`;
+            
+            int $trianglePairList[] = `ZelosClothGetTrianglePair -seam $ZelosClothSeam -curve0 $ZelosClothCurve[0] -curve1 $ZelosClothCurve[1] -clothMesh $ZelosClothMesh`;
+			$triListStr = intArrayToString( $trianglePairList, " " );       
+        }        
+    }
+	//print $triListStr;  
+	
+	// Get the ZelosClothGlobal node.
+	string $global;
+	{
+		string $parents[] = `listRelatives -f -p -ni $xforms[0]`;
+
+		string $tokens[];
+		tokenize( $parents[0], "|", $tokens );
+		int $nTokens = size($tokens);
+
+		int $i = 0;
+		for( ; $i<($nTokens-1); $i++ )
+		{
+			$global += "|" + $tokens[$i];
+		}
+	}
+	//print $global; 
+	
+	// Get the ZelosClothSimulator node.
+	string $simShape;
+	{
+		string $shapes[] = `listRelatives -f -c -ad -ni $global`;
+
+		int $count = 0;
+		for( $shape in $shapes )
+		{
+			if( `nodeType $shape` == "ZelosClothSimulator" )
+			{
+				$simShape = $shape;
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("Failed to find ZelosClothSimulator node."); return; }
+		if( $count != 1 ) { error("Too many ZelosClothSimulator nodes."); return; }
+	}	
+	
+	// Get the constraints group node.
+	string $constraintsGrp;
+	{
+		string $shapes[] = `listRelatives -f -c -ni $global`;
+
+		int $count = 0;
+		for( $shape in $shapes )
+		{
+			if( $shape == $global + "|constraints" )
+			{
+				$constraintsGrp = $shape;
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("Failed to find constraints group node."); return; }
+		if( $count != 1 ) { error("Too many constraints group nodes."); return; }
+	}
+	
+	// Create a ZelosClothAngle node.
+	string $angleShape;
+	{
+		$angleShape = `createNode ZelosClothAngle`;
+	}	
+	
+	// Get the xform nodes of the ZelosClothAngle nodes.
+	string $angleXForm;
+	{
+		string $parents[] = `listRelatives -p $angleShape`;
+		$xform = $parents[0];
+
+		setAttr -lock true ($xform+".translate");
+		setAttr -lock true ($xform+".rotate"   );
+		setAttr -lock true ($xform+".scale"    );
+
+		string $tokens[];
+		tokenize( $angleShape, "ZelosClothAngle", $tokens );
+		int $number = $tokens[size($tokens)-1];
+		$angleXForm = `rename $xform ("angle"+$number)`;
+	}
+	
+	// Connect attributes;
+	{
+		setAttr ($angleShape+".triList") -type "string" $triListStr;
+		int $port = ZEmptyPort( $simShape, "angleConstraints" );
+		connectAttr ($angleShape+".output") ($simShape+".angleConstraints["+$port+"]");
+	}	
+	
+	select -r $angleShape;
+
+	// |ZelosClothGlobal#|constraints
+	{
+		parent $angleXForm $constraintsGrp;
+	}			 
+}
+
+
+global proc string GetZelosClothSimulatorFromAngle( string $ZelosClothAngle )
+{
+	if( `nodeType $ZelosClothAngle` != "ZelosClothAngle" ) { return ""; }
+
+	if( !`connectionInfo -is ($ZelosClothAngle+".output")` ) { return ""; }
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothAngle+".output")`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZelosClothSimulator" )
+		{
+			return $node;
+		}
+	}
+
+	return "";
+}

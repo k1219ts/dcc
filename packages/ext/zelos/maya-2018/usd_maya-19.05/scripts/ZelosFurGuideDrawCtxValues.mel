@@ -1,0 +1,21 @@
+//--------------------------------//
+// ZelosFurGuideDrawCtxValues.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2015.02.09                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurGuideDrawCtxValues( string $ctxName ) 
+{
+	string $parent = (`toolPropertyWindow -q -location` + "|ZelosFurGuideDrawCtxLayout");
+	setParent $parent;
+
+	frameLayout -e -en true -cl false ZelosFurGuideDrawCtxFrame;
+
+	float $distance = eval( "ZelosFurGuideDrawCtx -q -distance " + $ctxName );
+	floatSliderGrp -e -value $distance ZelosFurGuideDrawCtxDistance;
+
+	toolPropertySelect ZelosFurGuideDrawCtxLayout;
+}
+

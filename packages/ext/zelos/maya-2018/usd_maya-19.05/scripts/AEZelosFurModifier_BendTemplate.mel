@@ -1,0 +1,346 @@
+//-------------------------------------//
+// AEZelosFurModifier_BendTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_BendSeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Bend Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_BendSeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_BendSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_BendSeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_BendSeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_BendSeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_BendSeExpr0;
+	button -e -c ("ZelosFurModifier_BendSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_BendSeExpr0;
+}
+
+global proc ZelosFurModifier_BendSeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_BendSeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_BendSeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_BendSeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_BendSeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_BendSeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_BendSeExpr0;
+}
+
+global proc ZelosFurModifier_BendSeExpr0Reset( string $attr )
+{
+	string $txt = "bend + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_BendSeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_BendSeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_BendSeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Bend Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_BendSeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_BendSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_BendSeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_BendSeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_BendSeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_BendSeExpr1;
+	button -e -c ("ZelosFurModifier_BendSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_BendSeExpr1;
+}
+
+global proc ZelosFurModifier_BendSeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_BendSeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_BendSeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_BendSeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_BendSeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_BendSeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_BendSeExpr1;
+}
+
+global proc ZelosFurModifier_BendSeExpr1Reset( string $attr )
+{
+	string $txt = "rate + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_BendSeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_BendSeExpr1;
+}
+
+//////////////
+// Se.Expr2 // 
+global proc ZelosFurModifier_BendSeExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_BendSeExpr2;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_BendSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_BendSeExpr2;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_BendSeExpr2Replace( $attr );
+}
+
+global proc ZelosFurModifier_BendSeExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_BendSeExpr2;
+	button -e -c ("ZelosFurModifier_BendSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_BendSeExpr2;
+}
+
+global proc ZelosFurModifier_BendSeExpr2Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_BendSeExpr2;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_BendSeExpr2Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_BendSeExpr2Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_BendSeExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_BendSeExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_BendSeExpr2;
+}
+
+global proc ZelosFurModifier_BendSeExpr2Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_BendSeExpr2;
+	scrollField -e -tx $txt sfZelosFurModifier_BendSeExpr2;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_BendUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_BendUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_BendUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_BendUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_BendTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_BendTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_BendTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_BendTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_BendTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_BendTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Bend node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_BendNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_BendNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_BendNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_BendNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_BendTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_BendGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_BendGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_BendGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_BendGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_BendGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_BendGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Bend node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_BendNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_BendNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_BendNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_BendNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_BendGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_BendTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Bend Value";
+			editorTemplate -l "Bend [bend]"                               -ac "bend";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_BendSeExpr0New ZelosFurModifier_BendSeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Rate Value";
+			editorTemplate -l "Rate [rate]"                               -ac "rate";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand1";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq1";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_BendSeExpr1New ZelosFurModifier_BendSeExpr1Replace "seExpr1Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZelosFurModifier_BendSeExpr2New ZelosFurModifier_BendSeExpr2Replace "seExpr2Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Angle Behavior";
+			editorTemplate -l "Increase"                                  -ac "increase";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_BendUpdateNew ZelosFurModifier_BendUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_BendTextureListNew ZelosFurModifier_BendTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_BendGeneratorListNew ZelosFurModifier_BendGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+}
+

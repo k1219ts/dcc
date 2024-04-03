@@ -1,0 +1,95 @@
+//-------------------------------//
+// AEZWaterPtcViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.03.07                               //
+//-------------------------------------------------------//
+
+/////////////////////
+// Load Cache Path //
+global proc ZWaterPtcViewerLoadDirNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4;
+			text "Cache Path";
+			textField -ed 1 tfZWaterPtcViewerLoadDir;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "ZLoadDirectory(\""+$attr+"\",\"tfZWaterPtcViewerLoadDir\")" ) tfZWaterPtcViewerLoadDirBtn;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZWaterPtcViewerLoadReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZWaterPtcViewerLoadDir;
+	symbolButton -e -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZWaterPtcViewerLoadDir\")" ) tfZWaterPtcViewerLoadDirBtn;
+}
+
+//////////////////
+//	Num Particles
+global proc ZWaterPtcViewerNumParticlesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout -w 300 -nc 3 -cw3 90 100 90;
+				text -w 90 "";
+				text -w 100 "# of Particles";
+				textField -w 90 -ed 0 -bgc 0.9 0.8 0.8 ZWaterPtcViewerNumParticles;
+				setParent..;
+			setParent ..;
+
+	setUITemplate -ppt;
+
+	ZWaterPtcViewerNumParticlesReplace( $attr );
+}
+
+global proc ZWaterPtcViewerNumParticlesReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	connectControl ZWaterPtcViewerNumParticles ( $node[0] + ".numPtcStr" );
+}
+
+//////////
+// main //
+global proc AEZWaterPtcViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -beginLayout "Particles" -collapse 0;
+				editorTemplate -ccu ZWaterPtcViewerNumParticlesNew ZWaterPtcViewerNumParticlesReplace "";
+				editorTemplate -l "Mode"                  -ac "displayPtcMode";
+				editorTemplate -l "Color"                 -ac "wPtcColor0";
+				editorTemplate -l "     "                 -ac "wPtcColor1";
+				editorTemplate -l "White Speed"           -ac "whiteSpeed";
+				editorTemplate -l "Opacity"               -ac "wPtcAlpha";
+				editorTemplate -l "Size"                  -ac "ptcSize";
+				editorTemplate -l "Smooth"                -ac "ptcSmooth";
+				editorTemplate -as;
+				editorTemplate -l "Use Crop Box"          -ac "useCropBox";
+				editorTemplate -l "Crop Box Min."         -ac "cropBoxMin";
+				editorTemplate -l "Crop Box Max."         -ac "cropBoxMax";
+				editorTemplate -as;
+				editorTemplate -l "Display Velocity"      -ac "displayWPtcVel";
+				editorTemplate -l "Scale"                 -ac "wPtcVelDispScale";
+				editorTemplate -l "Color"                 -ac "wPtcVelColor";
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Cache" -collapse 0;
+			editorTemplate -ccu ZWaterPtcViewerLoadDirNew ZWaterPtcViewerLoadReplace "loadCacheDir";
+			editorTemplate -l "Offset"        -ac "loadCacheOffset";
+		editorTemplate -endLayout;
+
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+

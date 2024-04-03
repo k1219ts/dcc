@@ -1,0 +1,52 @@
+//--------------------------------//
+// AEZMayaFieldViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.05.02                               //
+//-------------------------------------------------------//
+
+global proc AEZMayaFieldViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			
+			editorTemplate -l "Mode" 			 -ac "mode";
+			editorTemplate -l "Vector Draw Type" -ac "vectorDrawType";
+			editorTemplate -l "Field Names" 	 -ac "fieldNames";
+			
+			editorTemplate -as;
+			editorTemplate -l "Grid" 			-ac "displayGrid";
+			editorTemplate -l "Resolution" 		-ac "resolution";
+
+			editorTemplate -l "Display X" 		-ac "xSlice";
+			editorTemplate -l "Display Y" 		-ac "ySlice";
+			editorTemplate -l "Display Z" 		-ac "zSlice";
+	
+			editorTemplate -l "i-Slice" 		-ac "iSlice";
+			editorTemplate -l "j-Slice" 		-ac "jSlice";
+			editorTemplate -l "k-Slice" 		-ac "kSlice";
+			
+
+			editorTemplate -l "Interval"		-ac "interval";
+			editorTemplate -l "Line Scale"		-ac "lineScale";
+			editorTemplate -l "Point Size"		-ac "pointSize";
+
+
+			editorTemplate -beginLayout "Streamline" -collapse 0;
+				editorTemplate -l "Start Frame"		-ac "sl_startFrame";
+				editorTemplate -l "Dt"				-ac "sl_dt";
+				editorTemplate -l "# of Particles"  -ac "sl_numPtc";
+				editorTemplate -l "Random Seed"  	-ac "sl_random";
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+

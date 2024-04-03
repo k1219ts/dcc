@@ -1,0 +1,1030 @@
+//-----------------------------//
+// ZelosFurGuideCurveTools.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.26                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurGuideCurveToolsWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$win = "ZelosFurGuideToolsWin";
+
+	if( `window -exists $win` )
+	{
+		deleteUI $win;
+		windowPref -remove $win;
+	}
+	
+	if( `window -exists $win` )
+	{
+		showWindow $win;
+		return;
+	}
+
+	$window = `window -title "ZelosFur Guide Curve Tools" -wh 10 10 -s 1 -rtf 1 $win`;
+	$form = `formLayout -nd 100`;
+
+	string $row = `rowLayout -adj 1 -nc 2`;
+	{
+		button -l "Update ZelosFur" -h 30 -c "ZelosFurGuideToolsUpdate";
+		button -l "Display On/Off"  -h 30 -c "ZelosFurGuideToolsDisplayOnOff";
+	}
+	setParent ..;
+
+	$tabs = `tabLayout -imw 2 -imh 2`;
+	formLayout -e -af $tabs "top" 0 -af $tabs "left" 0 -af $tabs "bottom" 50 -af $tabs "right" 0 $form;
+	formLayout -e -an $row "top" -af $row "left" 0 -af $row "bottom" 15 -ap $row "right" 0 100 $form;
+
+	////////////
+	// Global //
+	$tabGlb = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		text -h 20 -l "ZelosFurGlobal" -fn "boldLabelFont" -al "left";
+		rowLayout -adj 1 -nc 2;
+		{
+			textField -tx "" -ed 0 -w 370 -bgc 0 0 0 ZFGTGlbGlb;
+			button -l "<<" -w 30 -c ("ZLoadObjByType(\"ZFGTGlbGlb\",\"ZelosFurGlobal\");");
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		text -h 20 -l "Body Mesh" -fn "boldLabelFont" -al "left";
+		rowLayout -adj 1 -nc 2;
+		{
+			textField -tx "" -ed 0 -w 370 -bgc 0 0 0 ZFGTGlbMsh;
+			button -l "<<" -w 30 -c ("ZLoadShapeNode(\"ZFGTGlbMsh\",\"mesh\");");
+		}
+		setParent ..;
+	}
+	setParent ..;
+
+	//////////
+	// Grow //
+	$tabGrw = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Method" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTGrwMtd`;
+			$rb1 = `radioButton -l "Monte Carlo"  ZFGCTGrwMtd0`;
+			$rb2 = `radioButton -l "Poisson Disk" ZFGCTGrwMtd1`;
+			radioCollection -e -select $rb2 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 5 -cw5 80 80 80 80 80;
+		{
+			text -h 20 -l "Location" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTGrwLoc`;
+			$rb1 = `radioButton -l "Vertex"   ZFGCTGrwLoc0`;
+			$rb2 = `radioButton -l "Facet"    ZFGCTGrwLoc1`;
+			$rb3 = `radioButton -l "Triangle" ZFGCTGrwLoc2`;
+			$rb4 = `radioButton -l "Random"   ZFGCTGrwLoc3`;
+			radioCollection -e -select $rb4 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Degrees" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTGrwDgr`;
+			$rb1 = `radioButton -l "1" ZFGCTGrwDgr0`;
+			$rb2 = `radioButton -l "3" ZFGCTGrwDgr1`;
+			radioCollection -e -select $rb2 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Type" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTGrwTyp`;
+			$rb1 = `radioButton -l "CP" ZFGCTGrwTyp0`;
+			$rb2 = `radioButton -l "EP" ZFGCTGrwTyp1`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Count" -fn "boldLabelFont" "left";
+			intSliderGrp -v 1000 -min 1 -max 100000 -f 1 -w 300 ZFGCTGrwCnt;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "CVs" -fn "boldLabelFont" "left";
+			intSliderGrp -v 6 -min 2 -max 100 -f 1 -w 300 ZFGCTGrwCvs;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Length" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.01 -max 1000.0 -s 0.01 -f 1 -w 300 ZFGCTGrwLen;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Seed" -fn "boldLabelFont" "left";
+			intSliderGrp -v 0 -min 0 -max 10000 -f 1 -w 300 ZFGCTGrwSed;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsGrwExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	///////////
+	// Plant //
+	$tabPlt = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Count" -fn "boldLabelFont" "left";
+			intSliderGrp -v 3 -min 1 -max 100 -f 1 -w 300 ZFGCTPltCnt;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsPltExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Select //
+	$tabSel = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 3 -cw3 80 100 100;
+		{
+			text -h 20 -l "Method" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTSelMod`;
+			$rb1 = `radioButton -l "By Distance" ZFGCTSelMod0`;
+			$rb2 = `radioButton -l "By Ratio"    ZFGCTSelMod1`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.0 -max 1000.0 -s 0.01 -f 1 -w 300 ZFGCTSelDst;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Ratio" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 0.5 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZFGCTSelRat;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsSelExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	//////////////
+	// Resample //
+	$tabRsp = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 4 -cw4 80 100 100 100;
+		{
+			text -h 20 -l "Method" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTRspMod`;
+			$rb1 = `radioButton -l "Uniformly"  ZFGCTRspMod0`;
+			$rb2 = `radioButton -l "Absolutely" ZFGCTRspMod1`;
+			$rb3 = `radioButton -l "Relatively" ZFGCTRspMod2`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Number" -fn "boldLabelFont" "left";
+			intSliderGrp -v 6 -min 4 -max 100 -f 1 -w 300 ZFGCTRspNum;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsRspExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Mirror //
+	$tabMrr = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Mode" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTMrrMod`;
+			$rb1 = `radioButton -l "Copy" ZFGCTMrrMod0`;
+			$rb2 = `radioButton -l "Move" ZFGCTMrrMod1`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 4 -cw4 80 50 50 50;
+		{
+			text -h 20 -l "Direction" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZFGCTMrrDir`;
+			$rb1 = `radioButton -l "X" ZFGCTMrrDir0`;
+			$rb2 = `radioButton -l "Y" ZFGCTMrrDir1`;
+			$rb3 = `radioButton -l "Z" ZFGCTMrrDir2`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		checkBox -l "Attach after mirroring" -v 1 ZFGCTMrrAtc;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsMrrExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	//////////
+	// Wisp //
+	$tabWsp = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Count" -fn "boldLabelFont" "left";
+			intSliderGrp -v 10 -min 1 -max 100 -f 1 -w 300 ZFGCTWspCnt;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Near Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 0.1 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZFGCTWspNer;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Far Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZFGCTWspFar;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsWspExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	//////////
+	// Flow //
+	$tabFlw = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		text -l "Flow Curves" -font "boldLabelFont" -h 15 -al "left";
+		rowLayout -adj 1 -nc 2;
+		{
+			textScrollList -w 300 -h 90 -ams 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZFGTFlwLst`; select $items[0];" ) ZFGTFlwLst;
+
+            columnLayout -adj 1;
+            {
+			    button -l "Add"    -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Add( \"ZFGTFlwLst\", \"nurbsCurve\" )" );
+			    button -l "Remove" -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Remove( \"ZFGTFlwLst\" )" );
+			    button -l "Clear"  -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Clear( \"ZFGTFlwLst\" )" );
+			    button -l "Delete" -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Delete( \"ZFGTFlwLst\" )" );
+            }
+            setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.0 -max 1000.0 -s 0.01 -f 1 -w 300 ZFGCTFlwDst;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Degrees" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 10.0 -min -90.0 -max 90.0 -s 0.01 -f 1 -w 300 ZFGCTFlwDgr;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Randomness" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 0.3 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZFGCTFlwRnd;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsFlwExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Modify //
+	$tabMdf = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Scale" -bs "etchedIn" -w 400;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 2.0 -min 0.0 -max 10.0 -s 0.01 ZFGCTMdfSclVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfSclRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZelosFurGuideToolsMdfExe(0)";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Cut" -bs "etchedIn" -w 400;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.5 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfCutVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfCutRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZelosFurGuideToolsMdfExe(1)";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Kink" -bs "etchedIn" -w 400;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.1 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfKnkVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfKnkRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZelosFurGuideToolsMdfExe(2)";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Smoothen" -bs "etchedIn" -w 400;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 1.0 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfSmtVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfSmtRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZelosFurGuideToolsMdfExe(3)";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Straighten" -bs "etchedIn" -w 400;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 1.0 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfStrVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZFGCTMdfStrRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZelosFurGuideToolsMdfExe(4)";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		checkBox -l "Resample CVs after modification" -v 1 ZFGCTMdfRsp;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsMdfExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Attach //
+	$tabAtc = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZelosFurGuideToolsAtcExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	/////////////////
+	// Interactive //
+	$tabItr = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+
+		separator -h 5 -st "none";
+		button -l "Guide Curve Draw Tool"  -w 400 -al "center" -c "ZelosFurGuideToolsItrExe(0)";
+
+		separator -h 5 -st "none";
+		button -l "Guide Curve Brush Tool" -w 400 -al "center" -c "ZelosFurGuideToolsItrExe(1)";
+
+		separator -h 5 -st "none";
+		button -l "Flow Curve Move Tool"   -en 0 -w 400 -al "center" -c "ZelosFurGuideToolsItrExe(2)";
+
+		separator -h 5 -st "none";
+		button -l "Flow Curve Brush Tool"  -w 400 -al "center" -c "ZelosFurGuideToolsItrExe(3)";
+
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	tabLayout -e
+		-tl $tabGlb "Global"
+		-tl $tabGrw "Grow"
+		-tl $tabPlt "Plant"
+		-tl $tabSel "Select"
+		-tl $tabRsp "Resample"
+		-tl $tabMrr "Mirror"
+		-tl $tabWsp "Wisp"
+		-tl $tabFlw "Flow"
+		-tl $tabMdf "Modify"
+		-tl $tabAtc "Attach"
+		-tl $tabItr "Interactive"
+		$tabs;
+
+	showWindow $win;
+}
+
+//////////
+// Grow //
+global proc ZelosFurGuideToolsGrwExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	$mtdStr = `radioCollection -q -sl ZFGCTGrwMtd`;
+	$locStr = `radioCollection -q -sl ZFGCTGrwLoc`;
+	$dgrStr = `radioCollection -q -sl ZFGCTGrwDgr`;
+	$typStr = `radioCollection -q -sl ZFGCTGrwTyp`;
+
+	int $mtd = 0;
+	if( $mtdStr == "ZFGCTGrwMtd0" )      { $mtd = 0; }
+	else if( $mtdStr == "ZFGCTGrwMtd1" ) { $mtd = 1; }
+
+	int $loc = 0;
+	if( $locStr == "ZFGCTGrwLoc0" )      { $loc = 0; }
+	else if( $locStr == "ZFGCTGrwLoc1" ) { $loc = 1; }
+	else if( $locStr == "ZFGCTGrwLoc2" ) { $loc = 2; }
+	else if( $locStr == "ZFGCTGrwLoc3" ) { $loc = 3; }
+
+	int $dgr = 0;
+	if( $dgrStr == "ZFGCTGrwDgr0" )      { $dgr = 1; }
+	else if( $dgrStr == "ZFGCTGrwDgr1" ) { $dgr = 3; }
+
+	int $typ = 0;
+	if( $typStr == "ZFGCTGrwTyp0" )      { $typ = 0; }
+	else if( $typStr == "ZFGCTGrwTyp1" ) { $typ = 1; }
+
+	int   $cnt = `intSliderGrp   -q -v ZFGCTGrwCnt`;
+	int   $cvs = `intSliderGrp   -q -v ZFGCTGrwCvs`;
+	float $len = `floatSliderGrp -q -v ZFGCTGrwLen`;
+	int   $sed = `intSliderGrp   -q -v ZFGCTGrwSed`;
+
+	ZelosFurGuideGrowCmd
+		-meshName $mesh
+		-method   $mtd
+		-location $loc
+		-degree   $dgr
+		-type     $typ
+		-count    $cnt
+		-number   $cvs
+		-length   $len
+		-seed     $sed;
+
+	select -cl;
+}
+
+///////////
+// Plant //
+global proc ZelosFurGuideToolsPltExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	int $cnt = `intSliderGrp -q -v ZFGCTPltCnt`;
+
+	ZelosFurGuidePlantCmd
+		-meshName $mesh
+		-count    $cnt;
+
+	select -cl;
+}
+
+////////////
+// Select //
+global proc ZelosFurGuideToolsSelExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	//$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	$modStr = `radioCollection -q -sl ZFGCTSelMod`;
+
+	int $mod = 0;
+	if( $modStr == "ZFGCTSelMod0" )      { $mod = 0; }
+	else if( $modStr == "ZFGCTSelMod1" ) { $mod = 1; }
+
+	float $distance = `floatSliderGrp -q -v ZFGCTSelDst`;
+	float $ratio    = `floatSliderGrp -q -v ZFGCTSelRat`;
+
+	ZelosFurGuideSelectCmd
+		-mode     $mod
+		-distance $distance
+		-ratio    $ratio;
+}
+
+//////////////
+// Resample //
+global proc ZelosFurGuideToolsRspExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	//$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	$modStr = `radioCollection -q -sl ZFGCTRspMod`;
+
+	int $mod = 0;
+	if( $modStr == "ZFGCTRspMod0" )      { $mod = 0; }
+	else if( $modStr == "ZFGCTRspMod1" ) { $mod = 1; }
+	else if( $modStr == "ZFGCTRspMod2" ) { $mod = 2; }
+
+	int $number = `intSliderGrp -q -v ZFGCTRspNum`;
+
+	ZelosFurGuideResampleCmd
+		-mode   $mod
+		-number $number;
+}
+
+////////////
+// Mirror //
+global proc ZelosFurGuideToolsMrrExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	$modStr = `radioCollection -q -sl ZFGCTMrrMod`;
+	$dirStr = `radioCollection -q -sl ZFGCTMrrDir`;
+
+	int $mod = 0;
+	if( $modStr == "ZFGCTMrrMod0" )      { $mod = 0; }
+	else if( $modStr == "ZFGCTMrrMod1" ) { $mod = 1; }
+
+	int $dir = 0;
+	if( $dirStr == "ZFGCTMrrDir0" )      { $dir = 0; }
+	else if( $dirStr == "ZFGCTMrrDir1" ) { $dir = 1; }
+	else if( $dirStr == "ZFGCTMrrDir2" ) { $dir = 2; }
+
+	ZelosFurGuideMirrorCmd
+		-meshName  $mesh
+		-mode      $mod
+		-direction $dir;
+
+	if( `checkBox -q -v ZFGCTMrrAtc` )
+	{
+		ZelosFurGuideAttachCmd
+			-meshName $mesh;
+	}
+}
+
+//////////
+// Wisp //
+global proc ZelosFurGuideToolsWspExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	int   $cnt = `intSliderGrp   -q -v ZFGCTWspCnt`;
+	float $ner = `floatSliderGrp -q -v ZFGCTWspNer`;
+	float $far = `floatSliderGrp -q -v ZFGCTWspFar`;
+
+	ZelosFurGuideWispCmd
+		-meshName $mesh
+		-count    $cnt
+		-v1       $ner
+		-v2       $far;
+}
+
+////////////
+// Attach //
+global proc ZelosFurGuideToolsAtcExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	ZelosFurGuideAttachCmd
+		-meshName $mesh;
+}
+
+//////////
+// Flow //
+global proc ZelosFurGuideToolsFlwExe()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	string $flowCrvs[] = ZTextScrollList_GetAllItems( "ZFGTFlwLst" );
+
+	string $flowCrvStr;
+	for( $flowCrv in $flowCrvs )
+	{
+		$flowCrvStr += $flowCrv + " ";
+	}
+
+	float  $dst = `floatSliderGrp -q -v ZFGCTFlwDst`;
+	float  $dgr = `floatSliderGrp -q -v ZFGCTFlwDgr`;
+	float  $rnd = `floatSliderGrp -q -v ZFGCTFlwRnd`;
+
+	ZelosFurGuideFlowCmd
+		-meshName   $mesh
+		-curveName  $flowCrvStr
+		-distance   $dst
+		-degree     $dgr
+		-randomness $rnd;
+}
+
+////////////
+// Modify //
+global proc ZelosFurGuideToolsMdfExe( int $type )
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	//$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	float $val, $rnd;
+
+	if( $type == 0 ) { // scale
+
+		$val = `floatSliderGrp -q -v ZFGCTMdfSclVal`;
+		$rnd = `floatSliderGrp -q -v ZFGCTMdfSclRnd`;
+
+	} else if( $type == 1 ) { // cut
+
+		$val = `floatSliderGrp -q -v ZFGCTMdfCutVal`;
+		$rnd = `floatSliderGrp -q -v ZFGCTMdfCutRnd`;
+
+	} else if( $type == 2 ) { // kink
+
+		$val = `floatSliderGrp -q -v ZFGCTMdfKnkVal`;
+		$rnd = `floatSliderGrp -q -v ZFGCTMdfKnkRnd`;
+
+	} else if( $type == 3 ) { // smoothen
+
+		$val = `floatSliderGrp -q -v ZFGCTMdfSmtVal`;
+		$rnd = `floatSliderGrp -q -v ZFGCTMdfSmtRnd`;
+
+	} else if( $type == 4 ) { // straighten
+
+		$val = `floatSliderGrp -q -v ZFGCTMdfStrVal`;
+		$rnd = `floatSliderGrp -q -v ZFGCTMdfStrRnd`;
+
+	}
+
+	ZelosFurGuideModifyCmd
+		-type       $type
+		-value      $val
+		-randomness $rnd;
+
+	if( `checkBox -q -v ZFGCTMdfRsp` )
+	{
+		ZelosFurGuideResampleCmd -mode 0 -number 1.0;
+	}
+}
+
+/////////////////
+// Interactive //
+global proc ZelosFurGuideToolsItrExe( int $type )
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$mesh = `textField -q -tx ZFGTGlbMsh`;
+
+	if( $type == 0 ) {
+
+		if( $mesh != "" ) { select -r $mesh; }
+		setToolTo `ZelosFurGuideDrawCtx`;
+
+	} else if( $type == 1 ) {
+
+		setToolTo `ZelosFurGuideBrushCtx`;
+
+	} else if( $type == 2 ) {
+
+		if( $mesh != "" ) { select -r $mesh; }
+		setToolTo `ZelosFurGuideMoveCtx`;
+
+	} else if( $type == 3 ) {
+
+		if( $mesh != "" ) { select -r $mesh; }
+		setToolTo `ZelosFurFlowDrawCtx`;
+
+	}
+
+}
+
+global proc ZelosFurGuideToolsUpdate()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$ZelosFurGlobal = `textField -q -tx ZFGTGlbGlb`;
+
+	string $shapes[] = `listRelatives -shapes $ZelosFurGlobal`;
+	if( size($shapes) == 0 ) { return; }
+
+	int $indexForSimulator = 0;
+	int $indexForSampler   = 0;
+	int $indexForGenerator = 0;
+
+	string $samplers[];
+	string $simulators[];
+	string $generators[];
+
+	for( $shape in $shapes )
+	{
+		string $nodeType = `nodeType $shape`;
+
+		     if( $nodeType == "ZelosFurSampler"   ) { $samplers  [$indexForSampler++  ] = $shape; }
+		else if( $nodeType == "ZelosFurSimulator" ) { $simulators[$indexForSimulator++] = $shape; }
+		else if( $nodeType == "ZelosFurGenerator" ) { $generators[$indexForGenerator++] = $shape; }
+	}
+
+	int $idx = 0;
+	string $from[];
+	string $to[];
+
+	for( $generator in $generators )
+	{
+		string $nodeAttr = ZConnectedNodeAttr( $generator, "outMesh" );
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		string $nodeType = `nodeType $node`;
+		if( $nodeType == "ZelosFurGenerator" ) { continue; }
+
+		$from[$idx] = ( $generator + ".outMesh" );
+		$to[$idx]   = $nodeAttr;
+
+		$idx++;
+	}
+
+	if( $idx == 0 ) { return; }
+	int $count = $idx;
+
+	int $i = 0;
+	for( ; $i<$count; $i++ )
+	{
+		disconnectAttr $from[$i] $to[$i];
+	}
+
+	for( $simulator in $simulators )
+	{
+		setAttr ( $simulator + ".update" ) 1;
+	}
+
+	for( $sampler in $samplers )
+	{
+		setAttr ( $sampler + ".update" ) 1;
+	}
+
+	$i = 0;
+	for( ; $i<$count; $i++ )
+	{
+		connectAttr $from[$i] $to[$i];
+	}
+
+	// to update view
+	refresh;
+}
+
+global proc ZelosFurGuideToolsDisplayOnOff()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	$ZelosFurGlobal = `textField -q -tx ZFGTGlbGlb`;
+
+	string $shapes[] = `listRelatives -shapes $ZelosFurGlobal`;
+	if( size($shapes) == 0 ) { return; }
+
+	int $indexForSimulator = 0;
+	int $indexForSampler   = 0;
+	int $indexForGenerator = 0;
+
+	string $samplers[];
+	string $simulators[];
+	string $generators[];
+
+	for( $shape in $shapes )
+	{
+		string $nodeType = `nodeType $shape`;
+
+		     if( $nodeType == "ZelosFurSampler"   ) { $samplers  [$indexForSampler++  ] = $shape; }
+		else if( $nodeType == "ZelosFurSimulator" ) { $simulators[$indexForSimulator++] = $shape; }
+		else if( $nodeType == "ZelosFurGenerator" ) { $generators[$indexForGenerator++] = $shape; }
+	}
+
+	for( $sampler in $samplers )
+	{
+		setAttr ( $sampler + ".displayMode" ) 0;
+	}
+
+	for( $simulator in $simulators )
+	{
+		setAttr ( $simulator + ".displayCurves"  ) 0;
+		setAttr ( $simulator + ".displayCVs"     ) 0;
+		setAttr ( $simulator + ".displayIndices" ) 0;
+	}
+
+	for( $generator in $generators )
+	{
+		string $nodeAttr = ZConnectedNodeAttr( $generator, "outMesh" );
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		string $nodeType = `nodeType $node`;
+		if( $nodeType == "ZelosFurGenerator" ) {
+			setAttr ( $generator + ".displayMode" ) 0;
+		} else {
+			if( `getAttr ( $generator + ".displayMode" )` == 0 ) {
+				setAttr ( $generator + ".displayMode" ) 1;
+			} else {
+				setAttr ( $generator + ".displayMode" ) 0;
+			}
+		}
+	}
+
+	// to update view
+	refresh;
+}
+

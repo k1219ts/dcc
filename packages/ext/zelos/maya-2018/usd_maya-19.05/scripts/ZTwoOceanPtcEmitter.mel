@@ -1,0 +1,90 @@
+//-------------------------//
+// ZTwoOceanPtcEmitter.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.04.29                               //
+//-------------------------------------------------------//
+
+global proc CreateZTwoOceanPtcEmitter()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	string $name = "ZTwoOceanPtcEmitter";
+	string $numOfNode[] = `ls -type ZTwoOceanPtcEmitter`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZTwoOceanPtcEmitterName = $name + $number;
+	string $ZTwoOceanPtcEmitter = `createNode ZTwoOceanPtcEmitter -n $ZTwoOceanPtcEmitterName`;
+
+	string $ptcName = "OceanParticles";
+	string $numOfPtcNode[] = `ls -type particle`;
+	int    $numPtcNode = size( $numOfPtcNode ) + 1;
+	string $numberPtc = $numPtcNode;
+	string $particlesName = $ptcName + $numberPtc;
+	string $oceanParticles[] = `particle -name $particlesName`;
+
+	connectDynamic -em ($ZTwoOceanPtcEmitterName) ($oceanParticles[0]);
+
+	connectAttr time1.outTime ( $ZTwoOceanPtcEmitter + ".time" );
+	
+	connectAttr ( $selected[0] + ".worldMesh" ) ( $ZTwoOceanPtcEmitter + ".inOceanMesh" );
+
+	select -r $ZTwoOceanPtcEmitter;
+}
+
+//global proc LoadZOceanWaveDeformerParamsAtZTwoOceanPtcEmitter()
+//{
+//	string $nodes[] = `ls -sl -type ZTwoOceanPtcEmitter`;
+//	if( size($nodes)==0 )
+//	{
+//		error( "No selected ZTwoOceanPtcEmitter node." );
+//		return;
+//	}
+//	string $ZTwoOceanPtcEmitter = $nodes[0];
+//
+//	string $files[] = `fileDialog2 -fm 4 -ds 1 -ff "*.zocean"`;
+//	if( size($files)==0 ) { return; }
+//	string $filePathName = $files[0];
+//
+//	// Temporarily disable the ZRelaxationDeformer node so it isn't calculating as we go.
+//	setAttr ( ( $ZTwoOceanPtcEmitter + ".nodeState" ), 1 );
+//
+//	int $fileId = `fopen $filePathName "r"`;
+//
+//	while( !`feof $fileId` )
+//	{
+//		string $attrName = `fgetword $fileId`;
+//		if( !`attributeExists $attrName $ZTwoOceanPtcEmitter` ) { continue; }
+//
+//		string $attrType = `fgetword $fileId`;
+//
+//		if( $attrType == "int" ) {
+//			int $value = (int)`fgetword $fileId`;
+//			setAttr ( $ZTwoOceanPtcEmitter + "." + $attrName ) $value;
+//		} else if( $attrType == "float" ) {
+//			float $value = (float)`fgetword $fileId`;
+//			setAttr ( $ZTwoOceanPtcEmitter + "." + $attrName ) $value;
+//		}
+//	}
+//
+//	fclose $fileId;
+//
+//	// Enable the ZRelaxationDeformer now that we're done
+//	setAttr ( ( $ZTwoOceanPtcEmitter + ".nodeState" ), 0 );
+//
+//	updateAE $ZTwoOceanPtcEmitter;
+//}
+

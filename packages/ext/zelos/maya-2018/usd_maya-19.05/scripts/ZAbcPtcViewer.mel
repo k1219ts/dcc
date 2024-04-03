@@ -1,0 +1,39 @@
+//-------------------//
+// ZAbcPtcViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.17                               //
+//-------------------------------------------------------//
+
+global proc ZAbcPtcViewer( string $path )
+{
+    if( !`pluginInfo -q -loaded "ZMayaTools"` )
+	{
+		ZPrintError "ZMayaTools is not loaded.";
+		return;
+	}
+
+	string $files[] = `ZGetFileListCmd -path $path -extension "abc"`;
+
+	for( $file in $files )
+	{
+		string $tokens[];
+		tokenize $file "/" $tokens;
+
+		string $fileName = $tokens[size($tokens)-1];
+
+		tokenize $fileName "." $tokens;
+		$fileName = $tokens[size($tokens)-2];
+
+		string $xform = `createNode transform -n $fileName`;
+		string $shape = `createNode ZAbcPtcViewer -p $xform -n ($fileName+"Shape")`;
+
+		float $color[] = unit( 0.9*sphrand(1)+0.2 );
+		setAttr ($shape+".displayColor") $color[0] $color[1] $color[2];
+
+		setAttr -type "string" ($shape+".file") $file;
+	}
+}
+
+//string $path1 = "/netapp/fx_cache/extra/real/SIO/SIO_0210/fishflock/abc/v051/bicgroup";
+//ZAbcPtcViewer( $path1 );

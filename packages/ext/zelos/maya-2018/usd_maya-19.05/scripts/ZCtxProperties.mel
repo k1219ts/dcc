@@ -1,0 +1,44 @@
+//--------------------//
+// ZCtxProperties.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.01.29                               //
+//-------------------------------------------------------//
+
+// This file allows you to setup the UI for the Tool Properties Window.
+// The Tool Property Window is your main way of accessing the variables inside the context.
+// In this file you should setup any kind of UI elements you need for accessing your variables.
+
+global proc ZCtxProperties()
+{	
+	if( `control -exists ZCtxLayout` )
+	{
+		return;
+	}
+
+	string $parent = `toolPropertyWindow -q -location`;
+	setParent $parent;
+
+	setUITemplate -pushTemplate OptionsTemplate;
+		columnLayout ZCtxLayout;
+			frameLayout -collapsable true -collapse false -l "ZCtx Tool Settings" ZCtxFrame;
+				columnLayout ZCtxLayoutOptions;
+				$parent = `setParent -query`;
+					separator -style "none";
+					checkBoxGrp -l "On/Off" -numberOfCheckBoxes 1 -l1 " " ZCtxOnOff;
+				setParent ..;
+			setParent ..;
+		setParent ..;
+	setUITemplate -popTemplate;
+
+	ZCtxSetCallbacks( $parent );
+}
+
+global proc ZCtxSetCallbacks( string $parent )
+{
+	setParent $parent;
+	string $whichCtx = `currentCtx`;
+
+	checkBoxGrp -e -on1 ("ZCtx -e -onOff 1 `currentCtx`") -of1 ("ZCtx -e -onOff 0 `currentCtx`") ZCtxOnOff;
+}
+

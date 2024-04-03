@@ -1,0 +1,852 @@
+//----------------//
+// ZelosUtils.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2018.11.16                               //
+//-------------------------------------------------------//
+
+///////////////////////////////////////////////////////////
+// print
+
+global proc
+ZPrintStrings( string $strs[] )
+{
+	int $i = 0;
+	for( ; $i<size($strs); ++$i )
+	{
+		print( $i + ": " + $strs[$i] + "\n" );
+	}
+}
+
+global proc
+ZPrintFloats( float $strs[] )
+{
+	int $i = 0;
+	for( ; $i<size($strs); ++$i )
+	{
+		print( $i + ": " + $strs[$i] + "\n" );
+	}
+}
+
+global proc
+ZPrintError( string $msg )
+{
+	int $version = `about -v`;
+
+	if( $version <= 2015 ) { error $msg; }
+	else { error -n $msg; }
+}
+
+global proc string[]
+ZListGlobals()
+{
+	return `env`;
+}
+
+///////////////////////////////////////////////////////////
+// plug-in
+
+global proc int
+ZCheckPlugIn( string $plugInName )
+{
+	if( `pluginInfo -q -loaded $plugInName` )
+	{
+		return 1;
+	}
+
+	ZPrintError ( $plugInName + " must be loaded before." );
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////
+// node type
+
+// Check whether the shape node of the given transform node is the same type of the given type.
+// how to use) $type = "mesh", "particle", ...
+global proc int
+ZIsType( string $transformNode, string $type )
+{
+	string $children[] = `listRelatives -f -s -ni $transformNode`;
+	int $i = 0;
+	for( ; $i<size($children); ++$i )
+	{
+		if( `nodeType $children[$i]` == $type )
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+///////////////////////////////////////////////////////////
+// transform node
+
+global proc int
+ZIsFreezed( string $xFormNode )
+{
+	float $tr[] = `getAttr ($xFormNode+".translate")`;
+	{
+		if( $tr[0] != 0.0 ) { return 0; }
+		if( $tr[1] != 0.0 ) { return 0; }
+		if( $tr[2] != 0.0 ) { return 0; }
+	}
+
+	float $rt[] = `getAttr ($xFormNode+".rotate")`;
+	{
+		if( $rt[0] != 0.0 ) { return 0; }
+		if( $rt[1] != 0.0 ) { return 0; }
+		if( $rt[2] != 0.0 ) { return 0; }
+	}
+
+	float $sc[] = `getAttr ($xFormNode+".scale")`;
+	{
+		if( $sc[0] != 1.0 ) { return 0; }
+		if( $sc[1] != 1.0 ) { return 0; }
+		if( $sc[2] != 1.0 ) { return 0; }
+	}
+
+	return 1;
+}
+
+global proc
+ZFreezeTransform( string $xFormNode, int $trans, int $rot, int $scale )
+{
+	if( $trans )
+	{
+		setAttr -lock true ( $xFormNode + ".tx" );
+		setAttr -lock true ( $xFormNode + ".ty" );
+		setAttr -lock true ( $xFormNode + ".tz" );
+	}
+
+	if( $rot )
+	{
+		setAttr -lock true ( $xFormNode + ".rx" );
+		setAttr -lock true ( $xFormNode + ".ry" );
+		setAttr -lock true ( $xFormNode + ".rz" );
+	}
+
+	if( $scale )
+	{
+		setAttr -lock true ( $xFormNode + ".sx" );
+		setAttr -lock true ( $xFormNode + ".sy" );
+		setAttr -lock true ( $xFormNode + ".sz" );
+	}
+}
+
+global proc
+ZCopyKeys( string $fromNode, string $toNode )
+{
+	copyKey -time ":" -hierarchy none -cp 0 -s 0 $fromNode;
+	pasteKey -o replaceCompletely $toNode;
+}
+
+global proc
+ZMoveKeys( string $fromNode, string $toNode )
+{
+	cutKey -time ":" -hierarchy none -cp 0 -s 0 $fromNode;
+	pasteKey -o replaceCompletely $toNode;
+}
+
+///////////////////////////////////////////////////////////
+// polygon mesh
+
+// It moves all the points in the "sourceMesh" to match the positions of the points in the "targetMesh".
+// Both meshes should have the same number of points, but if they don't then the first N points of the "sourceMesh" will move to match the first M points of the "targetMesh".
+// If M is less than N, then only the first M points in the "sourceMesh" will be moved.
+// If N and M are not equal a warning will be shown.
+// Deleting a vertex from an object will normally re-order the vertices though, so the results will most likely not be what you're after in these cases.
+// Thought: could write a vertex re-ordering script that makes sure the vertices of two meshes have the same order, based on matchin point locations.
+// ex) ZConformMeshToMesh( "pSphere1", "pSphere2" )
+global proc
+ZConformMeshToMesh( string $sourceMesh, string $targetMesh )
+{
+	int $nVertsSource[] = `polyEvaluate -vertex $sourceMesh`;
+	int $nVertsTarget[] = `polyEvaluate -vertex $targetMesh`;
+
+	if( $nVertsSource[0] != $nVertsTarget[0] )
+	{
+		warning "ZConformMeshToMesh: deforming mesh has less points than source mesh";
+	}
+
+	int $i = 0;
+	int $nPointsToMove = min( $nVertsSource[0], $nVertsTarget[0] );
+
+	for( $i=0; $i<$nPointsToMove; ++$i )
+	{
+		float $pts[] = `xform -objectSpace -q -translation ($targetMesh + ".vtx[" + $i + "]")`;
+		xform -objectSpace -translation $pts[0] $pts[1] $pts[2] ($sourceMesh + ".vtx[" + $i + "]");
+	}
+}
+
+global proc
+ZCreateAABB( float $xMin, float $xMax, float $yMin, float $yMax, float $zMin, float $zMax )
+{
+	float $cx = 0.5 * ( $xMax + $xMin );
+	float $cy = 0.5 * ( $yMax + $yMin );
+	float $cz = 0.5 * ( $zMax + $zMin );
+
+	float $dx = $xMax - $xMin;
+	float $dy = $yMax - $yMin;
+	float $dz = $zMax - $zMin;
+		   
+	polyCube -w $dx -h $dy -d $dz -sx 1 -sy 1 -sz 1 -ch 0;
+	move -r $cx $cy $cz;
+}
+
+///////////////////////////////////////////////////////////
+// NURBS curve
+
+global proc
+ZDeleteTwoEndCVs()
+{
+    string $xforms[] = `ls -sl -type transform`;
+
+    for( $xform in $xforms )
+    {
+        string $children[] = `listRelatives $xform`;
+        for( $child in $children )
+        {
+            string $curve;
+            $nodeType = `nodeType $child`;
+            
+            if( $nodeType == "nurbsCurve" ) {
+
+                $curve = $child;
+
+            } else if( $nodeType == "transform" ) {
+
+                string $shapes[] = `listRelatives -f -s -ni $child`;
+
+                for( $shape in $shapes )
+                {
+                    $nodeType = `nodeType $shape`;
+
+                    if( $nodeType == "nurbsCurve" )
+                    {
+                        $curve = $shape;
+                    }
+                }
+
+            }
+
+            if( size($curve) == 0 ) { continue; }
+
+            float $cvs[] = `getAttr ( $curve + ".cv[*]" )`;
+            int $numCVs = size($cvs)/3;
+            
+            delete ( $curve + ".cv[" + ($numCVs-1) + "]" );
+            delete ( $curve + ".cv[" + ($numCVs-2) + "]" );
+            delete ( $curve + ".cv[1]" );
+            delete ( $curve + ".cv[0]" );
+        }
+    }    
+}
+
+///////////////////////////////////////////////////////////
+// node names
+
+global proc string[]
+ZCreateNode( string $shapeNodeType, string $shapeNodeName )
+{
+	string $nodes[];
+	$nodes[0] = `createNode transform -n ( $shapeNodeName + "XForm1" )`;
+
+	string $tokens[];
+	int $numTokens = `tokenize $nodes[0] XForm $tokens`;
+
+	$nodes[1] = `createNode $shapeNodeType -p $nodes[0] -n ( $shapeNodeName + $tokens[$numTokens-1] )`;
+	return $nodes;
+}
+
+global proc string
+ZRenameNode( string $oldName, string $newName )
+{
+	return `rename $oldName $newName`;
+}
+
+///////////////////////////////////////////////////////////
+// hierarchy
+
+global proc string
+ZGetParent( string $node )
+{
+	string $parents[] = `listRelatives -p -f -pa $node`;
+	return $parents[0];
+}
+
+global proc string
+ZGetTopMostParent( string $node )
+{
+	string $topMostParent = $node;
+
+	while( 1 )
+	{
+		string $parents[] = `listRelatives -p $topMostParent`;
+		if( size($parents) == 0 ) { break; }
+		$topMostParent = $parents[0];
+	}
+
+	return $topMostParent;
+}
+
+// $type: "mesh", "particle", ...
+global proc string
+ZGetTheFirstShapeFromXForm( string $xForm, string $type )
+{
+	string $children[] = `listRelatives -f -s -ni $xForm`;
+
+	for( $child in $children )
+	{
+		if( `nodeType $child` == $type ) { return $child; }
+	}
+
+	return "";
+}
+
+global proc string
+ZGetFullPath( string $node )
+{
+	string $parents[] = `listRelatives -p -f -pa $node`;
+	return ( $parents[0] + "|" + $node );
+}
+
+global proc string[]
+ZGetAllNodesUnder( string $node, string $type )
+{
+	return `listRelatives -f -ad -type $type $node`;
+}
+
+///////////////////////////////////////////////////////////
+// selection
+
+global proc
+ZAddToSelection( string $node )
+{
+	select -add $node;
+}
+
+global proc
+ZSelectAllByType( string $type )
+{
+	select -cl;
+	string $list[] = `ls -type $type`;
+	select -r $list;
+}
+
+global proc string[]
+ZGetSelectedVtxIndices()
+{
+	string $indices[];
+	int $count = 0;
+	int $n, $j;
+	string $items[];
+
+	string $vertexStrs[] = `ls -sl`;
+
+	if( size($vertexStrs) == 0 ) 
+	{
+		return $indices;
+	}
+
+	for( $n=0; $n<size($vertexStrs); $n++ )
+	{
+		string $vtx = `match "vtx" $vertexStrs[$n]`;
+
+		if( $vtx == "vtx" ) { 
+
+			string $range = `match "[0-9]+:[0-9]+" $vertexStrs[$n]`;
+
+			if( $range != "" ) {
+
+				tokenize($range, ":", $items);
+
+				int $beginIndex = $items[0];
+				int $endIndex = $items[1];
+
+				if( $endIndex > $beginIndex )
+				{
+					for( $j=0; $j<=($endIndex-$beginIndex); $j++ )
+					{
+						$indices[$count] = $beginIndex + $j;
+						$count++;
+					}
+				}
+
+			} else {
+
+				string $indexStr = `match "\[[0-9]+\]" $vertexStrs[$n]`;
+
+				int $length = `size $indexStr`;
+
+				if( $length>2 )
+				{
+					$index = `substring $indexStr 2 (size($indexStr)-1)`;
+					$indices[$count] = $index;
+					$count++;
+				}
+
+			}	
+		}	
+	}
+
+	return $indices;
+}
+
+global proc
+ZToggleIsolate()
+{
+    int $isoView;
+    string $currentPanel = `getPanel -withFocus`;
+    string $panelType = `getPanel -to $currentPanel`;
+    
+    if( $panelType == "modelPanel" )
+    {
+        $isoView = ( 1 - `isolateSelect -q -s $currentPanel` );
+        enableIsolateSelect $currentPanel $isoView;
+    }
+}
+
+///////////////////////////////////////////////////////////
+// attribute editor
+
+global proc
+ZTextBarNew( string $title )
+{
+	string $node[]; tokenize( $title, ".", $node );
+	setUITemplate -pst attributeEditorTemplate;
+		text -l $node[1] -bgc 0.2 0.2 0.2;
+	setUITemplate -ppt;
+}
+
+global proc
+ZTextBarReplace( string $title )
+{
+}
+
+global proc string[]
+ZCurrentTabList()
+{
+	global string $gAETabLayoutName;
+	string $tabs[] = `tabLayout -q -tabLabelIndex $gAETabLayoutName`;
+	return $tabs;
+}
+
+global proc int
+ZCurrentTabIndex()
+{
+	global string $gAETabLayoutName;
+	int $tabIndex = `tabLayout -q -sti $gAETabLayoutName`;
+	return $tabIndex;
+}
+
+global proc string
+ZCurrentTabName()
+{
+	global string $gAETabLayoutName;
+	string $tabs[] = `tabLayout -q -tabLabelIndex $gAETabLayoutName`;
+	int $tabIndex = `tabLayout -q -sti $gAETabLayoutName`;
+	if( $tabIndex < 1 ) { $tabIndex++; }
+	return $tabs[$tabIndex-1];
+}
+
+global proc
+ZSwitchAEtoTab( string $nodeName )
+{
+	global string $gAETabLayoutName;
+	string $tabs[] = `tabLayout -q -tabLabelIndex $gAETabLayoutName`;
+	for( $i=0; $i<size($tabs); $i++ )
+	{
+		print ($tabs[$i]+"\n");
+		if( $tabs[$i] == $nodeName )
+		{
+			tabLayout -e -selectTabIndex ($i+1) $gAETabLayoutName;
+		}
+	}
+}
+
+global proc
+UpdateAE( string $nodeName )
+{
+	refresh;
+
+	string $panel = `getPanel -withFocus`;
+
+	if( $panel == "nodeEditorPanel1" )
+	{
+		string $currentTabName = `ZCurrentTabName`;
+
+		if( $nodeName == $currentTabName )
+		{
+			updateAE $nodeName;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////
+// text xcroll list
+
+global proc string[]
+ZTextScrollList_GetAllItems( string $textScrollList )
+{
+	string $items[] = `textScrollList -q -allItems $textScrollList`;
+	return $items;
+}
+
+global proc string[]
+ZTextScrollList_GetSelectedItems( string $textScrollList )
+{
+	string $items[] = `textScrollList -q -selectItem $textScrollList`;
+	return $items;
+}
+
+global proc int
+ZTextScrollList_AlreadyExist( string $item, string $textScrollList )
+{
+	string $items[] = ZTextScrollList_GetAllItems( $textScrollList );
+	int $i=0; for( ; $i<size($items); ++$i ) { if( $items[$i] == $item ) { return 1; } }
+	return 0;
+}
+
+global proc
+ZTextScrollList_Add( string $textScrollList, string $type )
+{
+	int $i=0;
+	string $items[];
+	string $selected[] = `ls -sl -l -ni`;
+	for( $obj in $selected ) {
+		if( `nodeType $obj` == $type ) {
+			$items[$i++] = $obj;
+		} else {
+			string $shapes[] = `listRelatives -f -s -ni $obj`;
+			for( $shape in $shapes ) { if( `nodeType $shape` == $type ) { $items[$i++] = $shape; } }
+		}
+	}
+	for( $obj in $items ) {
+		if( ZTextScrollList_AlreadyExist( $obj, $textScrollList ) ) { continue; }
+		textScrollList -e -append $obj $textScrollList;
+	}
+}
+
+global proc
+ZTextScrollList_Remove( string $textScrollList )
+{
+	string $items[] = ZTextScrollList_GetSelectedItems( $textScrollList );
+	int $i=0;
+	for( ; $i<size( $items ); ++$i ) {
+		textScrollList -e -removeItem $items[$i] $textScrollList;
+	}
+}
+
+global proc
+ZTextScrollList_Clear( string $textScrollList )
+{
+	textScrollList -e -ra $textScrollList;
+}
+
+global proc
+ZTextScrollList_Delete( string $textScrollList )
+{
+	string $items[] = ZTextScrollList_GetAllItems( $textScrollList );
+	int $i=0;
+	for( ; $i<size( $items ); ++$i ) {
+		string $item = $items[$i];
+		if( `nodeType $item` == "transform" ) {
+			delete $item;
+		} else {
+			string $parents[] = `listRelatives -p $item`;
+			delete $parents[0];
+		}
+	}
+}
+ 
+///////////////////////////////////////////////////////////
+// text field
+ 
+global proc
+ZLoadObjByType( string $textField, string $type )
+{
+	string $objs[] = `ls -sl -l -ni`;
+
+	if( size($objs) == 0 ) {
+		ZPrintError ( "No objects are selected." );
+		return;
+	} else if( size($objs) > 1 ) {
+		ZPrintError ( "Too many select objects." );
+		return;
+	}
+
+	string $obj = $objs[0];
+
+	if( `nodeType $obj` != $type )
+	{
+		ZPrintError ( "This is not a " + $type + " node." );
+		return;
+	}
+
+	textField -e -tx $obj $textField;
+}
+
+global proc
+ZLoadShapeNode( string $textField, string $shapeNodeType )
+{
+	string $objs[] = `ls -sl -l -ni`;
+
+	if( size($objs) == 0 ) {
+		ZPrintError ( "No objects are selected." );
+		return;
+	} else if( size($objs) > 1 ) {
+		ZPrintError ( "Too many select objects." );
+		return;
+	}
+
+	string $obj = $objs[0];
+
+	if( `nodeType $obj` == $shapeNodeType ) {
+
+		// nothing to do
+
+	} else if( `nodeType $obj` == "transform" ) {
+
+		$objs = `listRelatives -f -s -ni $obj`;
+
+		if( size($objs) == 0 ) {
+			ZPrintError ( "Failed to find mesh shape node." );
+			return;
+		} else if( size($objs) > 1 ) {
+			ZPrintError ( "Too many shape nodes." );
+			return;
+		}
+
+		$obj = $objs[0];
+
+	} else {
+
+		ZPrintError ( "Failed to find mesh shape node." );
+		return;
+
+	}
+
+	textField -e -tx $obj $textField;
+}
+
+global proc
+ZLoadObjByShapeType( string $textField, string $type )
+{
+	string $objs[] = `ls -sl -l -ni`;
+
+	for( $obj in $objs )
+	{
+		if( `nodeType $obj` == $type )
+		{
+			textField -e -tx $obj $textField;
+			return;
+		}
+
+		string $children[] = `listRelatives -f -s -ni $obj`;
+
+		for( $child in $children )
+		{
+			if( `nodeType $child` == $type )
+			{
+				textField -e -tx $obj $textField;
+				return;
+			}
+		}
+	}
+
+	textField -e -tx $obj "";
+}
+
+///////////////////////////////////////////////////////////
+// file browser
+
+global proc
+ZLoadDirectory( string $attr, string $textField )
+{
+	string $file[] = `fileDialog2 -fm 3 -ds 1`;
+	if( !size($file) ) { return; }
+	setAttr -type "string" $attr $file[0];
+	textField -e -tx `getAttr $attr` $textField;
+}
+
+global proc
+ZLoadFile( string $attr, string $textField, string $filter )
+{
+	string $file[] = `fileDialog2 -fm 1 -ds 1 -ff $filter`;
+	if( !size($file) ) { return; }
+	setAttr -type "string" $attr $file[0];
+	textField -e -tx `getAttr $attr` $textField;
+}
+
+global proc
+ZResetFile( string $attr, string $textField )
+{
+	setAttr -type "string" $attr "";
+	textField -e -tx `getAttr $attr` $textField;
+}
+
+// It plays your scene through once from "startFrame" to "endFrame".
+// There is a built-in command in Maya called 'runup', but this only works for dynamics objects. This script updates everything in the scene.
+// ex) `ZPlay( 1, 100 )` or `ZPlay 1 100`
+global proc
+ZPlay( int $startFrame, int $endFrame )
+{
+	// setup progress bar and cancellation
+	global string $gMainProgressBar;
+	progressBar -edit -beginProgress -isInterruptable true -status "Running up scene... " -maxValue ($endFrame-$startFrame) $gMainProgressBar;
+	evalDeferred( "progressBar -edit -endProgress " + $gMainProgressBar );
+  
+	int $frame;
+	for( $frame=$startFrame; $frame<=$endFrame; $frame++ ) {
+		currentTime -e -update true $frame;
+		if( `progressBar -query -isCancelled $gMainProgressBar` ) { break; }
+		progressBar -edit -step 1 $gMainProgressBar;
+	}
+}
+
+///////////////////////////////////////////////////////////
+// connections
+
+global proc int
+ZEmptyPort( string $nodeName, string $attrName )
+{
+	int $i=0;
+	while(1) { if( eval( "connectionInfo -id " + $nodeName + "." + $attrName + "[" + $i + "]" ) == 0 ) { break; } ++$i; }
+	return $i;
+}
+
+global proc string[]
+ZConnectedNodeAttrs( string $node, string $attr )
+{
+	string $connected[];
+	string $nodeAttr = $node + "." + $attr;
+	int $isSrc = `connectionInfo -is $nodeAttr`;
+	int $isDst = `connectionInfo -id $nodeAttr`;
+	if( $isSrc ) {
+		$connected = `connectionInfo -dfs $nodeAttr`;
+	} else if( $isDst ) {
+		$connected[0] = `connectionInfo -sfd $nodeAttr`;
+	}
+	return $connected;
+}
+
+global proc string
+ZConnectedNodeAttr( string $node, string $attr )
+{
+	string $nodeAttr = $node + "." + $attr;
+	int $isSrc = `connectionInfo -is $nodeAttr`;
+	int $isDst = `connectionInfo -id $nodeAttr`;
+	if( $isSrc ) {
+		string $connected[] = `connectionInfo -dfs $nodeAttr`;
+		return $connected[0];
+	} else if( $isDst ) {
+		string $connected = `connectionInfo -sfd $nodeAttr`;
+		return $connected;
+	}
+	return "";
+}
+
+global proc string
+ZConnectedNode( string $node, string $attr )
+{
+	string $connectedNodeAttr = ZConnectedNodeAttr( $node, $attr );
+    if( $connectedNodeAttr == "" ) { return ""; }
+	string $buffer[];
+	tokenize $connectedNodeAttr "." $buffer;
+	return $buffer[0];
+}
+
+global proc string
+ZConnectedAttr( string $node, string $attr )
+{
+	string $connectedNodeAttr = ZConnectedNodeAttr( $node, $attr );
+    if( $connectedNodeAttr == "" ) { return ""; }
+	string $buffer[];
+	tokenize $connectedNodeAttr "." $buffer;
+	return $buffer[1];
+}
+
+global proc int
+ZConnectedPortId( string $node, string $attr )
+{
+	string $connectedAttr = ZConnectedNodeAttr( $node, $attr );
+	if( size($connectedAttr) == 0 ) { return -1; }
+	string $buffer[]; tokenize $connectedAttr "[|]" $buffer;
+	return $buffer[size($buffer)-1];
+}
+
+global proc
+ZDisconnectShadingGroup( string $shapeNode )
+{
+	string $nodeAttr = $shapeNode + ".instObjGroups[0]";
+	if( `connectionInfo -is $nodeAttr` ) {
+		string $connectedAttr[] = `connectionInfo -dfs $nodeAttr`;
+		disconnectAttr $nodeAttr $connectedAttr[0];
+	}
+}
+
+global proc
+ZAddRmanRiattrVisibilities(string $nodeName)
+{
+	//int $isPluginLoaded = `pluginInfo -q -l RenderMan_for_Maya`;
+	//if(!$isPluginLoaded)
+	//{
+	//	error "log@ZAddRmanRiattrVisibilities::RenderMan_for_Maya not loaded";
+	//	return;
+	//}
+    //int $isAttrExists = `attributeExists "rman__riattr__visibility_camera" $nodeName`;
+    //if(!$isAttrExists)
+    //    addAttr -ln "rman__riattr__visibility_camera" -dv 1 $nodeName;
+    
+    //$isAttrExists = `attributeExists "rman__riattr__visibility_indirect" $nodeName`;
+    //if(!$isAttrExists)
+    //    addAttr -ln "rman__riattr__visibility_indirect" -dv 1 $nodeName;
+    //$isAttrExists = `attributeExists "rman__riattr__visibility_transmission" $nodeName`; 
+    //if(!$isAttrExists)
+    //    addAttr -ln "rman__riattr__visibility_transmission" -dv 1 $nodeName;
+}
+
+global proc
+ZAddRmanTorattrPreShapeScript(string $nodeName, string $rmanOutputProcedural)
+{
+    //int $isPluginLoaded = `pluginInfo -q -l RenderMan_for_Maya`;
+	//if(!$isPluginLoaded)
+	//{
+	//	error "log@ZAddRmanTorattrPreShapeScript::RenderMan_for_Maya not loaded";
+	//	return;
+	//}
+    //int $isAttrExists = `attributeExists "rman__torattr___preShapeScript" $nodeName`;
+    //if(!$isAttrExists)
+    //    addAttr -ln "rman__torattr___preShapeScript" -dt "string" $nodeName;
+    //setAttr -type "string" ($nodeName + ".rman__torattr___preShapeScript") $rmanOutputProcedural;
+}
+
+global proc
+ZAddRmanTorattrPostTransformScript(string $nodeName, string $rmanOutputProcedural)
+{
+    //int $isPluginLoaded = `pluginInfo -q -l RenderMan_for_Maya`;
+	//if(!$isPluginLoaded)
+	//{
+	//	error "log@ZAddRmanTorattrPostTransformScript::RenderMan_for_Maya not loaded";
+	//	return;
+	//}
+    //int $isAttrExists = `attributeExists "rman__torattr___postTransformScript" $nodeName`;
+    //if(!$isAttrExists)
+    //    addAttr -ln "rman__torattr___postTransformScript" -dt "string" $nodeName;
+    //setAttr -type "string" ($nodeName + ".rman__torattr___postTransformScript") $rmanOutputProcedural;
+}
+
+global proc
+ZAddRmanTorAttrInvis(string $nodeName)
+{
+    //int $isPluginLoaded = `pluginInfo -q -l RenderMan_for_Maya`;
+	//if(!$isPluginLoaded)
+	//{
+	//	error "log@ZAddRmanTorAttrInvis::RenderMan_for_Maya not loaded";
+	//	return;
+	//}
+    //int $isAttrExists = `attributeExists "rman__torattr___invis" $nodeName`;
+    //if(!$isAttrExists)
+    //    addAttr -ln "rman__torattr___invis" -dv 1 $nodeName;
+}

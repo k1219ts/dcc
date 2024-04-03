@@ -1,0 +1,32 @@
+//--------------------------------//
+// AEZFX_MeshToVolumeTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.01.10                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_MeshToVolumeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Radius"           -ac "radius";
+			editorTemplate -l "OutRadius Scale"  -ac "outRadScale";
+			editorTemplate -l "VoxelSize"        -ac "voxelSize";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inDistNoise";
+	editorTemplate -suppress "inDensNoise";
+	editorTemplate -suppress "outVolPrim";
+}
+

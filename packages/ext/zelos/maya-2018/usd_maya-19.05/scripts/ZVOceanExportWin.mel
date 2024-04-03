@@ -1,0 +1,218 @@
+//----------------------//
+// ZVOceanExportWin.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.05.24                               //
+//-------------------------------------------------------//
+
+//////////
+// Load //
+global proc ZVOceanExportLoad( string $textField )
+{
+	string $objs[] = `ls -sl -ni`;
+
+	if( size($objs) == 0 ) {
+
+		error( "No objects are selected." );
+		return;
+
+	} else if( size($objs) > 1 ) {
+
+		error( "Too many objects are selected." );
+		return;
+
+	}
+
+	string $obj = $objs[0];
+	string $item = "";
+
+	if( `nodeType $obj` == "ZVOceanWave" || `nodeType $obj` == "ZVOceanBlend" ) {
+
+		$item = $obj;
+
+	} else if( `nodeType $obj` == "transform" ) {
+
+		string $shapes[] = `listRelatives -s $obj`;
+
+		if( `nodeType $shapes[0]` == "ZVOceanWave" || `nodeType $shapes[0]` == "ZVOceanBlend" )
+		{
+			$item = $shapes[0];
+		}
+
+	} else {
+
+		error( "Only ZVOceanWave or ZVOceanBlend export is supported." );
+		return;
+
+	}
+
+	textField -e -tx $item $textField;
+}
+
+/////////////////////////////
+// Frame Range Dim Control //
+global proc ZVOceanExport_SetFrameRange( int $mode )
+{
+	intField -e -en ($mode-1) ZVOceanExportWin_StartFrame;
+	intField -e -en ($mode-1) ZVOceanExportWin_EndFrame;
+}
+
+//////////////////////////////
+// Handle Frame Dim Control //
+global proc ZVOceanExport_SetHandle( int $mode )
+{
+	intField -e -en ($mode-1) ZVOceanExportWin_HandleAhead;
+	intField -e -en ($mode-1) ZVOceanExportWin_HandleBehind;
+}
+
+//////////
+// main //
+global proc ZVOceanExportWin()
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	if( `window -q -exists ZVOceanExportWin` )
+	{
+		deleteUI ZVOceanExportWin;
+		return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZarVis Ocean Export" ZVOceanExportWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 300 -style "none";
+		text -l "ZVOceanWave or ZVOceanBlend Node" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 2 -cw2 275 25;
+		{
+			textField -w 275 -ed 0 ZVOceanExportWin_Node;
+			button -l "<<" -w 25 -c ( "ZVOceanExportLoad(\"ZVOceanExportWin_Node\")" );
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Cache Path" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 ZVOceanExportWin_Path;
+//			symbolButton -image "navButtonBrowse.xpm" -c "string $dir[] = `fileDialog2 -fm 0 -ds 1 -ff \"*.exr\"`; textField -e -tx $dir[0] ZVOceanExportWin_Path;";
+			symbolButton -image "navButtonBrowse.xpm" -c "string $dir[] = `fileDialog2 -fm 3 -ds 1`; textField -e -tx $dir[0] ZVOceanExportWin_Path;";
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Frame Range" -font "boldLabelFont" -w 330 -al "left";
+		columnLayout -w 300;
+		{
+			rowLayout -nc 4 -cw4 140 65 20 65;
+			{
+				radioButtonGrp -sl 1 -cw2 70 70 -numberOfRadioButtons 2 -labelArray2 "time slider" "start/end:" -on1 "ZVOceanExport_SetFrameRange 1" -on2 "ZVOceanExport_SetFrameRange 2" ZVOceanExportWin_FrameRange;
+				intField -v 1001 -w 65 -en 0 ZVOceanExportWin_StartFrame;
+				text -l "to" -al "center" -w 20;
+				intField -v 1100 -w 65 -en 0 ZVOceanExportWin_EndFrame;
+			}
+			setParent ..;
+
+			rowLayout -nc 4 -cw4 140 65 20 65;
+			{
+				checkBox -l "handle frame" -v 0 -onc "ZVOceanExport_SetHandle 2" -ofc "ZVOceanExport_SetHandle 1" ZVOceanExportWin_Handle;
+				intField -v 50 -en 0 -w 65 ZVOceanExportWin_HandleAhead;
+				text -l "&" -al "center" -w 20;
+				intField -v 1  -en 0 -w 65 ZVOceanExportWin_HandleBehind;
+			}
+			setParent ..;
+
+//			rowLayout -nc 2 -cw2 80 300;
+//			{
+//				text -h 20 -l "Step" -fn "boldLabelFont" "left";
+//				floatSliderGrp -v 1.0 -min 0.01 -max 1.00 -s 0.01 -f 1 -w 200 ZVOceanExportWin_Step;
+//			}
+//			setParent ..;
+		}
+		setParent ..;
+
+		separator -h 15 -w 330 -style "none";
+
+		button -l "Export" -w 330 -al "center" -c "ZVOceanExport";
+
+		separator -h 15 -w 330 -style "none";
+	}
+	showWindow ZVOceanExportWin;
+}
+
+global proc ZVOceanExport()
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	// Get the node.
+	string $nodeName = `textField -q -tx ZVOceanExportWin_Node`;
+	if( $nodeName == "" ) { return; }
+
+	// Set the frame range.
+	float $startFrame = 0.0;
+	float $endFrame   = 0.0;
+
+	int $frameRangeMode = `radioButtonGrp -q -sl ZVOceanExportWin_FrameRange`;
+
+	if( $frameRangeMode == 1 ) {
+
+		$startFrame = `playbackOptions -q -min`;
+		$endFrame   = `playbackOptions -q -max`;
+
+	} else {
+
+		$startFrame = `intField -q -v ZVOceanExportWin_StartFrame`;
+		$endFrame   = `intField -q -v ZVOceanExportWin_EndFrame`;
+
+	}
+
+	// Apply the handle.
+	int $useHandle = `checkBox -q -v ZVOceanExportWin_Handle`;
+	if( $useHandle == 1 )
+	{
+		float $handleAhead  = `intField -q -v ZVOceanExportWin_HandleAhead`;
+		float $handleBehind = `intField -q -v ZVOceanExportWin_HandleBehind`;
+
+		$startFrame = $startFrame-$handleAhead+1;
+		$endFrame   = $endFrame+$handleBehind;
+	}
+
+	// Check the frame range is vaild.
+	if( $startFrame > $endFrame )
+	{
+		ZPrintError "[ZVOceanExport] Invalid frame range. Start frame cannot be larger than the end frame.";
+		return;
+	}
+
+	if( $startFrame <= 0 || $endFrame <=0 )
+	{
+		ZPrintError "[ZVOceanExport] Invalid frame range. Check the handles.";
+		return;
+	}
+
+//	float $step = `floatSliderGrp -q -v ZVOceanExportWin_Step`;
+
+	string $filePath = `textField -q -tx ZVOceanExportWin_Path`;
+
+	if( $filePath == "" )
+	{
+		ZPrintError "[ZVOceanExport] No cache path.";
+		return;
+	}
+
+	ZVOceanExportCmd -nodeName $nodeName -startFrame $startFrame -endFrame $endFrame -filePath $filePath;
+
+//	python "python /dexter/Cache_DATA/RND/daeseok/toTex/tractorSample.py " + $filePath;
+
+	select -cl;
+}
+

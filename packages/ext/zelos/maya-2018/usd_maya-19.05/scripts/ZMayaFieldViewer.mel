@@ -1,0 +1,39 @@
+//----------------------//
+// ZMayaFieldViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.05.01                               //
+//-------------------------------------------------------//
+
+global proc CreateZMayaFieldViewer()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $name = "ZMayaFieldViewer";
+	string $numOfNode[] = `ls -type ZMayaFieldViewer`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZMayaFieldViewerXFormName = $name + "XForm" + $number;
+	string $ZMayaFieldViewerShapeName = $name + "Shape" + $number;
+	string $ZMayaFieldViewerXForm = `createNode transform -n $ZMayaFieldViewerXFormName`;
+	string $ZMayaFieldViewer = `createNode ZMayaFieldViewer -n $ZMayaFieldViewerShapeName -p $ZMayaFieldViewerXForm`;
+
+	// create bbox
+	polyCube -name "ZMayaFieldViewerBBox" -w 10 -h 10 -d 10 -sx 1 -sy 1 -sz 1 -ax 0 1 0 -cuv 4 -ch 1;
+	connectAttr ZMayaFieldViewerBBoxShape.worldMesh ($ZMayaFieldViewer + ".inBBoxMesh");
+
+	// create emitBox
+	polyCube -name "ZMayaFieldViewerEmitBox" -w 1 -h 1 -d 1 -sx 1 -sy 1 -sz 1 -ax 0 1 0 -cuv 4 -ch 1;
+	connectAttr ZMayaFieldViewerEmitBoxShape.worldMesh ($ZMayaFieldViewer + ".inEmitBoxMesh");
+
+	connectAttr time1.outTime ( $ZMayaFieldViewer + ".time" );
+	connectAttr ( $ZMayaFieldViewer + ".output" ) ( $ZMayaFieldViewerXForm + ".dynamics" );
+
+	select -r $ZMayaFieldViewer;
+}
+

@@ -1,0 +1,67 @@
+//----------------------//
+// ZLinesFromCamera.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.04.17                               //
+//-------------------------------------------------------//
+
+global proc CreateZLinesFromCamera()
+{
+	if( !`pluginInfo -q -loaded "ZelosCameraForMaya"` )
+	{
+		error( "You must load the ZelosCameraForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	$ZLinesFromCameraXForm = `createNode transform -n ZLinesFromCameraXForm1`;
+	$ZLinesFromCameraShape = `createNode ZLinesFromCamera -n ZLinesFromCamera1 -p $ZLinesFromCameraXForm`;
+
+	int $i = 0;
+	int $numCams = 0;
+	int $numMeshes = 0;
+
+	for( $xForm in $selected )
+	{
+		$children = `listRelatives -c $xForm`;
+		$shape = $children[0];
+		$type = `nodeType $shape`;
+
+		if( $type == "camera" )
+		{
+			if( $numCams == 1 ) { error( "Too many cameras." ); delete $ZLinesFromCameraXForm; return; }
+			connectAttr ( $xForm + ".worldMatrix" ) ( $ZLinesFromCameraShape + ".inCamXForm" );
+			$numCams++;
+			continue;
+		}
+
+		if( $type == "locator" )
+		{
+			string $connectedNode = ZConnectedNode( $shape, "worldPosition" );
+			if( size( $connectedNode ) ) {
+				if( `nodeType $connectedNode` == "ZLinesFromCamera" ) { continue; } }
+			connectAttr ( $shape + ".worldPosition" ) ( $ZLinesFromCameraShape + ".inPosition[" + $i + "]" );
+			$i++;
+			continue;
+		}
+
+		if( $type == "mesh" )
+		{
+			if( $numMeshes == 2 ) { error( "Too Many meshes." ); delete $ZLinesFromCameraXForm; return; }
+			connectAttr ( $xForm + ".worldMesh" ) ( $ZLinesFromCameraShape + ".inMesh" );
+			$numMeshes++;
+			continue;
+		}
+	}
+
+	int $numLocators = $i;
+	for( $i=0; $i<$numLocators; ++$i )
+	{
+		string $locator[] = `spaceLocator`;
+		connectAttr ( $ZLinesFromCameraShape + ".outPosition[" + $i + "]" ) ( $locator[0] + ".translate" );
+	}
+
+	select -r $ZLinesFromCameraShape;
+}
+

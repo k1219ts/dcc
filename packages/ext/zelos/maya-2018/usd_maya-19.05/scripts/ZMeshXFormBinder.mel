@@ -1,0 +1,74 @@
+//----------------------//
+// ZMeshXFormBinder.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+global proc CreateZMeshXFormBinder()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	string $xforms[] = `ls -sl -type transform`;
+
+	if( size($xforms) < 2 )
+	{
+		ZPrintError( "Not enough selected transform nodes." );
+		return;
+	}
+
+	string $mesh;
+
+	int $i = 0;
+
+	for( $xform in $xforms )
+	{
+		if( $i == 0 ) {
+
+			string $shapes[] = `listRelatives -f -s -ni $xform`;
+
+			if( size($shapes) == 0 ) { ZPrintError("No shape node."); return; }
+			if( size($shapes) != 1 ) { ZPrintError("Too many shape nodes."); return; }
+
+			$mesh = $shapes[0];
+
+		} else {
+
+			makeIdentity -apply true -t 1 -r 1 -s 1 -n 1 $xform;
+			//move 0 0 0 ($xform+".rotatePivot");
+
+			string $ZMeshXFormBinder = `createNode ZMeshXFormBinder`;
+
+			float $rotPivot[] = `xform -q -ws -t ($xform+".rotatePivot")`;
+			setAttr ($ZMeshXFormBinder+".inPosition") $rotPivot[0] $rotPivot[1] $rotPivot[2];
+
+			connectAttr ($mesh+".worldMesh[0]") ($ZMeshXFormBinder+".inMesh");
+			connectAttr ($ZMeshXFormBinder+".outTranslate") ($xform+".translate");
+			connectAttr ($ZMeshXFormBinder+".outRotate") ($xform+".rotate");
+
+			if( `connectionInfo -is ($ZMeshXFormBinder+".outRotate")` )
+			{
+				string $nodeAttrs[] = `connectionInfo -dfs ($ZMeshXFormBinder+".outRotate")`;
+
+				for( $nodeAttr in $nodeAttrs )
+				{
+					string $tokens[];
+					tokenize( $nodeAttr, ".", $tokens );
+					string $node = $tokens[0];
+
+					if( `nodeType $node` == "unitConversion" )
+					{
+						setAttr ($node+".conversionFactor") 1.0;
+					}
+				}
+			}
+		}
+
+		$i++;
+	}
+}
+

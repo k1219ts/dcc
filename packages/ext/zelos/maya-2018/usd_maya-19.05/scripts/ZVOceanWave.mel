@@ -1,0 +1,181 @@
+//-----------------//
+// ZVOceanWave.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.05.10                               //
+//-------------------------------------------------------//
+
+global proc SaveZVOceanWaveParams()
+{
+	string $nodes[] = `ls -sl -ni`;
+	if( size( $nodes ) != 1 )
+	{
+		error( "Select a ZVOceanWave node." );
+		return;
+	}
+
+	string $ZVOceanWave;
+	if( `nodeType $nodes[0]` == "ZVOceanWave" ) {
+
+		$ZVOceanWave = $nodes[0];
+
+	} else if( `nodeType $nodes[0]` == "transform" ) {
+
+		string $shapes[] = `listRelatives -s $nodes[0]`;
+
+		if( `nodeType $shapes[0]` == "ZVOceanWave" ) {
+
+			$ZVOceanWave = $shapes[0];
+
+		} else {
+
+			error( "Selected node is not a ZVOceanWave type." );
+			return;
+
+		}
+
+	} else {
+
+		error( "Selected node is not a ZVOceanWave type." );
+		return;
+
+	}
+
+	string $files[] = `fileDialog2 -fm 0 -ds 1 -ff "*.params"`;
+	if( size( $files ) == 0 ) { return; }
+	string $filePathName = $files[0];
+
+	SaveZVOceanWaveParamsExe( $ZVOceanWave, $filePathName );
+}
+
+global proc SaveZVOceanWaveParamsExe( string $ZVOceanWave, string $filePathName )
+{
+	string $attrs[] =
+	{
+		"displayMode",        "int",
+		"evaluationSpace",    "int",
+		"device",             "int",
+		"interpolation",      "int",
+		"gridLevel",          "int",
+		"domainSize",         "float",
+		"patchSize",          "float",
+		"timeScale",          "float",
+		"loopingDuration",    "float",
+		"windSpeed",          "float",
+		"windDirection",      "float",
+		"windAlignment",      "float",
+		"directionality",     "float",
+		"shortestWaveLength", "float",
+		"choppiness",         "float",
+		"waveScale",          "float",
+		"spectrumModel",      "int",
+		"spectrumBlendAlpha", "float",
+		"windFetchSize",      "float",
+		"dispersionRelation", "int",
+		"waterDepth",         "float",
+		"gravity",            "float",
+		"randomDistribution", "int",
+		"randomSeed",         "int",
+		"foamMethod",         "int",
+		"foamPower",          "float",
+		"foamScale",          "float",
+		"foamAdd",            "float",
+		"shortestFoamLength", "float",
+		"foamAccumulation",   "int",
+		"foamDecay",          "float",
+		"foamResetTime",      "float",
+		"scaleS",             "float",
+		"scaleT",             "float",
+		"flowS",              "float",
+		"flowT",              "float"
+	};
+
+	int $numAttrs = size( $attrs ) / 2;
+
+	int $fileId = `fopen $filePathName "w"`;
+
+	int $i = 0;
+	for( ; $i<$numAttrs; $i++ )
+	{
+		string $attrName = $attrs[2*$i];
+		string $attrType = $attrs[2*$i+1];
+
+		fprint $fileId ( $attrName + " " + $attrType + " " + `getAttr ($ZVOceanWave+"."+$attrName)` + "\n" );
+	}
+
+	fclose $fileId;
+}
+
+global proc LoadZVOceanWaveParams()
+{
+	string $nodes[] = `ls -sl -ni`;
+	if( size( $nodes ) != 1 )
+	{
+		error( "Select a ZVOceanWave node." );
+		return;
+	}
+
+	string $ZVOceanWave;
+	if( `nodeType $nodes[0]` == "ZVOceanWave" ) {
+
+		$ZVOceanWave = $nodes[0];
+
+	} else if( `nodeType $nodes[0]` == "transform" ) {
+
+		string $shapes[] = `listRelatives -s $nodes[0]`;
+
+		if( `nodeType $shapes[0]` == "ZVOceanWave" ) {
+
+			$ZVOceanWave = $shapes[0];
+
+		} else {
+
+			error( "Selected node is not a ZVOceanWave type." );
+			return;
+
+		}
+
+	} else {
+
+		error( "Selected node is not a ZVOceanWave type." );
+		return;
+
+	}
+
+	string $files[] = `fileDialog2 -fm 4 -ds 1 -ff "*.params"`;
+	if( size( $files ) == 0 ) { return; }
+	string $filePathName = $files[0];
+
+	LoadZVOceanWaveParamsExe( $ZVOceanWave, $filePathName );
+}
+
+
+global proc LoadZVOceanWaveParamsExe( string $ZVOceanWave, string $filePathName )
+{
+	int $fileId = `fopen $filePathName "r"`;
+
+	while( !`feof $fileId` )
+	{
+		string $attrName = `fgetword $fileId`;
+		if( !`attributeExists $attrName $ZVOceanWave` ) { continue; }
+
+		string $attrType = `fgetword $fileId`;
+
+		if( $attrType == "int" ) {
+
+			int $val = (int)`fgetword $fileId`;
+			setAttr ($ZVOceanWave+"."+$attrName) $val;
+
+		} else if( $attrType == "float" ) {
+
+			float $val = (float)`fgetword $fileId`;
+			setAttr ($ZVOceanWave+"."+$attrName) $val;
+
+		}
+	}
+
+	fclose $fileId;
+
+	updateAE $ZVOceanWave;
+}

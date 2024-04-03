@@ -1,0 +1,31 @@
+//-------------------------//
+// AEZFX_NoiseTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.12.29                               //
+//-------------------------------------------------------//
+
+global proc AEZFX_NoiseTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "u-Frequency"     -ac "xFreq";
+			editorTemplate -l "v-Frequency"     -ac "yFreq";
+			editorTemplate -l "w-Frequency"     -ac "zFreq";
+			editorTemplate -l "Scale"  			-ac "scale";
+			editorTemplate -l "Offset" 			-ac "offset";			
+			editorTemplate -l "Octave"       	-ac "octave";
+			editorTemplate -l "Type"			-ac "type";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "outNoise";
+}
+

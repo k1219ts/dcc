@@ -1,0 +1,54 @@
+//-----------------------//
+// ZN_StrandsArchive.mel //
+//--------------------------------------------------//
+//   author		 : Dohyeon Yang @Dexter Studios		//
+//	last updates : 2017.07.17						//
+//--------------------------------------------------//
+
+//--------------------------------------------------------- CreateZN_StrandsArchive
+global proc string CreateZN_StrandsArchive(string $name)
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return "none";
+	}
+
+	string $node;
+	if($name == "")
+	{
+	    $node = `createNode ZN_StrandsArchive`;
+	}
+	else
+	{
+	    $node = `createNode ZN_StrandsArchive -n $name`;
+	}
+
+	connectAttr "time1.outTime" ($node + ".inTime");
+	pluginInfo -query -listPlugins;
+	
+	int $isRmanLoaded = `pluginInfo -q -l RenderMan_for_Maya`;
+	if($isRmanLoaded == false)
+	{
+		loadPlugin RenderMan_for_Maya;
+	}
+	addAttr -dt "string" -ln "rman__torattr___preShapeScript" $node ;
+	setAttr ($node + ".rman__torattr___preShapeScript") -type "string" "rmanOutputZN_StrandsArchiveRigidBindingProcedrual";
+
+	refresh;
+	updateAE $node;
+
+	return $node;
+}
+
+//--------------------------------------------------------- CreateZN_StrandsArchiveGroup
+global proc CreateZN_StrandsArchiveGroup()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+	python("import ZN_StrandsArchiveGroupUI.Main");
+	python("ZN_StrandsArchiveGroupUI.Main.main()");
+}

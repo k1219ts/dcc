@@ -1,0 +1,35 @@
+//----------------------------------//
+// AEZAbcViewerInstanceTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.24                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZAbcViewerInstanceTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display" -collapse 0;
+		{
+			editorTemplate -l "Mode"             -ac "displayMode";
+			editorTemplate -as; 
+			editorTemplate -l "Surface Color"    -ac "surfaceColor";
+			editorTemplate -l "Shading Mode"     -ac "shadingMode";
+			editorTemplate -l "Lighting Effect"  -ac "lightingEffect";
+			editorTemplate -as; 
+			editorTemplate -l "Line Width"       -ac "lineWidth";
+			editorTemplate -l "Line Color"       -ac "lineColor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "input";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

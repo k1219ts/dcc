@@ -1,0 +1,97 @@
+//---------------//
+// ZelosMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2019.06.25                               //
+//-------------------------------------------------------//
+
+global proc AboutZelosWin()
+{
+    if( `window -q -exists Zelos_AboutZelosWin` )
+	{
+    	//deleteUI Zelos_AboutZelosWin;
+    	showWindow Zelos_AboutZelosWin;
+    	return;
+	}
+
+	window -resizeToFitChildren 1 -titleBar 1 -width 1 -height 1 -sizeable 0 -title "About Zelos" Zelos_AboutZelosWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 300 -style "none";
+
+		rowLayout -nc 2 -cw2 200 150;
+			text -l "Zelos system"                 -al "left" -w 200 -font "boldLabelFont";
+			text -l "Zelos: God of Rivalry & Envy" -al "left" -w 200 -font "boldLabelFont";
+			setParent..;
+
+		separator -h 2 -w 400 -style "single";
+		separator -h 15 -w 350 -style "none";
+
+		text -l "C++ based in-house CG toolkit for Dexter Studios" -al "left" -w 350 -font "boldLabelFont";
+		text -l "Developed by Dexter R&D team"                     -al "left" -w 350 -font "boldLabelFont";
+		separator -h 15 -w 350 -style "none";
+		text -l "Last update date: 2023.09.04"                     -al "left" -w 350 -font "boldLabelFont";
+		separator -h 15 -w 350 -style "none";
+		text -l "Developers" -al "left" -w 350 -font "boldLabelFont";
+		text -l " - Wanho Choi @ Dexter Studios"                   -al "left" -w 350 -font "boldLabelFont";
+		text -l " - rnd @ Dexter Studios"                  -al "left" -w 350 -font "boldLabelFont";
+		text -l " - rnd @ Dexter Studios"                  -al "left" -w 350 -font "boldLabelFont";
+		text -l " - rnd @ Dexter Studios"                 -al "left" -w 350 -font "boldLabelFont";
+		text -l " - rnd @ Dexter Studios"                   -al "left" -w 350 -font "boldLabelFont";
+		text -l " - rnd @ Dexter Studios"                  -al "left" -w 350 -font "boldLabelFont";
+		text -l " - rnd @ Dexter Studios"                  -al "left" -w 350 -font "boldLabelFont";
+
+		separator -h 15 -w 350 -style "none";
+
+	showWindow Zelos_AboutZelosWin;
+}
+
+global proc
+ZelosMenu( string $parent )
+{
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; } // check if menu is built already
+
+	if( `exists ZENNMenu`        ) { ZENNMenu;        }
+	if( `exists ZENVMenu`        ) { ZENVMenu;        }
+	if( `exists ZarVisMenu`      ) { ZarVisMenu;      }
+	if( `exists ZRigMenu`        ) { ZRigMenu;        }
+	if( `exists ZFXMenu`         ) { ZFXMenu;         }
+	if( `exists ZelosMeshMenu`   ) { ZelosMeshMenu;   }
+	if( `exists ZeomMenu`        ) { ZeomMenu;        }
+	if( `exists ZelosClothMenu`  ) { ZelosClothMenu;  }
+	if( `exists ZelosCameraMenu` ) { ZelosCameraMenu; }
+	if( `exists ZelosWaterMenu`  ) { ZelosWaterMenu;  }
+	if( `exists ZMayaToolsMenu`  ) { ZMayaToolsMenu;  }
+	if( `exists ZelosTestMenu`   ) { ZelosTestMenu;   }
+
+	menuItem -divider true;
+
+	menuItem -l "About Zelos" -ec 1 -c "AboutZelosWin" ZelosAbout_Item;
+	setParent -menu ..;
+}
+
+global proc CreateZelosMenu()
+{
+	// maya menus
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	// Zelos menu
+	global string $gZelosMenu;
+
+	if( `menu -exists ZelosMainMenu` ) { deleteUI ZelosMainMenu; }
+
+	setParent $gMainWindow;
+	$gZelosMenu = `menu -l "Zelos" -to true -pmo true ZelosMainMenu`;
+	menu -e -pmc ( "ZelosMenu " + $gZelosMenu ) $gZelosMenu;
+
+	hotBox -um;
+}
+
+global proc DeleteZelosMenu()
+{
+// Zelos menu does not disapear!
+//	if( `menu -exists ZelosMainMenu` ) { deleteUI ZelosMainMenu; }
+}
+

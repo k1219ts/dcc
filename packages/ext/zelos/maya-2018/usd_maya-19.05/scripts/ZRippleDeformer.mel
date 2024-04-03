@@ -1,0 +1,445 @@
+//---------------------//
+// ZRippleDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+//		   Nayoung Kim @ Dexter Studios					 //
+// last update: 2015.07.20                               //
+//-------------------------------------------------------//
+
+// Use: 
+// CreateZRippleDeformerWin();
+// UpdateZRippleDeformerWin();
+
+global proc CreateZRippleDeformer()
+{
+	print "in CreateZRippleDeformer\n";
+
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	// Ocean mesh
+	string $OceanMeshXForm = `textField -q -tx tfZRippleDeformerOceanMesh`;
+	string $OceanMeshShapes[] = `listRelatives -shapes $OceanMeshXForm`;
+	string $OceanMeshShape = $OceanMeshShapes[0];
+
+	// Create ZRippleDeformer
+	string $ZRippleDeformer[] = `deformer -type ZRippleDeformer $OceanMeshShape`;
+	
+	connectAttr time1.outTime ($ZRippleDeformer[0] + ".time");
+	
+	//==============================
+	// Source
+	//==============================
+	// Get the connected nodes.
+	string $srcConnectedPlg[] = `listAttr -multi ( $ZRippleDeformer[0] + ".sourceMeshes" )`;
+	int $numSrcConnections = size($srcConnectedPlg);
+
+	// Disconnect the connections to the ".sourceMeshes"
+	int $i = 0;
+	for( ; $i<$numSrcConnections; $i++ )
+	{
+		string $dstNodeAttr = ( $ZRippleDeformer[0] + "." + $srcConnectedPlg[$i] );
+		string $srcNodeAttr = `connectionInfo -sfd $dstNodeAttr`;
+
+		if( size($srcNodeAttr) )
+		{
+			disconnectAttr $srcNodeAttr $dstNodeAttr;
+		}
+	}
+
+	string $sourceMeshes[] = ZTextScrollList_GetAllItems( "ZRippleDeformerSourceMeshList" );
+	int $numSourceMeshes = size($sourceMeshes);
+	//if( $numSourceMeshes==0) { return; }
+
+	$i = 0;
+	for( $sourceMesh in $sourceMeshes )
+	{
+		string $connectNode = ZConnectedNode( $sourceMesh, "worldMesh[0]" );
+
+		if( size($connectNode ))
+		{
+			string $nodeType = `nodeType $connectNode`;
+			if( $nodeType == "ZRippleDeformer" ) { continue; }
+		}
+
+		connectAttr ($sourceMesh + ".worldMesh[0]") ( $ZRippleDeformer[0] + ".sourceMeshes[" + $i + "]" );
+		$i++;
+	}
+
+	//==============================
+	// Obstruction
+	//==============================
+	// Get the connected nodes.
+	string $obsConnectedPlg[] = `listAttr -multi ( $ZRippleDeformer[0] + ".obstructionMeshes" )`;
+	int $numObsConnections = size($obsConnectedPlg);
+
+	// Disconnect the connections to the ".obstructionMeshes"
+	$i = 0;
+	for( ; $i<$numObsConnections; $i++ )
+	{
+		string $dstNodeAttr = ( $ZRippleDeformer[0] + "." + $obsConnectedPlg[$i] );
+		string $obsNodeAttr = `connectionInfo -sfd $dstNodeAttr`;
+
+		if( size($obsNodeAttr) )
+		{
+			disconnectAttr $obsNodeAttr $dstNodeAttr;
+		}
+	}
+
+	string $obstructionMeshes[] = ZTextScrollList_GetAllItems( "ZRippleDeformerObstructionMeshList" );
+	int $numObstructionMeshes = size($obstructionMeshes);
+	//if( $numObstructionMeshes==0) { return; }
+
+	$i = 0;
+	for( $obstructionMesh in $obstructionMeshes )
+	{
+		string $connectNode = ZConnectedNode( $obstructionMesh, "worldMesh[0]" );
+
+		if( size($connectNode ))
+		{
+			string $nodeType = `nodeType $connectNode`;
+			if( $nodeType == "ZRippleDeformer" ) { continue; }
+		}
+
+		connectAttr ( $obstructionMesh + ".worldMesh[0]" ) ( $ZRippleDeformer[0] + ".obstructionMeshes[" + $i + "]" );
+		$i++;
+	}
+}
+
+global proc CreateZRippleDeformerWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	if( `window -q -exists CreateZRippleDeformerWin` )
+	{
+		deleteUI CreateZRippleDeformerWin;
+		showWindow CreateZRippleDeformerWin;
+		return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Create Ripple Deformer" CreateZRippleDeformerWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 300 -style "none";
+
+		rowLayout -nc 2 -cw2 200 150;
+			text -l "Zelos system" -font "boldLabelFont" -w 200 -al "left";
+			text -l " by Dexter Studios R&D team" -w 150 -al "left";
+			setParent..;
+
+		separator -h 2 -w 350 -style "single";
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Instructions" -al "left" -w 350 -font "boldLabelFont";
+		text -l "1) Select ocean mesh."   	 				-al "left" -w 350;
+		text -l "2) Select source & obstruction meshes."   	-al "left" -w 350;
+		text -l "3) Click the 'Generation' button." 		-al "left" -w 350;
+
+		separator -h 2 -w 350 -style "in";
+		separator -h 15 -w 350 -style "none";
+	
+		//====================
+		// Ocean Mesh
+		//====================
+		text -l "1) A Ocean Mesh" -font "boldLabelFont" -w 350 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 tfZRippleDeformerOceanMesh;
+			//button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZRippleDeformerOceanMesh\",\"OceanMesh\");") btnZRippleDeformerOceanMesh;
+			//button -l "<<" -w 30 -c ("ZLoadShapeNode(\"tfZRippleDeformerOceanMesh\",\"mesh\");") btnZRippleDeformerOceanMesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByType(\"tfZRippleDeformerOceanMesh\",\"transform\");") btnZRippleDeformerOceanMesh;
+			setParent..;
+
+		//====================
+		// Source Meshes
+		//====================
+		separator -h 10 -w 350 -style "none";
+		text -l "2) Source Meshes" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+			textScrollList -w 200 -h 75 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZRippleDeformerSourceMeshList`; select $items[0];" ) ZRippleDeformerSourceMeshList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+				button -l "Add"    -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Add( \"ZRippleDeformerSourceMeshList\", \"mesh\" )" );
+				button -l "Remove" -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Remove( \"ZRippleDeformerSourceMeshList\" )" );
+				button -l "Clear"  -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Clear( \"ZRippleDeformerSourceMeshList\" )" );
+				setParent..;
+			setParent..;
+
+		//====================
+		// Obstruction Meshes
+		//====================
+		separator -h 10 -w 350 -style "none";
+		text -l "2) Obstruction Meshes" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+			textScrollList -w 200 -h 75 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZRippleDeformerObstructionMeshList`; select $items[0];" ) ZRippleDeformerObstructionMeshList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+				button -l "Add"    -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Add( \"ZRippleDeformerObstructionMeshList\", \"mesh\" )" );
+				button -l "Remove" -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Remove( \"ZRippleDeformerObstructionMeshList\" )" );
+				button -l "Clear"  -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Clear( \"ZRippleDeformerObstructionMeshList\" )" );
+				setParent..;
+			setParent..;
+
+		separator -h 15 -w 350 -style "none";
+
+		button -l "3) Generation" -bgc 0.8 0.36 0.36 -w 330 -al "center" -c "CreateZRippleDeformer";
+
+		separator -h 15 -w 350 -style "none";
+
+	showWindow CreateZRippleDeformerWin;
+}
+
+//==================================================
+// Update ZRipple Defomer
+//==================================================
+
+global proc RefreshZRippleDeformer()
+{
+	// Ocean mesh
+	string $OceanMeshXForm = `textField -q -tx tfUpdateZRDOceanMesh`;
+	string $OceanMeshShapes[] = `listRelatives -shapes $OceanMeshXForm`;
+	string $OceanMeshShape = $OceanMeshShapes[0];
+
+	// Select ZRipple Deformer
+	string $oceanConnections[] = `listConnections -type ZRippleDeformer $OceanMeshShape`;
+	string $ZRippleDeformer = $oceanConnections[0];
+	
+	textScrollList -e -removeAll UpdateZRDSourceMeshList;
+	textScrollList -e -removeAll UpdateZRDObstructionMeshList;
+
+	//=================
+	// source
+	//=================
+	//
+	string $srcPlg[] = `listAttr -multi ($ZRippleDeformer + ".sourceMeshes")`;
+	int $numSrc = size($srcPlg);
+	
+	int $i = 0;
+	for( ; $i < $numSrc; $i++ )
+	{
+		// source
+		string $srcConnect = `connectionInfo -sfd ($ZRippleDeformer + ".sourceMeshes[" + $i + "]")`;
+		string $srcBuffer[];
+		int $srcNumTokens = tokenize( $srcConnect, ".", $srcBuffer );
+		string $srcMeshShape = $srcBuffer[0];
+		
+		textScrollList -e -a $srcMeshShape UpdateZRDSourceMeshList;
+	}
+
+	//=================
+	// obstruction 
+	//=================
+	//
+	string $obsPlg[] = `listAttr -multi ($ZRippleDeformer + ".obstructionMeshes")`;
+	int $numObs = size($obsPlg);
+
+	$i = 0;
+	for( ; $i < $numObs; $i++ )
+	{
+		// obstruction
+		string $obsConnect = `connectionInfo -sfd ($ZRippleDeformer + ".obstructionMeshes[" + $i + "]")`;
+		string $obsBuffer[];
+		int $obsNumTokens = tokenize( $obsConnect, ".", $obsBuffer );
+		string $obsMeshShape = $obsBuffer[0];
+		
+		textScrollList -e -a $obsMeshShape UpdateZRDObstructionMeshList;
+	}
+}
+
+global proc UpdateConnection()
+{
+	print "\n in UpdateConnection\n";
+
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+	
+	// Ocean mesh
+	string $OceanMeshXForm = `textField -q -tx tfUpdateZRDOceanMesh`;
+	string $OceanMeshShapes[] = `listRelatives -shapes $OceanMeshXForm`;
+	string $OceanMeshShape = $OceanMeshShapes[0];
+
+	// Select ZRipple Deformer
+	string $oceanConnections[] = `listConnections -type ZRippleDeformer $OceanMeshShape`;
+	string $ZRippleDeformer = $oceanConnections[0];
+
+
+	//==============================
+	// Source
+	//==============================
+	// Get the connected nodes.
+	string $srcConnectedPlg[] = `listAttr -multi ( $ZRippleDeformer + ".sourceMeshes" )`;
+	int $numSrcConnections = size($srcConnectedPlg);
+
+	// Disconnect the connections to the ".sourceMeshes"
+	int $i = 0;
+	for( ; $i<$numSrcConnections; $i++ )
+	{
+		string $dstNodeAttr = ( $ZRippleDeformer + "." + $srcConnectedPlg[$i] );
+		string $srcNodeAttr = `connectionInfo -sfd $dstNodeAttr`;
+
+		if( size($srcNodeAttr) )
+		{
+			disconnectAttr $srcNodeAttr $dstNodeAttr;
+		}
+	}
+
+	string $sourceMeshes[] = ZTextScrollList_GetAllItems( "UpdateZRDSourceMeshList" );
+	int $numSourceMeshes = size($sourceMeshes);
+
+	$i = 0;
+	for( $sourceMesh in $sourceMeshes )
+	{
+		string $connectNode = ZConnectedNode( $sourceMesh, "worldMesh[0]" );
+
+		if( size($connectNode ))
+		{
+			string $nodeType = `nodeType $connectNode`;
+			if( $nodeType == "ZRippleDeformer" ) { continue; }
+		}
+
+		connectAttr ($sourceMesh + ".worldMesh[0]") ( $ZRippleDeformer + ".sourceMeshes[" + $i + "]" );
+		$i++;
+	}
+
+	//==============================
+	// Obstruction
+	//==============================
+	// Get the connected nodes.
+	string $obsConnectedPlg[] = `listAttr -multi ( $ZRippleDeformer + ".obstructionMeshes" )`;
+	int $numObsConnections = size($obsConnectedPlg);
+
+	// Disconnect the connections to the ".obstructionMeshes"
+	$i = 0;
+	for( ; $i<$numObsConnections; $i++ )
+	{
+		string $dstNodeAttr = ( $ZRippleDeformer + "." + $obsConnectedPlg[$i] );
+		string $obsNodeAttr = `connectionInfo -sfd $dstNodeAttr`;
+
+		if( size($obsNodeAttr) )
+		{
+			disconnectAttr $obsNodeAttr $dstNodeAttr;
+		}
+	}
+
+	string $obstructionMeshes[] = ZTextScrollList_GetAllItems( "UpdateZRDObstructionMeshList" );
+	int $numObstructionMeshes = size($obstructionMeshes);
+	//if( $numObstructionMeshes==0) { return; }
+
+	$i = 0;
+	for( $obstructionMesh in $obstructionMeshes )
+	{
+		string $connectNode = ZConnectedNode( $obstructionMesh, "worldMesh[0]" );
+
+		if( size($connectNode ))
+		{
+			string $nodeType = `nodeType $connectNode`;
+			if( $nodeType == "ZRippleDeformer" ) { continue; }
+		}
+
+		connectAttr ( $obstructionMesh + ".worldMesh[0]" ) ( $ZRippleDeformer + ".obstructionMeshes[" + $i + "]" );
+		$i++;
+	}
+}
+
+global proc UpdateZRippleDeformerWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	if( `window -q -exists UpdateZRippleDeformerWin` )
+	{
+		deleteUI UpdateZRippleDeformerWin;
+		showWindow UpdateZRippleDeformerWin;
+		return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Update Ripple Deformer" UpdateZRippleDeformerWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 300 -style "none";
+
+		rowLayout -nc 2 -cw2 200 150;
+			text -l "Zelos system" -font "boldLabelFont" -w 200 -al "left";
+			text -l " by Dexter Studios R&D team" -w 150 -al "left";
+			setParent..;
+
+		separator -h 2 -w 350 -style "single";
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Instructions" -al "left" -w 350 -font "boldLabelFont";
+		text -l "1) Select ocean mesh."   	 				-al "left" -w 350;
+		text -l "2) Click the 'Update List' button." 		-al "left" -w 350;
+		text -l "3) Update source & obstruction meshes."   	-al "left" -w 350;
+		text -l "4) Click the 'Update Connection' button." 	-al "left" -w 350;
+
+		separator -h 2 -w 350 -style "in";
+		separator -h 15 -w 350 -style "none";
+	
+		//====================
+		// Ocean Mesh
+		//====================
+		text -l "1)A Ocean Mesh" -font "boldLabelFont" -w 350 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 tfUpdateZRDOceanMesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByType(\"tfUpdateZRDOceanMesh\",\"transform\");") btnUpdateZRDOceanMesh;
+			setParent..;
+
+		//====================
+		// Refresh Button
+		//====================
+		button -l "2) Update List" -bgc 0.56 0.73 0.56 -w 330 -al "center" -c "RefreshZRippleDeformer";
+
+		//====================
+		// Source Meshes
+		//====================
+		separator -h 10 -w 350 -style "none";
+		text -l "3) Source Meshes" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+			textScrollList -w 200 -h 75 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si UpdateZRDSourceMeshList`; select $items[0];" ) UpdateZRDSourceMeshList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+				button -l "Add"    -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Add( \"UpdateZRDSourceMeshList\", \"mesh\" )" );
+				button -l "Remove" -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Remove( \"UpdateZRDSourceMeshList\" )" );
+				button -l "Clear"  -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Clear( \"UpdateZRDSourceMeshList\" )" );
+				setParent..;
+			setParent..;
+
+		//====================
+		// Obstruction Meshes
+		//====================
+		separator -h 10 -w 350 -style "none";
+		text -l "3) Obstruction Meshes" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+			textScrollList -w 200 -h 75 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si UpdateZRDObstructionMeshList`; select $items[0];" ) UpdateZRDObstructionMeshList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+				button -l "Add"    -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Add( \"UpdateZRDObstructionMeshList\", \"mesh\" )" );
+				button -l "Remove" -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Remove( \"UpdateZRDObstructionMeshList\" )" );
+				button -l "Clear"  -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Clear( \"UpdateZRDObstructionMeshList\" )" );
+				setParent..;
+			setParent..;
+
+		separator -h 15 -w 350 -style "none";
+
+		button -l "4) Update Connection" -bgc 0.1 0.93 0.11 -w 330 -al "center" -c "UpdateConnection";
+
+		separator -h 15 -w 350 -style "none";
+
+	showWindow UpdateZRippleDeformerWin;
+}
+

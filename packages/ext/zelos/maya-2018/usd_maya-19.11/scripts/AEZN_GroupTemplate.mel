@@ -1,0 +1,100 @@
+//------------------------//
+// AEZN_GroupTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.10.28                               //
+//-------------------------------------------------------//
+
+////////////
+// active //
+global proc ZN_GroupActiveNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout;
+		{
+			checkBox -l "Current ZN_Group" -cc ("ZN_GroupActive "+$attr) ZN_GroupActive;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_GroupActiveReplace( $attr );
+}
+
+global proc ZN_GroupActiveReplace( string $attr )
+{
+	connectControl ZN_GroupActive $attr;
+	checkBox -e -cc ("ZN_GroupActive " +$attr) ZN_GroupActive;
+}
+
+global proc ZN_GroupActive( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	string $group = $node[0];
+
+	string $ZN_Groups[] = `ls -type ZN_Group`;
+	{
+		for( $ZN_Group in $ZN_Groups )
+		{
+			if( $group != $ZN_Group )
+			{
+				setAttr ($ZN_Group+".active") 0;
+			}
+		}
+	}
+
+	string $global = `GetZN_Global $group`;
+	{
+		string $tokens[];
+		tokenize( $global, "|", $tokens );
+
+		$global = $tokens[size($tokens)-1];
+	}
+
+	string $ZN_Globals[] = `ls -type ZN_Global`;
+	{
+		for( $ZN_Global in $ZN_Globals )
+		{
+			if( $global == $ZN_Global ) {
+				setAttr ($ZN_Global+".active") 1;
+			} else {
+				setAttr ($ZN_Global+".active") 0;
+			}
+		}
+	}
+}
+
+//////////
+// main //
+global proc AEZN_GroupTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "ZENN" -collapse 0;
+		{
+			editorTemplate -ccu ZN_GroupActiveNew ZN_GroupActiveReplace "active";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -addExtraControls;
+
+	editorTemplate -suppress "translate";
+	editorTemplate -suppress "rotate";
+	editorTemplate -suppress "scale";
+	editorTemplate -suppress "shear";
+	editorTemplate -suppress "rotationOrder";
+	editorTemplate -suppress "rotationAxis";
+	editorTemplate -suppress "inheritsTransform";
+	editorTemplate -suppress "mentalRayControls";
+	editorTemplate -suppress "update";
+
+	setAttr -lock true ($nodeName+".translate");
+	setAttr -lock true ($nodeName+".rotate"   );
+	setAttr -lock true ($nodeName+".scale"    );
+}
+

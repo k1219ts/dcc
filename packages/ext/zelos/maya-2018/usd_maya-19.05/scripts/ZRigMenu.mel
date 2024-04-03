@@ -1,0 +1,60 @@
+//---------------------//
+// ZRigForMayaMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc ZRigMenu()
+{
+	menuItem -to 1 -l "ZRig (Rigging)" -ec 1 -subMenu true ZRig_Item;
+	{
+		menuItem -l "ZCurveDivider" -to 1 -ec 1 -subMenu 1 ZRig_ZCurveDivider_Item;
+		{
+			menuItem -l "Create"                 -ec 1 -c "CreateZCurveDivider"          CreateZCurveDivider_Item;
+			menuItem -l "Set Output"             -ec 1 -c "SetZCurveDividerOutputs"      SetZCurveDividerOutputs_Item;
+			menuItem -l "Connect Input Rotation" -ec 1 -c "ConnectZCurveDividerInputRot" ConnectZCurveDividerInputRot_Item;
+		}
+		setParent -menu ..;
+	}
+	setParent -menu ..;
+}
+
+global proc ZRig_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZRigForMaya"` )
+	{
+		ZPrintError "ZRigForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZRigMenu;
+}
+
+global proc ZRig_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZRigMenu;
+
+	if( `menu -exists mainZRigMenu` ) { deleteUI mainZRigMenu; }
+
+	setParent $gMainWindow;
+
+	$gZRigMenu = `menu -l "ZRig" -to true -pmo true mainZRigMenu`;
+	menu -e -pmc ( "ZRig_Menu " + $gZRigMenu ) $gZRigMenu;
+
+	hotBox -um;
+}
+
+global proc ZRig_DeleteMenu()
+{
+	if( `menu -exists mainZRigMenu` ) { deleteUI mainZRigMenu; }
+}
+

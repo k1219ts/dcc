@@ -1,0 +1,26 @@
+//----------------------//
+// AEZVNodeTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.02.16                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZVNodeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Options" -collapse 1;
+		{
+			editorTemplate -l "Input"  -ac "input";
+			editorTemplate -l "Value"  -ac "value";
+			editorTemplate -l "Output" -ac "output";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+}
+

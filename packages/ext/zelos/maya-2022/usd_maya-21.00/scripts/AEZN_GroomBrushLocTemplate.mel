@@ -1,0 +1,28 @@
+//--------------------------------//
+// AEZN_GroomBrushLocTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.02.18                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZN_GroomBrushLocTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Brush Options" -collapse 0;
+		{
+			editorTemplate -l "Radius" -ac "radius";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}

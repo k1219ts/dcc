@@ -1,0 +1,99 @@
+//-----------------------------------//
+// AEZN_FeatherSetViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.01                               //
+//-------------------------------------------------------//
+
+global proc ZN_FeatherSetViewerChanged( string $node )
+{
+	editorTemplate -dc $node "solidColor"   1;
+	editorTemplate -dc $node "pointSize"    1;
+	editorTemplate -dc $node "lineWidth"    1;
+	editorTemplate -dc $node "axisScale"    1;
+	editorTemplate -dc $node "displayRatio" 1;
+	editorTemplate -dc $node "filterStr"    1;
+	editorTemplate -dc $node "hideBackface" 1;
+	editorTemplate -dc $node "colorMapPath" 1;
+	editorTemplate -dc $node "smoothen"     1;
+
+	if( `getAttr ($node+".drawMode")` == 0 )
+	{
+		return;
+	}
+
+	editorTemplate -dc $node "displayRatio" 0;
+	editorTemplate -dc $node "filterStr"    0;
+	editorTemplate -dc $node "hideBackface" 0;
+	editorTemplate -dc $node "smoothen"     0;
+
+	if( `getAttr ($node+".colorMode")` == 0 )
+	{
+		editorTemplate -dc $node "solidColor" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 1 )
+	{
+		editorTemplate -dc $node "pointSize" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 2 )
+	{
+		editorTemplate -dc $node "axisScale" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 4 )
+	{
+		editorTemplate -dc $node "pointSize" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 5 )
+	{
+		editorTemplate -dc $node "lineWidth" 0;
+	}
+
+	if( `getAttr ($node+".colorMode")` == 3 )
+	{
+		editorTemplate -dc $node "colorMapPath" 0;
+	}
+}
+
+//////////
+// main //
+global proc AEZN_FeatherSetViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Elements Count" -collapse 0;
+		{
+			editorTemplate -l "strands"          -ac "numStrands";
+			editorTemplate -l "Feathers"         -ac "numFeathers";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "General Options" -collapse 0;
+		{
+			editorTemplate -l "Draw Mode"        -ac "drawMode" ZN_FeatherSetViewerChanged;
+			editorTemplate -l "Color Mode"       -ac "colorMode" ZN_FeatherSetViewerChanged;
+			editorTemplate -l "Solid Color"      -ac "solidColor";
+			editorTemplate -l "Point Size"       -ac "pointSize";
+			editorTemplate -l "Line Width"       -ac "lineWidth";
+			editorTemplate -l "Axis Scale"       -ac "axisScale";
+			editorTemplate -l "Smoothen"         -ac "smoothen";
+			editorTemplate -l "Color Map"        -ac "colorMapPath";
+			editorTemplate -l "Hide Backface"    -ac "hideBackface";
+			editorTemplate -as;
+			editorTemplate -l "Display Ratio"    -ac "displayRatio";
+			editorTemplate -l "Filter"           -ac "filterStr";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inFeatherSet";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

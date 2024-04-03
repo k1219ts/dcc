@@ -1,0 +1,161 @@
+//-------------------------//
+// ZCollisionMapGenWin.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.12.07                               //
+//-------------------------------------------------------//
+
+global proc ZCollisionMapGen_SetFrameRange( int $mode )
+{
+	intField -e -en ($mode-1) ZCollisionMapGenWin_StartFrame;
+	intField -e -en ($mode-1) ZCollisionMapGenWin_EndFrame;
+}
+
+global proc ZCollisionMapGenWin()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZCollisionMapGenWin` )
+	{
+    	deleteUI ZCollisionMapGenWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZENV Bake Cache" ZCollisionMapGenWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 300 -style "none";
+		text -l "Mesh" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 ZCollisionMapGenWin_Mesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"ZCollisionMapGenWin_Mesh\",\"mesh\");") ZCollisionMapGenWin_MeshBtn;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Collider" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 ZCollisionMapGenWin_Collider;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"ZCollisionMapGenWin_Collider\",\"mesh\");") ZCollisionMapGenWin_ColliderBtn;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Cache Path" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 ZCollisionMapGenWin_Path;
+			symbolButton -image "navButtonBrowse.xpm" -c "string $dir[] = `fileDialog2 -fm 3 -ds 1`; textField -e -tx $dir[0] ZCollisionMapGenWin_Path;";
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Cache Name" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout;
+		{
+			textField -tx "" -w 150 ZCollisionMapGenWin_Name;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Frame Range" -font "boldLabelFont" -w 330 -al "left";
+		columnLayout -w 300;
+		{
+			rowLayout -nc 4 -cw4 150 70 30 50;
+			{
+				radioButtonGrp -sl 1 -cw2 70 70 -numberOfRadioButtons 2 -labelArray2 "time slider" "start/end:" -on1 "ZCollisionMapGen_SetFrameRange 1" -on2 "ZCollisionMapGen_SetFrameRange 2" ZCollisionMapGenWin_FrameRange;
+				intField -v 0   -w 65 -en 0 ZCollisionMapGenWin_StartFrame;
+				text -l "to" -al "center" -w 20;
+				intField -v 100 -w 65 -en 0 ZCollisionMapGenWin_EndFrame;
+			}
+			setParent ..;
+
+			rowLayout -nc 2 -cw2 80 300;
+			{
+				text -h 20 -l "Step" -fn "boldLabelFont" "left";
+				floatSliderGrp -v 1.0 -min 0.01 -max 1.00 -s 0.01 -f 1 -w 200 ZCollisionMapGenWin_Step;
+			}
+			setParent ..;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		rowLayout -nc 2;
+		{
+			text -h 20 -l "Falloff Distance" -fn "boldLabelFont" "left";
+			floatField -v 1.0 -min 0.0 -w 60 ZCollisionMapGenWin_Distance;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		rowLayout -nc 2;
+		{
+			text -h 20 -l "Image Resolution" -fn "boldLabelFont" "left";
+			intField -v 1024 -min 0 -w 60 ZCollisionMapGenWin_Resolution;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		rowLayout -nc 2;
+		{
+			text -h 20 -l "Padding" -fn "boldLabelFont" "left";
+			intSliderGrp -v 4 -min 1 -max 6 -s 1 -f 1 -w 200 ZCollisionMapGenWin_Padding;
+		}
+		setParent ..;
+
+		separator -h 15 -w 330 -style "none";
+
+		button -l "Generate" -w 330 -al "center" -c "ZCollisionMapGenExe";
+
+		separator -h 15 -w 330 -style "none";
+	}
+	showWindow ZCollisionMapGenWin;
+}
+
+global proc ZCollisionMapGenExe()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	string $meshName     = `textField -q -tx ZCollisionMapGenWin_Mesh`;
+	string $colliderName = `textField -q -tx ZCollisionMapGenWin_Collider`;
+
+	float $startFrame = 0.0;
+	float $endFrame   = 0.0;
+
+	int $frameRangeMode = `radioButtonGrp -q -sl ZCollisionMapGenWin_FrameRange`;
+	if( $frameRangeMode==1 ) {
+		$startFrame = `playbackOptions -q -min`;
+		$endFrame   = `playbackOptions -q -max`;
+	} else {
+		$startFrame = `intField -q -v ZCollisionMapGenWin_StartFrame`;
+		$endFrame   = `intField -q -v ZCollisionMapGenWin_EndFrame`;
+	}
+
+	if( $startFrame > $endFrame ) { ZPrintError "Invalid frame range."; return; }
+
+	float $step = `floatSliderGrp -q -v ZCollisionMapGenWin_Step`;
+
+	int $resolution = `intField -q -v ZCollisionMapGenWin_Resolution`;
+
+	float $distance = `floatField -q -v ZCollisionMapGenWin_Distance`;
+
+	int $padding = `intSliderGrp -q -v ZCollisionMapGenWin_Padding`;
+
+	string $cachePath = `textField -q -tx ZCollisionMapGenWin_Path`;
+
+	string $cacheName = `textField -q -tx ZCollisionMapGenWin_Name`;
+
+	ZCollisionMapGenCmd -meshName $meshName -colliderName $colliderName -startFrame $startFrame -endFrame $endFrame -step $step -resolution $resolution -distance $distance -cachePath $cachePath -cacheName $cacheName -padding $padding;
+}
+

@@ -1,0 +1,119 @@
+//--------------------------//
+// AEZPtcEditorTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2018.02.02                               //
+//-------------------------------------------------------//
+
+//////////
+// File //
+global proc ZPtcEditorFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text -label "File";
+			textField -ed 0 -tx `getAttr $attr` ZPtcEditorFile;
+			symbolButton -image "navButtonBrowse.xpm" ZPtcEditorFileBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZPtcEditorFileReplace $attr;
+}
+
+global proc ZPtcEditorFileReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` ZPtcEditorFile;
+	button -e -c ("ZPtcEditorSetFile "+$attr) ZPtcEditorFileBtn;
+}
+
+global proc ZPtcEditorSetFile( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZPtcEditor = $tokens[0];
+	string $filter = "Point Cloud (*.xyz)";
+	string $fileNames[] = `fileDialog2 -caption "Point Cloud(.xyz) File" -ff $filter -fileMode 1`;
+
+	if( size($fileNames) > 0 )
+	{
+		eval( "setAttr -type \"string\" " + $attr + " \"" + $fileNames[0] + "\"" );
+		textField -e -tx $fileNames[0] ZPtcEditorFile;
+
+		refresh;
+		updateAE $ZPtcEditor;
+	}
+}
+
+/////////////////
+// Frame Range //
+global proc ZPtcEditorRangeNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout -adj 1;
+		{
+			rowLayout -nc 1 -adj 1;
+			{
+				button -l "Set Playback" -c ("ZPtcEditorSetRange "+$attr) ZPtcEditorRangeBtn;
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZPtcEditorRangeReplace( string $attr )
+{
+	button -e -c ("ZPtcEditorSetRange "+$attr) ZPtcEditorRangeBtn;
+}
+
+global proc ZPtcEditorSetRange( string $attr )
+{
+	float $frameRange[] = `getAttr $attr`;
+
+	playbackOptions -e -ast $frameRange[0];
+	playbackOptions -e -min $frameRange[0];
+
+	playbackOptions -e -max $frameRange[1];
+	playbackOptions -e -aet $frameRange[1];
+}
+
+//////////
+// main //
+global proc AEZPtcEditorTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display" -collapse 0;
+		{
+            editorTemplate -l "As Blended Circle" -ac "asBlendedCircle";
+			editorTemplate -l "Point Size"        -ac "pointSize";
+			editorTemplate -as; 
+            editorTemplate -l "Display Ratio"     -ac "displayRatio";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Count"             -ac "count";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "File" -collapse 0;
+		{
+			editorTemplate -ccu ZPtcEditorFileNew ZPtcEditorFileReplace "filePathName";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "output";
+}
+

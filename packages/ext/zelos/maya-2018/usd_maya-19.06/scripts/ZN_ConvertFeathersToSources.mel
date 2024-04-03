@@ -1,0 +1,124 @@
+//-------------------------------------//
+// ZN_ConvertFeathersToSources.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2017.04.24                               //
+//-------------------------------------------------------//
+
+global proc ZN_ConvertFeathersToSources()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_FeatherInstances[] = `ls -sl -type ZN_FeatherInstance`;
+
+	if( size($ZN_FeatherInstances) == 0 )
+	{
+		ZPrintError "No selected ZN_FeatherInstance node.";
+		return;
+	}
+
+	for( $ZN_FeatherInstance in $ZN_FeatherInstances )
+	{
+		string $connectedUpstreamNode = `connectionInfo -sfd ($ZN_FeatherInstance+".inStrands")`;
+		string $ZN_Instance = `createNode ZN_Instance`;
+
+		int $groupingMethod     = `getAttr ($ZN_FeatherInstance+".groupingMethod")`;
+		string $ratioStr        = `getAttr ($ZN_FeatherInstance+".ratioStr")`;
+		string $likelihoods[];
+		tokenize( $ratioStr, " ", $likelihoods );
+		int $randomSeed         = `getAttr ($ZN_FeatherInstance+".randomSeed")`;
+		int $bindingScheme      = `getAttr ($ZN_FeatherInstance+".bindingScheme")`;
+		int $textureType        = `getAttr ($ZN_FeatherInstance+".textureType")`;
+		int $useCurveScale      = `getAttr ($ZN_FeatherInstance+".useCurveScale")`;
+		int $onlyCurveDirection = `getAttr ($ZN_FeatherInstance+".onlyCurveDirection")`;
+		float $scaleRange[]     = `getAttr ($ZN_FeatherInstance+".scaleRange")`;
+		string $scaleMapPath    = `getAttr ($ZN_FeatherInstance+".scaleMapPath")`;
+		float $scaleValueLift   = `getAttr ($ZN_FeatherInstance+".scaleValueLift")`;
+		float $rotateRange[]    = `getAttr ($ZN_FeatherInstance+".rotateRange")`;
+		float $foldRange[]      = `getAttr ($ZN_FeatherInstance+".foldRange")`;
+		string $foldMapPath     = `getAttr ($ZN_FeatherInstance+".foldMapPath")`;
+		float $foldValueLift    = `getAttr ($ZN_FeatherInstance+".foldValueLift")`;
+
+		setAttr ($ZN_Instance+".groupingMethod") $groupingMethod;
+		setAttr ($ZN_Instance+".randomSeed") $randomSeed;
+		setAttr ($ZN_Instance+".bindingScheme") $bindingScheme;
+		setAttr ($ZN_Instance+".textureType") $textureType;
+		setAttr ($ZN_Instance+".useCurveScale") $useCurveScale;
+		setAttr ($ZN_Instance+".onlyCurveDirection") $onlyCurveDirection;
+		setAttr ($ZN_Instance+".scaleRange") -type "float2" $scaleRange[0] $scaleRange[1];
+		setAttr ($ZN_Instance+".scaleMapPath") -type "string" $scaleMapPath;
+		setAttr ($ZN_Instance+".scaleValueLift") $scaleValueLift;
+		setAttr ($ZN_Instance+".rotateRange") -type "float2" $rotateRange[0] $rotateRange[1];
+		setAttr ($ZN_Instance+".foldRange") -type "float2" $foldRange[0] $foldRange[1];
+		setAttr ($ZN_Instance+".foldMapPath") -type "string" $foldMapPath;
+		setAttr ($ZN_Instance+".foldValueLift") $foldValueLift;
+
+		int $count = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -attribute count`;
+		if( $count == 0 ) { continue; }
+
+		string $featherMeshXForms[];
+		string $featherCurveGroups[];
+		{
+			string $ZN_FeatherImports[] = `GetZN_FeatherImportNodes $ZN_FeatherInstance`;
+
+			int $index = 0;
+			for( $ZN_FeatherImport in $ZN_FeatherImports )
+			{
+				
+				string $ZN_Source = `createNode ZN_Source`;
+				connectAttr -f ($ZN_Source+".outSource") ($ZN_Instance+".inSource["+$index+"]");
+				float $i = $likelihoods[$index];
+				setAttr ($ZN_Instance+".likelihoods["+$index+"]") $i;
+
+				string $sources[] = `GetZN_FeatherSources $ZN_FeatherImport 2`;
+				int $numSources = size($sources);
+
+				//setAttr on several attributes
+				if( $numSources > 0 )
+				{ // a feather mesh or a feather curves
+					for( $source in $sources )
+					{
+						if( `nodeType $source` == "mesh" ) // polygon mesh
+						{
+							string $parents[] = `listRelatives -p $source`;
+							connectAttr ($parents[0]+".w") ($ZN_Source+".inProxyMayaPolygonMesh");
+							connectAttr ($parents[0]+".w") ($ZN_Source+".inRenderMayaPolygonMesh");
+						}
+
+						if( `nodeType $source` == "transform" ) // curve group
+						{
+							connectAttr ($source+".message") ($ZN_Source+".inRenderCurveGroup");
+						}
+					}
+				}
+				string $archiveFilePath     = `getAttr ($ZN_FeatherImport+".archiveFilePath")`;
+				string $distributionMapPath = `getAttr ($ZN_FeatherImport+".distributionMapPath")`;
+				int $latticeResolution      = `getAttr ($ZN_FeatherImport+".latticeResolution")`;
+				float $colorId[]            = `getAttr ($ZN_FeatherImport+".colorId")`;
+				int $toDoSubdiv             = `getAttr ($ZN_FeatherImport+".toDoSubdiv")`;
+				if( $archiveFilePath != "" )     { setAttr ($ZN_Source+".inRenderRIB") -type "string" $archiveFilePath; }
+				if( $distributionMapPath != "" ) { setAttr ($ZN_Source+".distributionMapPath") -type "string" $distributionMapPath; }
+				setAttr ($ZN_Source+".latticeResolution") $latticeResolution;
+				setAttr ($ZN_Source+".colorId") -type "float3" $colorId[0] $colorId[1] $colorId[2];
+				setAttr ($ZN_Source+".toDoSubdiv") $toDoSubdiv;
+
+				setAttr ($ZN_Source+".update") 1;
+
+				$index++;
+			} //end of loop thru ZN_FeatherImport nodes
+		} //end of loop thru ZN_FeatherInstance nodes
+
+		if( $connectedUpstreamNode != "" )
+		{
+			disconnectAttr ($connectedUpstreamNode) ($ZN_FeatherInstance+".inStrands");
+			connectAttr -f ($connectedUpstreamNode) ($ZN_Instance+".inStrands");
+		}
+
+		//ZN_ConvertFeathersToMayaObjectsCmd -nodeName $ZN_FeatherInstance -mList $duplicatedFeatherMeshXForms -cList $duplicatedCurveGroups;
+	}
+}
+

@@ -1,0 +1,23 @@
+//-----------------------//
+// ZTangentSpaceTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZTangentSpaceTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZTangentSpaceTest;
+	polySphere;
+	connectAttr pSphereShape1.worldMesh ZTangentSpaceTest1.inMesh;
+	connectAttr ZTangentSpaceTest1.output transform1.shearXY;
+}
+

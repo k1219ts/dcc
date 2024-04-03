@@ -1,0 +1,178 @@
+//--------------------------------//
+// AEZN_StrandsViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.01                               //
+//-------------------------------------------------------//
+
+global proc ZN_StrandsViewerChanged( string $node )
+{
+	editorTemplate -dc $node "solidColor"      1;
+	editorTemplate -dc $node "drawFollicles"   1;
+	editorTemplate -dc $node "follicleSize"    1;
+	editorTemplate -dc $node "follicleOffset"  1;
+	editorTemplate -dc $node "drawAxes"        1;
+	editorTemplate -dc $node "axisScale"       1;
+	editorTemplate -dc $node "drawCurves"      1;
+	editorTemplate -dc $node "tipWidth"        1;
+	editorTemplate -dc $node "rootWidth"       1;
+	editorTemplate -dc $node "darkenRoots"     1;
+	editorTemplate -dc $node "drawBoundingBox" 1;
+	editorTemplate -dc $node "aabbLineWidth"   1;
+	editorTemplate -dc $node "aabbColor"       1;
+	editorTemplate -dc $node "hideBackface"    1;
+	editorTemplate -dc $node "asLineSegments"  1;
+	editorTemplate -dc $node "dt"              1;
+	editorTemplate -dc $node "variableWidth"   1;
+	editorTemplate -dc $node "displayRatio"    1;
+	editorTemplate -dc $node "drawCVs"         1;
+	editorTemplate -dc $node "cvPointSize"     1;
+	editorTemplate -dc $node "filterStr"       1;
+	editorTemplate -dc $node "colorMapPath"    1;
+	editorTemplate -dc $node "smoothen"        1;
+
+	if( `getAttr ($node+".colorMode")` == 0 )
+	{
+		return;
+	}
+
+	editorTemplate -dc $node "smoothen" 0;
+
+	if( `getAttr ($node+".colorMode")` == 1 )
+	{
+		editorTemplate -dc $node "solidColor" 0;
+	}
+
+	if( `getAttr ($node+".colorMode")` == 4 )
+	{
+		editorTemplate -dc $node "colorMapPath" 0;
+	}
+
+	editorTemplate -dc $node "displayRatio" 0;
+	editorTemplate -dc $node "hideBackface" 0;
+
+	editorTemplate -dc $node "drawCurves" 0;
+
+	editorTemplate -dc $node "drawFollicles" 0;
+	if( `getAttr ($node+".drawFollicles")` )
+	{
+		editorTemplate -dc $node "follicleSize"   0;
+		editorTemplate -dc $node "follicleOffset" 0;
+	}
+
+	editorTemplate -dc $node "drawAxes" 0;
+	if( `getAttr ($node+".drawAxes")` )
+	{
+		editorTemplate -dc $node "axisScale" 0;
+	}
+
+	if( `getAttr ($node+".drawCurves")` )
+	{
+		editorTemplate -dc $node "asLineSegments" 0;
+
+		if( `getAttr ($node+".asLineSegments")` ) {
+
+			editorTemplate -dc $node "variableWidth" 0;
+			if( `getAttr ($node+".variableWidth")` )
+			{
+				editorTemplate -dc $node "tipWidth"  0;
+				editorTemplate -dc $node "rootWidth" 0;
+			}
+
+		} else {
+
+			editorTemplate -dc $node "dt" 0;
+		}
+
+		editorTemplate -dc $node "darkenRoots" 0;
+		editorTemplate -dc $node "filterStr"   0;
+	}
+
+	editorTemplate -dc $node "drawCVs" 0;
+	if( `getAttr ($node+".drawCVs")` )
+	{
+		editorTemplate -dc $node "cvPointSize" 0;
+	}
+
+	editorTemplate -dc $node "drawBoundingBox" 0;
+	if( `getAttr ($node+".drawBoundingBox")` )
+	{
+		editorTemplate -dc $node "aabbLineWidth" 0;
+		editorTemplate -dc $node "aabbColor"     0;
+	}
+}
+
+//////////
+// main //
+global proc AEZN_StrandsViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Elements Count" -collapse 0;
+		{
+			editorTemplate -l "Strands"          -ac "numStrands";
+			editorTemplate -l "Total CVs"        -ac "numTotalCVs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "General Options" -collapse 0;
+		{
+			editorTemplate -l "Mode"             -ac "colorMode" ZN_StrandsViewerChanged;
+			editorTemplate -l "Solid Color"      -ac "solidColor";
+			editorTemplate -l "Display Ratio"    -ac "displayRatio";
+			editorTemplate -l "Hide Backface"    -ac "hideBackface";
+			editorTemplate -l "Color Map"        -ac "colorMapPath";
+			editorTemplate -l "Smoothen"         -ac "smoothen";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Follicles" -collapse 1;
+		{
+			editorTemplate -l "Draw"             -ac "drawFollicles" ZN_StrandsViewerChanged;
+			editorTemplate -l "Size"             -ac "follicleSize";
+			editorTemplate -l "Offset"           -ac "follicleOffset";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Root Axes" -collapse 1;
+		{
+			editorTemplate -l "Draw"             -ac "drawAxes" ZN_StrandsViewerChanged;
+			editorTemplate -l "Axis Scale"       -ac "axisScale";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Curves" -collapse 0;
+		{
+			editorTemplate -l "Draw Line"        -ac "drawCurves" ZN_StrandsViewerChanged;
+			editorTemplate -as;
+			editorTemplate -l "As Line Segments" -ac "asLineSegments" ZN_StrandsViewerChanged;
+			editorTemplate -l "Smoothness"       -ac "dt";
+			editorTemplate -l "Variable Width"   -ac "variableWidth" ZN_StrandsViewerChanged;
+			editorTemplate -l "Tip Width"        -ac "tipWidth";
+			editorTemplate -l "Root Width"       -ac "rootWidth";
+			editorTemplate -l "Darken Roots"     -ac "darkenRoots";
+			editorTemplate -as;
+			editorTemplate -l "Draw CVs"         -ac "drawCVs" ZN_StrandsViewerChanged;
+			editorTemplate -l "CV Point Size"    -ac "cvPointSize";
+			editorTemplate -as;
+			editorTemplate -l "Filter"           -ac "filterStr";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Bounding Box" -collapse 1;
+		{
+			editorTemplate -l "Draw"             -ac "drawBoundingBox" ZN_StrandsViewerChanged;
+			editorTemplate -l "Line Width"       -ac "aabbLineWidth";
+			editorTemplate -l "Line Color"       -ac "aabbColor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

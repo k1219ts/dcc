@@ -1,0 +1,317 @@
+//-------------------------//
+// AEZN_DeformTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.11.11                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_DeformUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_DeformUpdateExe "+$attr) ZN_DeformUpdate;
+	setUITemplate -ppt;
+
+	ZN_DeformUpdateReplace $attr;
+}
+
+global proc ZN_DeformUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_DeformUpdateExe "+$attr) ZN_DeformUpdate;
+}
+
+global proc ZN_DeformUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform = $node[0];
+
+	updateAE $ZN_Deform;
+}
+
+///////////////////
+// deformer list //
+global proc ZN_DeformDeformerListNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform = $node[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				textScrollList -w 200 -dcc ZN_DeformDeformerListSel -dkc ZN_DeformDeformerListDel tsZN_DeformDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 100 -l "On"  -c ZN_DeformDeformerListOn;
+					button -w 100 -l "Off" -c ZN_DeformDeformerListOff;
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 100 -l "Up"   -c ZN_DeformDeformerListUp;
+					button -w 100 -l "Down" -c ZN_DeformDeformerListDown;
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 200 -l "Re-Connect" -c ( "ZN_DeformDeformerListReConnect(\""+$attr+"\")" ) ZN_DeformDeformerListBtn;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_DeformDeformerListReplace( $attr );
+}
+
+global proc ZN_DeformDeformerListReplace( string $attr )
+{
+	string $items[] = `textScrollList -q -ai tsZN_DeformDeformerList`;
+	for( $item in $items ) { textScrollList -e -ri $item tsZN_DeformDeformerList; }
+
+	// get the name of this ZN_Deform node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_DeformNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_DeformNode + ".inDeformer" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i = 0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_DeformNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_DeformNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		textScrollList -e -a $node[0] tsZN_DeformDeformerList;
+
+		string $mayaVerStr = `about -version`;
+		$mayaVerStr = `substring $mayaVerStr 1 4`;
+		int $mayaVer = (int)$mayaVerStr;
+		if( $mayaVer >= 2014 )
+		{
+			int $active = `getAttr ($node[0]+".active")`;
+			if( $active ) { textScrollList -e -lf ($i+1) "boldLabelFont"     tsZN_DeformDeformerList; }
+			else          { textScrollList -e -lf ($i+1) "tinyBoldLabelFont" tsZN_DeformDeformerList; }
+		}
+	}
+
+	button -e -c ( "ZN_DeformDeformerListReConnect(\""+$attr+"\")" ) ZN_DeformDeformerListBtn;
+}
+
+global proc ZN_DeformDeformerListSel()
+{
+	string $items[] = `textScrollList -q -si tsZN_DeformDeformerList`;
+	if( size($items) == 0 ) { return; }
+	select -r $items[0];
+}
+
+global proc ZN_DeformDeformerListDel()
+{
+	string $items[] = `textScrollList -q -si tsZN_DeformDeformerList`;
+	if( size($items) == 0 ) { return; }
+	delete $items[0];
+}
+
+global proc ZN_DeformDeformerListOn()
+{
+	string $items[] = `textScrollList -q -si tsZN_DeformDeformerList`;
+	if( size($items) == 0 ) { return; }
+	setAttr ($items[0]+".active") 1;
+
+	string $mayaVerStr = `about -version`;
+	$mayaVerStr = `substring $mayaVerStr 1 4`;
+	int $mayaVer = (int)$mayaVerStr;
+	if( $mayaVer >= 2014 )
+	{
+		int $idx[] = `textScrollList -q -sii tsZN_DeformDeformerList`;
+		textScrollList -e -lf $idx[0] "boldLabelFont" tsZN_DeformDeformerList;
+	}
+}
+
+global proc ZN_DeformDeformerListOff()
+{
+	string $items[] = `textScrollList -q -si tsZN_DeformDeformerList`;
+	if( size($items) == 0 ) { return; }
+	setAttr ($items[0]+".active") 0;
+
+	string $mayaVerStr = `about -version`;
+	$mayaVerStr = `substring $mayaVerStr 1 4`;
+	int $mayaVer = (int)$mayaVerStr;
+	if( $mayaVer >= 2014 )
+	{
+		int $idx[] = `textScrollList -q -sii tsZN_DeformDeformerList`;
+		textScrollList -e -lf $idx[0] "tinyBoldLabelFont" tsZN_DeformDeformerList;
+	}
+}
+
+global proc ZN_DeformDeformerListUp()
+{
+	string $items[] = `textScrollList -q -ai tsZN_DeformDeformerList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	int $selIdx[] = `textScrollList -q -sii tsZN_DeformDeformerList`; // 1-based
+	if( size($selIdx)==0 ) { return; }
+	int $j = $selIdx[0]-1;
+	if( $j==0 ) { return; }
+
+	string $tmp  = $items[$j-1];
+	$items[$j-1] = $items[$j];
+	$items[$j]   = $tmp;
+
+	textScrollList -e -ra tsZN_DeformDeformerList;
+
+	for( $item in $items )
+	{
+		textScrollList -e -a $item tsZN_DeformDeformerList;
+	}
+
+	textScrollList -e -sii $j tsZN_DeformDeformerList;
+}
+
+global proc ZN_DeformDeformerListDown()
+{
+	string $items[] = `textScrollList -q -ai tsZN_DeformDeformerList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	int $selIdx[] = `textScrollList -q -sii tsZN_DeformDeformerList`; // 1-based
+	if( size($selIdx)==0 ) { return; }
+	int $j = $selIdx[0]-1;
+	if( $j==$numItems-1 ) { return; }
+
+	string $tmp  = $items[$j+1];
+	$items[$j+1] = $items[$j];
+	$items[$j]   = $tmp;
+
+	textScrollList -e -ra tsZN_DeformDeformerList;
+
+	for( $item in $items )
+	{
+		textScrollList -e -a $item tsZN_DeformDeformerList;
+	}
+
+	textScrollList -e -sii ($j+2) tsZN_DeformDeformerList;
+}
+
+global proc ZN_DeformDeformerListReConnect( string $attr )
+{
+	string $items[] = `textScrollList -q -ai tsZN_DeformDeformerList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform = $node[0];
+
+	// .inDeformer[]
+	string $inDeformer[] = `listAttr -multi ( $ZN_Deform + ".inDeformer" )`;
+	int $numConnections = size($inDeformer);
+
+	// old list
+	int $i = 0;
+	string $oldList[];
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform + "." + $inDeformer[$i] )` )
+		{
+			continue;
+		}
+		$oldList[$i] = `connectionInfo -sfd ( $ZN_Deform + "." + $inDeformer[$i] )`;
+	}
+
+	// new list
+	$i = 0;
+	string $newList[];
+	for( $item in $items )
+	{
+		$newList[$i++] = $item + ".outDeformer";
+	}
+
+	// disconnect
+	string $toOutput = ZConnectedNodeAttr( $node[0], "outStrands" );
+	disconnectAttr ($node[0]+".outStrands") $toOutput;
+
+	for( $i=0; $i<$numItems; $i++ )
+	{
+		disconnectAttr $oldList[$i] ( $ZN_Deform + "." + $inDeformer[$i] );
+	}
+    
+	// re-connect
+	connectAttr ($ZN_Deform+".outStrands") $toOutput;
+	
+	for( $i=0; $i<$numItems; $i++ )
+	{
+		connectAttr $newList[$i] ( $ZN_Deform + "." + $inDeformer[$i] );
+	}
+}
+
+//////////
+// main //
+global proc AEZN_DeformTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Device"  -ac "device";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_DeformDeformerListNew ZN_DeformDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -as;
+		editorTemplate -ccu ZN_DeformUpdateNew ZN_DeformUpdateReplace "update";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "inDeformer";
+	editorTemplate -suppress "outStrands";
+}
+

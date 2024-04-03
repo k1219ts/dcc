@@ -1,0 +1,131 @@
+//-------------------------//
+// AEZN_SwitchTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////
+// input list //
+global proc ZN_SwitchListNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Switch = $node[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -l "Inputs" -cc ZN_SwitchListSel omZN_SwitchList;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_SwitchListReplace( $attr );
+}
+
+global proc ZN_SwitchListReplace( string $attr )
+{
+	// get the name of this ZN_Switch node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Switch = $node[0];
+
+	string $parent = `optionMenu -q -parent omZN_SwitchList`;
+
+	string $menuItems[] = `optionMenu -q -ill omZN_SwitchList`;
+
+	for( $menuItem in $menuItems )
+	{
+		deleteUI $menuItem;
+	}
+
+	deleteUI omZN_SwitchList;
+	optionMenu -l "Inputs" -cc ("ZN_SwitchListSel "+$ZN_Switch) -parent $parent omZN_SwitchList;
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Switch + ".inStrands" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i = 0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Switch + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Switch + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -parent omZN_SwitchList;
+	}
+}
+
+global proc ZN_SwitchListSel( string $ZN_Switch )
+{
+	string $plgs[] = `listAttr -multi ($ZN_Switch+".inStrands")`;
+	if( size($plgs) == 0 ) { return; }
+
+	string $selectedItem = `optionMenu -q -v omZN_SwitchList`;
+
+	int $physicalIndex = 0;
+
+	string $node;
+
+	while( 1 )
+	{
+		if( `connectionInfo -id ($ZN_Switch+".inStrands["+$physicalIndex+"]")` )
+		{
+			string $nodeAttr = `connectionInfo -sfd ($ZN_Switch+".inStrands["+$physicalIndex+"]")`;
+
+			string $nodes[];
+			tokenize( $nodeAttr, ".", $nodes );
+
+			if( $nodes[0] == $selectedItem )
+			{
+				$node = $selectedItem;
+				break;
+			}
+		}
+
+		$physicalIndex++;
+	}
+
+	setAttr ($ZN_Switch+".index") $physicalIndex;
+}
+
+//////////
+// main //
+global proc AEZN_SwitchTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			//editorTemplate -l "Index" -ac "index";
+			editorTemplate -ccu ZN_SwitchListNew ZN_SwitchListReplace "index";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

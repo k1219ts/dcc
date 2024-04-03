@@ -1,0 +1,271 @@
+//----------------------------------//
+// AEZN_FeatherDesignerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.11.10                               //
+//-------------------------------------------------------//
+
+global proc ZN_FeatherDesignerModeChanged( string $node )
+{
+	int $mode = `getAttr ($node+".mode")`;
+
+	if( $mode == 0 )
+	{
+		editorTemplate -dc $node "leftBarbCount"         0;
+		editorTemplate -dc $node "rightBarbCount"        0;
+		editorTemplate -dc $node "leftBarbScaleRamp"     0;
+		editorTemplate -dc $node "rightBarbScaleRamp"    0;
+		editorTemplate -dc $node "leftBarbScaleRand"     0;
+		editorTemplate -dc $node "rightBarbScaleRand"    0;
+		editorTemplate -dc $node "leftBarbRotationRamp"  0;
+		editorTemplate -dc $node "rightBarbRotationRamp" 0;
+		editorTemplate -dc $node "leftBarbRotationRand"  0;
+		editorTemplate -dc $node "rightBarbRotationRand" 0;
+		editorTemplate -dc $node "leftBarbBendRamp"      0;
+		editorTemplate -dc $node "rightBarbBendRamp"     0;
+		editorTemplate -dc $node "leftBarbBendRand"      0;
+		editorTemplate -dc $node "rightBarbBendRand"     0;
+		editorTemplate -dc $node "leftBarbFoldRamp"      0;
+		editorTemplate -dc $node "rightBarbFoldRamp"     0;
+		editorTemplate -dc $node "leftBarbFoldRand"      0;
+		editorTemplate -dc $node "rightBarbFoldRand"     0;
+		editorTemplate -dc $node "leftBarbRollRamp"      0;
+		editorTemplate -dc $node "rightBarbRollRamp"     0;
+		editorTemplate -dc $node "leftBarbRollRand"      0;
+		editorTemplate -dc $node "rightBarbRollRand"     0;
+		editorTemplate -dc $node "leftBarbFrizzRamp"     0;
+		editorTemplate -dc $node "rightBarbFrizzRamp"    0;
+		editorTemplate -dc $node "leftBarblessRamp"      0;
+		editorTemplate -dc $node "rightBarblessRamp"     0;
+
+		return;
+	}
+
+	if( $mode == 1 )
+	{
+		editorTemplate -dc $node "leftBarbCount"         0;
+		editorTemplate -dc $node "rightBarbCount"        1;
+		editorTemplate -dc $node "leftBarbScaleRamp"     0;
+		editorTemplate -dc $node "rightBarbScaleRamp"    1;
+		editorTemplate -dc $node "leftBarbScaleRand"     0;
+		editorTemplate -dc $node "rightBarbScaleRand"    1;
+		editorTemplate -dc $node "leftBarbRotationRamp"  0;
+		editorTemplate -dc $node "rightBarbRotationRamp" 1;
+		editorTemplate -dc $node "leftBarbRotationRand"  0;
+		editorTemplate -dc $node "rightBarbRotationRand" 1;
+		editorTemplate -dc $node "leftBarbBendRamp"      0;
+		editorTemplate -dc $node "rightBarbBendRamp"     1;
+		editorTemplate -dc $node "leftBarbBendRand"      0;
+		editorTemplate -dc $node "rightBarbBendRand"     1;
+		editorTemplate -dc $node "leftBarbFoldRamp"      0;
+		editorTemplate -dc $node "rightBarbFoldRamp"     1;
+		editorTemplate -dc $node "leftBarbFoldRand"      0;
+		editorTemplate -dc $node "rightBarbFoldRand"     1;
+		editorTemplate -dc $node "leftBarbRollRamp"      0;
+		editorTemplate -dc $node "rightBarbRollRamp"     1;
+		editorTemplate -dc $node "leftBarbRollRand"      0;
+		editorTemplate -dc $node "rightBarbRollRand"     1;
+		editorTemplate -dc $node "leftBarbFrizzRamp"     0;
+		editorTemplate -dc $node "rightBarbFrizzRamp"    1;
+		editorTemplate -dc $node "leftBarblessRamp"      0;
+		editorTemplate -dc $node "rightBarblessRamp"     1;
+
+		return;
+	}
+
+	if( $mode == 2 )
+	{
+		editorTemplate -dc $node "leftBarbCount"         1;
+		editorTemplate -dc $node "rightBarbCount"        0;
+		editorTemplate -dc $node "leftBarbScaleRamp"     1;
+		editorTemplate -dc $node "rightBarbScaleRamp"    0;
+		editorTemplate -dc $node "leftBarbScaleRand"     1;
+		editorTemplate -dc $node "rightBarbScaleRand"    0;
+		editorTemplate -dc $node "leftBarbRotationRamp"  1;
+		editorTemplate -dc $node "rightBarbRotationRamp" 0;
+		editorTemplate -dc $node "leftBarbRotationRand"  1;
+		editorTemplate -dc $node "rightBarbRotationRand" 0;
+		editorTemplate -dc $node "leftBarbBendRamp"      1;
+		editorTemplate -dc $node "rightBarbBendRamp"     0;
+		editorTemplate -dc $node "leftBarbBendRand"      1;
+		editorTemplate -dc $node "rightBarbBendRand"     0;
+		editorTemplate -dc $node "leftBarbFoldRamp"      1;
+		editorTemplate -dc $node "rightBarbFoldRamp"     0;
+		editorTemplate -dc $node "leftBarbFoldRand"      1;
+		editorTemplate -dc $node "rightBarbFoldRand"     0;
+		editorTemplate -dc $node "leftBarbRollRamp"      1;
+		editorTemplate -dc $node "rightBarbRollRamp"     0;
+		editorTemplate -dc $node "leftBarbRollRand"      1;
+		editorTemplate -dc $node "rightBarbRollRand"     0;
+		editorTemplate -dc $node "leftBarbFrizzRamp"     1;
+		editorTemplate -dc $node "rightBarbFrizzRamp"    0;
+		editorTemplate -dc $node "leftBarblessRamp"      1;
+		editorTemplate -dc $node "rightBarblessRamp"     0;
+
+		return;
+	}
+}
+
+global proc ZN_FeatherDesignerFilePathNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	setUITemplate -pst attributeEditorTemplate;
+
+		rowLayout -nc 4;
+		{
+			text "Cache Path";
+			textField -ed 0 tfZN_FeatherDesignerFilePath;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "ZLoadDirectory(\""+$attr+"\",\"tfZN_FeatherDesignerFilePath\")" ) tfZN_FeatherDesignerFilePathBtn;
+		}
+		setParent ..;
+
+		button -l "Generate" -bgc 1.0 0.8 0.5 -c ("ZN_FeatherDesignerFilePathExe "+$node[0]) ZN_FeatherDesignerFilePath;
+	setUITemplate -ppt;
+
+	ZN_FeatherDesignerFilePathReplace $attr;
+}
+
+global proc ZN_FeatherDesignerFilePathReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	textField -e -tx `getAttr $attr` tfZN_FeatherDesignerFilePath;
+	button -e -c ("ZN_FeatherDesignerFilePathExe "+$node[0]) ZN_FeatherDesignerFilePath;
+}
+
+global proc ZN_FeatherDesignerFilePathExe( string $node )
+{
+	string $ZN_FeatherDesigner = $node;
+
+	float $lineWidth = `getAttr ($ZN_FeatherDesigner+".displayLineWidth")`;
+	string $filePath = `getAttr ($ZN_FeatherDesigner+".filePath")`;
+
+	ZN_FeatherDesignerSnapshotCmd -filePath $filePath -nodeName $ZN_FeatherDesigner -width $lineWidth;
+}
+
+//////////
+// main //
+global proc AEZN_FeatherDesignerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Information";
+			editorTemplate -l "Barb Count"       -ac "numBarbs";
+			editorTemplate -l "Total CVs"        -ac "numTotalCVs";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Display";
+			editorTemplate -l "Color"            -ac "displayColor";
+			editorTemplate -l "Width"            -ac "displayLineWidth";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Rachis";
+			editorTemplate -l "Length"           -ac "rachisLength";
+			editorTemplate -l "Start"            -ac "rachisStart";
+			editorTemplate -l "End"              -ac "rachisEnd";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Barbs";
+			editorTemplate -l "CVs"              -ac "barbCVCount";
+			editorTemplate -l "Left Barbs"       -ac "leftBarbCount";
+			editorTemplate -l "Right Barbs"      -ac "rightBarbCount";
+			editorTemplate -as;
+			editorTemplate -l "Mode"             -ac "mode" ZN_FeatherDesignerModeChanged;
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barb Scale" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarbScaleRamp" false;
+			editorTemplate -l "Randomness"       -ac "leftBarbScaleRand";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarbScaleRamp" false;
+			editorTemplate -l "Randomness"       -ac "rightBarbScaleRand";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barb Rotation" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarbRotationRamp" false;
+			editorTemplate -l "Randomness"       -ac "leftBarbRotationRand";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarbRotationRamp" false;
+			editorTemplate -l "Randomness"       -ac "rightBarbRotationRand";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barb Bend" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarbBendRamp" false;
+			editorTemplate -l "Randomness"       -ac "leftBarbBendRand";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarbBendRamp" false;
+			editorTemplate -l "Randomness"       -ac "rightBarbBendRand";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barb Fold" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarbFoldRamp" false;
+			editorTemplate -l "Randomness"       -ac "leftBarbFoldRand";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarbFoldRamp" false;
+			editorTemplate -l "Randomness"       -ac "rightBarbFoldRand";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barb Roll" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarbRollRamp" false;
+			editorTemplate -l "Randomness"       -ac "leftBarbRollRand";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarbRollRamp" false;
+			editorTemplate -l "Randomness"       -ac "rightBarbRollRand";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barb Frizz" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarbFrizzRamp" false;
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarbFrizzRamp" false;
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Barbless" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Left";
+			Zelos_AEaddRampControl "leftBarblessRamp" false;
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Right";
+			Zelos_AEaddRampControl "rightBarblessRamp" false;
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Snapshot" -collapse 1;
+		{
+			editorTemplate -ccu ZN_FeatherDesignerFilePathNew ZN_FeatherDesignerFilePathReplace "filePath";
+		}
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+}
+

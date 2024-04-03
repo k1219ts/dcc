@@ -1,0 +1,51 @@
+//-----------------------------------//
+// ZN_FlowCurveDrawCtxProperties.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+//         Wanho Choi @ Dexter Digial                    //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_FlowCurveDrawCtxProperties()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	if( `control -exists ZN_FlowCurveDrawCtxLayout` )
+	{
+		return;
+	}
+
+	string $parent = `toolPropertyWindow -q -location`;
+	setParent $parent;
+
+	setUITemplate -pushTemplate DefaultTemplate;
+	{
+		columnLayout ZN_FlowCurveDrawCtxLayout;
+		{
+			frameLayout -collapsable true -collapse false -l "ZN_FlowCurveDrawCtxTool" ZN_FlowCurveDrawCtxFrame;
+			{
+				columnLayout ZN_FlowCurveDrawCtxOptions;
+				{
+					$parent = `setParent -query`;
+					separator -style "none";
+					floatSliderGrp -l "Distance" -f true -min 0.1 -max 100 -fmn 0.1 -fmx 100 -v 0.2 -s 0.1 -fs 0.1 -ss 0.1
+						-cc "ZN_FlowCurveDrawCtxDistance(`floatSliderGrp -q -v ZN_FlowCurveDrawCtxDistance`)" ZN_FlowCurveDrawCtxDistance;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -popTemplate;
+}
+
+global proc ZN_FlowCurveDrawCtxDistance( float $val )
+{
+	ZN_FlowCurveDrawCtx -e -distance $val `currentCtx`;
+}
+

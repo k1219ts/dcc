@@ -1,0 +1,34 @@
+//------------------------//
+// AEZFftTestTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.15                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFftTestTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Control Parameters" -collapse 0;
+		{
+			editorTemplate -l "Grid Level"              -ac "gridLevel";
+			editorTemplate -l "Grid Resolution"         -ac "gridResolution";
+			editorTemplate -as;
+			editorTemplate -l "Example"                 -ac "example";
+			editorTemplate -l "Direction"               -ac "direction";
+			editorTemplate -as;
+			editorTemplate -l "Draw Real Part"          -ac "drawRealPart";
+			editorTemplate -l "Draw Imaginary Part"     -ac "drawImaginaryPart";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "output";
+}
+

@@ -1,0 +1,67 @@
+//-------------//
+// ZN_Load.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_CreateCacheViewer()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_Import;
+	{
+		string $ZN_Groups[] = `ls -l -type ZN_Group`;
+
+		int $count = 0;
+
+		for( $ZN_Group in $ZN_Groups )
+		{
+			if( `getAttr ($ZN_Group+".active")` )
+			{
+				if( `connectionInfo -is ($ZN_Group+".message")` )
+				{
+					string $nodeAttrs[] = `connectionInfo -dfs ($ZN_Group+".message")`;
+
+					for( $nodeAttr in $nodeAttrs )
+					{
+						string $tokens[];
+						tokenize( $nodeAttr, ".", $tokens );
+						string $node = $tokens[0];
+
+						if( `nodeType $node` == "ZN_Import" )
+						{
+							$ZN_Import = $node;
+							$count++;
+						}
+					}
+				}
+			}
+		}
+
+		if( $count != 1 )
+		{
+			$ZN_Import = "";
+		}
+	}
+
+	string $ZN_Load = `createNode ZN_Load`;
+	string $ZN_StrandsViewer = `createNode ZN_StrandsViewer`;
+
+	if( $ZN_Import == "" ) {
+
+		connectAttr time1.outTime ($ZN_Load+".inTime");
+
+	} else {
+
+		connectAttr ($ZN_Import+".inTime") ($ZN_Load+".inTime");
+
+	}
+
+	connectAttr ($ZN_Load+".outStrands") ($ZN_StrandsViewer+".inStrands");
+}
+

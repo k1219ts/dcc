@@ -1,0 +1,48 @@
+//------------------//
+// ZMeshClipper.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+global proc CreateZMeshClipper()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected) != 2 )
+	{
+		ZPrintError( "Invalid selection. Select just two meshes." );
+		return;
+	}
+
+	$ZMeshClipper = `createNode ZMeshClipper`;
+
+	int $count = 0;
+
+	for( $xform in $selected )
+	{
+		$shape = `listRelatives -c $xform`;
+
+		if( $count == 0 ) {
+			connectAttr ( $shape[0] + ".worldMesh[0]" ) ( $ZMeshClipper + ".mesh0" );
+		} else {
+			connectAttr ( $shape[0] + ".worldMesh[0]" ) ( $ZMeshClipper + ".mesh1" );
+		}
+
+		$count++;
+	}
+
+	$outMesh = `createNode mesh -n ( $ZMeshClipper + "_output#" )`;
+	sets -add initialShadingGroup $outMesh;
+
+	connectAttr ( $ZMeshClipper + ".outMesh" ) ( $outMesh + ".inMesh" );
+
+	select -r $ZMeshClipper;
+}
+

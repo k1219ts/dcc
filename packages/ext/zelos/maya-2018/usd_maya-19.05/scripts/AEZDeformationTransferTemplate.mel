@@ -1,0 +1,30 @@
+//------------------------------------//
+// AEZDeformationTransferTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2015.12.15                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZDeformationTransferTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Basic Options" -collapse 0;
+//		editorTemplate -l "Mode" -ac "calcMode";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "sourceMesh";
+	editorTemplate -suppress "targetMesh";
+	editorTemplate -suppress "outputMesh";
+	editorTemplate -suppress "vertCorres";
+	editorTemplate -suppress "reCalculate";
+}
+

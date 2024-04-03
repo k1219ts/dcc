@@ -1,0 +1,40 @@
+//-------------------------------//
+// AEZRippleDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios                  //
+// last update: 2014.07.23                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZRippleDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Global Parameters" -collapse 0;
+			editorTemplate -l "Use OpenMP"  			-ac "useOpenMP";
+			editorTemplate -l "Subdivision"        		-ac "subdivision";
+			editorTemplate -l "Dt"        				-ac "dt";
+			editorTemplate -l "Gravity"  				-ac "gravity";
+			editorTemplate -l "Persistence" 			-ac "persistence";
+			editorTemplate -l "Alpha"             		-ac "alpha";
+			editorTemplate -l "Kernel Size"  			-ac "kernelSize";
+			editorTemplate -l "Kernel Type"  			-ac "kernelMethod";
+
+		editorTemplate -beginLayout "Source Parameters" -collapse 0;
+			editorTemplate -l "Height Value"        	-ac "heightValue";
+			editorTemplate -l "Source Range"        	-ac "threshold";
+			editorTemplate -l "Source Kernel Type" 		-ac "srcKernelType";
+			
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Obstruction Parameters" -collapse 0;
+			editorTemplate -l "Boundary Range"           -ac "obsBoundary";
+			editorTemplate -l "Boundary Smooth"          -ac "obsBoundarySmoothFactor";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}
+

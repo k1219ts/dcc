@@ -1,0 +1,215 @@
+//--------------//
+// ZN_Groom.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Digital                   //
+//         Jinhyuk Bae @ Dexter Digital                  //
+//         Nayoung Kim @ Dexter Digital                  //
+// last update: 2016.05.11                               //
+//-------------------------------------------------------//
+
+global proc CreateZN_GroomCtx()
+{
+	setToolTo `ZN_GroomCtx`;
+}
+
+global proc CreateZN_Groom()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		error( "You must load the ZENNForMaya plug-in first!" );
+		return;
+	}
+
+	// Define variables.
+	string $ZN_Groom, $ZN_GroomBrushLoc;
+
+	// Create only one ZN_Groom node in the scene.
+	string $nodes[] = `ls -type ZN_Groom`;
+
+	if( !size( $nodes ) ) {
+
+		// There is no ZN_Groom node. Create one.
+		$ZN_Groom = `createNode ZN_Groom`;
+		setAttr -lock true ( $ZN_Groom + ".translate" );
+		setAttr -lock true ( $ZN_Groom + ".rotate"    );
+		setAttr -lock true ( $ZN_Groom + ".scale"     );
+
+	} else if( size( $nodes ) ) {
+
+		// There is one ZN_Groom node. Use this one.
+		string $ZN_Groom = $nodes[0];
+		setAttr -lock true ( $ZN_Groom + ".translate" );
+		setAttr -lock true ( $ZN_Groom + ".rotate"    );
+		setAttr -lock true ( $ZN_Groom + ".scale"     );
+
+	} else {
+
+		// There are too many ZN_Groom nodes.
+		error( "Invalid number of ZN_Groom nodes." );
+		return;
+
+	}
+
+	// Create only one ZN_GroomBrushLoc in the scene.
+	string $locs[] = `ls -type ZN_GroomBrushLoc`;
+
+	if( !size( $locs ) ) {
+
+		// There is no ZN_GroomBrushLoc node. Create One.
+		string $ZN_GroomBrushLoc = `createNode ZN_GroomBrushLoc -p $ZN_Groom`;
+
+		// Connect the ZN_GroomBrushLoc to the ZN_Groom node.
+		connectAttr ( $ZN_Groom + ".radius" ) ( $ZN_GroomBrushLoc + ".radius" );
+		connectAttr time1.outTime ( $ZN_GroomBrushLoc + ".time" );
+		connectAttr ( $ZN_GroomBrushLoc + ".output" ) ( $ZN_Groom + ".dynamics" );
+
+	} else if( size( $locs ) ) {
+
+		// There is one ZN_GroomBrushLoc node. Use this one.
+		$ZN_GroomBrushLoc = $locs[0];
+
+		// Connect the ZN_GroomBrushLoc to the ZN_Groom node.
+		connectAttr ( $ZN_Groom + ".radius" ) ( $ZN_GroomBrushLoc + ".radius" );
+		connectAttr time1.outTime ( $ZN_GroomBrushLoc + ".time" );
+		connectAttr ( $ZN_GroomBrushLoc + ".output" ) ( $ZN_Groom + ".dynamics" );
+
+	} else {
+
+		error( "Invalid number of ZN_GroomBrushLoc nodes." );
+		return;
+
+	}
+
+	select -r $ZN_Groom;
+	showEditorExact $ZN_Groom;
+}
+
+global proc string ZN_GroomGetNodeName()
+{
+	string $nodes[] = `ls -type ZN_Groom`;
+	string $ZN_Groom = "";
+
+	if( !size( $nodes ) ) {
+
+//		error( "There is no ZN_Groom node." );
+
+	} else if( size( $nodes ) ) {
+
+		$ZN_Groom = $nodes[0];
+
+	} else {
+
+		error( "Invalid number of ZN_Groom nodes." );
+
+	}
+
+	return $ZN_Groom;
+}
+
+global proc string ZN_GroomBrushLocGetNodeName()
+{
+	string $nodes[] = `ls -type ZN_GroomBrushLoc`;
+	string $ZN_GroomBrushLoc;
+
+	if( !size( $nodes ) ) {
+
+//		error( "There is no ZN_GroomBrushLoc node." );
+
+	} else if( size( $nodes ) ) {
+
+		$ZN_GroomBrushLoc = $nodes[0];
+
+	} else {
+
+		error( "Invalid number of ZN_GroomBrushLoc nodes." );
+
+	}
+
+	return $ZN_GroomBrushLoc;
+}
+
+global proc string ZN_GroomGetCurrentGroup()
+{
+	string $ZN_Group = `GetCurrentZN_Group`;
+	if( $ZN_Group == "" ) { return ""; }
+
+	string $curveGroup;
+	{
+		$curveGroup = $ZN_Group + "|CurveGroup";
+	}
+
+	return $curveGroup;
+}
+
+//global proc ZN_GroomCreateMirrorGroup()
+//{
+//	string $curveGroup = `ZN_GroomGetCurrentGroup`;
+//	group -em -name "MirrorGroup" -parent $curveGroup;
+//}
+//
+//global proc ZN_MoveMirrorToCurrentGroup()
+//{
+//	string $CurveGroup = `ZN_GroomGetCurrentGroup`;
+//	string $MirrorGroup = $CurveGroup + "|MirrorGroup";
+//
+//	select -hi $MirrorGroup;
+//	select -d $MirrorGroup;
+//
+//	string $curves[] = `ls -sl -et transform`;
+//	for( $curve in $curves )
+//	{
+//		parent $curve $CurveGroup;
+//	}
+//
+//	delete $MirrorGroup;
+//
+//	return;
+//}
+
+global proc ZN_GroomCloneCurve( string $oldXForm )
+{
+	string $shapes[] = `listRelatives -c -shapes $oldXForm`;
+	if( !size($shapes) ) { return; }
+
+	string $oldShape = $shapes[0];
+
+	string $duplicated[] = `duplicate $oldXForm`;
+	string $newXForm = $duplicated[0];
+
+	delete $oldXForm;
+
+	rename $newXForm $oldXForm;
+
+	$shapes = `listRelatives -c -shapes $oldXForm`;
+	string $newShape = $shapes[0];
+
+	rename $newShape $oldShape;
+}
+
+global proc ZN_GroomZENNAutoUpdate()
+{
+	string $ZN_Import = `GetCurrentZN_Import`;
+	string $ZN_Groom  = `ZN_GroomGetNodeName`;
+
+	if( $ZN_Import != "" )
+	{
+		int $val = 0;
+		if( $ZN_Groom != "" )
+		{
+			$val = `getAttr( $ZN_Groom + ".autoUpdate" )`;
+		}
+
+		if( $val ) { setAttr( $ZN_Import + ".updateCurves" ) 1; }
+	}
+}
+
+global proc int ZN_GroomGetTimeSeed()
+{
+	int $h = `date -format hh`;
+	int $m = `date -format mm`;
+	int $s = `date -format ss`;
+
+	int $seed = 11 * ( 3*$h + 9 * ( 5*$m + 7*$s ) );
+
+	return $seed;
+}

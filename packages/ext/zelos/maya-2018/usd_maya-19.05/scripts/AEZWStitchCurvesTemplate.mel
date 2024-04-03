@@ -1,0 +1,52 @@
+//-----------------------------//
+// AEZWStitchCurvesTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.08.16                               //
+//-------------------------------------------------------//
+
+global proc AEZWStitchCurvesTemplate( string $nodeName )
+{    
+	editorTemplate -beginScrollLayout;
+	{
+        /*
+        //editorTemplate -ccu ZVStitchCurve_InfoNew ZVStitchCurve_InfoRep "info";
+        
+		editorTemplate -beginLayout "General" -collapse 0;
+		{
+			editorTemplate -l "Space"               -ac "space";
+            editorTemplate -l "Offset"              -ac "offset";
+            editorTemplate -l "Num. Stitchs"        -ac "numStitchs";
+
+			editorTemplate -ccu ZVStitchCurve_UpdateNew ZVStitchCurve_UpdateRep "Update";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "General" -collapse 0;
+		{
+			editorTemplate -l "Rotate Factor"       -ac "rotateFactor";
+            editorTemplate -l "Scale Factor"        -ac "scaleFactor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Shading" -collapse 1;
+		{
+			editorTemplate -ccu ZWStitchCurves_AssignShaderNew ZWStitchCurves_AssignShaderRep "";
+		}
+		editorTemplate -endLayout;           
+        */
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+    
+	editorTemplate -suppress "inTime";
+    editorTemplate -suppress "inGuideCurve";
+    editorTemplate -suppress "inSourceCurve";
+    editorTemplate -suppress "inWebData";
+    editorTemplate -suppress "outPivot";
+    editorTemplate -suppress "outScales";    
+    editorTemplate -suppress "outRotates";
+    editorTemplate -suppress "outTranslates";    
+}
+

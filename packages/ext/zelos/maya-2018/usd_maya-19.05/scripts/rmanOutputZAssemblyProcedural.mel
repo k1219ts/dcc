@@ -1,0 +1,20 @@
+//-----------------------------------//
+// rmanOutputZAssemblyProcedural.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Dohyun Yang @ Dexter Studios                  //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc rmanOutputZAssemblyArchiveProcedural()
+{
+    //python module name
+	string $moduleName	             = "rmanOutputZAssemblyProcedural";
+
+	//proc name
+	string $rmanOutputProceduralName = "rmanOutputZAssemblyArchiveProcedural";
+
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+}
+

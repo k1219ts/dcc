@@ -1,0 +1,31 @@
+//-------------------//
+// ZTriangleTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZTriangleTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZTriangleTest;
+	polyPlane -sx 10 -sy 10 -w 15 -h 15;
+	connectAttr pPlaneShape1.worldMesh ZTriangleTest1.inMesh;
+	spaceLocator;
+	move -r 0 3 0;
+	connectAttr locator1.translate ZTriangleTest1.inPosition;
+	spaceLocator;
+	connectAttr ZTriangleTest1.outPosition locator2.translate;
+
+	select -r transform1;
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	select -r locator1;
+}
+

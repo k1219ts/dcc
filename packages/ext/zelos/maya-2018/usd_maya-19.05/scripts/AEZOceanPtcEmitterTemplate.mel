@@ -1,0 +1,83 @@
+//------------------------//
+// AEZOceanPtcEmitter.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.04.28                               //
+//-------------------------------------------------------//
+
+/////////////////////////
+// when "foam" changed //
+global proc ZOceanPtcEmitterUseOceanVelChanged( string $node )
+{
+	if( `getAttr ($node+".useOceanVel")` ) {
+		editorTemplate -dc $node "minPtcDir" 1;
+		editorTemplate -dc $node "maxPtcDir" 1;
+	} else {
+		editorTemplate -dc $node "minPtcDir" 0;
+		editorTemplate -dc $node "maxPtcDir" 0;
+	}
+}
+
+//////////
+// main //
+global proc AEZOceanPtcEmitterTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Ocean Parameters" -collapse 0;
+			editorTemplate -l "Computing Method"        -ac "computingMethod";
+			editorTemplate -l "Time Scale"              -ac "timeScale";
+			editorTemplate -l "Global Scale"            -ac "globalScale";
+			editorTemplate -l "Grid Level"              -ac "gridLevel";
+			editorTemplate -l "Domain Size"             -ac "domainSize";
+			editorTemplate -l "Gravity"                 -ac "gravity";
+			editorTemplate -l "Wind Speed"              -ac "windSpeed";
+			editorTemplate -l "Wind Direction"          -ac "windDirection";
+			editorTemplate -l "Wind Alignment"          -ac "windAlignment";
+			editorTemplate -l "Wave Scale"              -ac "waveScale";
+			editorTemplate -l "Shortest Wave"           -ac "shortestWave";
+			editorTemplate -l "Choppiness"              -ac "choppiness";
+			editorTemplate -l "Damp Reflection"         -ac "dampReflection";
+			editorTemplate -l "Water Depth"             -ac "waterDepth";
+			editorTemplate -l "Random Seed"             -ac "randomSeed";
+			editorTemplate -l "Dispersion Relationship" -ac "whichOmega";
+			editorTemplate -l "Global Offset"           -ac "globalOffset";
+			editorTemplate -l "Smooth Interpolation"    -ac "smoothInterpolation";
+			editorTemplate -as;
+			editorTemplate -l "Foam Gamma"              -ac "foamGamma";
+			editorTemplate -l "Foam Brightness"         -ac "foamBrightness";
+			editorTemplate -l "Foam Fade"               -ac "foamFade";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -l "Draw Ocean"          -ac "drawOcean";
+			editorTemplate -l "Draw Ocean Mode"     -ac "drawOceanMode";
+			editorTemplate -as;
+			editorTemplate -l "Draw Ocean Velocity" -ac "drawOceanVel";
+			editorTemplate -l "Velocity Color(End)"	-ac "vVelColor";
+			editorTemplate -l "Velocity Scale" 		-ac "vVelDispScale";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Generate Particles" -collapse 0;
+			editorTemplate -l "Start Frame"     			 -ac "startSimFrame";
+			editorTemplate -l "Foam Value"      			 -ac "foamValueRange";
+			editorTemplate -l "# Particles(each node)"       -ac "numPtcRange";
+			editorTemplate -l "Radius(each node)"      		 -ac "radiusRange";
+			editorTemplate -l "Min. Height Value"      		 -ac "minHeight";
+			editorTemplate -l "Particle Direction(Min.)" 	 -ac "minPtcDir";
+			editorTemplate -l "Particle Direction(Max.)"   	 -ac "maxPtcDir";
+			editorTemplate -l "Use Ocean Velocity Direction" -ac "useOceanVel" ZOceanPtcEmitterUseOceanVelChanged;
+			editorTemplate -l "Velocity Maginitude(Min~Max)" -ac "ptcVelMagRange";
+			editorTemplate -l "Emit only Positive Velocity Y" -ac "emitOnlyPosVelY";
+
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+}
+
+

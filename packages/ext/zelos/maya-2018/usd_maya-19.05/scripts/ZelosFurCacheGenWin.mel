@@ -1,0 +1,206 @@
+//-------------------------//
+// ZelosFurCacheGenWin.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.13                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurCacheGen_SetFrameRange( int $mode )
+{
+	intField -e -en ($mode-1) ZelosFurCacheGenWin_StartFrame;
+	intField -e -en ($mode-1) ZelosFurCacheGenWin_EndFrame;
+}
+
+global proc ZelosFurCacheGenWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+    if( `window -q -exists ZelosFurCacheGenWin` )
+	{
+    	//deleteUI ZelosFurCacheGenWin;
+    	showWindow ZelosFurCacheGenWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "ZelosFur Cache Gen" ZelosFurCacheGenWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 330 -style "none";
+
+		rowLayout -nc 2 -cw2 200 130;
+			text -l "Zelos system" -font "boldLabelFont" -w 200 -al "left";
+			text -l "Dexter Studios R&D team" -w 120 -al "left";
+			setParent ..;
+
+		separator -h 2  -w 330 -style "single";
+		separator -h 15 -w 300 -style "none";
+
+		text -l "Instructions" -al "left" -w 330 -font "boldLabelFont";
+		text -l "1) Select ZelosFurGenerator nodes." -al "left" -w 330;
+		text -l "2) Set Options."                    -al "left" -w 330;
+		text -l "3) Click the 'Bake' button."        -al "left" -w 330;
+
+		separator -h 2  -w 330 -style "in";
+		separator -h 15 -w 300 -style "none";
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Cache Format" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout;
+			optionMenuGrp ZelosFurCacheVersion;
+			//menuItem -l "Version 0.1";
+			//menuItem -l "Version 0.2";
+			menuItem -l "Version 0.3";
+			//menuItem -l "Version 1.0";
+			setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "ZelosFurGenerator Nodes" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+			textScrollList -w 200 -h 75 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZelosFurGenList`; select $items[0];" ) ZelosFurGenList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+				button -l "Add"    -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Add( \"ZelosFurGenList\", \"ZelosFurGenerator\" )" );
+				button -l "Remove" -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Remove( \"ZelosFurGenList\" )" );
+				button -l "Clear"  -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Clear( \"ZelosFurGenList\" )" );
+				setParent ..;
+			setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Path" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 ZelosFurCacheGenWin_Path;
+			symbolButton -image "navButtonBrowse.xpm" -c "string $dir[] = `fileDialog2 -fm 3 -ds 1`; textField -e -tx $dir[0] ZelosFurCacheGenWin_Path;";
+			setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Frame Range" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 4 -cw4 150 70 30 50;
+			radioButtonGrp -sl 1 -cw2 70 70 -numberOfRadioButtons 2 -labelArray2 "time slider" "start/end:" -on1 "ZelosFurCacheGen_SetFrameRange 1" -on2 "ZelosFurCacheGen_SetFrameRange 2" ZelosFurCacheGenWin_FrameRange;
+			intField -v 0   -w 65 -en 0 ZelosFurCacheGenWin_StartFrame;
+			text -l "to" -al "center" -w 20;
+			intField -v 100 -w 65 -en 0 ZelosFurCacheGenWin_EndFrame;
+			setParent ..;
+
+		separator -h 15 -w 330 -style "none";
+
+		button -l "Bake" -w 330 -al "center" -c "ZelosFurCacheBake";
+
+		separator -h 15 -w 330 -style "none";
+
+	showWindow ZelosFurCacheGenWin;
+}
+
+global proc ZelosFurCacheBake()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	int $format = `optionMenuGrp -q -sl ZelosFurCacheVersion`;
+	float $version = 0.3;
+	//     if( $format == 1 ) { $version = 0.1; }
+	//else if( $format == 2 ) { $version = 0.2; }
+	//else if( $format == 3 ) { $version = 0.3; }
+	//else if( $format == 4 ) { $version = 1.0; }
+	//else {
+	//	error( "[ZelosFurCacheBake] Invalid cache version" );
+	//	return;
+	//}
+
+	string $generators[] = ZTextScrollList_GetAllItems( "ZelosFurGenList" );
+	int $numGenerators = size($generators);
+	if( $numGenerators==0 ) { return; }
+
+	int $i = 0;
+	int $displayMode[];
+	string $genList;
+	for( $generator in $generators )
+	{
+		string $node = ZConnectedNode( $generator, "outMesh" );
+		string $nodeType = `nodeType $node`;
+		if( $nodeType == "ZelosFurGenerator" )
+		{
+			error( $generator + " is not a final generator node. " + $node + " is using it as guide curves." );
+			return;
+		}
+		$genList += $generator + " ";
+
+		$displayMode[$i++] = `getAttr ( $generator + ".displayMode" )`;
+		setAttr ( $generator + ".displayMode"  ) 0;
+		setAttr ( $generator + ".cacheGenMode" ) 1;
+		setAttr ( $generator + ".cacheVersion" ) $version;
+	}
+
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Bend`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Clump`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Cut`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Direction`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Offset`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Opacity`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Scale`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Scraggle`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+//	{
+//		string $modifiers[] = `ls -type ZelosFurModifier_Width`;
+//		for( $modifier in $modifiers ) { setAttr ($modifier+".onOff") 1; }
+//	}
+
+	int $startFrame = 0;
+	int $endFrame   = 0;
+
+	int $frameRangeMode = `radioButtonGrp -q -sl ZelosFurCacheGenWin_FrameRange`;
+	if( $frameRangeMode==1 ) {
+		$startFrame = `playbackOptions -q -min`;
+		$endFrame   = `playbackOptions -q -max`;
+	} else {
+		$startFrame = `intField -q -v ZelosFurCacheGenWin_StartFrame`;
+		$endFrame   = `intField -q -v ZelosFurCacheGenWin_EndFrame`;
+	}
+
+	if( $startFrame > $endFrame ) { error "Invalid frame range."; return; }
+
+	int $currentTime = `currentTime -q`;
+	if( $startFrame < $currentTime ) { currentTime -e ($startFrame-1); }
+
+	string $filePath = `textField -q -tx ZelosFurCacheGenWin_Path`;
+
+	ZelosFurCacheGen -startFrame $startFrame -endFrame $endFrame -version $version -nodeNames $genList -filePath $filePath;
+
+	$i = 0;
+	for( $generator in $generators )
+	{
+		setAttr ( $generator + ".displayMode"  ) $displayMode[$i++];
+		setAttr ( $generator + ".cacheGenMode" ) 0;
+	}
+}
+

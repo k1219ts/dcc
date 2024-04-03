@@ -1,0 +1,93 @@
+//--------------------------//
+// ZelosFurPtcBinderWin.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.13                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurPtcBinderWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+    if( `window -q -exists ZelosFurPtcBinderWin` )
+	{
+    	//deleteUI ZelosFurPtcBinderWin;
+    	showWindow ZelosFurPtcBinderWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "ZelosFur Cache Gen" ZelosFurPtcBinderWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 330 -style "none";
+
+		rowLayout -nc 2 -cw2 200 130;
+			text -l "Zelos system" -font "boldLabelFont" -w 200 -al "left";
+			text -l "Dexter Studios R&D team" -w 120 -al "left";
+			setParent ..;
+
+		separator -h 2  -w 330 -style "single";
+		separator -h 15 -w 300 -style "none";
+
+		text -l "Instructions" -al "left" -w 330 -font "boldLabelFont";
+		text -l "1) Select ZelosFurCacheViewer nodes." -al "left" -w 330;
+		text -l "2) Click the 'Create' button."        -al "left" -w 330;
+
+		separator -h 2  -w 330 -style "in";
+		separator -h 15 -w 300 -style "none";
+
+		separator -h 10 -w 300 -style "none";
+		text -l "ZelosFurCacheViewer Nodes" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+			textScrollList -w 200 -h 75 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZelosFurViewerList`; select $items[0];" ) ZelosFurViewerList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+				button -l "Add"    -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Add( \"ZelosFurViewerList\", \"ZelosFurCacheViewer\" )" );
+				button -l "Remove" -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Remove( \"ZelosFurViewerList\" )" );
+				button -l "Clear"  -w 110 -h 25 -align "center" -c ( "ZTextScrollList_Clear( \"ZelosFurViewerList\" )" );
+				setParent ..;
+			setParent ..;
+
+		separator -h 15 -w 330 -style "none";
+
+		button -l "Create" -w 330 -al "center" -c "CreateZelosFurPtcBinder";
+
+		separator -h 15 -w 330 -style "none";
+
+	showWindow ZelosFurPtcBinderWin;
+}
+
+global proc CreateZelosFurPtcBinder()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $ZelosFurCacheViewers[] = ZTextScrollList_GetAllItems( "ZelosFurViewerList" );
+	int $numCacheViewers = size($ZelosFurCacheViewers);
+	if( $numCacheViewers==0 ) { return; }
+
+	string $xform = `createNode transform -n ZelosFurPtcBinderXForm1`;
+	string $ZelosFurPtcBinder = `createNode ZelosFurPtcBinder -p $xform`;
+
+	connectAttr time1.outTime ( $ZelosFurPtcBinder + ".inTime" );
+
+	int $i = 0;
+	for( $ZelosFurCacheViewer in $ZelosFurCacheViewers )
+	{
+		connectAttr ( $ZelosFurCacheViewer + ".output" ) ( $ZelosFurPtcBinder + ".inViewers[" + $i + "]" );
+		$i++;
+	}
+
+	connectAttr ( $ZelosFurPtcBinder + ".output" ) ( $xform + ".dynamics" );
+
+	select -r $ZelosFurPtcBinder;
+}
+

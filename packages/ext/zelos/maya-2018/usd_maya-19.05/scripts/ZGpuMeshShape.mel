@@ -1,0 +1,24 @@
+//-------------------//
+// ZGpuMeshShape.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.06.29                               //
+//-------------------------------------------------------//
+
+global proc CreateZGpuMeshShape()
+{
+    if( !`pluginInfo -q -loaded "ZMayaTools"` )
+	{
+		ZPrintError "ZMayaTools is not loaded.";
+		return;
+	}
+
+	string $ZGpuMeshCreator = `createNode ZGpuMeshCreator`;
+	string $ZGpuMeshShape = `createNode ZGpuMeshShape`;
+	connectAttr time1.outTime ($ZGpuMeshCreator+".time");
+	connectAttr ($ZGpuMeshCreator+".output") ($ZGpuMeshShape+".input");
+
+	select -cl;
+	select -r $ZGpuMeshShape;
+}
+

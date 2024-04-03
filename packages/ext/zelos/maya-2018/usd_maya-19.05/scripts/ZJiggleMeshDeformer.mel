@@ -1,0 +1,43 @@
+//-------------------------//
+// ZJiggleMeshDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.06.17                               //
+//-------------------------------------------------------//
+
+global proc CreateZJiggleMeshDeformer()
+{
+	if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	for( $xForm in $selected )
+	{
+		string $shapes[] = `listRelatives -shapes $xForm`;
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "mesh" )
+		{
+			warning ( $shape + " is not a mesh. ZJiggleMeshDeformer does not support non-mesh type." );
+			continue;
+		}
+
+		string $ZJiggleMeshDeformer[] = `deformer -type ZJiggleMeshDeformer $shape`;
+
+		connectAttr time1.outTime ( $ZJiggleMeshDeformer[0] + ".inTime" );
+		connectAttr ( $xForm + ".worldMatrix" ) ( $ZJiggleMeshDeformer[0] + ".worldMatrix" );
+
+		select $ZJiggleMeshDeformer[0];
+	}
+}
+

@@ -1,0 +1,47 @@
+//------------------//
+// ZFrustumTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.29                               //
+//-------------------------------------------------------//
+
+global proc ZFrustumTestWithAABB()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	polyCube;
+
+	createNode camera;
+
+	createNode ZFrustumTest;
+	connectAttr camera1.matrix ZFrustumTest1.inXForm;
+	connectAttr pCubeShape1.worldMesh ZFrustumTest1.inAABBMesh;
+	connectAttr ZFrustumTest1.output transform1.shearXY;
+}
+
+global proc ZFrustumTestWithSphere()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	polySphere;
+
+	createNode camera;
+
+	createNode ZFrustumTest;
+	connectAttr camera1.matrix ZFrustumTest1.inXForm;
+	connectAttr pSphereShape1.worldMesh ZFrustumTest1.inSphereMesh;
+	connectAttr ZFrustumTest1.output transform1.shearXY;
+}
+

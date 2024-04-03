@@ -1,0 +1,25 @@
+//----------------------//
+// ZN_GenOffsetMesh.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jungmin Lee @ Dexter Studios                  //
+// last update: 2018.05.18                               //
+//-------------------------------------------------------//
+
+global proc ZN_GenOffsetMesh()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+    $selectedCrvs = `listRelatives -f -ad -type "nurbsCurve"`;
+    $selectedMesh = `listRelatives -f -ad -type "mesh"`;
+    duplicate $selectedMesh;
+    $copyedMesh = `ls -sl -l`;
+    select $selectedCrvs $copyedMesh;
+    
+    ZN_GenOffsetMeshCmd;
+}
+

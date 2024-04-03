@@ -1,0 +1,125 @@
+//--------------------------------//
+// AEZN_MayaCurvesGenTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Create Button //
+global proc ZN_MayaCurvesGenCreateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Create Output Curves" -bgc 1.0 0.8 0.5 -c ("ZN_MayaCurvesGenCreateExe "+$attr) ZN_MayaCurvesGenCreate;
+	setUITemplate -ppt;
+
+	ZN_MayaCurvesGenCreateReplace $attr;
+}
+
+global proc ZN_MayaCurvesGenCreateReplace( string $attr )
+{
+	button -e -c ("ZN_MayaCurvesGenCreateExe "+$attr) ZN_MayaCurvesGenCreate;
+}
+
+global proc ZN_MayaCurvesGenCreateExe( string $attr )
+{
+	string $ZN_MayaCurvesGen;
+	{
+		string $nodes[];
+		tokenize( $attr, ".", $nodes );
+		$ZN_MayaCurvesGen = $nodes[0];
+	}
+
+	string $fromNode;
+	{
+		$fromNode = ZConnectedNode( $ZN_MayaCurvesGen, "inStrands" );
+
+		if( $fromNode == "" )
+		{
+			ZPrintError "No input connection.";
+			return;
+		}
+	}
+
+	string $toNodes[];
+	{
+		$toNodes = `listConnections ( $ZN_MayaCurvesGen+".outCurves" )`;
+
+		if( size($toNodes) != 0 )
+		{
+			ZPrintError "Output already has some connections.";
+			return;
+		}
+	}
+
+	int $numStrands = 0;
+	{
+		if( `attributeExists "numStrands" $fromNode` ) {
+
+			$numStrands = `getAttr ($fromNode+".numStrands")`;
+
+		} else if( `attributeExists "numOutputStrands" $fromNode` ) {
+
+			$numStrands = `getAttr ($fromNode+".numOutputStrands")`;
+
+		} else {
+
+			ZPrintError "Invalid input node.";
+			return;
+
+		}
+	}
+
+	if( $numStrands == 0 )
+	{
+		return;
+	}
+
+	disconnectAttr ($fromNode+".outStrands") ($ZN_MayaCurvesGen+".inStrands");
+
+	float $ratio = `getAttr ($ZN_MayaCurvesGen+".ratio")`;
+
+	int $i = 0;
+	for( ; $i<$numStrands; $i++ )
+	{
+		if( rand(1.0) < $ratio )
+		{
+			string $curveShape = `createNode nurbsCurve`;
+			connectAttr ($ZN_MayaCurvesGen+".outCurves[" + $i + "]") ($curveShape+".create");
+		}
+	}
+
+	connectAttr ($fromNode+".outStrands") ($ZN_MayaCurvesGen+".inStrands");
+
+	select -r $ZN_MayaCurvesGen;
+}
+
+//////////
+// main //
+global proc AEZN_MayaCurvesGenTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Input Strands" -ac "numInputStrands";
+			editorTemplate -l "Output Curves" -ac "numOutputCurves";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connection Creation" -collapse 0;
+		{
+			editorTemplate -l "Ratio" -ac "ratio";
+			editorTemplate -ccu ZN_MayaCurvesGenCreateNew ZN_MayaCurvesGenCreateReplace "ratio"; // ratio: dummy attribute
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outCurves";
+}
+

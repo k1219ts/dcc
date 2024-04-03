@@ -1,0 +1,33 @@
+//-------------------------------//
+// ZAABBLineIntersectionTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZAABBLineIntersectionTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	polyCube;
+	createNode ZAABBLineIntersectionTest;
+	connectAttr pCubeShape1.worldMesh ZAABBLineIntersectionTest1.cube;
+
+	spaceLocator;
+	move -r -1 0 -1;
+
+	spaceLocator;
+	move -r 1 0 1;
+
+	connectAttr locator1.translate ZAABBLineIntersectionTest1.aPos;
+	connectAttr locator2.translate ZAABBLineIntersectionTest1.bPos;
+
+	connectAttr ZAABBLineIntersectionTest1.output transform1.shearXY;
+}
+

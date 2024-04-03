@@ -1,0 +1,82 @@
+//---------------------//
+// ZelosClothCurve.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.03.27                               //
+//-------------------------------------------------------//
+
+global proc UpdateAllZelosClothCurves()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	string $ZelosClothMeshes[] = `ls -type ZelosClothMesh`;
+	for( $ZelosClothMesh in $ZelosClothMeshes )
+	{
+		setAttr ( $ZelosClothMesh + ".mode" ) 0;
+	}
+
+	string $ZelosClothSeams[] = `ls -type ZelosClothSeam`;
+	for( $ZelosClothSeam in $ZelosClothSeams )
+	{
+		setAttr ( $ZelosClothSeam + ".mode" ) 0;
+	}
+
+	string $ZelosClothPatches[] = `ls -type ZelosClothPatch`;
+	for( $ZelosClothPatch in $ZelosClothPatches )
+	{
+		setAttr ( $ZelosClothPatch + ".mode" ) 0;
+	}
+
+	string $curves[] = `ls -type nurbsCurve`;
+	for( $curve in $curves )
+	{
+		if( `connectionInfo -is ( $curve + ".worldSpace" )` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ( $curve + ".worldSpace" )`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+				string $node = $tokens[0];
+
+				if( `nodeType $node` == "ZelosClothCurve" )
+				{
+					string $parent[] = `listRelatives -p $curve`;
+					select -r $parent[0];
+					move -r  1 0 0;
+					select -r $parent[0];
+					move -r -1 0 0;
+					select -cl;
+					break;
+				}
+			}
+		}
+	}
+
+	string $ZelosClothPatches[] = `ls -type ZelosClothPatch`;
+	for( $ZelosClothPatch in $ZelosClothPatches )
+	{
+		setAttr ( $ZelosClothPatch + ".mode" ) 1;
+	}
+
+	string $ZelosClothSeams[] = `ls -type ZelosClothSeam`;
+	for( $ZelosClothSeam in $ZelosClothSeams )
+	{
+		setAttr ( $ZelosClothSeam + ".mode" ) 1;
+	}
+
+	string $ZelosClothMeshes[] = `ls -type ZelosClothMesh`;
+	for( $ZelosClothMesh in $ZelosClothMeshes )
+	{
+		setAttr ( $ZelosClothMesh + ".mode" ) 1;
+	}
+
+	refresh;
+}
+

@@ -1,0 +1,51 @@
+//-------------------------------------//
+// AEZBreakingWaveDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios					 //
+//         Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.03.09                               //
+//-------------------------------------------------------//
+
+global proc AEZBreakingWaveDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Device"           -ac "device";
+			editorTemplate -as;
+			editorTemplate -l "Radius"           -ac "radius";
+			editorTemplate -l "Wave Back"        -ac "waveBack";
+			editorTemplate -as;
+			editorTemplate -l "Width"            -ac "width";
+			editorTemplate -l "Falloff"          -ac "falloff";
+			editorTemplate -as;
+			editorTemplate -l "Amount"           -ac "amount";
+			editorTemplate -l "Scale"            -ac "scale";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Primary Noise";
+			editorTemplate -l "Amplitude"        -ac "amplitude1";
+			editorTemplate -l "Spatial Freq."    -ac "sFreq1";
+			editorTemplate -l "Roughness"        -ac "rough1";
+			editorTemplate -l "Temporal Freq."   -ac "tFreq1";
+			editorTemplate -l "Octaves"          -ac "octaves1";
+			editorTemplate -l "Random Seed"      -ac "seed1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Secondary Noise";
+			editorTemplate -l "Amplitude"        -ac "amplitude2";
+			editorTemplate -l "Spatial Freq."    -ac "sFreq2";
+			editorTemplate -l "Roughness"        -ac "rough2";
+			editorTemplate -l "Temporal Freq."   -ac "tFreq2";
+			editorTemplate -l "Octaves"          -ac "octaves2";
+			editorTemplate -l "Random Seed"      -ac "seed2";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "translation";
+	editorTemplate -suppress "rotation";
+}
+

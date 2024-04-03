@@ -1,0 +1,38 @@
+//-------------------------//
+// AEZFX_VDBGridViewer.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.12.16                               //
+//-------------------------------------------------------//
+
+global proc AEZFX_VDBGridViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display Controls" -collapse 0;
+		{
+			editorTemplate -l "Voxel"	   	     -ac "drawVoxel";
+			editorTemplate -as;
+			editorTemplate -l "Volume"		     -ac "drawVolume";
+			editorTemplate -as;
+			editorTemplate -l "Internal ActBox"  -ac "drawIntActBox";
+			editorTemplate -as;
+			editorTemplate -l "Internal NodeBox" -ac "drawIntNodeBox";
+			editorTemplate -as;
+			editorTemplate -l "Leaf NodeBox"  	 -ac "drawLeafNodeBox";
+        }
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Developement Tools" -collapse 1;
+		{
+        }
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "inVDB";
+}
+

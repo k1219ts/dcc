@@ -1,0 +1,345 @@
+//------------------------------------------//
+// AEZelosFurModifier_DirectionTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.18                               //
+//-------------------------------------------------------//
+
+//////////////
+// Se.Expr0 // 
+global proc ZelosFurModifier_DirectionSeExpr0New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Pitch Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_DirectionSeExpr0;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_DirectionSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_DirectionSeExpr0;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_DirectionSeExpr0Replace( $attr );
+}
+
+global proc ZelosFurModifier_DirectionSeExpr0Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_DirectionSeExpr0;
+	button -e -c ("ZelosFurModifier_DirectionSeExpr0Win(\""+$attr+"\")") btnZelosFurModifier_DirectionSeExpr0;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr0Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_DirectionSeExpr0;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_DirectionSeExpr0Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_DirectionSeExpr0Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr0Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_DirectionSeExpr0`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_DirectionSeExpr0;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr0Reset( string $attr )
+{
+	string $txt = "pitch + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_DirectionSeExpr0;
+	scrollField -e -tx $txt sfZelosFurModifier_DirectionSeExpr0;
+}
+
+//////////////
+// Se.Expr1 // 
+global proc ZelosFurModifier_DirectionSeExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Yaw Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_DirectionSeExpr1;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_DirectionSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_DirectionSeExpr1;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_DirectionSeExpr1Replace( $attr );
+}
+
+global proc ZelosFurModifier_DirectionSeExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_DirectionSeExpr1;
+	button -e -c ("ZelosFurModifier_DirectionSeExpr1Win(\""+$attr+"\")") btnZelosFurModifier_DirectionSeExpr1;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr1Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_DirectionSeExpr1;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_DirectionSeExpr1Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_DirectionSeExpr1Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_DirectionSeExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_DirectionSeExpr1;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr1Reset( string $attr )
+{
+	string $txt = "yaw + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZelosFurModifier_DirectionSeExpr1;
+	scrollField -e -tx $txt sfZelosFurModifier_DirectionSeExpr1;
+}
+
+//////////////
+// Se.Expr2 // 
+global proc ZelosFurModifier_DirectionSeExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 3;
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZelosFurModifier_DirectionSeExpr2;
+			button -w 40 -l "Edit" -c ("ZelosFurModifier_DirectionSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_DirectionSeExpr2;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_DirectionSeExpr2Replace( $attr );
+}
+
+global proc ZelosFurModifier_DirectionSeExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZelosFurModifier_DirectionSeExpr2;
+	button -e -c ("ZelosFurModifier_DirectionSeExpr2Win(\""+$attr+"\")") btnZelosFurModifier_DirectionSeExpr2;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr2Win( string $attr )
+{
+    if( `window -q -exists ZelosFurModifierWin` )
+	{
+    	deleteUI ZelosFurModifierWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZelosFurModifierWin;
+		columnLayout;
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZelosFurModifier_DirectionSeExpr2;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 300 -l "Update" -c ("ZelosFurModifier_DirectionSeExpr2Update(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+			rowColumnLayout -nc 2;
+				button -w 150 -l "Close"  -c ("deleteUI ZelosFurModifierWin");
+				button -w 150 -l "Reset"  -c ("ZelosFurModifier_DirectionSeExpr2Reset(\""+$attr+"\")");
+				setParent ..;
+			setParent ..;
+	showWindow ZelosFurModifierWin;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZelosFurModifier_DirectionSeExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZelosFurModifier_DirectionSeExpr2;
+}
+
+global proc ZelosFurModifier_DirectionSeExpr2Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZelosFurModifier_DirectionSeExpr2;
+	scrollField -e -tx $txt sfZelosFurModifier_DirectionSeExpr2;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurModifier_DirectionUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			rowColumnLayout -nc 1;
+				button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_DirectionUpdate;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurModifier_DirectionUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurModifier_DirectionUpdate;
+}
+
+//////////////////
+// texture list //
+global proc ZelosFurModifier_DirectionTextureListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_DirectionTextureList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_DirectionTextureList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_DirectionTextureListReplace( $attr );
+}
+
+global proc ZelosFurModifier_DirectionTextureListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_DirectionTextureList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Direction node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_DirectionNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_DirectionNode + ".filePathNames" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurModifier_DirectionNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurModifier_DirectionNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_DirectionTextureList;
+	}
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurModifier_DirectionGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurModifier_DirectionGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurModifier_DirectionGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurModifier_DirectionGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurModifier_DirectionGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurModifier_DirectionGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurModifier_Direction node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurModifier_DirectionNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurModifier_DirectionNode + ".outModifier" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurModifier_DirectionNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurModifier_DirectionNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurModifier_DirectionGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurModifier_DirectionTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+			editorTemplate -l "Turn On"                                   -ac "onOff";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "X-Rotation Value";
+			editorTemplate -l "Pitch [pitch]"                             -ac "pitch";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand0";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq0";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_DirectionSeExpr0New ZelosFurModifier_DirectionSeExpr0Replace "seExpr0Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Y-Rotation Value";
+			editorTemplate -l "Yaw [yaw]"                                 -ac "yaw";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"                         -ac "rand1";
+			editorTemplate -l "Frequency [freq]"                          -ac "freq1";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_DirectionSeExpr1New ZelosFurModifier_DirectionSeExpr1Replace "seExpr1Str";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZelosFurModifier_DirectionSeExpr2New ZelosFurModifier_DirectionSeExpr2Replace "seExpr2Str";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurModifier_DirectionUpdateNew ZelosFurModifier_DirectionUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Texture List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_DirectionTextureListNew ZelosFurModifier_DirectionTextureListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurModifier_DirectionGeneratorListNew ZelosFurModifier_DirectionGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "filePathNames";
+	editorTemplate -suppress "outModifier";
+	editorTemplate -suppress "seed0";
+	editorTemplate -suppress "seed1";
+}
+

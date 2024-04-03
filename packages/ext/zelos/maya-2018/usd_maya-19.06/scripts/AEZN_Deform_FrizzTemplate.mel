@@ -1,0 +1,509 @@
+//-------------------------------//
+// AEZN_Deform_FrizzTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_FrizzExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Frizz Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_FrizzExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_FrizzExpr1Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_FrizzExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_FrizzExpr1;
+	button -e -c ("ZN_Deform_FrizzExpr1Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr1;
+}
+
+global proc ZN_Deform_FrizzExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_FrizzExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_FrizzExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_FrizzExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_FrizzExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_FrizzExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_FrizzExpr1;
+}
+
+global proc ZN_Deform_FrizzExpr1Reset( string $attr )
+{
+	string $txt = "frizz + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_FrizzExpr1;
+	scrollField -e -tx $txt sfZN_Deform_FrizzExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_FrizzExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Tip Width Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_FrizzExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_FrizzExpr2Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_FrizzExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_FrizzExpr2;
+	button -e -c ("ZN_Deform_FrizzExpr2Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr2;
+}
+
+global proc ZN_Deform_FrizzExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_FrizzExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_FrizzExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_FrizzExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_FrizzExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_FrizzExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_FrizzExpr2;
+}
+
+global proc ZN_Deform_FrizzExpr2Reset( string $attr )
+{
+	string $txt = "tWidth + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_FrizzExpr2;
+	scrollField -e -tx $txt sfZN_Deform_FrizzExpr2;
+}
+
+////////////////////////
+// the 3rd expression //
+global proc ZN_Deform_FrizzExpr3New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Root Width Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_FrizzExpr3;
+			button -w 40 -l "Edit" -c ("ZN_Deform_FrizzExpr3Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr3;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzExpr3Replace( $attr );
+}
+
+global proc ZN_Deform_FrizzExpr3Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_FrizzExpr3;
+	button -e -c ("ZN_Deform_FrizzExpr3Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr3;
+}
+
+global proc ZN_Deform_FrizzExpr3Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_FrizzExpr3;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_FrizzExpr3Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_FrizzExpr3Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_FrizzExpr3Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_FrizzExpr3`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_FrizzExpr3;
+}
+
+global proc ZN_Deform_FrizzExpr3Reset( string $attr )
+{
+	string $txt = "rWidth + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_FrizzExpr3;
+	scrollField -e -tx $txt sfZN_Deform_FrizzExpr3;
+}
+
+////////////////////////
+// the 4th expression //
+global proc ZN_Deform_FrizzExpr4New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_FrizzExpr4;
+			button -w 40 -l "Edit" -c ("ZN_Deform_FrizzExpr4Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr4;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzExpr4Replace( $attr );
+}
+
+global proc ZN_Deform_FrizzExpr4Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_FrizzExpr4;
+	button -e -c ("ZN_Deform_FrizzExpr4Win(\""+$attr+"\")") btnZN_Deform_FrizzExpr4;
+}
+
+global proc ZN_Deform_FrizzExpr4Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_FrizzExpr4;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_FrizzExpr4Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_FrizzExpr4Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_FrizzExpr4Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_FrizzExpr4`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_FrizzExpr4;
+}
+
+global proc ZN_Deform_FrizzExpr4Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZN_Deform_FrizzExpr4;
+	scrollField -e -tx $txt sfZN_Deform_FrizzExpr4;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_FrizzImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_FrizzImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_FrizzImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzImageListReplace( $attr );
+}
+
+global proc ZN_Deform_FrizzImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_FrizzImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Frizz node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Frizz = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Frizz + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Frizz + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Frizz + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_FrizzImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_FrizzDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_FrizzDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_FrizzDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_FrizzDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_FrizzDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Frizz node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Frizz = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Frizz + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_FrizzDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_FrizzUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_FrizzUpdateExe "+$attr) ZN_Deform_FrizzUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_FrizzUpdateReplace $attr;
+}
+
+global proc ZN_Deform_FrizzUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_FrizzUpdateExe "+$attr) ZN_Deform_FrizzUpdate;
+}
+
+global proc ZN_Deform_FrizzUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Frizz = $node[0];
+
+	updateAE $ZN_Deform_Frizz;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_FrizzTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Frizz Value";
+			editorTemplate -l "Frizz [frizz]"     -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r1";
+			editorTemplate -l "Frequency [freq]"  -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_FrizzExpr1New ZN_Deform_FrizzExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Tip Width Value";
+			editorTemplate -l "tWidth [rate]"     -ac "v2";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r2";
+			editorTemplate -l "Frequency [freq]"  -ac "f2";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_FrizzExpr2New ZN_Deform_FrizzExpr2Replace "e2";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Root Width Value";
+			editorTemplate -l "rWidth [rate]"     -ac "v3";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r3";
+			editorTemplate -l "Frequency [freq]"  -ac "f3";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_FrizzExpr3New ZN_Deform_FrizzExpr3Replace "e3";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZN_Deform_FrizzExpr4New ZN_Deform_FrizzExpr4Replace "e4";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_FrizzImageListNew ZN_Deform_FrizzImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_FrizzDeformerListNew ZN_Deform_FrizzDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

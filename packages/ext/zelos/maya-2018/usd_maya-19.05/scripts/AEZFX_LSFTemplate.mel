@@ -1,0 +1,32 @@
+//-----------------------//
+// AEZFX_LSFTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_LSFTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Max CFL"			-ac "cfl";
+			editorTemplate -l "Water Height"	-ac "height";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inGrid";
+	editorTemplate -suppress "inObjs";
+	editorTemplate -suppress "outData";
+}
+

@@ -1,0 +1,55 @@
+//-----------------------------//
+// AEZN_MeshViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.01                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZN_MeshViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Vertices"   -ac "numVertices";
+			editorTemplate -l "Triangles"  -ac "numTriangles";
+			editorTemplate -l "UVs"        -ac "numUVs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Display Controls" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Input Selection";
+			editorTemplate -l "Body Mesh"  -ac "whichMesh";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Wireframe";
+			editorTemplate -l "Draw"       -ac "drawWireframe";
+			editorTemplate -l "Line Width" -ac "wireLineWidth";
+			editorTemplate -l "Line Color" -ac "wireLineColor";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Tangent Space";
+			editorTemplate -l "Draw"       -ac "drawAxes";
+			editorTemplate -l "Axis Scale" -ac "axisScale";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Texture";
+			editorTemplate -l "Draw"       -ac "drawTexture";
+			editorTemplate -l "File Path"  -ac "textureImage";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Bounding Box";
+			editorTemplate -l "Draw"       -ac "drawBoundingBox";
+			editorTemplate -l "Line Width" -ac "boundingBoxLineWidth";
+			editorTemplate -l "Line Color" -ac "boundingBoxLineColor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

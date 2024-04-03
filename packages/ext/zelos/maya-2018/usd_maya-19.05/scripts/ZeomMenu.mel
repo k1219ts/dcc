@@ -1,0 +1,62 @@
+//-------------------//
+// ZelosMeshMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc ZeomMenu()
+{
+	menuItem -to 1 -l "Zeom (Zelos for Geometry)" -ec 1 -subMenu true Zeom_Item;
+	{
+		menuItem -l "ZUVTransfer"               -ec 1 -c "ZUVTransferWin"             Zeom_ZUVTransferWin_Item;
+		menuItem -l "Create ZMeshClipper"       -ec 1 -c "CreateZMeshClipper"         Zeom_CreateZMeshClipper_Item;
+		menuItem -l "Create ZMeshXFormBinder"   -ec 1 -c "CreateZMeshXFormBinder"     Zeom_CreateZMeshXFormBinder_Item;
+		menuItem -l "Detect Inside Components"  -ec 1 -c "ZDetectInsideComponentsWin" Zeom_DetectInsideComponents_Item;
+		menuItem -l "Check Collision"           -ec 1 -c "ZCheckCollisionCmd"         Zeom_CheckCollision_Item;
+		menuItem -l "Create ZMeshLoader"        -ec 1 -c "CreateZMeshLoader"          Zeom_CreateZMeshLoader_Item;
+		menuItem -l "Create ZEnvSphere"         -ec 1 -c "CreateZEnvSphere"           Zeom_CreateZEnvSphere_Item;
+		menuItem -l "Generate Collision Map"    -ec 1 -c "ZCollisionMapGenWin"        Zeom_GenerateCollisionMap_Itemp;
+		menuItem -l "Create ZAbcViewer"         -ec 1 -c "CreateZAbcViewer"           Zeom_CreateZAbcViewer_Item;
+		menuItem -l "Create ZAbcViewerInstance" -ec 1 -c "CreateZAbcViewerInstance"   Zeom_CreateZAbcViewerInstance_Item;
+	}
+	setParent -menu ..;
+}
+
+global proc Zeom_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZeomMenu;
+}
+
+global proc Zeom_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZeomMenu;
+
+	if( `menu -exists mainZeomMenu` ) { deleteUI mainZeomMenu; }
+
+	setParent $gMainWindow;
+
+	$gZeomMenu = `menu -l "Zeom" -to true -pmo true mainZeomMenu`;
+	menu -e -pmc ( "Zeom_Menu " + $gZeomMenu ) $gZeomMenu;
+
+	hotBox -um;
+}
+
+global proc Zeom_DeleteMenu()
+{
+	if( `menu -exists mainZeomMenu` ) { deleteUI mainZeomMenu; }
+}
+

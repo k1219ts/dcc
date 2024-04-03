@@ -1,0 +1,133 @@
+//------------------------//
+// ZOceanWaveDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2013.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZOceanWaveDeformer()
+{
+	if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	for( $xForm in $selected )
+	{
+		$shape = `listRelatives -c $xForm`;
+		string $ZOceanWaveDeformer[] = `deformer -type ZOceanWaveDeformer`;
+		connectAttr time1.outTime ( $ZOceanWaveDeformer[0] + ".time" );
+		select $ZOceanWaveDeformer[0];
+	}
+}
+
+global proc SaveZOceanWaveDeformerParams()
+{
+	string $nodes[] = `ls -sl -type ZOceanWaveDeformer`;
+	if( size($nodes)==0 )
+	{
+		error( "No selected ZOceanWaveDeformer node." );
+		return;
+	}
+
+	string $ZOceanWaveDeformer = $nodes[0];
+
+	string $files[] = `fileDialog2 -fm 0 -ds 1 -ff "*.zocean"`;
+	if( size($files)==0 ) { return; }
+	string $filePathName = $files[0] + ".zocean";
+
+    string $attrs[] =
+	{
+		"timeScale",           "float",
+		"globalScale",         "float",
+		"gridLevel",           "int",
+		"domainSize",          "float",
+		"gravity",             "float",
+		"windSpeed",           "float",
+		"windDirection",       "float",
+		"windAlignment",       "float",
+		"waveScale",           "float",
+		"shortestWave",        "float",
+		"choppiness",          "float",
+		"dampReflection",      "float",
+		"waterDepth",          "float",
+		"randomSeed",          "int",
+		"whichOmega",          "int",
+		"globalOffset",        "float",
+		"smoothInterpolation", "int",
+		"normal",              "int",
+		"foam",                "int",
+		"foamGamma",           "float",
+		"foamBrightness",      "float",
+		"foamFade",            "float"
+	};
+
+	int $numAttrs = size($attrs) / 2;
+
+    int $fileId = `fopen $filePathName "w"`;
+
+	int $i = 0;
+	for( ; $i<$numAttrs; $i++ )
+	{
+		string $attrName = $attrs[2*$i];
+		string $attrType = $attrs[2*$i+1];
+
+		fprint $fileId ( $attrName + " " + $attrType + " " + `getAttr ( $ZOceanWaveDeformer + "." + $attrName )` + "\n" ); 
+	}
+
+    fclose $fileId;
+}
+
+global proc LoadZOceanWaveDeformerParams()
+{
+	string $nodes[] = `ls -sl -type ZOceanWaveDeformer`;
+	if( size($nodes)==0 )
+	{
+		error( "No selected ZOceanWaveDeformer node." );
+		return;
+	}
+	string $ZOceanWaveDeformer = $nodes[0];
+
+	string $files[] = `fileDialog2 -fm 4 -ds 1 -ff "*.zocean"`;
+	if( size($files)==0 ) { return; }
+	string $filePathName = $files[0];
+
+	// Temporarily disable the ZRelaxationDeformer node so it isn't calculating as we go.
+	setAttr ( ( $ZOceanWaveDeformer + ".nodeState" ), 1 );
+
+	int $fileId = `fopen $filePathName "r"`;
+
+	while( !`feof $fileId` )
+	{
+		string $attrName = `fgetword $fileId`;
+		if( !`attributeExists $attrName $ZOceanWaveDeformer` ) { continue; }
+
+		string $attrType = `fgetword $fileId`;
+
+		if( $attrType == "int" ) {
+			int $value = (int)`fgetword $fileId`;
+			setAttr ( $ZOceanWaveDeformer + "." + $attrName ) $value;
+		} else if( $attrType == "float" ) {
+			float $value = (float)`fgetword $fileId`;
+			setAttr ( $ZOceanWaveDeformer + "." + $attrName ) $value;
+		}
+	}
+
+	fclose $fileId;
+
+	// Enable the ZRelaxationDeformer now that we're done
+	setAttr ( ( $ZOceanWaveDeformer + ".nodeState" ), 0 );
+
+	updateAE $ZOceanWaveDeformer;
+}
+

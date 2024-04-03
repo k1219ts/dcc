@@ -1,0 +1,36 @@
+//------------------------//
+// AEZFX_FieldToImage.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_FieldToImageTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "Noise Scale"   			-ac "noiseScale";
+			editorTemplate -l "Freq Scale"  			-ac "frequencyScale";
+			editorTemplate -l "Temp Freq Scale"         -ac "tempFreqScale";
+			editorTemplate -l "Offset Scale" 			-ac "offsetScale";			
+		}
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inField";
+	editorTemplate -suppress "outImage";
+}
+

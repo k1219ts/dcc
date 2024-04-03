@@ -1,0 +1,41 @@
+//-----------------------------------//
+// AEZKelvinWaveDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.04.19                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZKelvinWaveDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Simulation Parameters" -collapse 0;
+			editorTemplate -l "Solver Type"             -ac "solverType";
+			editorTemplate -l "Computing Method"        -ac "computingMethod";
+			editorTemplate -l "# of Iteratoins"         -ac "numIterations";
+			editorTemplate -l "Gravity (m/sec^2)"       -ac "gravity";
+			editorTemplate -l "Length Scale"            -ac "lengthScale";
+			editorTemplate -l "Angle Range"             -ac "angleRange";
+			editorTemplate -l "Wave Scale"              -ac "waveScale";
+			editorTemplate -l "Fade Out"                -ac "fadeOut";
+			editorTemplate -l "Max Distance"            -ac "maxDistance";
+			editorTemplate -l "Diffuse"            		-ac "onDiffuse";
+			
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Ship Parameters" -collapse 0;
+			editorTemplate -l "Ship Position"           -ac "shipPosition";
+			editorTemplate -l "Ship Direction"          -ac "shipDirection";
+			editorTemplate -l "Ship Speed (knots)"      -ac "shipSpeed";
+			editorTemplate -l "Ship Length  (m)"        -ac "shipLength";
+			editorTemplate -l "Ship Breadth (m)"        -ac "shipBreadth";
+			editorTemplate -l "Ship Draught (m)"        -ac "shipDraught";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}
+

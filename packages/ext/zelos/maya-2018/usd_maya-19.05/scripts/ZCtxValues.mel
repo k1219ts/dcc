@@ -1,0 +1,18 @@
+//----------------//
+// ZCtxValues.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.01.29                               //
+//-------------------------------------------------------//
+
+global proc ZCtxValues( string $ctxName ) 
+{
+	string $parent = (`toolPropertyWindow -q -location` + "|ZCtxLayout");
+	setParent $parent;
+
+	int $onOff = `ZCtx -q -onOff $ctxName`;
+	checkBoxGrp -e -v1 $onOff ZCtxOnOff;
+
+	toolPropertySelect ZCtxLayout;
+}
+

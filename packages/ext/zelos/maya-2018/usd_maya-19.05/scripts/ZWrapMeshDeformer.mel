@@ -1,0 +1,50 @@
+//-----------------------//
+// ZWrapMeshDeformer.mel //
+//-------------------------------------------------------//
+// author: Nayoung Kim @ Dexter Studios                  //
+// last update: 2015.07.17                               //
+//-------------------------------------------------------//
+
+global proc CreateZWrapMeshDeformer()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $items[] = `ls -sl`;
+
+	if( size( $items ) == 0 ) { return; }
+	if( size( $items ) != 2 )
+	{
+		error( "Select the driven mesh first, then select the driver mesh." );
+		return;
+	}
+
+	string $drivenMesh;
+	string $driverMesh;
+	{
+		$drivenMesh = $items[0];
+		$driverMesh = $items[1];
+	}
+
+	string $ZWrapMeshDeformer[] = `deformer -type ZWrapMeshDeformer $drivenMesh`;
+
+	string $driverShape;
+	{
+		string $shapes[] = `listRelatives -shapes -ni $driverMesh`;
+
+		int $count = size( $shapes );
+
+		if( $count != 1 )
+		{
+			error( "Invalid number of driver shape nodes." );
+			return;
+		}
+
+		$driverShape = $shapes[0];
+	}
+
+	connectAttr ( $driverShape + ".w" ) ( $ZWrapMeshDeformer[0] + ".driverMesh" );
+}

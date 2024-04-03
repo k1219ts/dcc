@@ -1,0 +1,33 @@
+//--------------------------------//
+// AEZMeshXFormBinderTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZMeshXFormBinderTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Options" -collapse 0;
+		{
+			editorTemplate -l "Rotation Order" -ac "rotationOrder";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inPosition";
+	editorTemplate -suppress "closestTriangle";
+	editorTemplate -suppress "farthestVertex";
+	editorTemplate -suppress "localCoordinates";
+	editorTemplate -suppress "initialMatrix";
+	editorTemplate -suppress "outTranslate";
+	editorTemplate -suppress "outRotate";
+}
+

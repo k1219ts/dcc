@@ -1,0 +1,55 @@
+//---------------------------//
+// ZN_PrintErrorPolygons.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_PrintErrorPolygons()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $selectedNodes[] = `ls -sl -l -ni -type transform`;
+
+	if( size($selectedNodes) == 0 )
+	{
+		ZPrintError "No selected ZENN node.";
+		return;
+	}
+
+	if( size($selectedNodes) == 2 )
+	{
+		ZPrintError "Too many selected ZENN nodes.";
+		return;
+	}
+
+	string $xform = $selectedNodes[0];
+	string $shapes[] = `listRelatives -f -c -ni -shapes $xform`;
+
+	if( size($shapes) == 0 )
+	{
+		ZPrintError "No selected shape node.";
+		return;
+	}
+
+	if( size($shapes) == 2 )
+	{
+		ZPrintError "Too many selected shape nodes.";
+		return;
+	}
+
+	string $shape = $shapes[0];
+
+	if( `nodeType $shape` != "mesh" )
+	{
+		ZPrintError "Failed to get polygon mesh.";
+		return;
+	}
+
+	ZN_PrintErrorPolygonsCmd -meshName $shape;
+}
+

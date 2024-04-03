@@ -1,0 +1,87 @@
+//------------------------------//
+// AEZelosClothSpringTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.08                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Select Button //
+global proc ZelosClothSpringSelectNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Select" -c  ("ZelosClothSpringSelect "+$attr) ZelosClothSpringSelect;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosClothSpringSelectReplace( string $attr )
+{
+	button -e -c ("ZelosClothSpringSelect "+$attr) ZelosClothSpringSelect;
+}
+
+global proc ZelosClothSpringSelect( string $attr )
+{
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZelosClothSpring = $tokens[0];
+
+	string $ZelosClothSimulator = `GetZelosClothSimulatorFromSpring $ZelosClothSpring`;
+	if( $ZelosClothSimulator == "" ) { return; }
+
+	string $ZelosClothGlobal = `GetZelosClothGlobal $ZelosClothSimulator`;
+	if( $ZelosClothGlobal == "" ) { return; }
+
+	string $outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+	if( $outMeshShape == "" ) { return; }
+
+	string $vtxListStr = `getAttr $attr`;
+	tokenize( $vtxListStr, " ", $tokens );
+
+	if( $vtxListStr == "" ) { return; }
+
+	string $cmd = "select -r ";
+
+	for( $token in $tokens )
+	{
+		$cmd += $outMeshShape + ".vtx[" + $token + "] ";
+	}
+
+	eval $cmd;
+}
+
+//////////
+// main //
+global proc AEZelosClothSpringTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -l "Spring Width"   -ac "springWidth";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Active"					-ac "active";
+			editorTemplate -l "Time Range"				-ac "timeRange";
+			editorTemplate -l "Vertex Index"			-ac "vtxIndex";
+			editorTemplate -l "Stretch Stiffness"		-ac "sretchStiffness";
+			editorTemplate -l "Compression Stiffness"	-ac "compressStiffness";
+			editorTemplate -l "Stretch Damping"			-ac "stretchDamping";
+			editorTemplate -l "Compression Damping"		-ac "compressDamping";
+			editorTemplate -l "Rest Length"				-ac "restLength";
+			editorTemplate -l "Break Length"			-ac "breakLength";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosClothSpringSelectNew ZelosClothSpringSelectReplace "vtxList";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "vtxList";
+	editorTemplate -suppress "vtxListPos";
+	editorTemplate -suppress "output";
+}
+

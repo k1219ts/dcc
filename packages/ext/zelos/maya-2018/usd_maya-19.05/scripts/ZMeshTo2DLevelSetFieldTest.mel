@@ -1,0 +1,35 @@
+//--------------------------------//
+// ZMeshTo2DLevelSetFieldTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZMeshTo2DLevelSetFieldTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	polySphere;
+
+	spaceLocator;
+	move -r -11 0 -11;
+
+	spaceLocator;
+	move -r 11 0 11;
+
+	createNode ZMeshTo2DLevelSetFieldTest;
+
+	connectAttr pSphereShape1.worldMesh[0] ZMeshTo2DLevelSetFieldTest1.mesh;
+
+	connectAttr locator1.translate ZMeshTo2DLevelSetFieldTest1.corner0;
+	connectAttr locator2.translate ZMeshTo2DLevelSetFieldTest1.corner1;
+
+	connectAttr ZMeshTo2DLevelSetFieldTest1.output transform1.shearXY;
+}
+

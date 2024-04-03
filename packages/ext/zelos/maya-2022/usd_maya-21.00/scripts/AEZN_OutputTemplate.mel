@@ -1,0 +1,36 @@
+//-------------------------//
+// AEZN_OutputTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2019.01.16                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZN_OutputTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "translate";
+	editorTemplate -suppress "rotate";
+	editorTemplate -suppress "scale";
+	editorTemplate -suppress "shear";
+	editorTemplate -suppress "rotationOrder";
+	editorTemplate -suppress "rotationAxis";
+	editorTemplate -suppress "inheritsTransform";
+	editorTemplate -suppress "mentalRayControls";
+
+	string $xform = $nodeName;
+	setAttr -lock true ($xform+".translate"        );
+	setAttr -lock true ($xform+".rotate"           );
+	setAttr -lock true ($xform+".scale"            );
+	setAttr -lock true ($xform+".shear"            );
+	setAttr -lock true ($xform+".rotateAxis"       );
+	setAttr -lock true ($xform+".inheritsTransform");
+}
+

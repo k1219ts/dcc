@@ -1,0 +1,178 @@
+//-------------------------------//
+// AEZelosFurSamplerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.04.06                               //
+//-------------------------------------------------------//
+
+/////////////////////////////////
+// When "Display Mode" changed //
+global proc ZelosFurSamplerDisplayModeChanged( string $node )
+{
+	if( `getAttr ($node+".displayMode")` == 0 ) // none
+	{
+		editorTemplate -dc $node "displayColor" 1;
+		editorTemplate -dc $node "pointSize"    1;
+		editorTemplate -dc $node "axisScale"    1;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 1 ) // solid color
+	{
+		editorTemplate -dc $node "displayColor" 0;
+		editorTemplate -dc $node "pointSize"    0;
+		editorTemplate -dc $node "axisScale"    1;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 2 ) // group color
+	{
+		editorTemplate -dc $node "displayColor" 1;
+		editorTemplate -dc $node "pointSize"    0;
+		editorTemplate -dc $node "axisScale"    1;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 3 ) // axes
+	{
+		editorTemplate -dc $node "displayColor" 1;
+		editorTemplate -dc $node "pointSize"    1;
+		editorTemplate -dc $node "axisScale"    0;
+	}
+}
+
+////////////////////////////////////
+// When "Sampling Method" changed //
+global proc ZelosFurSamplerMethodChanged( string $node )
+{
+	if( `getAttr ($node+".samplingMethod")` == 5 ) {
+
+		editorTemplate -dc $node "diskVariance" 0;
+
+	} else {
+
+		editorTemplate -dc $node "diskVariance" 1;
+
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurSamplerUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurSamplerUpdate;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurSamplerUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurSamplerUpdate;
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurSamplerGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurSamplerGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurSamplerGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurSamplerGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurSamplerGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurSamplerGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurSampler node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurSamplerNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurSamplerNode + ".outSamples" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurSamplerNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurSamplerNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurSamplerGeneratorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurSamplerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 1;
+			editorTemplate -as;
+			editorTemplate -l "Display Mode"                -ac "displayMode" ZelosFurSamplerDisplayModeChanged;
+			editorTemplate -l "Display Color"               -ac "displayColor";
+			editorTemplate -l "Point Size"                  -ac "pointSize";
+			editorTemplate -l "Axis Scale"                  -ac "axisScale";
+			editorTemplate -as;
+			editorTemplate -l "Draw While Interaction"      -ac "drawWhileInteraction";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 1;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Body Mesh";
+			editorTemplate -l "Vertices"                    -ac "numVertices";
+			editorTemplate -l "Triangles"                   -ac "numTriangles";
+			editorTemplate -l "UVs"                         -ac "numUVs";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Sampling Result";
+			editorTemplate -l "Groups"                      -ac "numGroups";
+			editorTemplate -l "Points"                      -ac "numPoints";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "ZelosFurSampler" -collapse 0;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Sampling Options";
+			editorTemplate -l "Sampling Method"             -ac "samplingMethod" ZelosFurSamplerMethodChanged;
+			editorTemplate -l "Target Number"               -ac "targetNumber";
+			editorTemplate -l "Random Seed"                 -ac "randomSeed";
+			editorTemplate -l "Disk Variance"               -ac "diskVariance";
+			editorTemplate -as;
+			editorTemplate -l "Density Map"                 -ac "densityMap";
+			editorTemplate -l "Remove Map"                  -ac "removeMap";
+			editorTemplate -l "Remove Value"                -ac "removeValue";
+			editorTemplate -l "UV-set Name"                 -ac "uvSetName";
+			editorTemplate -as;
+			editorTemplate -l "Relaxation Iterations"       -ac "relaxIters";
+			editorTemplate -l "Relaxation Radius"           -ac "relaxRadius";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosFurSamplerUpdateNew ZelosFurSamplerUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 0;
+			editorTemplate -ccu ZelosFurSamplerGeneratorListNew ZelosFurSamplerGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh0";
+	editorTemplate -suppress "inMesh1";
+	editorTemplate -suppress "outSamples";
+}
+

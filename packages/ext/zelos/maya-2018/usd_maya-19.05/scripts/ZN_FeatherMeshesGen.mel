@@ -1,0 +1,215 @@
+//-------------------------//
+// ZN_FeatherMeshesGen.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.03.16                               //
+//-------------------------------------------------------//
+
+global proc CreateZN_FeatherMeshesGen()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_FeatherInstances[] = `ls -sl -type ZN_FeatherInstance`;
+
+	if( size($ZN_FeatherInstances) == 0 )
+	{
+		ZPrintError "No selected ZN_FeatherInstance node.";
+		return;
+	}
+
+	for( $ZN_FeatherInstance in $ZN_FeatherInstances )
+	{
+		int $count = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -attribute count`;
+		if( $count == 0 ) { continue; }
+
+		string $ZN_FeatherMeshesGen = `createNode ZN_FeatherMeshesGen`;
+
+		connectAttr ($ZN_FeatherInstance+".outFeatherSet") ($ZN_FeatherMeshesGen+".inFeatherSet");
+
+		// Make mesh!
+		ZN_FeatherMeshesGenCreateExe $ZN_FeatherMeshesGen $ZN_FeatherInstance;
+	}
+}
+
+global proc ZN_FeatherMeshesGenCreateExe( string $ZN_FeatherMeshesGen, string $ZN_FeatherInstance )
+{
+	// Get original feathers!
+	string $featherMeshXForms[];
+	string $featherCurveGroups[];
+	{
+		string $ZN_FeatherImports[] = `GetZN_FeatherImportNodes $ZN_FeatherInstance`;
+
+		for( $ZN_FeatherImport in $ZN_FeatherImports )
+		{
+			string $sources[] = `GetZN_FeatherSources $ZN_FeatherImport 2`;
+			int $numSources = size($sources);
+
+			if( $numSources == 0 ) {			// no feather sources (just as a strand)
+
+				$featherMeshXForms[size($featherMeshXForms)] = "";
+				$featherCurveGroups[size($featherCurveGroups)] = "";
+
+			} else if( $numSources == 1 ) {		// a feather mesh or a feather curves
+
+				for( $source in $sources )
+				{
+					if( `nodeType $source` == "mesh" ) // polygon mesh
+					{
+						string $parents[] = `listRelatives -p -f $source`;
+						$featherMeshXForms[size($featherMeshXForms)] = $parents[0];
+						$featherCurveGroups[size($featherCurveGroups)] = "";
+					}
+
+					if( `nodeType $source` == "transform" ) // curve group
+					{
+						$featherMeshXForms[size($featherMeshXForms)] = "";
+						$featherCurveGroups[size($featherCurveGroups)] = $source;
+					}
+				}
+
+			} else if( $numSources == 2 ) {		// both feather types
+
+				for( $source in $sources )
+				{
+					if( `nodeType $source` == "mesh" ) // polygon mesh
+					{
+						string $parents[] = `listRelatives -p -f $source`;
+						$featherMeshXForms[size($featherMeshXForms)] = $parents[0];
+					}
+
+					if( `nodeType $source` == "transform" ) // curve group
+					{
+						$featherCurveGroups[size($featherCurveGroups)] = $source;
+					}
+				}
+
+			}
+		}
+	}
+
+	// Check the existing connection.
+	string $fromNode;
+	{
+		$fromNode = ZConnectedNode( $ZN_FeatherMeshesGen, "inFeatherSet" );
+
+		if( $fromNode == "" )
+		{
+			ZPrintError "No input connection.";
+			return;
+		}
+	}
+
+	string $toNodes[];
+	{
+		$toNodes = `listConnections ($ZN_FeatherMeshesGen+".outTranslates")`;
+
+		if( size($toNodes) != 0 )
+		{
+			ZPrintError "Output already has some connections.";
+			return;
+		}
+	}
+
+	int $numStrands = 0;
+	{
+		if( `attributeExists "numStrands" $fromNode` ) {
+
+			$numStrands = `getAttr ($fromNode+".numStrands")`;
+
+		} else if( `attributeExists "numOutputStrands" $fromNode` ) {
+
+			$numStrands = `getAttr ($fromNode+".numOutputStrands")`;
+
+		} else {
+
+			ZPrintError "Invalid input node.";
+			return;
+
+		}
+	}
+
+	if( $numStrands == 0 )
+	{
+		return;
+	}
+
+	disconnectAttr ($fromNode+".outFeatherSet") ($ZN_FeatherMeshesGen+".inFeatherSet");
+
+	string $group = `createNode transform -n ($fromNode+"_outMesh")`;
+	setAttr -lock true ($group+".translate"        );
+	setAttr -lock true ($group+".rotate"           );
+	setAttr -lock true ($group+".scale"            );
+	setAttr -lock true ($group+".shear"            );
+	setAttr -lock true ($group+".rotateAxis"       );
+	setAttr -lock true ($group+".inheritsTransform");
+
+	string $uvTransferCmd = "";
+
+	int $i=0;
+	for( ; $i<$numStrands; $i++ )
+	{
+		// create new mesh.
+		string $shape = `createNode mesh`;
+		assignShadingGroup initialShadingGroup;
+		string $xforms[] = `listRelatives -p $shape`;
+		string $xform = $xforms[0];
+		parent $xform $group;
+
+		// renderman attributes.
+		int $id = `ZN_FeatherInstanceInfo -nodeName $ZN_FeatherInstance -index $i -attribute id`;
+		string $featherMeshXForm = $featherMeshXForms[$id];
+
+		string $originalShapes[] = `listRelatives -f -s $featherMeshXForm`;
+		string $originalShape = $originalShapes[0];
+
+		string $userAttrs[] = `listAttr -ud $originalShape`;
+
+		for( $attr in $userAttrs )
+		{
+			string $niceName = `attributeQuery -node $originalShape -nn $attr`;
+			string $longName = `attributeQuery -node $originalShape -ln $attr`;
+			string $shortName = `attributeQuery -node $originalShape -sn $attr`;
+
+			string $val = `getAttr ($originalShape+"."+$attr)`;
+
+			addAttr -nn $niceName -sn $shortName -ln $longName -dt "string" $shape;
+			setAttr -type "string" ($shape+"."+$attr) $val;
+		}
+
+		string $tokens[];
+		tokenize $featherMeshXForm "|" $tokens;
+		string $newName = $tokens[size($tokens)-1];
+
+		$xform = `rename $xform $newName`;
+		string $shapes[] = `listRelatives -s -f $xform`;
+		$shape = $shapes[0];
+
+		// polyTransfer UV cmd.
+		{
+			$uvTransferCmd += "polyTransfer -uv 1 -ao ";
+			$uvTransferCmd += $featherMeshXForm;
+			$uvTransferCmd += " ";
+			$uvTransferCmd += $xform;
+			$uvTransferCmd += ";\n";
+		}
+
+		// set point positions and transform.
+		connectAttr ($ZN_FeatherMeshesGen+".outMeshes["+$i+"]") ($shape+".inMesh");
+		connectAttr ($ZN_FeatherMeshesGen+".outTranslates["+$i+"]") ($xform+".translate");
+		connectAttr ($ZN_FeatherMeshesGen+".outScales["+$i+"]") ($xform+".scale");
+		connectAttr ($ZN_FeatherMeshesGen+".outRotates["+$i+"]") ($xform+".rotate");
+	}
+
+	connectAttr ($fromNode+".outFeatherSet") ($ZN_FeatherMeshesGen+".inFeatherSet");
+
+	// Copy UV.
+	eval( $uvTransferCmd );
+
+	select -r $ZN_FeatherMeshesGen;
+}
+

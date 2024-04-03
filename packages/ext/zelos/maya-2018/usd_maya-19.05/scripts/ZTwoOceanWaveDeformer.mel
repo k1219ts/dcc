@@ -1,0 +1,165 @@
+//---------------------------//
+// ZTwoOceanWaveDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2013.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZTwoOceanWaveDeformer()
+{
+	if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selectedT[]  = `ls -sl -dag -type transform`;
+//	string $selectedM[] = `ls -sl -dag -type mesh`;
+//	string $selectedP[] = `ls -sl -dag -type polyPlane`;
+
+	if( size($selectedT)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+	
+	int $idx=0;
+	for( $xForm in $selectedT )
+	{
+		$shape = `listRelatives -c $xForm`;
+		string $ZTwoOceanWaveDeformer[] = `deformer -type ZTwoOceanWaveDeformer`;
+		connectAttr time1.outTime ( $ZTwoOceanWaveDeformer[0] + ".time" );
+        float $bbox[] = `exactWorldBoundingBox $selectedT[$idx]`;
+        setAttr ( $ZTwoOceanWaveDeformer[0] + ".bBoxMinPt" ) -type float3 $bbox[0] $bbox[1] $bbox[2];
+        setAttr ( $ZTwoOceanWaveDeformer[0] + ".bBoxMaxPt" ) -type float3 $bbox[3] $bbox[4] $bbox[5];     
+
+		// if connected, occur cycle on error.
+//		connectAttr ($selectedT[$idx] + ".boundingBoxMin" ) ($ZTwoOceanWaveDeformer[0] + ".bBoxMinPt"  );
+//		connectAttr ($selectedT[$idx] + ".boundingBoxMax" ) ($ZTwoOceanWaveDeformer[0] + ".bBoxMaxPt"  );
+		select $ZTwoOceanWaveDeformer[0];
+		++$idx;
+	}
+}
+
+global proc SaveZTwoOceanWaveDeformerParams()
+{
+	string $nodes[] = `ls -sl -type ZTwoOceanWaveDeformer`;
+	if( size($nodes)==0 )
+	{
+		error( "No selected ZTwoOceanWaveDeformer node." );
+		return;
+	}
+	string $ZTwoOceanWaveDeformer = $nodes[0];
+
+	string $files[] = `fileDialog2 -fm 0 -ds 1 -ff "*.zocean"`;
+	if( size($files)==0 ) { return; }
+	string $filePathName = $files[0] + ".zocean";
+
+    string $attrs[] =
+	{
+		// ocean1
+		"timeScale",           "float",
+		"globalScale",         "float",
+		"gridLevel",           "int",
+		"domainSize",          "float",
+		"gravity",             "float",
+		"windSpeed",           "float",
+		"windDirection",       "float",
+		"windAlignment",       "float",
+		"waveScale",           "float",
+		"shortestWave",        "float",
+		"choppiness",          "float",
+		"dampReflection",      "float",
+		"waterDepth",          "float",
+		"randomSeed",          "int",
+		"whichOmega",          "int",
+		"globalOffset",        "float",
+		"smoothInterpolation", "int",
+		"normal",              "int",
+		"foam",                "int",
+		"foamGamma",           "float",
+		"foamBrightness",      "float",
+		"foamFade",            "float",
+
+		// ocean2
+		"timeScale2",          "float",
+		"globalScale2",        "float",
+		"gridLevel2",          "int",
+		"domainSize2",         "float",
+		"gravity2",            "float",
+		"windSpeed2",          "float",
+		"windDirection2",      "float",
+		"windAlignment2",      "float",
+		"waveScale2",          "float",
+		"shortestWave2",       "float",
+		"choppiness2",         "float",
+		"dampReflection2",     "float",
+		"waterDepth2",         "float",
+		"randomSeed2",         "int",
+		"whichOmega2",         "int",
+		"globalOffset2",       "float",
+		"foamGamma2",          "float",
+		"foamBrightness2",     "float",
+		"foamFade2",           "float"
+	};
+
+	int $numAttrs = size($attrs) / 2;
+
+    int $fileId = `fopen $filePathName "w"`;
+
+	int $i = 0;
+	for( ; $i<$numAttrs; $i++ )
+	{
+		string $attrName = $attrs[2*$i];
+		string $attrType = $attrs[2*$i+1];
+
+		fprint $fileId ( $attrName + " " + $attrType + " " + `getAttr ( $ZTwoOceanWaveDeformer + "." + $attrName )` + "\n" ); 
+	}
+
+    fclose $fileId;
+}
+
+global proc LoadZTwoOceanWaveDeformerParams()
+{
+	string $nodes[] = `ls -sl -type ZTwoOceanWaveDeformer`;
+	if( size($nodes)==0 )
+	{
+		error( "No selected ZTwoOceanWaveDeformer node." );
+		return;
+	}
+	string $ZTwoOceanWaveDeformer = $nodes[0];
+
+	string $files[] = `fileDialog2 -fm 4 -ds 1 -ff "*.zocean"`;
+	if( size($files)==0 ) { return; }
+	string $filePathName = $files[0];
+
+	// Temporarily disable the ZRelaxationDeformer node so it isn't calculating as we go.
+	setAttr ( ( $ZTwoOceanWaveDeformer + ".nodeState" ), 1 );
+
+	int $fileId = `fopen $filePathName "r"`;
+
+	while( !`feof $fileId` )
+	{
+		string $attrName = `fgetword $fileId`;
+		if( !`attributeExists $attrName $ZTwoOceanWaveDeformer` ) { continue; }
+
+		string $attrType = `fgetword $fileId`;
+
+		if( $attrType == "int" ) {
+			int $value = (int)`fgetword $fileId`;
+			setAttr ( $ZTwoOceanWaveDeformer + "." + $attrName ) $value;
+		} else if( $attrType == "float" ) {
+			float $value = (float)`fgetword $fileId`;
+			setAttr ( $ZTwoOceanWaveDeformer + "." + $attrName ) $value;
+		}
+	}
+
+	fclose $fileId;
+
+	// Enable the ZRelaxationDeformer now that we're done
+	setAttr ( ( $ZTwoOceanWaveDeformer + ".nodeState" ), 0 );
+
+	updateAE $ZTwoOceanWaveDeformer;
+}
+

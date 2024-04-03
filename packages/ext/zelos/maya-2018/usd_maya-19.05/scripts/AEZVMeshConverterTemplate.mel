@@ -1,0 +1,51 @@
+//-------------------------------//
+// AEZVMeshConverterTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.03.22                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZVMeshConverterTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display" -collapse 1;
+		{
+			editorTemplate -l "Mode"           -ac "displayMode";
+			editorTemplate -as;
+			editorTemplate -l "Color"          -ac "displayColor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Bounding Box"   -ac "calcBoundingBox";
+			editorTemplate -as;
+			editorTemplate -l "Vertex Normals" -ac "calcVertexNormals";
+			editorTemplate -as;
+			editorTemplate -l "UVs"            -ac "calcUVs";
+			editorTemplate -l "UV Set Name"    -ac "whichUVSet";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Vertex Count"   -ac "numVerts";
+			editorTemplate -as;
+			editorTemplate -l "Triangle Count" -ac "numTris";
+			editorTemplate -as;
+			editorTemplate -l "UV Count"       -ac "numUVs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "outMesh";
+}
+

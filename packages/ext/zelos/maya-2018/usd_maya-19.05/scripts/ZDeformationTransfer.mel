@@ -1,0 +1,995 @@
+//--------------------------//
+// ZDeformationTransfer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.03.25                               //
+//-------------------------------------------------------//
+
+global proc ZDeformationTransferSetCorresWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+    if( `window -q -exists ZDeformationTransferSetCorresWin` )
+	{
+    	deleteUI ZDeformationTransferSetCorresWin;
+    	return;
+	}
+
+	window -titleBar true -sizeable true -title "Zelos Deformation Transfer" ZDeformationTransferSetCorresWin;
+	{
+		columnLayout -columnOffset "both" 15;
+		{
+			separator -h 10 -w 320 -style "none";
+
+			rowLayout -nc 2 -cw2 180 140;
+			{
+				text -l "Zelos system"				 -al "left" -w 180 -font "boldLabelFont";
+				text -l "by Dexter Studios R&D Team" -al "left";
+			}
+			setParent ..;
+
+			separator -h 3  -w 320 -style "none";
+			separator -h 2  -w 320 -style "single";
+			separator -h 10 -w 320 -style "none";
+
+			rowLayout -nc 3 -cw3 90 200 30;
+			{
+				text -l "Source Mesh";
+				textField -w 200 -ed 0 ZDTWinSrc;
+				button -l "<<" -w 30 -c ( "ZLoadObjByShapeType(\"ZDTWinSrc\",\"mesh\");" );
+			}
+			setParent ..;
+
+			rowLayout -nc 3 -cw3 90 200 30;
+			{
+				text -l "Target Mesh";
+				textField -w 200 -ed 0 ZDTWinTrg;
+				button -l "<<" -w 30 -c ( "ZLoadObjByShapeType(\"ZDTWinTrg\",\"mesh\");" );
+			}
+			setParent ..;
+
+			rowLayout -nc 3 -cw3 90 200 30;
+			{
+				text -l "Source Fixed Point";
+				textField -w 200 -ed 1 -tx 0 ZDTWinSrcFixPNum;
+				button -l "<<" -w 30 -c ZDTWinSrcFix;
+			}
+			setParent ..;
+
+			rowLayout -nc 3 -cw3 90 200 30;
+			{
+				text -l "Target Fixed Point";
+				textField -w 200 -ed 1 -tx 0 ZDTWinTrgFixPNum;
+				button -l "<<" -w 30 -c ZDTWinTrgFix;
+			}
+			setParent ..;
+
+			separator -h 5 -w 320 -style "none";
+			separator -h 2 -w 320 -style "in";
+			separator -h 5 -w 320 -style "none";
+
+			rowLayout -nc 2 -cw2 90 150;
+			{
+				text -l "Output Mesh";
+				radioButtonGrp -sl 1 -numberOfRadioButtons 2
+							   -labelArray2 "Source To Target" "Transfer" //"Wrap Deformer"
+							   ZDTSetOutputMeshButton;
+			}
+			setParent ..;
+
+			rowLayout -nc 2 -cw2 90 150;
+			{
+				text -l "Caculation Mode";
+				radioButtonGrp -sl 1 -numberOfRadioButtons 2
+							   -labelArray2 "Same Topology" "Different Topology"
+							   ZDTSetCalcModeButton;
+			}
+			setParent ..;
+
+			rowLayout -nc 2 -cw2 90 150;
+			{
+				text -l "Iteration Count";
+				intSliderGrp -v 5 -min 1 -max 5 -fmn 1 -fmx 5 -s 1 -f 1 -w 230 ZDTSetIterCount;
+			}
+			setParent ..;
+
+//			rowLayout -nc 2 -cw2 90 230;
+//			{
+//				text -l "Triangle Pair";
+//				intSliderGrp -v 3 -min 1 -max 3 -fmn 1 -fmx 3 -s 1 -f 1 -w 230 ZDTWinNumTriCorres;
+//			}
+//			setParent ..;
+//
+//			rowLayout -nc 2 -cw2 90 230;
+//			{
+//				text -l "Binding Angle";
+//				floatSliderGrp -v 90.0 -min 0.0 -max 360.0 -fmn 0.0 -fmx 360.0 -s 0.01 -f 1 -w 230 ZDTWinBindAngle;
+//			}
+//			setParent ..;
+
+			separator -h 5 -w 320 -style "none";
+			separator -h 2 -w 320 -style "in";
+			separator -h 5 -w 320 -style "none";
+
+			rowLayout -nc 3 -cw3 60 200 60;
+			{
+				text -l "";
+				button -l "Create ZDeformationTransfer" -w 200 -al "center" -c ZDTWinExe;
+				text -l "";
+			}
+			setParent ..;
+
+			separator -h 5 -w 320 -style "none";
+			separator -h 2 -w 320 -style "in";
+			separator -h 5 -w 320 -style "none";
+
+			text -l "Vertex Correspondences";
+			separator -h 3  -w 320 -style "none";
+
+			rowLayout -nc 3 -cw3 200 5 115;
+			{
+				textScrollList -w 200 -h 150 -allowMultiSelection 0 -selectCommand "ZDTWinSel" tslZDTWin;
+				text -l "" -w 5;
+				columnLayout -w 115;
+				{
+					button -l "Remove" -w 110 -h 25 -align "center" -c ZDTWinRmv;
+					button -l "Clear"  -w 110 -h 25 -align "center" -c ZDTWinClr;
+				}
+				setParent..;
+			}
+			setParent ..;
+
+			rowLayout;
+			{
+				button -l "Vertex Picking Tool" -w 200 -al "center" -c ZDTWinPick;
+			}
+			setParent ..;
+
+			separator -h 5 -w 320 -style "none";
+			separator -h 2 -w 320 -style "in";
+			separator -h 5 -w 320 -style "none";
+
+			rowLayout -nc 3 -cw3 60 200 60;
+			{
+				text -l "";
+				button -l "Calculate" -w 200 -al "center" -c ZDTWinRec;
+				text -l "";
+			}
+			setParent ..;
+
+			separator -h 5  -w 320 -style "none";
+			separator -h 2  -w 320 -style "in";
+			separator -h 5 -w 320 -style "none";
+
+			rowLayout -nc 3 -cw3 60 200 60;
+			{
+				text -l "";
+				button -l "Load from Node" -w 200 -al "center" -c "ZDTWinGet";
+				text -l "";
+			}
+			setParent ..;
+
+			rowLayout -nc 2 -cw2 300 20;
+			{
+				textField -tx "" -w 300 ZDTWinFile;
+				symbolButton -image "navButtonBrowse.xpm" -c ZDTWinPath;
+			}
+			setParent ..;
+
+			rowLayout -nc 2 -cw2 160 160;
+			{
+				button -l "Save to File"   -w 160 -h 25 -align "center" -c ZDTWinSave;
+				button -l "Load from File" -w 160 -h 25 -align "center" -c ZDTWinLoad;
+			}
+			setParent ..;
+
+			text -l "" -h 10;
+		}
+		setParent ..;
+	}
+	showWindow ZDeformationTransferSetCorresWin;
+}
+
+global proc ZDTWinSel()
+{
+	string $sourceMesh = `textField -q -tx ZDTWinSrc`;
+	string $targetMesh = `textField -q -tx ZDTWinTrg`;
+	if( $sourceMesh=="" || $targetMesh=="" ) { return; }
+
+	string $items[] = `textScrollList -q -selectItem tslZDTWin`;
+	if( !size($items) ) { return; }
+
+	string $tokens[];
+	tokenize( $items[0], " ", $tokens );
+
+	select -r ( $sourceMesh + ".vtx[" + $tokens[0] + "]" ) ( $targetMesh + ".vtx[" + $tokens[1] + "]" );
+}
+
+global proc ZDTWinRmv()
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) == 0 ) {
+
+		error( "There is no ZDeformationTransfer node in this scene. After creating the node, you can modify the list." );
+		return;
+
+	} else if( size( $nodes ) == 1 ) {
+
+		// Remove the particular entry pair.
+		string $items[] = `textScrollList -q -selectItem tslZDTWin`;
+
+		for( $item in $items )
+		{
+			textScrollList -e -removeItem $item tslZDTWin;
+		}
+
+		// Update vertCorres attribute.
+		string $ZDeformationTransfer = $nodes[0];
+
+		string $cmd;
+		{
+			string $vtxList;
+
+			string $entries[] = `textScrollList -q -allItems tslZDTWin`;
+
+			int $numElements = 0;
+
+			for( $entry in $entries )
+			{
+				string $tokens[];
+				tokenize( $entry, " ", $tokens );
+
+				int $srcVtxIdx = $tokens[0];
+				int $trgVtxIdx = $tokens[1];
+
+				$vtxList += " " + $srcVtxIdx;
+				$vtxList += " " + $trgVtxIdx;
+
+				$numElements += 2;
+			}
+
+			$cmd  = "setAttr ";
+			$cmd += $ZDeformationTransfer + ".vertCorres ";
+			$cmd += "-type Int32Array ";
+			$cmd += $numElements;
+			$cmd += $vtxList;
+		}
+		eval( $cmd );
+
+		// Clear the locators.
+		SelectToolOptionsMarkingMenu;
+		MarkingMenuPopDown;
+
+		int $check = `objExists VertexPicked`;
+
+		if( $check == 1 )
+		{
+			select -r VertexPicked;
+			doDelete;
+		}
+
+		ZDTWinPick;
+	}
+}
+
+global proc ZDTWinClr()
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) == 0 ) {
+
+		error( "There is no ZDeformationTransfer node in this scene. After creating the node, you can modify the list." );
+		return;
+
+	} else if( size( $nodes ) == 1 ) {
+
+		// Clear the list out.
+		textScrollList -e -ra tslZDTWin;
+
+		// Update vertCorres attribute.
+		string $ZDeformationTransfer = $nodes[0];
+
+		string $cmd;
+		{
+			string $vtxList;
+
+			string $entries[] = `textScrollList -q -allItems tslZDTWin`;
+
+			int $numElements = 0;
+
+			for( $entry in $entries )
+			{
+				string $tokens[];
+				tokenize( $entry, " ", $tokens );
+
+				int $srcVtxIdx = $tokens[0];
+				int $trgVtxIdx = $tokens[1];
+
+				$vtxList += " " + $srcVtxIdx;
+				$vtxList += " " + $trgVtxIdx;
+
+				$numElements += 2;
+			}
+
+			$cmd  = "setAttr ";
+			$cmd += $ZDeformationTransfer + ".vertCorres ";
+			$cmd += "-type Int32Array ";
+			$cmd += $numElements;
+			$cmd += $vtxList;
+		}
+		eval( $cmd );
+
+		// Clear the locators.
+		SelectToolOptionsMarkingMenu;
+		MarkingMenuPopDown;
+
+		int $check = `objExists VertexPicked`;
+
+		if( $check == 1 )
+		{
+			select -r VertexPicked;
+			doDelete;
+		}
+
+		ZDTWinPick;
+	}
+}
+
+global proc ZDTWinPath()
+{
+	string $dir[] = `fileDialog2 -fm 0 -ds 2 -okc "Accept"`;
+	textField -e -tx $dir[0] ZDTWinFile;
+}
+
+global proc ZDTWinSave()
+{
+	string $items[] = `textScrollList -q -allItems tslZDTWin`;
+
+	string $filePath = `textField -q -tx ZDTWinFile`;
+
+	if( size( $filePath ) == 0 )
+	{
+		error( "Select the accurate file path first." );
+		return;
+	}
+
+	int $fileID = `fopen $filePath "w"`;			// file open within write mode
+
+	fprint $fileID ( size( $items ) + "\n" );
+
+	int $i;
+	for( $i = 0; $i < size( $items ); $i++ )
+	{
+		fprint $fileID ( $items[$i] + "\n" );
+	}
+
+	fclose $fileID;
+}
+
+global proc ZDTWinLoad()
+{
+	textScrollList -e -ra tslZDTWin;
+
+	string $filePath = `textField -q -tx ZDTWinFile`;
+	string $items[];
+
+	if( size( $filePath ) == 0 )
+	{
+		error( "Select the accurate file path first." );
+		return;
+	}
+
+	int $fileID = `fopen $filePath "r"`;			// file open within read mode
+
+	string $getLine = `fgetline $fileID`;
+	int $total = $getLine;							// first line indicates total number of pairs
+
+	int $i;
+	for( $i = 1; $i < ( $total + 1 ); $i++ )
+	{
+		$getLine = `fgetline $fileID`;
+
+		string $tokens[];
+		tokenize( $getLine, "\n", $tokens );
+
+		$items[$i] = $tokens[0];
+
+		// Add the selected vertex indices as a new item.
+		textScrollList -e -a $items[$i] tslZDTWin;
+	}
+
+	fclose $fileID;
+}
+
+global proc ZDTWinPick()
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) == 0 )
+	{
+		error( "There is no ZDeformationTransfer node in this scene. Create the node first." );
+		return;
+	}
+
+	string $sourceXForm = `textField -q -tx ZDTWinSrc`;
+	{
+		if( $sourceXForm == "" )
+		{
+			error( "No source mesh." );
+			return;
+		}
+
+		if( !`objExists $sourceXForm` )
+		{
+			error( "Failed to find " + $sourceXForm );
+			return;
+		}
+	}
+
+	string $targetXForm = `textField -q -tx ZDTWinTrg`;
+	{
+		if( $targetXForm == "" )
+		{
+			error( "No target mesh." );
+			return;
+		}
+
+		if( !`objExists $targetXForm` )
+		{
+			error( "Failed to find " + $targetXForm );
+			return;
+		}
+	}
+
+	string $sourceShape;
+	{
+		string $shapes[] = `listRelatives -shapes -ni $sourceXForm`;
+
+		int $count = size($shapes);
+
+		if( $count == 0 )
+		{
+			error("No source shape node.");
+			return;
+		}
+
+		if( $count != 1 )
+		{
+			error("Too many source shape nodes.");
+			return;
+		}
+
+		$sourceShape = $shapes[0];
+	}
+
+	string $targetShape;
+	{
+		string $shapes[] = `listRelatives -ni -shapes $targetXForm`;
+
+		int $count = size($shapes);
+
+		if( $count == 0 )
+		{
+			error("No target shape node.");
+			return;
+		}
+
+		if( $count != 1 )
+		{
+			error("Too many target shape nodes.");
+			return;
+		}
+
+		$targetShape = $shapes[0];
+	}
+
+
+	string $groups[] = `ls -type transform`;
+	int $num;
+
+	for( $group in $groups )
+	{
+		if( $group == "VertexPicked" )
+		{
+			$num += 1;
+		}
+	}
+
+	if( !$num )
+	{
+		createNode transform -n VertexPicked;
+		setAttr -l true { "VertexPicked.t"  };
+		setAttr -l true { "VertexPicked.r"  };
+		setAttr -l true { "VertexPicked.s"  };
+		setAttr -l true { "VertexPicked.sh" };
+		setAttr -l true { "VertexPicked.ra" };
+	}
+
+	select -r	$sourceShape;
+	select -tgl $targetShape;
+
+	setToolTo `ZDTMarkCtx`;
+}
+
+global proc ZDTWinExe()
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size($nodes) > 0 )
+	{
+		error( "ZDeformationTransfer already exists." );
+		return;
+	}
+
+	string $sourceXForm = `textField -q -tx ZDTWinSrc`;
+	{
+		if( $sourceXForm == "" )
+		{
+			error( "No source mesh." );
+			return;
+		}
+
+		if( !`objExists $sourceXForm` )
+		{
+			error( "Failed to find " + $sourceXForm );
+			return;
+		}
+	}
+
+	string $targetXForm = `textField -q -tx ZDTWinTrg`;
+	{
+		if( $targetXForm == "" )
+		{
+			error( "No target mesh." );
+			return;
+		}
+
+		if( !`objExists $targetXForm` )
+		{
+			error( "Failed to find " + $targetXForm );
+			return;
+		}
+	}
+
+	string $sourceShape;
+	{
+		string $shapes[] = `listRelatives -shapes -ni $sourceXForm`;
+
+		int $count = size($shapes);
+
+		if( $count == 0 )
+		{
+			error("No source shape node.");
+			return;
+		}
+
+		if( $count != 1 )
+		{
+			error("Too many source shape nodes.");
+			return;
+		}
+
+		$sourceShape = $shapes[0];
+	}
+
+	string $targetShape;
+	{
+		string $shapes[] = `listRelatives -ni -shapes $targetXForm`;
+
+		int $count = size($shapes);
+
+		if( $count == 0 )
+		{
+			error("No target shape node.");
+			return;
+		}
+
+		if( $count != 1 )
+		{
+			error("Too many target shape nodes.");
+			return;
+		}
+
+		$targetShape = $shapes[0];
+	}
+
+	string $ZDeformationTransfer = `createNode ZDeformationTransfer`;
+
+	// setAimMesh
+	int $aim = `radioButtonGrp -q -sl ZDTSetOutputMeshButton`;
+	ZDTSetOutputMesh( $aim );
+
+	// setCalcMode
+	int $num = `radioButtonGrp -q -sl ZDTSetCalcModeButton`;
+	ZDTSetCalcMode( $num );
+
+	// setAttr iterCount, numTriCorres, bindingAngle
+	ZDTSetIterCountExe();
+//	ZDTWinNumTriCorresExe();
+//	ZDTWinBindAngleExe();
+
+	connectAttr ($sourceShape+".w") ($ZDeformationTransfer+".sourceMesh");
+	connectAttr ($targetShape+".w") ($ZDeformationTransfer+".targetMesh");
+
+	string $cmd;
+	{
+		string $vtxList;
+
+		string $items[] = `textScrollList -q -allItems tslZDTWin`;
+
+		int $numElements = 0;
+
+		for( $item in $items )
+		{
+			string $tokens[];
+			tokenize( $item, " ", $tokens );
+
+			int $srcVtxIdx = $tokens[0];
+			int $trgVtxIdx = $tokens[1];
+
+			$vtxList += " " + $srcVtxIdx;
+			$vtxList += " " + $trgVtxIdx;
+
+			$numElements += 2;
+		}
+
+		$cmd  = "setAttr ";
+		$cmd += $ZDeformationTransfer + ".vertCorres ";
+		$cmd += "-type Int32Array ";
+		$cmd += $numElements;
+		$cmd += $vtxList;
+	}
+	eval( $cmd );
+
+	int $numElements = 1;
+
+	// setAttr srcFixPNum
+	{
+		$cmd  = "setAttr ";
+		$cmd += $ZDeformationTransfer + ".srcFixPNum ";
+		$cmd += " -type Int32Array ";
+		$cmd += $numElements;
+		$cmd += " " + `textField -q -tx ZDTWinSrcFixPNum`;
+	}
+	eval( $cmd );
+
+	// setAttr trgFixPNum
+	{
+		$cmd  = "setAttr ";
+		$cmd += $ZDeformationTransfer + ".trgFixPNum ";
+		$cmd += " -type Int32Array ";
+		$cmd += $numElements;
+		$cmd += " " + `textField -q -tx ZDTWinTrgFixPNum`;
+	}
+	eval( $cmd );
+
+	setAttr ( $ZDeformationTransfer + ".reCalculate" ) 1;
+
+	string $outMeshShape = `createNode mesh`;
+	assignShadingGroup initialShadingGroup;
+
+	connectAttr ($ZDeformationTransfer+".outputMesh") ($outMeshShape+".inMesh");
+
+	// Clear the locators.
+	SelectToolOptionsMarkingMenu;
+	MarkingMenuPopDown;
+
+	int $check = `objExists VertexPicked`;
+
+	if( $check == 1 )
+	{
+		select -r VertexPicked;
+		doDelete;
+	}
+
+	select -r $ZDeformationTransfer;
+}
+
+global proc ZDTWinRec()
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) != 1 )
+	{
+		error( "Invalid number of ZDeformationTransfer nodes." );
+		return;
+	}
+
+	string $ZDeformationTransfer = $nodes[0];
+
+	// Empty and refill the array with new data.
+	string $cmd;
+	{
+		string $vtxList;
+
+		string $items[] = `textScrollList -q -allItems tslZDTWin`;
+
+		int $numElements = 0;
+
+		for( $item in $items )
+		{
+			string $tokens[];
+			tokenize( $item, " ", $tokens );
+
+			int $srcVtxIdx = $tokens[0];
+			int $trgVtxIdx = $tokens[1];
+
+			$vtxList += " " + $srcVtxIdx;
+			$vtxList += " " + $trgVtxIdx;
+
+			$numElements += 2;
+		}
+
+		$cmd  = "setAttr ";
+		$cmd += $ZDeformationTransfer + ".vertCorres ";
+		$cmd += " -type Int32Array ";
+		$cmd += $numElements;
+		$cmd += $vtxList;
+	}
+	eval( $cmd );
+
+	int $numElements = 1;
+
+	// setAttr srcFixPNum
+	{
+		$cmd  = "setAttr ";
+		$cmd += $ZDeformationTransfer + ".srcFixPNum ";
+		$cmd += " -type Int32Array ";
+		$cmd += $numElements;
+		$cmd += " " + `textField -q -tx ZDTWinSrcFixPNum`;
+	}
+	eval( $cmd );
+
+	// setAttr trgFixPNum
+	{
+		$cmd  = "setAttr ";
+		$cmd += $ZDeformationTransfer + ".trgFixPNum ";
+		$cmd += " -type Int32Array ";
+		$cmd += $numElements;
+		$cmd += " " + `textField -q -tx ZDTWinTrgFixPNum`;
+	}
+	eval( $cmd );
+
+	// setAimMesh
+	int $aim = `radioButtonGrp -q -sl ZDTSetOutputMeshButton`;
+	ZDTSetOutputMesh( $aim );
+
+	// setCalcMode
+	int $num = `radioButtonGrp -q -sl ZDTSetCalcModeButton`;
+	ZDTSetCalcMode( $num );
+
+	// setAttr iterCount, numTriCorres, bindingAngle
+	ZDTSetIterCountExe();
+//	ZDTWinNumTriCorresExe();
+//	ZDTWinBindAngleExe();
+
+	setAttr ( $ZDeformationTransfer + ".reCalculate" ) 1;
+
+	// Clear the locators.
+	SelectToolOptionsMarkingMenu;
+	MarkingMenuPopDown;
+
+	int $check = `objExists VertexPicked`;
+
+	if( $check == 1 )
+	{
+		select -r VertexPicked;
+		doDelete;
+	}
+
+	select -r polySurface1;
+}
+
+global proc ZDTWinGet()
+{
+	string $ZDeformationTransfer;
+	{
+		string $nodes[] = `ls -type ZDeformationTransfer`;
+
+		if( !size( $nodes ) )
+		{
+			error( "Failed to find ZDeformationTransfer node." );
+			return;
+		}
+
+		if( size( $nodes ) != 1 )
+		{
+			error( "There are too many ZDeformationTransfer nodes." );
+			return;
+		}
+
+		$ZDeformationTransfer = $nodes[0];
+	}
+
+	int $vertCorres[] = `getAttr ( $ZDeformationTransfer + ".vertCorres" )`;
+
+	// Clear the list out.
+	textScrollList -e -ra tslZDTWin;
+
+	int $i;
+	int $numPair = size( $vertCorres ) / 2;
+
+	for( $i=0; $i<$numPair; $i++)
+	{
+		string $element = $vertCorres[2*$i] + " " + $vertCorres[2*$i+1];
+
+		// Add the selected vertex indices as a new item.
+		textScrollList -e -a $element tslZDTWin;
+	}
+}
+
+global proc ZDTWinSrcFix()
+{
+	string $sourceXForm = `textField -q -tx ZDTWinSrc`;
+	string $sources[];
+	tokenize( $sourceXForm, "|", $sources );
+	$sourceXForm = $sources[0];
+
+	string $items[] = `ls -sl`;
+
+	string $tokens[];
+
+	string $entry;
+
+	int $numElements = 0;
+
+	for( $item in $items )
+	{
+		tokenize( $item, ".", $tokens );
+
+		if( $tokens[0] != $sourceXForm )
+		{
+			error( "Select a vertex on the source mesh." );
+			return;
+		}
+
+		string $vtxList[] = ZGetSelectedVtxIndices();
+
+		if( size( $vtxList ) != 1 )
+		{
+			error( "Select only one source vertex to be fixed." );
+			return;
+		}
+
+		int $vtxIdx = $vtxList[0];
+
+		$entry += $vtxIdx;
+
+		textField -e -tx $entry ZDTWinSrcFixPNum;
+
+		$numElements += 1;
+	}
+}
+
+global proc ZDTWinTrgFix()
+{
+	string $targetXForm = `textField -q -tx ZDTWinTrg`;
+	string $targets[];
+	tokenize( $targetXForm, "|", $targets );
+	$targetXForm = $targets[0];
+
+	string $items[] = `ls -sl`;
+
+	string $tokens[];
+
+	string $entry;
+
+	int $numElements = 0;
+
+	for( $item in $items )
+	{
+		tokenize( $item, ".", $tokens );
+
+		if( $tokens[0] != $targetXForm )
+		{
+			error( "Select a vertex on the target mesh." );
+			return;
+		}
+
+		string $vtxList[] = ZGetSelectedVtxIndices();
+
+		if( size( $vtxList ) != 1 )
+		{
+			error( "Select only one target vertex to be fixed." );
+			return;
+		}
+
+		int $vtxIdx = $vtxList[0];
+
+		$entry += $vtxIdx;
+
+		textField -e -tx $entry ZDTWinTrgFixPNum;
+
+		$numElements += 1;
+	}
+}
+
+global proc ZDTSetOutputMesh( int $aim )
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) != 1 )
+	{
+		error( "Invalid number of ZDeformationTransfer nodes." );
+		return;
+	}
+
+	string $ZDeformationTransfer = $nodes[0];
+
+	setAttr ( $ZDeformationTransfer + ".aim" ) $aim;
+}
+
+
+global proc ZDTSetCalcMode( int $mode )
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) != 1 )
+	{
+		error( "Invalid number of ZDeformationTransfer nodes." );
+		return;
+	}
+
+	string $ZDeformationTransfer = $nodes[0];
+
+	setAttr ( $ZDeformationTransfer + ".calcMode" ) $mode;
+}
+
+global proc ZDTSetIterCountExe()
+{
+	int $count = `intSliderGrp -q -v ZDTSetIterCount`;
+
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) != 1 )
+	{
+		error( "Invalid number of ZDeformationTransfer nodes." );
+		return;
+	}
+
+	string $ZDeformationTransfer = $nodes[0];
+
+	setAttr ( $ZDeformationTransfer + ".iterCount" ) $count;
+}
+
+
+//global proc ZDTWinNumTriCorresExe()
+//{
+//	int $num = `intSliderGrp -q -v ZDTWinNumTriCorres`;
+//
+//	string $nodes[] = `ls -type ZDeformationTransfer`;
+//
+//	if( size( $nodes ) != 1 )
+//	{
+//		error( "Invalid number of ZDeformationTransfer nodes." );
+//		return;
+//	}
+//
+//	string $ZDeformationTransfer = $nodes[0];
+//
+//	setAttr ( $ZDeformationTransfer + ".numTriCorres" ) $num;
+//}
+
+//global proc ZDTWinBindAngleExe()
+//{
+//	float $angle = `floatSliderGrp -q -v ZDTWinBindAngle`;
+//
+//	string $nodes[] = `ls -type ZDeformationTransfer`;
+//
+//	if( size( $nodes ) != 1 )
+//	{
+//		error( "Invalid number of ZDeformationTransfer nodes." );
+//		return;
+//	}
+//
+//	string $ZDeformationTransfer = $nodes[0];
+//
+//	setAttr ( $ZDeformationTransfer + ".bindingAngle" ) $angle;
+//}

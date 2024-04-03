@@ -1,0 +1,18 @@
+//-----------------------//
+// ZelosFurSimulator.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.03.20                               //
+//-------------------------------------------------------//
+
+global proc CreateZelosFurSimulator()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	createNode ZelosFurSimulator;
+}
+

@@ -1,0 +1,280 @@
+//-------------------------------------//
+// AEZWStitchCurvesControlTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.08.16                               //
+//-------------------------------------------------------//
+
+global proc AEZWStitchCurvesControlTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General" -collapse 0;
+		{
+            editorTemplate -l "Num. Stitchs"        -ac "numStitchs";
+
+			editorTemplate -ccu ZVStitchCurveCon_UpdateNew ZVStitchCurveCon_UpdateRep "Update";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+            editorTemplate -l "Space"               -ac "space";
+			editorTemplate -l "Rotate Factor"       -ac "rotateFactor";
+            editorTemplate -l "Scale Factor"        -ac "scaleFactor";
+            editorTemplate -l "Scale Variance"      -ac "scaleVariance";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Shading" -collapse 1;
+		{
+			editorTemplate -ccu ZWStitchCurvesCon_AssignShaderNew ZWStitchCurvesCon_AssignShaderRep "";
+		}
+		editorTemplate -endLayout;           
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+    editorTemplate -suppress "inLink";
+	editorTemplate -suppress "outWebData";
+}
+
+///////////////////
+// Update Button //
+global proc ZVStitchCurveCon_UpdateNew( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+	setUITemplate -pst attributeEditorTemplate;
+	button -l "Update" -bgc 1.0 0.8 0.0 ZNStitchCurveCon_UpdateBtn;
+	setUITemplate -ppt;
+
+	ZVStitchCurveCon_UpdateRep $attr;
+}
+
+global proc ZVStitchCurveCon_UpdateRep( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+    button -e -c ("ZVStitchCurveCon_Crate "+$nodes[0]) ZNStitchCurveCon_UpdateBtn;
+}
+
+//////////////////////////
+// Assign Shader Button //
+global proc ZWStitchCurvesCon_AssignShaderNew( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+	setUITemplate -pst attributeEditorTemplate;
+	button -l "Assign Shader" -bgc 1.0 0.8 0.0 ZWStitchCon_AssingBtn;
+	setUITemplate -ppt;
+
+	ZWStitchCurvesCon_AssignShaderRep $attr;
+}
+
+global proc ZWStitchCurvesCon_AssignShaderRep( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+    button -e -c ("ZWStitchCurvesCon_AssignShader "+$nodes[0]) ZWStitchCon_AssingBtn;
+}
+
+global proc ZVStitchCurveCon_Crate( string $node )
+{
+    int $i=0;
+    int $num = `getAttr ($node+".numStitchs")`;
+   
+    string $dests[] = `connectionInfo -dfs ($node+".outWebData")`;
+    for( $i=0; $i<size($dests); $i++ )
+    {
+        string $webNodes[];
+        tokenize( $dests[$i], ".", $webNodes );
+        string $webNode = $webNodes[0];
+
+        ZVStitchCurveCon_CrateWebCureves( $webNode, $num );
+    }
+
+    select -r $node;
+}
+
+global proc ZVStitchCurveCon_CrateWebCureves( string $node, int $num )
+{
+    int $i=0;
+    //int $newNum = `getAttr ($node+".numStitchs")`;
+    int $newNum = $num;
+    int $existNum = `getAttr -s ($node+".outRotates")`;
+
+    string $guide = `connectionInfo -sfd ($node+".inGuideCurve")`;
+    string $guidePath[];
+    tokenize( $guide, ".", $guidePath );
+    $guide = $guidePath[0];    
+
+    int $numSpans = 0;
+    if( size( $guidePath ) > 0 ) $numSpans = `getAttr ($guide+".spans")`;
+
+    //int $cand = $numSpans * $numScale;
+    //if( $num < $cand ) $newNum = $cand;
+
+    string $connList[]; 
+    int $count = 0;
+
+    // disconnect and delete curves
+    for( $i=0; $i<$existNum; $i++ )
+    {
+        string $rotates[] = `connectionInfo -dfs ($node+".outRotates["+$i+"]")`;
+        string $scales[] = `connectionInfo -dfs ($node+".outScales["+$i+"]")`;
+        string $translates[] = `connectionInfo -dfs ($node+".outTranslates["+$i+"]")`;        
+
+        if( size($rotates) )
+        {
+            string $names[];
+            tokenize( $rotates[0], ".", $names );
+
+            disconnectAttr ($node+".outPivot") ($names[0]+".rotatePivot");
+            disconnectAttr ($node+".outPivot") ($names[0]+".scalePivot");
+
+            disconnectAttr ($node+".outRotates["+$i+"]") ($names[0]+".rotate");
+            disconnectAttr ($node+".outScales["+$i+"]") ($names[0]+".scale");
+            disconnectAttr ($node+".outTranslates["+$i+"]") ($names[0]+".translate");
+       
+            $connList[$count++] = $names[0];
+        }        
+    }
+
+    $existNum = $count;
+
+    string $conname = `connectionInfo -sfd ($node+".inSourceCurve")`;
+    string $sourceCurves[];
+    tokenize( $conname, ".", $sourceCurves );
+
+
+    string $groupName = ($node+"_CurveGroup");
+    if( `objExists $groupName` == false )
+    {
+        group -em -name ZWStitchsGroup;
+        group -em -name $groupName;
+
+        parent $groupName ZWStitchsGroup;
+    }
+
+    // create new stitch curves
+    for( $i=0; $i<$newNum-$existNum; $i++ )
+    {
+        string $newNames[] = `duplicate $sourceCurves[0]`;
+
+        string $shapes[] = `listRelatives -shapes $newNames[0]`;
+
+        $connList[$count++] = $newNames[0];
+        parent $newNames[0] $groupName;
+    }
+
+    // delete curves
+    int $delNum = $newNum - $existNum;
+    if( $delNum < 0 )
+    {
+        $delNum *= -1;
+        for( $i=0; $i<$delNum; $i++ )
+        {
+            string $curveName = $connList[--$count];
+            delete $curveName;
+        }
+    }    
+
+    // connect stitch curves
+    for( $i=0; $i<$count; $i++ )
+    {
+//      string $curveName = $connList[--$count];
+        string $curveName = $connList[$i];
+
+        connectAttr -f ($node+".outTranslates["+$i+"]") ($curveName+".translate");
+        connectAttr -f ($node+".outScales["+$i+"]") ($curveName+".scale");
+        connectAttr -f ($node+".outRotates["+$i+"]") ($curveName+".rotate");
+        connectAttr -f ($node+".outPivot") ($curveName+".rotatePivot");
+        connectAttr -f ($node+".outPivot") ($curveName+".scalePivot");
+
+        if( `exists rmanGetAttrName` )
+        {
+            string $shapes[] = `listRelatives -shapes $curveName`;
+            
+            string $attrnm = `rmanGetAttrName curveBaseWidth`;
+            rmanAddAttr $shapes[0] $attrnm "";
+
+            $attrnm = `rmanGetAttrName curveTipWidth`;
+            rmanAddAttr $shapes[0] $attrnm "";
+
+            $attrnm = `rmanGetAttrName customShadingGroup`;
+            rmanAddAttr $shapes[0] $attrnm "";
+
+            $attrnm = `rmanGetAttrName dice:hair`;
+            rmanAddAttr $shapes[0] $attrnm "0";
+
+            $attrnm = `rmanGetAttrName dice:roundcurve`;
+            rmanAddAttr $shapes[0] $attrnm "1";
+
+            string $sg = `connectionInfo -sfd ($shapes[0]+".rman__torattr___customShadingGroup")`;
+            if( $sg == "" ) connectAttr -f initialShadingGroup.message ($shapes[0]+".rman__torattr___customShadingGroup");
+        }        
+    }
+
+    // delete curves
+    /*
+    for( $i=0; $i<$count; $i++ )
+    {
+        delete $connList[$i];
+    }
+    */
+
+    select -r $node;
+}
+
+global proc ZWStitchCurvesCon_AssignShader( string $node )
+{
+    if( `exists rmanGetAttrName` == false ) return;
+
+    $attrnm = `rmanGetAttrName customShadingGroup`;    
+    string $sgName = `connectionInfo -sfd ($node+"."+$attrnm)`;
+
+    string $tokens[];
+    tokenize( $sgName, ".", $tokens );
+    $sgName = $tokens[0];
+        
+    string $webs[] = `connectionInfo -dfs ($node+".outWebData")`;
+
+    int $i = 0;
+    int $j = 0;    
+
+    for( $i=0; $i<size($webs); $i++ )
+    {
+        string $tokens[];
+        tokenize( $webs[$i], ".", $tokens );
+        $webs[$i] = $tokens[0];
+    }
+
+    for( $i=0; $i<size($webs); $i++ )
+    {
+        string $web = $webs[$i];
+        string $dests[] = `connectionInfo -dfs ($web+".outPivot")`;
+
+        for( $j=0; $j<size($dests); $j++ )
+        {
+            string $par[];
+            tokenize( $dests[$j], ".", $par );
+
+            string $curShapes[] = `listRelatives -shapes $par[0]`;
+
+            if( `isConnected ($sgName+".message") ($curShapes[0]+".rman__torattr___customShadingGroup")` == false )
+                connectAttr -f ($sgName+".message") ($curShapes[0]+".rman__torattr___customShadingGroup");
+
+            setAttr ($curShapes[0]+".rman__torattr___curveBaseWidth") `getAttr ($node+".rman__torattr___curveBaseWidth")`;
+            setAttr ($curShapes[0]+".rman__torattr___curveTipWidth") `getAttr ($node+".rman__torattr___curveTipWidth")`;
+            setAttr ($curShapes[0]+".rman__riattr__dice_hair") `getAttr ($node+".rman__riattr__dice_hair")`;
+            setAttr ($curShapes[0]+".rman__riattr__dice_roundcurve") `getAttr ($node+".rman__riattr__dice_roundcurve")`;                
+        }
+    }
+}
+

@@ -1,0 +1,436 @@
+//--------------//
+// ZelosFur.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.07.06                               //
+//-------------------------------------------------------//
+
+global proc CreateZelosFurBaseGraphWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+    if( `window -q -exists CreateZelosFurBaseGraphWin` )
+	{
+    	deleteUI CreateZelosFurBaseGraphWin;
+    	return;
+	}
+
+	window -titleBar true -sizeable true -title "ZelosFur Base Graph Creation Tool" CreateZelosFurBaseGraphWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 350 -style "none";
+
+		text -l "Body Mesh (for Sampling / Binding)" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfCreateZelosFurBaseGraphMesh0;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfCreateZelosFurBaseGraphMesh0\",\"mesh\");");
+		}
+		setParent ..;
+
+		rowLayout -w 350 -nc 1 -columnWidth1 330;
+		{
+			checkBox -l "Hide" -v 0 cbCreateZelosFurBaseGraphHideMesh0;
+		}
+		setParent ..;
+
+		separator -h 20 -w 300 -style "none";
+
+		text -l "Body Mesh (for Animation)" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfCreateZelosFurBaseGraphMesh1;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfCreateZelosFurBaseGraphMesh1\",\"mesh\");");
+		}
+		setParent ..;
+
+		rowLayout -w 350 -nc 1 -columnWidth1 330;
+		{
+			checkBox -l "Hide" -v 0 cbCreateZelosFurBaseGraphHideMesh1;
+		}
+		setParent ..;
+
+		separator -h 20 -w 300 -style "none";
+
+		text -l "A Group of Guide Curves" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfCreateZelosFurBaseGraphCurves;
+			button -l "<<" -w 30 -c ("ZLoadObjByType(\"tfCreateZelosFurBaseGraphCurves\",\"transform\");");
+		}
+		setParent ..;
+
+		rowLayout -w 350 -nc 1 -columnWidth1 330;
+		{
+			checkBox -l "Hide" -v 0 cbCreateZelosFurBaseGraphHideCurves;
+		}
+		setParent ..;
+
+		separator -h 15 -w 350 -style "none";
+
+		button -l "Create" -w 330 -al "center" -c "CreateZelosFurBaseGraph";
+
+		separator -h 15 -w 350 -style "none";
+	}
+	setParent ..;
+
+	showWindow CreateZelosFurBaseGraphWin;
+}
+
+global proc CreateZelosFurBaseGraph()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	// body mesh for sampling & binding
+	string $bodyMesh0XForm = `textField -q -tx tfCreateZelosFurBaseGraphMesh0`;
+	if( !size($bodyMesh0XForm) ) { error( "No body mesh is selected!" ); return; }
+	string $shapes0[] = `listRelatives -shapes $bodyMesh0XForm`;
+	string $bodyMesh0Shape = $shapes0[0];
+	int $hideBodyMesh0 = `checkBox -q -v cbCreateZelosFurBaseGraphHideMesh0`;
+
+	// body mesh for animation
+	string $bodyMesh1XForm = `textField -q -tx tfCreateZelosFurBaseGraphMesh1`;
+	if( !size($bodyMesh1XForm) ) { error( "No body mesh is selected!" ); return; }
+	string $shapes1[] = `listRelatives -shapes $bodyMesh1XForm`;
+	string $bodyMesh1Shape = $shapes1[0];
+	int $hideBodyMesh1 = `checkBox -q -v cbCreateZelosFurBaseGraphHideMesh1`;
+
+	// NURBS curves
+	string $curveGrp = `textField -q -tx tfCreateZelosFurBaseGraphCurves`;
+	if( !size($curveGrp) ) { error( "No selected curve group!" ); return; }
+	int $hideBodyCurves = `checkBox -q -v cbCreateZelosFurBaseGraphHideCurves`;
+
+	float $meshTest = `ZelosFurMeshTest -mode 0 -sMeshName $bodyMesh0Shape -tMeshName $bodyMesh1Shape`;
+	if( $meshTest <= 0 )
+	{
+		error( "You selected invalid meshes. They are different meshes." );
+		return;
+	}
+
+	// Don't set as intermediate objects. If so, they cannot provide uv data!
+	//if( $hideBodyMesh0 ) { setAttr ( $bodyMesh0Shape + ".intermediateObject" ) 1; }
+	//if( $hideBodyMesh1 ) { setAttr ( $bodyMesh1Shape + ".intermediateObject" ) 1; }
+
+	if( $hideBodyMesh0  ) { hide $bodyMesh0Shape; }
+	if( $hideBodyMesh1  ) { hide $bodyMesh1Shape; }
+	if( $hideBodyCurves ) { hide $curveGrp;       }
+
+	// Create nodes.
+	string $ZelosFurGlobal = `createNode ZelosFurGlobal -n ZelosFurGlobal1`;
+	int $lastIndex = size($ZelosFurGlobal);
+	string $number = `substring $ZelosFurGlobal $lastIndex $lastIndex`;
+
+	string $ZelosFurOutputXForm = `createNode transform -n ZelosFurOutputXForm`;
+	string $ZelosFurOutput = `createNode ZelosFurOutput -n ZelosFurOutput -p  $ZelosFurOutputXForm`;
+	connectAttr ( $ZelosFurOutput + ".output" ) ( $ZelosFurOutputXForm + ".dynamics" );
+
+	string $ZelosFurSampler   = `createNode ZelosFurSampler   -p $ZelosFurGlobal`;
+	string $ZelosFurSimulator = `createNode ZelosFurSimulator -p $ZelosFurGlobal`;
+	string $ZelosFurGenerator = `createNode ZelosFurGenerator -p $ZelosFurGlobal`;
+
+	// Connect nodes.
+	connectAttr ( $bodyMesh0Shape    + ".worldMesh[0]" ) ( $ZelosFurSampler   + ".inMesh0"    );
+	connectAttr ( $bodyMesh1Shape    + ".worldMesh[0]" ) ( $ZelosFurSampler   + ".inMesh1"    );
+	connectAttr ( $ZelosFurSampler   + ".outSamples"   ) ( $ZelosFurGenerator + ".inSamples"  );
+	connectAttr time1.outTime ( $ZelosFurSimulator + ".inTime" );
+	connectAttr ( $bodyMesh0Shape    + ".worldMesh[0]" ) ( $ZelosFurSimulator + ".inMesh0"    );
+	connectAttr ( $bodyMesh1Shape    + ".worldMesh[0]" ) ( $ZelosFurSimulator + ".inMesh1"    );
+	connectAttr ( $curveGrp          + ".message"      ) ( $ZelosFurSimulator + ".inCurveGrp" );
+	connectAttr ( $ZelosFurSimulator + ".outMesh"      ) ( $ZelosFurGenerator + ".inMesh"     );
+	connectAttr ( $ZelosFurGenerator + ".outMesh"      ) ( $ZelosFurOutput    + ".input[0]"   ); 
+
+	// Select a node.
+	select -r $ZelosFurSampler;
+}
+
+global proc DeleteUnusedZelosFurNodes()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $samplers[] = `ls -type ZelosFurSampler`;
+	for( $sampler in $samplers )
+	{
+		int $test0 = `connectionInfo -id ( $sampler + ".inMesh0" )`;
+		int $test1 = `connectionInfo -id ( $sampler + ".inMesh1" )`;
+		int $test2 = `connectionInfo -is ( $sampler + ".outSamples" )`;
+
+		if( $test0==0 && $test1==0 && $test2==0 )
+		{
+			delete $sampler;
+		}
+	}
+
+	string $simulators[] = `ls -type ZelosFurSimulator`;
+	for( $simulator in $simulators )
+	{
+		int $test0 = `connectionInfo -id ( $simulator + ".inMesh0" )`;
+		int $test1 = `connectionInfo -id ( $simulator + ".inMesh1" )`;
+		int $test2 = `connectionInfo -is ( $simulator + ".outMesh" )`;
+
+		if( $test0==0 && $test1==0 && $test2==0 )
+		{
+			delete $simulator;
+		}
+	}
+
+	string $generators[] = `ls -type ZelosFurGenerator`;
+	for( $generator in $generators )
+	{
+		int $test0 = `connectionInfo -id ( $generator + ".inSamples" )`;
+		int $test1 = `connectionInfo -id ( $generator + ".inMesh"    )`;
+		int $test2 = `connectionInfo -is ( $generator + ".outMesh"   )`;
+
+		if( $test0==0 && $test1==0 && $test2==0 )
+		{
+			delete $generator;
+		}
+	}
+
+	string $textures[] = `ls -type ZelosFurTexture`;
+	for( $texture in $textures )
+	{
+		int $test0 = `connectionInfo -is ( $texture + ".filePathName" )`;
+
+		if( $test0==0 )
+		{
+			delete $texture;
+		}
+	}
+
+	string $modifiers[] = `ls -type ZelosFurModifier_Clump`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+
+	$modifiers = `ls -type ZelosFurModifier_Direction`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+
+	$modifiers = `ls -type ZelosFurModifier_Bend`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+
+	$modifiers = `ls -type ZelosFurModifier_Scraggle`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+
+	$modifiers = `ls -type ZelosFurModifier_Offset`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+
+	$modifiers = `ls -type ZelosFurModifier_Scale`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+
+	$modifiers = `ls -type ZelosFurModifier_Cut`;
+	for( $modifier in $modifiers )
+	{
+		int $test0 = 0;
+		string $connectedPlg[] = `listAttr -multi ( $modifier + ".filePathNames" )`;
+		int $numConnections = size($connectedPlg);
+		int $i = 0;
+		for( ; $i<$numConnections; $i++ )
+		{
+			if( `connectionInfo -id ( $modifier + "." + $connectedPlg[$i] )` )
+			{
+				$test = 1;
+				break;
+			}
+		}
+
+		int $test1 = `connectionInfo -is ( $modifier + ".outModifier" )`;
+
+		if( $test0==0 && $test1==0 )
+		{
+			delete $modifier;
+		}
+	}
+}
+
+global proc ZelosFurMakePaintable()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $generators[] = `ls -type ZelosFurGenerator`;
+
+	for( $generator in $generators )
+	{
+		if( `connectionInfo -is ($generator+".outMesh")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($generator+".outMesh")`;
+
+			if( size($nodeAttrs) == 0 ) {
+
+				string $mesh = `createNode mesh -n ($generator+"outMesh")`;
+				assignShadingGroup initialShadingGroup;
+
+				connectAttr ($generator+".outMesh") ($mesh+".inMesh");
+
+			} else {
+
+				for( $nodeAttr in $nodeAttrs )
+				{
+					string $tokens[];
+					tokenize( $nodeAttr, ".", $tokens );
+					string $node = $tokens[0];
+
+					$nodeType = `nodeType $node`;
+					if( $nodeType == "ZelosFurGenerator" ) { continue; }
+					if( $nodeType == "mesh" ) { continue; }
+
+					disconnectAttr ($generator+".outMesh") $nodeAttr;
+
+					string $mesh = `createNode mesh -n ($generator+"outMesh")`;
+					assignShadingGroup initialShadingGroup;
+
+					connectAttr ($generator+".outMesh") ($mesh+".inMesh");
+					connectAttr ($mesh+".worldMesh[0]") $nodeAttr;
+				}
+
+			}
+		}
+	}
+
+	makePaintable -at doubleArray ZelosFurSimulator dynamicsMap;
+	makePaintable -at doubleArray ZelosFurSimulator collisionMap;
+	makePaintable -at doubleArray ZelosFurSimulator stiffnessMap;
+	makePaintable -at doubleArray ZelosFurSimulator dampingMap;
+	makePaintable -at doubleArray ZelosFurSimulator amplitudeMap;
+}
+

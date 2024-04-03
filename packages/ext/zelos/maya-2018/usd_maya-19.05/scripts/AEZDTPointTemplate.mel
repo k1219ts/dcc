@@ -1,0 +1,28 @@
+//------------------------//
+// AEZDTPointTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2015.07.22                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZDTPointTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Attributes" -collapse 0;
+		{
+			editorTemplate -l "Position" -ac "position";
+			editorTemplate -l "Radius"   -ac "radius";
+			editorTemplate -l "Color"    -ac "color";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+}
+

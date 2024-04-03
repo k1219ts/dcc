@@ -1,0 +1,105 @@
+//------------------------------------//
+// AEZelosClothCurveMergeTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2014.12.11                               //
+//-------------------------------------------------------//
+
+//////////////////////
+// connnection info //
+global proc ZelosClothCurveMergeConnectionInfoNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		text -l "Input ZelosClothCurve Nodes" -bgc 0.2 0.2 0.2;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 -cc "select -r `optionMenu -q -v omZelosClothCurveMergeList0`" omZelosClothCurveMergeList0;
+				setParent..;
+			setParent..;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		text -l "Output ZelosClothPatch Nodes" -bgc 0.2 0.2 0.2;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 -cc "select -r `optionMenu -q -v omZelosClothCurveMergeList1`" omZelosClothCurveMergeList1;
+				setParent..;
+			setParent..;
+	setUITemplate -ppt;
+
+	ZelosClothCurveMergeConnectionInfoReplace( $attr );
+}
+
+global proc ZelosClothCurveMergeConnectionInfoReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosClothCurveMerge = $node[0];
+
+	// Input Nodes (ZelosClothCurve nodes)
+	{
+		string $items[] = `optionMenu -q -ill omZelosClothCurveMergeList0`;
+		for( $item in $items ) { deleteUI $item; }
+
+		string $plgs[] = `listAttr -multi ( $ZelosClothCurveMerge + ".inputs" )`;
+
+		for( $plg in $plgs )
+		{
+			string $nodeAttr = `connectionInfo -sfd ( $ZelosClothCurveMerge + "." + $plg )`;
+			tokenize( $nodeAttr, ".", $node );
+
+			if( `nodeType $node[0]` == "ZelosClothCurve" )
+			{
+				menuItem -label $node[0] -p omZelosClothCurveMergeList0;
+			}
+		}
+	}
+
+	// Output Nodes (ZelosClothPatch nodes)
+	{
+		string $items[] = `optionMenu -q -ill omZelosClothCurveMergeList1`;
+		for( $item in $items ) { deleteUI $item; }
+
+		string $nodeAttrs[] = `connectionInfo -dfs ( $ZelosClothCurveMerge + ".output" )`;
+
+		for( $nodeAttr in $nodeAttrs )
+		{
+			tokenize( $nodeAttr, ".", $node );
+
+			if( `nodeType $node[0]` == "ZelosClothPatch" )
+			{
+				menuItem -label $node[0] -p omZelosClothCurveMergeList1;
+			}
+		}
+	}
+}
+
+//////////
+// main //
+global proc AEZelosClothCurveMergeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Type" -ac "type";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Node List" -collapse 0;
+			editorTemplate -ccu ZelosClothCurveMergeConnectionInfoNew ZelosClothCurveMergeConnectionInfoReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inputs";
+	editorTemplate -suppress "output";
+}
+

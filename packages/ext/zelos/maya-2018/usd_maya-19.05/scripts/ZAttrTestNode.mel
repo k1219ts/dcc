@@ -1,0 +1,23 @@
+//-------------------//
+// ZAttrTestNode.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.23                               //
+//-------------------------------------------------------//
+
+global proc ZAttrTestNode()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZAttrTestNode;
+	createNode transform;
+
+	connectAttr ZAttrTestNode1.output transform1.tx;
+}
+

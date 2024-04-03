@@ -1,0 +1,60 @@
+//----------------//
+// ZMayaTools.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2019.03.26                               //
+//-------------------------------------------------------//
+
+global proc ZMayaToolsMenu()
+{
+	menuItem -to 1 -l "ZMayaTools" -ec 1 -subMenu true ZMayaTools_Item;
+	{
+		menuItem -l "Create ZDarkRideGauge"     -ec 1 -c "CreateZDarkRideGauge"     CreateZDarkRideGauge_Item;
+		menuItem -divider true;
+		menuItem -l "Create ZAssemblyArchive"   -ec 1 -c "CreateZAssemblyArchive"   CreateZAssemblyArchive_Item;
+		menuItem -l "Create ZGpuMeshShape"      -ec 1 -c "CreateZGpuMeshShape"      CreateZGpuMeshShape_Item;
+		menuItem -divider true;
+        menuItem -l "Create ZPtcEditor"         -ec 1 -c "CreateZPtcEditor"         CreateZPtcEditor_Item;
+		menuItem -divider true;
+        menuItem -l "Create Mesh Seam Curve"    -ec 1 -c "CreateMeshSeamCurve"      CreateMeshSeamCurve_Item;
+	}
+	setParent -menu ..;
+}
+
+global proc ZMayaTools_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZMayaToolsForMaya"` )
+	{
+		ZPrintError "ZMayaToolsForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZMayaToolsMenu;
+}
+
+global proc ZMayaTools_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZMayaToolsMenu;
+
+	if( `menu -exists mainZMayaToolsMenu` ) { deleteUI mainZMayaToolsMenu; }
+
+	setParent $gMainWindow;
+
+	$gZMayaToolsMenu = `menu -l "ZMayaTools" -to true -pmo true mainZMayaToolsMenu`;
+	menu -e -pmc ( "ZMayaTools_Menu " + $gZMayaToolsMenu ) $gZMayaToolsMenu;
+
+	hotBox -um;
+}
+
+global proc ZMayaTools_DeleteMenu()
+{
+	if( `menu -exists mainZMayaToolsMenu` ) { deleteUI mainZMayaToolsMenu; }
+}
+

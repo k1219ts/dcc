@@ -1,0 +1,30 @@
+//------------------------------//
+// AEZelosClothMeshTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2014.12.01                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZelosClothMeshTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "patches";
+	editorTemplate -suppress "seams";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "mode";
+}
+

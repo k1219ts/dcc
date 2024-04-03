@@ -1,0 +1,25 @@
+//--------------------//
+// ZCurlNoiseTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZCurlNoiseTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	playbackOptions -e -maxTime 10000 -aet 10000;
+
+	createNode ZCurlNoiseTest;
+
+	connectAttr time1.outTime ZCurlNoiseTest1.time;
+	connectAttr ZCurlNoiseTest1.output transform1.shearXY;
+}
+

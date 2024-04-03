@@ -1,0 +1,246 @@
+//--------------------//
+// ZN_CacheGenWin2.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2018.04.23                               //
+//-------------------------------------------------------//
+
+global proc ZN_CacheGen2_SetFrameRange( int $mode )
+{
+	intField -e -en ($mode-1) ZN_CacheGenWin2_StartFrame;
+	intField -e -en ($mode-1) ZN_CacheGenWin2_EndFrame;
+}
+
+global proc ZN_CacheGen2List_Add( string $textScrollList )
+{
+	int $i=0;
+	string $items[];
+	string $selected[] = `ls -sl -ni`;
+
+	for( $obj in $selected )
+	{
+		string $nodeType = `nodeType $obj`;
+
+		int $validType = 0;
+		if( $nodeType == "ZN_Pass"            ) { $validType = 1; }
+		if( $nodeType == "ZN_Copy"            ) { $validType = 1; }
+		if( $nodeType == "ZN_Merge"           ) { $validType = 1; }
+		if( $nodeType == "ZN_Import"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Select"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Switch"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Deform"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Jiggle"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Animate"         ) { $validType = 1; }
+		if( $nodeType == "ZN_Generate"        ) { $validType = 1; }
+		if( $nodeType == "ZN_FeatherInstance" ) { $validType = 1; }
+		if( $nodeType == "ZN_Instance"        ) { $validType = 1; }
+
+		if( $validType == 0 ) { continue; }
+
+		$items[$i++] = $obj;
+	}
+
+	for( $obj in $items )
+	{
+		if( ZTextScrollList_AlreadyExist( $obj, $textScrollList ) ) { continue; }
+		textScrollList -e -append $obj $textScrollList;
+	}
+}
+
+global proc ZN_CacheGenWin2()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZN_CacheGenWin2` )
+	{
+    	deleteUI ZN_CacheGenWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZENN Bake Cache" ZN_CacheGenWin2;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 300 -style "none";
+		text -l "ZENN nodes to be baked" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+		{
+			textScrollList -w 200 -h 90 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZN_CacheGen2List`; select $items[0];" ) ZN_CacheGen2List;
+			text -l "" -w 10;
+			columnLayout -w 120;
+			{
+				button -l "Add"    -w 110 -h 30 -align "center" -c ( "ZN_CacheGen2List_Add( \"ZN_CacheGen2List\" )" );
+				button -l "Remove" -w 110 -h 30 -align "center" -c ( "ZTextScrollList_Remove( \"ZN_CacheGen2List\" )" );
+				button -l "Clear"  -w 110 -h 30 -align "center" -c ( "ZTextScrollList_Clear( \"ZN_CacheGen2List\" )" );
+			}
+			setParent ..;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Cache Path" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 ZN_CacheGenWin2_Path;
+			symbolButton -image "navButtonBrowse.xpm" -c "string $dir[] = `fileDialog2 -fm 3 -ds 2`; textField -e -tx $dir[0] ZN_CacheGenWin2_Path;";
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Frame Range" -font "boldLabelFont" -w 330 -al "left";
+		columnLayout -w 300;
+		{
+			rowLayout -nc 4 -cw4 150 70 30 50;
+			{
+				radioButtonGrp -sl 1 -cw2 70 70 -numberOfRadioButtons 2 -labelArray2 "time slider" "start/end:" -on1 "ZN_CacheGen2_SetFrameRange 1" -on2 "ZN_CacheGen2_SetFrameRange 2" ZN_CacheGenWin2_FrameRange;
+				intField -v 0   -w 65 -en 0 ZN_CacheGenWin2_StartFrame;
+				text -l "to" -al "center" -w 20;
+				intField -v 100 -w 65 -en 0 ZN_CacheGenWin2_EndFrame;
+			}
+			setParent ..;
+
+			rowLayout -nc 2 -cw2 80 300;
+			{
+				text -h 20 -l "Step" -fn "boldLabelFont" "left";
+				floatSliderGrp -v 1.0 -min 0.01 -max 1.00 -s 0.01 -f 1 -w 200 ZN_CacheGenWin2_Step;
+			}
+			setParent ..;
+		}
+		setParent ..;
+
+		separator -h 15 -w 330 -style "none";
+
+		button -l "Bake" -w 330 -al "center" -c "ZN_CacheGenBake2";
+
+		separator -h 15 -w 330 -style "none";
+	}
+	showWindow ZN_CacheGenWin2;
+}
+
+global proc ZN_CacheGenBake2()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $nodeNames[] = ZTextScrollList_GetAllItems( "ZN_CacheGen2List" );
+	if( size($nodeNames) == 0 ) { return; }
+
+	float $startFrame = 0.0;
+	float $endFrame   = 0.0;
+
+	int $frameRangeMode = `radioButtonGrp -q -sl ZN_CacheGenWin2_FrameRange`;
+	if( $frameRangeMode==1 ) {
+		$startFrame = `playbackOptions -q -min`;
+		$endFrame   = `playbackOptions -q -max`;
+	} else {
+		$startFrame = `intField -q -v ZN_CacheGenWin2_StartFrame`;
+		$endFrame   = `intField -q -v ZN_CacheGenWin2_EndFrame`;
+	}
+
+	if( $startFrame > $endFrame ) { ZPrintError "Invalid frame range."; return; }
+
+	float $step = `floatSliderGrp -q -v ZN_CacheGenWin2_Step`;
+
+	string $cachePath = `textField -q -tx ZN_CacheGenWin2_Path`;
+
+	if( $cachePath == "" )
+	{
+		ZPrintError "[ZN_CacheGenBake2] No cache path.";
+		return;
+	}
+
+	string $ZN_StrandsViewers[] = `ls -type ZN_StrandsViewer`;
+	int    $ZN_StrandsViewerModes[];
+
+	string $ZN_FeatherSetViewers[] = `ls -type ZN_FeatherSetViewer`;
+	int    $ZN_FeatherSetViewerModes[];
+
+	string $ZN_MeshViewers[] = `ls -type ZN_MeshViewer`;
+	int    $ZN_MeshViewerModes[];
+
+	// store
+	{
+		int $i = 0;
+		for( $ZN_StrandsViewer in $ZN_StrandsViewers )
+		{
+			$ZN_StrandsViewerModes[$i++] = `getAttr ($ZN_StrandsViewer+".colorMode")`;
+			setAttr ($ZN_StrandsViewer+".colorMode") 0;
+		}
+
+		$i = 0;
+		for( $ZN_FeatherSetViewer in $ZN_FeatherSetViewers )
+		{
+			$ZN_FeatherSetViewerModes[$i++] = `getAttr ($ZN_FeatherSetViewer+".colorMode")`;
+			setAttr ($ZN_FeatherSetViewer+".colorMode") 0;
+		}
+
+		$i = 0;
+		for( $ZN_MeshViewer in $ZN_MeshViewers )
+		{
+			$ZN_MeshViewerModes[$i++] = `getAttr ($ZN_MeshViewer+".whichMesh")`;
+			setAttr ($ZN_StrandsViewer+".whichMesh") 0;
+		}
+
+		for( $nodeName in $nodeNames )
+		{
+			string $type = `nodeType $nodeName`;
+
+			if( ($type == "ZN_FeatherInstance") || ($type == "ZN_Instance")  )
+			{
+				setAttr ($nodeName+".cacheGenMode") 1;
+			}
+		}
+	}
+
+	select -cl;
+
+	string $nodeNamesStr;
+	for( $nodeName in $nodeNames )
+	{
+		$nodeNamesStr += $nodeName + " ";
+	}
+
+	ZN_CacheGen2Cmd -nodeNames $nodeNamesStr -startFrame $startFrame -endFrame $endFrame -step $step -cachePath $cachePath;
+
+	// restore
+	{
+		$i = 0;
+		for( $ZN_StrandsViewer in $ZN_StrandsViewers )
+		{
+			setAttr ($ZN_StrandsViewer+".colorMode") $ZN_StrandsViewerModes[$i++];
+		}
+
+		$i = 0;
+		for( $ZN_FeatherSetViewer in $ZN_FeatherSetViewers )
+		{
+			setAttr ($ZN_FeatherSetViewer+".colorMode") $ZN_FeatherSetViewerModes[$i++];
+		}
+
+		$i = 0;
+		for( $ZN_MeshViewer in $ZN_MeshViewers )
+		{
+			setAttr ($ZN_MeshViewer+".colorMode") $ZN_MeshViewerModes[$i++];
+		}
+
+		for( $nodeName in $nodeNames )
+		{
+			string $type = `nodeType $nodeName`;
+
+			if( ($type == "ZN_FeatherInstance") || ($type == "ZN_Instance")  )
+			{
+				setAttr ($nodeName+".cacheGenMode") 0;
+			}
+		}
+
+	}
+
+	select -cl;
+}
+

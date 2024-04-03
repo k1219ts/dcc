@@ -1,0 +1,56 @@
+//----------------------------------//
+// AEZFX_PartialMeshGenTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.08.02                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZFX_PartialMeshGenUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZFX_PartialMeshGenUpdateExe "+$attr) ZFX_PartialMeshGenUpdate;
+	setUITemplate -ppt;
+
+	ZFX_PartialMeshGenUpdateReplace $attr;
+}
+
+global proc ZFX_PartialMeshGenUpdateReplace( string $attr )
+{
+	button -e -c ("ZFX_PartialMeshGenUpdateExe "+$attr) ZFX_PartialMeshGenUpdate;
+}
+
+global proc ZFX_PartialMeshGenUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_PartialMeshGen = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZFX_PartialMeshGen;
+}
+
+//////////
+// main //
+global proc AEZFX_PartialMeshGenTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Mode"        -ac "mode";
+			editorTemplate -l "UV Set Name" -ac "uvSetName";
+			editorTemplate -l "Invert"      -ac "invert";
+			editorTemplate -ccu ZFX_PartialMeshGenUpdateNew ZFX_PartialMeshGenUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "outMesh";
+}

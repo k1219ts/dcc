@@ -1,0 +1,128 @@
+//-------------------------------//
+// AEZGpuMeshCreatorTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.02.28                               //
+//-------------------------------------------------------//
+
+//////////
+// File //
+global proc ZGpuMeshCreatorFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text -label "File (.abc)";
+			textField -ed 0 -tx `getAttr $attr` ZGpuMeshCreatorFile;
+			symbolButton -image "navButtonBrowse.xpm" ZGpuMeshCreatorFileBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZGpuMeshCreatorFileReplace $attr;
+}
+
+global proc ZGpuMeshCreatorFileReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` ZGpuMeshCreatorFile;
+	button -e -c ("ZGpuMeshCreatorSetFile "+$attr) ZGpuMeshCreatorFileBtn;
+}
+
+global proc ZGpuMeshCreatorSetFile( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZGpuMeshCreator = $tokens[0];
+
+	string $fileNames[] = `fileDialog2 -caption "Alembic(.abc) File" -ff "Alembic File(*.abc)" -fileMode 1`;
+
+	if( size($fileNames) > 0 )
+	{
+		eval( "setAttr -type \"string\" " + $attr + " \"" + $fileNames[0] + "\"" );
+		textField -e -tx $fileNames[0] ZGpuMeshCreatorFile;
+
+		refresh;
+		updateAE $ZGpuMeshCreator;
+	}
+}
+
+/////////////////
+// Frame Range //
+global proc ZGpuMeshCreatorRangeNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout -adj 1;
+		{
+			rowLayout -nc 1 -adj 1;
+			{
+				button -l "Set Playback" -c ("ZGpuMeshCreatorSetRange "+$attr) ZGpuMeshCreatorRangeBtn;
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZGpuMeshCreatorRangeReplace( string $attr )
+{
+	button -e -c ("ZGpuMeshCreatorSetRange "+$attr) ZGpuMeshCreatorRangeBtn;
+}
+
+global proc ZGpuMeshCreatorSetRange( string $attr )
+{
+	float $frameRange[] = `getAttr $attr`;
+
+	playbackOptions -e -ast $frameRange[0];
+	playbackOptions -e -min $frameRange[0];
+
+	playbackOptions -e -max $frameRange[1];
+	playbackOptions -e -aet $frameRange[1];
+}
+
+//////////
+// main //
+global proc AEZGpuMeshCreatorTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "File Size"         -ac "fileSize";
+			editorTemplate -l "File Format"       -ac "fileFormat";
+			editorTemplate -as; 
+			editorTemplate -l "Time Sampling"     -ac "timeSamplingScheme";
+			editorTemplate -as; 
+			editorTemplate -l "Vertex Count"      -ac "vertexCount";
+			editorTemplate -l "Polygon Count"     -ac "polygonCount";
+			editorTemplate -as; 
+			editorTemplate -l "Frame Range"       -ac "frameRange";
+			editorTemplate -ccu ZGpuMeshCreatorRangeNew ZGpuMeshCreatorRangeReplace "frameRange";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Alembic File (.abc)" -collapse 0;
+		{
+			editorTemplate -l "Enable"            -ac "enable";
+			editorTemplate -as; 
+			editorTemplate -ccu ZGpuMeshCreatorFileNew ZGpuMeshCreatorFileReplace "file";
+			editorTemplate -as; 
+			editorTemplate -l "Frame Offset"      -ac "frameOffset";
+			editorTemplate -as; 
+			editorTemplate -l "Variable Topology" -ac "variableTopology";
+			editorTemplate -as; 
+			editorTemplate -l "Inverse Normal"    -ac "inverseNormal";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

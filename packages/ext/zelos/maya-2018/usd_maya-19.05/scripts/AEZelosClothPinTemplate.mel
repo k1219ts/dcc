@@ -1,0 +1,102 @@
+//-----------------------------//
+// AEZelosClothPinTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.07.28                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothPinTypeChanged( string $node )
+{
+	// Set initial dimming state.
+	{
+		editorTemplate -dc $node "stiffness" 1;
+		editorTemplate -dc $node "damping"   1;
+	}
+
+	int $soft = `getAttr ($node+".soft")`;
+
+	if( $soft ) {
+
+		editorTemplate -dc $node "stiffness" 0;
+		editorTemplate -dc $node "damping"   0;
+
+	} else {
+
+		editorTemplate -dc $node "stiffness" 1;
+		editorTemplate -dc $node "damping"   1;
+
+	}
+}
+
+///////////////////
+// Select Button //
+global proc ZelosClothPinSelectNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Select" -c  ("ZelosClothPinSelect "+$attr) ZelosClothPinSelect;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosClothPinSelectReplace( string $attr )
+{
+	button -e -c ("ZelosClothPinSelect "+$attr) ZelosClothPinSelect;
+}
+
+global proc ZelosClothPinSelect( string $attr )
+{
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZelosClothPin = $tokens[0];
+
+	string $ZelosClothSimulator = `GetZelosClothSimulatorFromPin $ZelosClothPin`;
+	if( $ZelosClothSimulator == "" ) { return; }
+
+	string $ZelosClothGlobal = `GetZelosClothGlobal $ZelosClothSimulator`;
+	if( $ZelosClothGlobal == "" ) { return; }
+
+	string $outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+	if( $outMeshShape == "" ) { return; }
+
+	string $vtxListStr = `getAttr $attr`;
+	tokenize( $vtxListStr, " ", $tokens );
+
+	if( $vtxListStr == "" ) { return; }
+
+	string $cmd = "select -r ";
+
+	for( $token in $tokens )
+	{
+		$cmd += $outMeshShape + ".vtx[" + $token + "] ";
+	}
+
+	eval $cmd;
+}
+
+//////////
+// main //
+global proc AEZelosClothPinTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Active"       -ac "active";
+			editorTemplate -l "Time Range"	 -ac "timeRange";
+			editorTemplate -l "Soft"		 -ac "soft" ZelosClothPinTypeChanged;
+			editorTemplate -l "Stiffness"	 -ac "stiffness";
+			editorTemplate -l "Damping"		 -ac "damping";
+			editorTemplate -as;
+			editorTemplate -ccu ZelosClothPinSelectNew ZelosClothPinSelectReplace "vtxList";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "vtxList";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "vtxPositions";
+}
+

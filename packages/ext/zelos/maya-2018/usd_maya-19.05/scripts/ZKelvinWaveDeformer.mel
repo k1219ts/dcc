@@ -1,0 +1,31 @@
+//-------------------------//
+// ZKelvinWaveDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZKelvinWaveDeformer()
+{
+	if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	for( $xForm in $selected )
+	{
+		$shape = `listRelatives -c $xForm`;
+		string $ZKelvinWaveDeformer[] = `deformer -type ZKelvinWaveDeformer`;
+		select $ZKelvinWaveDeformer[0];
+	}
+}
+

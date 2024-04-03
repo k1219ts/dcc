@@ -1,0 +1,91 @@
+//-----------------------//
+// AEZN_LoadTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.11.11                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_LoadUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_LoadUpdateExe "+$attr) ZN_LoadUpdate;
+	setUITemplate -ppt;
+
+	ZN_LoadUpdateReplace $attr;
+}
+
+global proc ZN_LoadUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_LoadUpdateExe "+$attr) ZN_LoadUpdate;
+}
+
+global proc ZN_LoadUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Load = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Load;
+}
+
+////////////////
+// Cache Path //
+global proc ZN_LoadCachePathNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 4;
+		{
+			text "Cache Path";
+			textField -ed 0 tfZN_LoadCachePath;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "ZLoadDirectory(\""+$attr+"\",\"tfZN_LoadCachePath\")" ) tfZN_LoadCachePathBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_LoadCachePathReplace( $attr );
+}
+
+global proc ZN_LoadCachePathReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_LoadCachePath;
+	symbolButton -e -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZN_LoadCachePath\")" ) tfZN_LoadCachePathBtn;
+}
+
+//////////
+// main //
+global proc AEZN_LoadTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Current Time" -ac "currentTime";
+			editorTemplate -l "Strands"      -ac "numStrands";
+		}
+
+		editorTemplate -beginLayout "Caching Options" -collapse 0;
+		{
+			editorTemplate -ccu ZN_LoadCachePathNew ZN_LoadCachePathReplace "cachePath";
+			editorTemplate -l "Cache Name"   -ac "cacheName";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_LoadUpdateNew ZN_LoadUpdateReplace "update";
+		}
+
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

@@ -1,0 +1,40 @@
+//--------------------------------//
+// AEZFX_DisplaceMeshTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_DisplaceMeshTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Scale" -ac "scale";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "Scale"   		-ac "noiseScale";
+			editorTemplate -l "Frequency"  		-ac "noiseFreq";
+			editorTemplate -l "Offset" 			-ac "noiseOffset";			
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "inWeight";
+	editorTemplate -suppress "outMesh";
+}
+

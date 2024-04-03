@@ -1,0 +1,285 @@
+//---------------------------//
+// AEZN_InstanceTemplate.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2017.03.02                               //
+//-------------------------------------------------------//
+
+global proc ZN_FeatherInstanceGroupingMethodChanged( string $node )
+{
+	editorTemplate -dc $node "ratioStr" 1;
+
+	if( `getAttr ($node+".groupingMethod")` == 0 )
+	{
+		editorTemplate -dc $node "ratioStr" 0;
+	}
+}
+
+global proc ZN_FeatherInstanceGroupingMethodChanged( string $node )
+{
+	int $bindingScheme = `getAttr ($node+".bindingScheme")`;
+
+	if( $bindingScheme < 4 ) {
+
+		editorTemplate -dc $node "foldRange"     1;
+		editorTemplate -dc $node "foldMapPath"   1;
+		editorTemplate -dc $node "foldValueLift" 1;
+
+	} else {
+
+		editorTemplate -dc $node "foldRange"     0;
+		editorTemplate -dc $node "foldMapPath"   0;
+		editorTemplate -dc $node "foldValueLift" 0;
+
+	}
+
+	ZN_FeatherInstanceUseCurveScaleChanged( $node );
+}
+
+global proc ZN_FeatherInstanceUseCurveScaleChanged( string $node )
+{
+	if( `getAttr ($node+".useCurveScale")` ) {
+
+		editorTemplate -dc $node "onlyCurveDirection" 0;
+		editorTemplate -dc $node "scaleRange"         1;
+		editorTemplate -dc $node "scaleMapPath"       1;
+		editorTemplate -dc $node "scaleValueLift"     1;
+
+	} else {
+
+		editorTemplate -dc $node "onlyCurveDirection" 1;
+		editorTemplate -dc $node "scaleRange"         0;
+		editorTemplate -dc $node "scaleMapPath"       0;
+		editorTemplate -dc $node "scaleValueLift"     0;
+
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_InstanceUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_InstanceUpdateExe "+$attr) ZN_InstanceUpdate;
+	setUITemplate -ppt;
+
+	ZN_InstanceUpdateReplace $attr;
+}
+
+global proc ZN_InstanceUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_InstanceUpdateExe "+$attr) ZN_InstanceUpdate;
+}
+
+global proc ZN_InstanceUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Instance = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Instance;
+}
+
+global proc ZN_FeatherSetViewerChanged( string $node )
+{
+	editorTemplate -dc $node "solidColor"   1;
+	editorTemplate -dc $node "pointSize"    1;
+	editorTemplate -dc $node "lineWidth"    1;
+	editorTemplate -dc $node "axisScale"    1;
+	editorTemplate -dc $node "displayRatio" 1;
+	editorTemplate -dc $node "filterStr"    1;
+	editorTemplate -dc $node "hideBackface" 1;
+	editorTemplate -dc $node "colorMapPath" 1;
+	editorTemplate -dc $node "smoothen"     1;
+
+	if( `getAttr ($node+".drawMode")` == 0 )
+	{
+		return;
+	}
+
+	editorTemplate -dc $node "displayRatio" 0;
+	editorTemplate -dc $node "filterStr"    0;
+	editorTemplate -dc $node "hideBackface" 0;
+	editorTemplate -dc $node "smoothen"     0;
+
+	if( `getAttr ($node+".colorMode")` == 0 )
+	{
+		editorTemplate -dc $node "solidColor" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 1 )
+	{
+		editorTemplate -dc $node "pointSize" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 2 )
+	{
+		editorTemplate -dc $node "axisScale" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 4 )
+	{
+		editorTemplate -dc $node "pointSize" 0;
+	}
+
+	if( `getAttr ($node+".drawMode")` == 5 )
+	{
+		editorTemplate -dc $node "lineWidth" 0;
+	}
+
+	if( `getAttr ($node+".colorMode")` == 3 )
+	{
+		editorTemplate -dc $node "colorMapPath" 0;
+	}
+}
+
+/////////////////////////////
+// Likelihoods Controllers //
+global proc ZN_InstanceLikelihoodsNew( string $attr )
+{
+	ZN_InstanceLikelihoodsReplace $attr;
+}
+
+global proc ZN_InstanceLikelihoodsReplace( string $attr )
+{
+	int $i = 0;
+
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZN_Instance = $tokens[0];
+
+	string $portIndexStrs[];
+	string $ZN_Sources[];
+	{
+		string $connectedPlgs[] = `listAttr -multi ($ZN_Instance+".inSource")`;
+
+		for( $connectedPlg in $connectedPlgs )
+		{
+			if( !`connectionInfo -id ($ZN_Instance+"."+$connectedPlg)` )
+			{
+				continue;
+			}
+
+			tokenize $connectedPlg "inSource" $tokens;
+			$portIndexStrs[$i] = $tokens[0];
+
+			string $nodeAttr = `connectionInfo -sfd ($ZN_Instance+"."+$connectedPlg)`;
+
+			tokenize $nodeAttr "." $tokens;
+			string $ZN_Source = $tokens[0];
+
+//			string $parents[] = `listRelatives -p -f $ZN_Source`;
+//			string $xform = $parents[0];
+//			$parents = `listRelatives -p -f $xform`;
+
+//			$ZN_Sources[$i] = $parents[0];
+			$ZN_Sources[$i] = $ZN_Source;
+
+			$i++;
+		}
+	}
+
+	int $numZN_Sources = size($ZN_Sources);
+	if( $numZN_Sources == 0 ) { return; }
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		if( `scrollLayout -exists "ZN_InstanceAssignList"` )
+		{
+			deleteUI -layout "ZN_InstanceAssignList";
+		}
+
+		scrollLayout -cr 1 "ZN_InstanceAssignList";
+		{
+			for( $i=0; $i<$numZN_Sources; $i++ )
+			{
+				float $likelihood = `getAttr ($ZN_Instance+".likelihoods"+$portIndexStrs[$i])`;
+				string $control = `floatSliderGrp -l $ZN_Sources[$i] -v $likelihood -min 0.0 -max 1.0 -f 1 -w 200`;
+				connectControl $control ($ZN_Instance+".likelihoods"+$portIndexStrs[$i]);
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+
+
+//////////
+// main //
+global proc AEZN_InstanceTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands"              -ac "numStrands";
+			editorTemplate -l "Sources"              -ac "numSources";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Assigning Controls" -collapse 0;
+		{
+			editorTemplate -l "Grouping Method"      -ac "groupingMethod" ZN_FeatherInstanceGroupingMethodChanged;
+			editorTemplate -ccu ZN_InstanceLikelihoodsNew ZN_InstanceLikelihoodsReplace "likelihoods";
+			editorTemplate -l "Random Seed"          -ac "randomSeed"; 
+			editorTemplate -as;
+			editorTemplate -l "Binding Scheme"       -ac "bindingScheme" ZN_FeatherInstanceGroupingMethodChanged;
+			editorTemplate -as;
+			editorTemplate -l "Texture Type"         -ac "textureType";
+
+			editorTemplate -as;
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Scale";
+			editorTemplate -l "Use Curve Scale"      -ac "useCurveScale" ZN_FeatherInstanceUseCurveScaleChanged;
+			editorTemplate -as;
+			editorTemplate -l "Only Curve Direction" -ac "onlyCurveDirection";
+			editorTemplate -as;
+			editorTemplate -l "Range"                -ac "scaleRange";
+			editorTemplate -l "Map Path"             -ac "scaleMapPath";
+			editorTemplate -l "Value Lift"           -ac "scaleValueLift";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Rotation";
+			editorTemplate -l "Range"                -ac "rotateRange";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Fold";
+			editorTemplate -l "Range"                -ac "foldRange";
+			editorTemplate -l "Map Path"             -ac "foldMapPath";
+			editorTemplate -l "Value Lift"           -ac "foldValueLift";
+		}
+		editorTemplate -endLayout;
+		editorTemplate -beginLayout "General Options" -collapse 0;
+		{
+			editorTemplate -l "Draw Mode"        -ac "drawMode" ZN_FeatherSetViewerChanged;
+			editorTemplate -l "Color Mode"       -ac "colorMode" ZN_FeatherSetViewerChanged;
+			editorTemplate -l "Solid Color"      -ac "solidColor";
+			editorTemplate -l "Point Size"       -ac "pointSize";
+			editorTemplate -l "Line Width"       -ac "lineWidth";
+			editorTemplate -l "Axis Scale"       -ac "axisScale";
+			editorTemplate -l "Smoothen"         -ac "smoothen";
+			editorTemplate -l "Color Map"        -ac "colorMapPath";
+			editorTemplate -l "Hide Backface"    -ac "hideBackface";
+			editorTemplate -as;
+			editorTemplate -l "Display Ratio"    -ac "displayRatio";
+			editorTemplate -l "Filter"           -ac "filterStr";
+		}
+		editorTemplate -endLayout;
+		editorTemplate -ccu ZN_InstanceUpdateNew ZN_InstanceUpdateReplace "update";
+		
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+	editorTemplate -suppress "cacheing";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inSource";
+	editorTemplate -suppress "cacheGenMode";
+
+}
+

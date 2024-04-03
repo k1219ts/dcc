@@ -1,0 +1,293 @@
+//---------------------//
+// ZWebCustomShelf.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.08.17                               //
+//-------------------------------------------------------//
+
+string $newShelfName = "ZWeb";
+
+// create new shelf
+if ( stringArrayFind( $newShelfName, 0, `tabLayout -q -childArray $gShelfTopLevel` ) < 0 )
+{
+    addNewShelfTab $newShelfName;
+}
+
+// clear buttons in the shelf
+string $sfButtons[] = `shelfLayout -q -childArray $newShelfName`;
+for( $bt in $sfButtons )
+{
+    deleteUI $bt;
+}
+
+// re-builtd buttons in the shelf
+shelfButton -parent $newShelfName
+            -enable 1
+            -visible 1
+            -width 36
+            -height 36
+            -manage 1
+            -annotation "Create Web Curves"
+            -label "Web Curves"
+            -image1 "zweb_web.png"
+            -style "iconOnly"
+            -command "ZWebCreateWebCurves";
+
+shelfButton -parent $newShelfName
+            -enable 1
+            -visible 1
+            -width 36
+            -height 36
+            -manage 1
+            -annotation "Create Stitch Curves"
+            -label "Stitch Curves"
+            -image1 "zweb_knot.png"
+            -style "iconOnly"           
+            -command "ZWebCreateStitchCurves";
+
+shelfButton -parent $newShelfName
+            -enable 1
+            -visible 1
+            -width 36
+            -height 36
+            -manage 1
+            -annotation "Setting"
+            -label "Setting"
+            -image1 "zweb_setting.png"
+            -style "iconOnly"           
+            -command "ZWebABCEXport";
+
+// command functions
+
+global proc ZWebCreateWebCurves()
+{
+    string $objs[] = `ls -sl -l`;	
+	string $type = "nurbsCurve";
+
+	string $webs[];
+	string $guides[];
+
+	string $control="";
+
+	for( $obj in $objs )
+	{
+		if( `nodeType $obj` == $type )
+		{
+			string $dest = `connectionInfo -sfd ($obj+".create")`;
+			//if( `connectionInfo -isSource ($obj+".worldSpace[0]")` == 0 )
+			if( $dest == "" )	
+			{
+				string $webNode = `createNode ZWebCurves`;
+
+				connectAttr -f ($obj+".worldSpace[0]") ($webNode+".inGuideCurve");
+				setAttr ($webNode+".seed") `size($webs)`;
+
+				$webs[size($webs)] = $webNode;
+				$guides[size($guides)] = $obj;
+			}
+			else
+			{
+				string $tokens[];
+				tokenize( $dest, ".", $tokens );
+				$dest = $tokens[0];
+
+				string $cont = `connectionInfo -sfd ($dest+".inWebData")`;
+
+				tokenize( $cont, ".", $tokens );
+				$control = $tokens[0];	
+			}
+		}
+		else if( `nodeType $obj` == "transform" )
+		{
+			string $shapes[] = `listRelatives -fullPath -shapes $obj`;
+
+			for( $s in $shapes )
+			{
+				if( `nodeType $s` == $type )
+				{
+					string $dest = `connectionInfo -sfd ($s+".create")`;
+					//if( `connectionInfo -isSource ($s+".worldSpace[0]")` == 0 )
+					if( $dest == "" )
+					{					
+						string $webNode = `createNode ZWebCurves`;
+
+						connectAttr -f ($s+".worldSpace[0]") ($webNode+".inGuideCurve");
+						setAttr ($webNode+".seed") `size($webs)`;
+
+						$webs[size($webs)] = $webNode;
+						$guides[size($guides)] = $obj;						
+					}
+					else
+					{
+						string $tokens[];
+						tokenize( $dest, ".", $tokens );
+						$dest = $tokens[0];
+
+						string $cont = `connectionInfo -sfd ($dest+".inWebData")`;
+
+						tokenize( $cont, ".", $tokens );
+						$control = $tokens[0];
+					}
+				}
+			}
+		}
+	}
+
+	if( size($webs) > 0 )
+	{
+		if( $control == "" ) $control = `createNode ZWebCurvesControl`;
+
+		int $i=0;
+		for( $i=0; $i<size($webs); $i++ )
+		{
+			connectAttr -f ($control+".outWebData") ($webs[$i]+".inWebData");
+		}
+
+		for( $i=0; $i<size($guides); $i++ )
+		{
+			connectAttr -f ($guides[$i]+".spans") ($control+".inLink["+$i+"]");
+		}		
+
+		select -r $control;
+	}
+}
+
+global proc ZWebCreateStitchCurves()
+{
+    string $objs[] = `ls -sl -l`;	
+	string $type = "nurbsCurve";
+
+	string $curves[];
+
+	for( $obj in $objs )
+	{
+		if( `nodeType $obj` == $type )
+		{
+			$curves[size($curves)] = $obj;
+			continue;
+		}
+		else if( `nodeType $obj` == "transform" )
+		{
+			string $shapes[] = `listRelatives -fullPath -shapes $obj`;
+
+			for( $s in $shapes )
+			{
+				if( `nodeType $s` == $type )
+				{
+					$curves[size($curves)] = $obj;						
+					continue;						
+				}
+			}
+		}
+	}
+
+	if( size($curves) >= 2 )
+	{
+		string $control = `createNode ZWStitchCurvesControl`;		
+
+		for( $i=0; $i<size($curves)-1; $i++ )
+		{
+			string $node = `createNode ZWStitchCurves`;
+			setAttr ($node+".seed") $i;		
+
+			connectAttr -f ($curves[$i]+".worldSpace[0]") ($node+".inGuideCurve");
+			connectAttr -f ($curves[size($curves)-1]+".worldSpace[0]") ($node+".inSourceCurve");
+
+			connectAttr -f ($control+".outWebData") ($node+".inWebData");
+			connectAttr -f ($curves[$i]+".spans") ($control+".inLink["+$i+"]");
+		}
+
+		select -r $control;		
+	}
+}
+
+global proc ZWebABCEXport()
+{
+    window -resizeToFitChildren true 
+	       -titleBar true 
+		   -sizeable false 
+		   -title "Dexter"
+		   ZWebABCExporter;
+
+    
+
+	columnLayout;
+	{
+		frameLayout -l "ZWeb Alembic Exporter" -w 300 -collapsable false;		
+
+		separator -st "single" -hr true;
+
+		rowLayout -nc 3;
+		text -w 80 -al "right" "Alembic";
+		textField -w 200 tf_ZWExporter_CachePath;
+		symbolButton -image "navButtonBrowse.xpm" -c "ZWebOpenExpoler" sb_ZWExporter_CachePath;
+		setParent ..;
+
+		separator -st "single" -hr true;
+
+		rowLayout -nc 3;
+		text -w 80 -al "right" "Start Frame";
+		textField -w 50 tf_ZWStartFrame;
+		setParent ..;
+
+		rowLayout -nc 3;
+		text -w 80 -al "right" "End Frame";
+		textField -w 50 tf_ZWEndFrame;
+		setParent ..;
+
+		separator -st "single" -hr true;
+
+		rowLayout -nc 3;
+		text -w 80 -al "right" " ";
+		button -l "Bake" -w 80 -c "ZWebAlembicBake";
+		setParent ..;
+
+		separator -st "single" -hr true;
+
+		rowLayout -nc 3;
+		text -w 80 -al "right" " ";		
+		checkBox -label "ZWeb Enable" -v `ZWebEnable` -cc "ZWebEnableCheck" cb_ZWExport_Enable;
+		setParent ..;
+
+		separator -st "single" -hr true;		
+	}
+
+	showWindow ZWebABCExporter;	
+}
+
+global proc ZWebOpenExpoler()
+{
+	string $filter = "ABC(*.abc)";
+	string $files[] = `fileDialog2 -ff $filter -fm 0 -ds 1`;
+	if( !size($files) ) return;
+
+	textField -e -tx $files[0] tf_ZWExporter_CachePath;
+	
+	print $files[0];	
+}
+
+global proc ZWebAlembicBake()
+{
+	string $startFrame = `textField -q -tx tf_ZWStartFrame`;
+	string $endFrame = `textField -q -tx tf_ZWEndFrame`;
+	string $path = `textField -q -tx tf_ZWExporter_CachePath`;
+
+	print $startFrame;
+	print $endFrame;
+	print $path;
+
+	int $sf = (int)$startFrame;
+	int $ef = (int)$endFrame;
+
+	ZWebEnable true;
+	checkBox -e -v `ZWebEnable` cb_ZWExport_Enable;
+
+	ZWebAbcExport $sf $ef $path;
+}
+
+global proc ZWebEnableCheck()
+{
+	$val = `checkBox -q -v cb_ZWExport_Enable`;
+	ZWebEnable $val;
+}
+

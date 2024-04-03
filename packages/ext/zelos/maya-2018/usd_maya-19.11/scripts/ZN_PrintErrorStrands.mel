@@ -1,0 +1,102 @@
+//--------------------------//
+// ZN_PrintErrorStrands.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_PrintErrorStrands()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $selectedNodes[] = `ls -sl -l -ni`;
+
+	if( size($selectedNodes) == 0 )
+	{
+		ZPrintError "No selected ZENN node.";
+		return;
+	}
+
+	if( size($selectedNodes) == 2 )
+	{
+		ZPrintError "Too many selected ZENN nodes.";
+		return;
+	}
+
+	for( $node in $selectedNodes )
+	{
+		string $nodeType = `nodeType $node`;
+
+		int $validType = 0;
+		if( $nodeType == "ZN_Pass"            ) { $validType = 1; }
+		if( $nodeType == "ZN_Copy"            ) { $validType = 1; }
+		if( $nodeType == "ZN_Merge"           ) { $validType = 1; }
+		if( $nodeType == "ZN_Import"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Select"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Switch"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Deform"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Jiggle"          ) { $validType = 1; }
+		if( $nodeType == "ZN_Animate"         ) { $validType = 1; }
+		if( $nodeType == "ZN_Generate"        ) { $validType = 1; }
+		if( $nodeType == "ZN_StrandsViewer"   ) { $validType = 1; }
+		if( $nodeType == "ZN_FeatherInstance" ) { $validType = 1; }
+
+		if( $validType == 0 )
+		{
+			ZPrintError ( $node + "isn't a supported node type." );
+			return;
+		}
+
+		string $ZN_Import;
+		{
+			string $upstreamNodes[] = `listHistory $node`;
+
+			for( $upstreamNode in $upstreamNodes )
+			{
+				$nodeType = `nodeType $upstreamNode`;
+
+				if( $nodeType == "ZN_Import" )
+				{
+					$ZN_Import = $upstreamNode;
+					break;
+				}
+			}
+		}
+
+		if( $ZN_Import == "" )
+		{
+			ZPrintError "No ZN_Import node.";
+			return;
+		}
+
+		string $bodyMesh;
+		{
+			if( `connectionInfo -id ($ZN_Import+".inBodyMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($ZN_Import+".inBodyMesh")`;
+
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+				string $mesh = $tokens[0];
+
+				if( `nodeType $mesh` == "mesh" )
+				{
+					$bodyMesh = $mesh;
+				}
+			}
+		}
+
+		if( $bodyMesh == "" )
+		{
+			ZPrintError "No body mesh.";
+			return;
+		}
+
+		ZN_PrintErrorStrandsCmd -nodeName $node -meshName $bodyMesh;
+	}
+}
+

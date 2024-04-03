@@ -1,0 +1,63 @@
+//--------------------------//
+// AEZN_AnimateTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.11.11                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_AnimateUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_AnimateUpdateExe "+$attr) ZN_AnimateUpdate;
+	setUITemplate -ppt;
+
+	ZN_AnimateUpdateReplace $attr;
+}
+
+global proc ZN_AnimateUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_AnimateUpdateExe "+$attr) ZN_AnimateUpdate;
+}
+
+global proc ZN_AnimateUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Animate = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Animate;
+}
+
+//////////
+// main //
+global proc AEZN_AnimateTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Mode" -ac "mode";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_AnimateUpdateNew ZN_AnimateUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

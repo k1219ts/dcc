@@ -1,0 +1,343 @@
+//----------------------------------//
+// AEZN_FeatherInstanceTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.04.15                               //
+//-------------------------------------------------------//
+
+global proc ZN_FeatherInstanceGroupingMethodChanged( string $node )
+{
+	editorTemplate -dc $node "ratioStr" 1;
+
+	if( `getAttr ($node+".groupingMethod")` == 0 )
+	{
+		editorTemplate -dc $node "ratioStr" 0;
+	}
+}
+
+global proc ZN_FeatherInstanceGroupingMethodChanged( string $node )
+{
+	int $bindingScheme = `getAttr ($node+".bindingScheme")`;
+
+	if( $bindingScheme < 4 ) {
+
+		editorTemplate -dc $node "foldRange"     1;
+		editorTemplate -dc $node "foldMapPath"   1;
+		editorTemplate -dc $node "foldValueLift" 1;
+
+	} else {
+
+		editorTemplate -dc $node "foldRange"     0;
+		editorTemplate -dc $node "foldMapPath"   0;
+		editorTemplate -dc $node "foldValueLift" 0;
+
+	}
+
+	ZN_FeatherInstanceUseCurveScaleChanged( $node );
+}
+
+global proc ZN_FeatherInstanceUseCurveScaleChanged( string $node )
+{
+	if( `getAttr ($node+".useCurveScale")` ) {
+
+		editorTemplate -dc $node "onlyCurveDirection" 0;
+		editorTemplate -dc $node "scaleRange"         1;
+		editorTemplate -dc $node "scaleMapPath"       1;
+		editorTemplate -dc $node "scaleValueLift"     1;
+
+	} else {
+
+		editorTemplate -dc $node "onlyCurveDirection" 1;
+		editorTemplate -dc $node "scaleRange"         0;
+		editorTemplate -dc $node "scaleMapPath"       0;
+		editorTemplate -dc $node "scaleValueLift"     0;
+
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_FeatherInstanceUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_FeatherInstanceUpdateExe "+$attr) ZN_FeatherInstanceUpdate;
+	setUITemplate -ppt;
+
+	ZN_FeatherInstanceUpdateReplace $attr;
+}
+
+global proc ZN_FeatherInstanceUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_FeatherInstanceUpdateExe "+$attr) ZN_FeatherInstanceUpdate;
+}
+
+global proc ZN_FeatherInstanceUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_FeatherInstance = $node[0];
+
+	ZN_FeatherInstanceImportListReConnect $attr;
+
+	setAttr $attr 1;
+
+	updateAE $ZN_FeatherInstance;
+}
+
+/////////////////
+// import list //
+global proc ZN_FeatherInstanceImportListNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_FeatherInstance = $node[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				textScrollList -w 200 -h 100 -dcc ZN_FeatherInstanceImportListSel -dkc ZN_FeatherInstanceImportListDel tsZN_FeatherInstanceImportList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 100 -l "Up"   -c ZN_FeatherInstanceImportListUp;
+					button -w 100 -l "Down" -c ZN_FeatherInstanceImportListDown;
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 200 -l "Re-Connect" -c ( "ZN_FeatherInstanceImportListReConnect(\""+$attr+"\")" ) ZN_FeatherInstanceImportListBtn;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_FeatherInstanceImportListReplace( $attr );
+}
+
+global proc ZN_FeatherInstanceImportListReplace( string $attr )
+{
+	string $items[] = `textScrollList -q -ai tsZN_FeatherInstanceImportList`;
+	for( $item in $items ) { textScrollList -e -ri $item tsZN_FeatherInstanceImportList; }
+
+	// get the name of this ZN_FeatherInstance node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_FeatherInstanceNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_FeatherInstanceNode + ".inFeather" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i = 0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_FeatherInstanceNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_FeatherInstanceNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		textScrollList -e -a $node[0] tsZN_FeatherInstanceImportList;
+	}
+
+	button -e -c ( "ZN_FeatherInstanceImportListReConnect(\""+$attr+"\")" ) ZN_FeatherInstanceImportListBtn;
+}
+
+global proc ZN_FeatherInstanceImportListSel()
+{
+	string $items[] = `textScrollList -q -si tsZN_FeatherInstanceImportList`;
+	if( size($items) == 0 ) { return; }
+	select -r $items[0];
+}
+
+global proc ZN_FeatherInstanceImportListDel()
+{
+	string $items[] = `textScrollList -q -si tsZN_FeatherInstanceImportList`;
+	if( size($items) == 0 ) { return; }
+	delete $items[0];
+}
+
+global proc ZN_FeatherInstanceImportListUp()
+{
+	string $items[] = `textScrollList -q -ai tsZN_FeatherInstanceImportList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	int $selIdx[] = `textScrollList -q -sii tsZN_FeatherInstanceImportList`; // 1-based
+	if( size($selIdx)==0 ) { return; }
+	int $j = $selIdx[0]-1;
+	if( $j==0 ) { return; }
+
+	string $tmp  = $items[$j-1];
+	$items[$j-1] = $items[$j];
+	$items[$j]   = $tmp;
+
+	textScrollList -e -ra tsZN_FeatherInstanceImportList;
+
+	for( $item in $items )
+	{
+		textScrollList -e -a $item tsZN_FeatherInstanceImportList;
+	}
+
+	textScrollList -e -sii $j tsZN_FeatherInstanceImportList;
+}
+
+global proc ZN_FeatherInstanceImportListDown()
+{
+	string $items[] = `textScrollList -q -ai tsZN_FeatherInstanceImportList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	int $selIdx[] = `textScrollList -q -sii tsZN_FeatherInstanceImportList`; // 1-based
+	if( size($selIdx)==0 ) { return; }
+	int $j = $selIdx[0]-1;
+	if( $j==$numItems-1 ) { return; }
+
+	string $tmp  = $items[$j+1];
+	$items[$j+1] = $items[$j];
+	$items[$j]   = $tmp;
+
+	textScrollList -e -ra tsZN_FeatherInstanceImportList;
+
+	for( $item in $items )
+	{
+		textScrollList -e -a $item tsZN_FeatherInstanceImportList;
+	}
+
+	textScrollList -e -sii ($j+2) tsZN_FeatherInstanceImportList;
+}
+
+global proc ZN_FeatherInstanceImportListReConnect( string $attr )
+{
+	string $items[] = `textScrollList -q -ai tsZN_FeatherInstanceImportList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_FeatherInstance = $node[0];
+
+	// .inFeather[]
+	string $inFeather[] = `listAttr -multi ( $ZN_FeatherInstance + ".inFeather" )`;
+	int $numConnections = size($inFeather);
+
+	// old list
+	int $i = 0;
+	string $oldList[];
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_FeatherInstance + "." + $inFeather[$i] )` )
+		{
+			continue;
+		}
+		$oldList[$i] = `connectionInfo -sfd ( $ZN_FeatherInstance + "." + $inFeather[$i] )`;
+	}
+
+	// new list
+	$i = 0;
+	string $newList[];
+	for( $item in $items )
+	{
+		$newList[$i++] = $item + ".outFeather";
+	}
+
+	// disconnect
+	string $toOutput = ZConnectedNodeAttr( $node[0], "outFeatherSet" );
+	disconnectAttr ($node[0]+".outFeatherSet") $toOutput;
+
+	for( $i=0; $i<$numItems; $i++ )
+	{
+		disconnectAttr $oldList[$i] ( $ZN_FeatherInstance + "." + $inFeather[$i] );
+	}
+    
+	// re-connect
+	connectAttr ($ZN_FeatherInstance+".outFeatherSet") $toOutput;
+	
+	for( $i=0; $i<$numItems; $i++ )
+	{
+		connectAttr $newList[$i] ( $ZN_FeatherInstance + "." + $inFeather[$i] );
+	}
+}
+
+//////////
+// main //
+global proc AEZN_FeatherInstanceTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands"              -ac "numStrands";
+			editorTemplate -l "Feathers"             -ac "numFeathers";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Assigning Controls" -collapse 0;
+		{
+			editorTemplate -l "Grouping Method"      -ac "groupingMethod" ZN_FeatherInstanceGroupingMethodChanged;
+			editorTemplate -l "Ratio"                -ac "ratioStr";
+			editorTemplate -l "Random Seed"          -ac "randomSeed";
+			editorTemplate -as;
+			editorTemplate -l "Binding Scheme"       -ac "bindingScheme" ZN_FeatherInstanceGroupingMethodChanged;
+			editorTemplate -as;
+			editorTemplate -l "Texture Type"         -ac "textureType";
+
+			editorTemplate -as;
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Scale";
+			editorTemplate -l "Use Curve Scale"      -ac "useCurveScale" ZN_FeatherInstanceUseCurveScaleChanged;
+			editorTemplate -as;
+			editorTemplate -l "Only Curve Direction" -ac "onlyCurveDirection";
+			editorTemplate -as;
+			editorTemplate -l "Range"                -ac "scaleRange";
+			editorTemplate -l "Map Path"             -ac "scaleMapPath";
+			editorTemplate -l "Value Lift"           -ac "scaleValueLift";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Rotation";
+			editorTemplate -l "Range"                -ac "rotateRange";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Fold";
+			editorTemplate -l "Range"                -ac "foldRange";
+			editorTemplate -l "Map Path"             -ac "foldMapPath";
+			editorTemplate -l "Value Lift"           -ac "foldValueLift";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected ZN_FeatherImport Node List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_FeatherInstanceImportListNew ZN_FeatherInstanceImportListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -as;
+		editorTemplate -ccu ZN_FeatherInstanceUpdateNew ZN_FeatherInstanceUpdateReplace "update";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "inFeather";
+	editorTemplate -suppress "outFeatherSet";
+	editorTemplate -suppress "cacheGenMode";
+}
+

@@ -1,0 +1,356 @@
+//-----------------------------------//
+// AEZelosClothSimulatorTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2016.07.12                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothSimulatorSimulationNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		floatSliderGrp -l "Density"        -precision 6 -min    0.0 -max     1.0 ZelosClothSimulatorDensity;
+		floatSliderGrp -l "Friction"       -precision 6 -min    0.0 -max     1.0 ZelosClothSimulatorFriction;
+
+		text -l "Stiffness" -bgc 0.2 0.2 0.2;
+		floatSliderGrp -l "Stretch in U"   -precision 3 -min    0.0 -max  1000.0 ZelosClothSimulatorStretchStiffnessU;
+		floatSliderGrp -l "Stretch in V"   -precision 3 -min    0.0 -max  1000.0 ZelosClothSimulatorStretchStiffnessV;
+		floatSliderGrp -l "Shear"          -precision 3 -min    0.0 -max   100.0 ZelosClothSimulatorShearStiffness;
+		floatSliderGrp -l "Bend"           -precision 3 -min    0.0 -max     1.0 ZelosClothSimulatorBendStiffness;
+		floatSliderGrp -l "Rubber in U"    -precision 3 -min    0.0 -max     2.0 ZelosClothSimulatorRubberU;
+		floatSliderGrp -l "Rubber in V"    -precision 3 -min    0.0 -max     2.0 ZelosClothSimulatorRubberV;
+
+		text -l "Damping" -bgc 0.2 0.2 0.2;
+		floatSliderGrp -l "Stretch in U"   -precision 6 -min    0.0 -max     1.0 ZelosClothSimulatorStretchDampingU;
+		floatSliderGrp -l "Stretch in V"   -precision 6 -min    0.0 -max     1.0 ZelosClothSimulatorStretchDampingV;
+		floatSliderGrp -l "Shear"          -precision 6 -min    0.0 -max     1.0 ZelosClothSimulatorShearDamping;
+		floatSliderGrp -l "Bend"           -precision 6 -min    0.0 -max     1.0 ZelosClothSimulatorBendDamping;
+		floatSliderGrp -l "Air Drag"       -precision 6 -min    0.0 -max     10.0 ZelosClothSimulatorAirDrag;
+		floatSliderGrp -l "Viscous"        -precision 6 -min    0.0 -max     10.0 ZelosClothSimulatorViscousDamping;
+	}
+	setUITemplate -ppt;
+
+	ZelosClothSimulatorSimulationReplace( $attr );
+}
+
+global proc ZelosClothSimulatorSimulationReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	connectControl ZelosClothSimulatorDensity           ( $node[0] + ".density"           );
+	connectControl ZelosClothSimulatorFriction          ( $node[0] + ".friction"          );
+	connectControl ZelosClothSimulatorStretchStiffnessU ( $node[0] + ".stretchStiffnessU" );
+	connectControl ZelosClothSimulatorStretchStiffnessV ( $node[0] + ".stretchStiffnessV" );
+	connectControl ZelosClothSimulatorShearStiffness    ( $node[0] + ".shearStiffness"    );
+	connectControl ZelosClothSimulatorBendStiffness     ( $node[0] + ".bendStiffness"     );
+	connectControl ZelosClothSimulatorStretchDampingU   ( $node[0] + ".stretchDampingU"   );
+	connectControl ZelosClothSimulatorStretchDampingV   ( $node[0] + ".stretchDampingV"   );
+	connectControl ZelosClothSimulatorShearDamping      ( $node[0] + ".shearDamping"      );
+	connectControl ZelosClothSimulatorBendDamping       ( $node[0] + ".bendDamping"       );
+	connectControl ZelosClothSimulatorViscousDamping    ( $node[0] + ".viscousDamping"    );
+	connectControl ZelosClothSimulatorRubberU			( $node[0] + ".rubberU"			  );
+	connectControl ZelosClothSimulatorRubberV			( $node[0] + ".rubberV"			  );
+	connectControl ZelosClothSimulatorAirDrag           ( $node[0] + ".airDrag"           );
+}
+
+global proc ZelosClothSimulatorPatternNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+		text -l "Design Pattern" -bgc 0.2 0.2 0.2;
+		rowLayout;
+			checkBox -l "Interactive Feedback" ZelosClothSimulatorInteractive;
+		setParent ..;
+
+	setUITemplate -ppt;
+
+	ZelosClothSimulatorPatternReplace( $attr );
+}
+
+global proc ZelosClothSimulatorPatternReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	connectControl ZelosClothSimulatorInteractive       ( $node[0] + ".interactive"       );
+}
+
+/////////////////////////
+// Guide Strands Cache //
+global proc ZelosClothCacheNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 4;
+			text "Path";	
+			textField -ed 1 tfZelosClothPath;
+			symbolButton -image "navButtonBrowse.xpm" -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZelosClothPath\")" ) tfZelosClothPathBtn;
+			setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZelosClothCacheReplace( $attr );
+}
+
+global proc ZelosClothCacheReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	textField -e -tx `getAttr $attr` tfZelosClothPath;
+	symbolButton -e -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZelosClothPath\")" ) tfZelosClothPathBtn;
+}
+
+/////////////////////
+// Maya Field List //
+global proc ZelosClothSimulatorMayaFieldListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				textScrollList -w 200 -dcc ZelosClothSimulatorMayaFieldListSel -dkc ("ZelosClothSimulatorMayaFieldListDel(\""+$attr+"\")") tsZelosClothSimulatorMayaFieldList;
+				setParent ..;
+			rowLayout;
+				rowColumnLayout -nc 3;
+					button -w 100 -l "Add All" -c ( "ZelosClothSimulatorMayaFieldListAddAll(\""+$attr+"\")" );
+					button -w 100 -l "Clear"   -c ( "ZelosClothSimulatorMayaFieldListClear(\""+$attr+"\")" );
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosClothSimulatorMayaFieldListReplace( $attr );
+}
+
+global proc ZelosClothSimulatorMayaFieldListReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosClothSimulator = $node[0];
+
+	string $items[] = `textScrollList -q -ai tsZelosClothSimulatorMayaFieldList`;
+
+	for( $item in $items )
+	{
+		textScrollList -e -ri $item tsZelosClothSimulatorMayaFieldList;
+	}
+
+	string $connectedPlg[] = `listAttr -multi ( $ZelosClothSimulator + ".fields" )`;
+	int $numConnections = size($connectedPlg);
+
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosClothSimulator + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosClothSimulator + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		string $field = $node[0];
+		textScrollList -e -a $field tsZelosClothSimulatorMayaFieldList;
+	}
+}
+
+global proc ZelosClothSimulatorMayaFieldListSel()
+{
+	string $items[] = `textScrollList -q -si tsZelosClothSimulatorMayaFieldList`;
+	if( size($items) == 0 ) { return; }
+	select -r $items[0];
+}
+
+global proc ZelosClothSimulatorMayaFieldListDel( string $attr )
+{
+	string $nodes[];
+	tokenize( $attr, ".", $nodes );
+	string $ZelosClothSimulator = $nodes[0];
+
+	string $items[] = `textScrollList -q -si tsZelosClothSimulatorMayaFieldList`;
+
+	for( $item in $items )
+	{
+		string $field = $item;
+
+		if( `connectionInfo -is ($field+".message")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($field+".message")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				tokenize( $nodeAttr, ".", $nodes );
+
+				if( $nodes[0] == $ZelosClothSimulator )
+				{
+					disconnectAttr ($field+".message") $nodeAttr;
+				}
+			}
+		}
+
+		textScrollList -e -ri $item tsZelosClothSimulatorMayaFieldList;
+	}
+}
+
+global proc ZelosClothSimulatorMayaFieldListAddAll( string $attr )
+{
+	string $nodes[];
+	tokenize( $attr, ".", $nodes );
+	string $ZelosClothSimulator = $nodes[0];
+
+	string $items[] = `textScrollList -q -ai tsZelosClothSimulatorMayaFieldList`;
+
+	string $fields[] = `ls -type field`;
+
+	for( $field in $fields )
+	{
+		int $toConnect = true;
+
+		if( `connectionInfo -is ($field+".message")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($field+".message")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				tokenize( $nodeAttr, ".", $nodes );
+
+				if( $nodes[0] == $ZelosClothSimulator )
+				{
+					$toConnect = false;
+					break;
+				}
+			}
+		}
+
+		if( $toConnect )
+		{
+			int $port = ZEmptyPort( $ZelosClothSimulator, "fields" );
+			connectAttr ($field+".message") ($ZelosClothSimulator+".fields["+$port+"]");
+
+			textScrollList -e -a $field tsZelosClothSimulatorMayaFieldList;
+		}
+	}
+}
+
+global proc ZelosClothSimulatorMayaFieldListClear( string $attr )
+{
+	string $nodes[];
+	tokenize( $attr, ".", $nodes );
+	string $ZelosClothSimulator = $nodes[0];
+
+	string $items[] = `textScrollList -q -ai tsZelosClothSimulatorMayaFieldList`;
+
+	for( $item in $items )
+	{
+		string $field = $item;
+
+		if( `connectionInfo -is ($field+".message")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($field+".message")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				tokenize( $nodeAttr, ".", $nodes );
+
+				if( $nodes[0] == $ZelosClothSimulator )
+				{
+					disconnectAttr ($field+".message") $nodeAttr;
+				}
+			}
+		}
+
+		textScrollList -e -ri $item tsZelosClothSimulatorMayaFieldList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosClothSimulatorTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 1;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 1;
+			editorTemplate -l "Vertex Count"    -ac "numVertices";
+			editorTemplate -l "Triangles Count" -ac "numTriangles";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Simulation" -collapse 0;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Simulation";
+			editorTemplate -l "Start Frame"     -ac "startTime";
+			editorTemplate -l "Time Scale"      -ac "timeScale";
+			editorTemplate -l "Sub-Steps"       -ac "numSubSteps";
+			editorTemplate -l "Length Scale"    -ac "lengthScale";
+			editorTemplate -l "Gravity"         -ac "gravity";
+			editorTemplate -l "Max. Iterations" -ac "maxIterations";
+			editorTemplate -l "Accuracy"        -ac "accuracy";
+			editorTemplate -ccu ZelosClothSimulatorSimulationNew ZelosClothSimulatorSimulationReplace "";
+			editorTemplate -ccu ZelosClothSimulatorPatternNew ZelosClothSimulatorPatternReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Collision" -collapse 1;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Self-Collision";
+			editorTemplate -l "Type"            -ac "selfCollisionType";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Object-Collision";
+			editorTemplate -l "On"              -ac "solidCollision";
+			editorTemplate -l "Offset"          -ac "solidOffsetRatio";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Wind" -collapse 1;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Wind";
+			editorTemplate -l "Direction"                       -ac "windDirection";
+			editorTemplate -l "Scale"                           -ac "windScale";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Turbulence";
+			editorTemplate -l "Type"                            -ac "turbulenceType";
+			editorTemplate -l "Spatial Frequency"               -ac "turbulenceSFreq";
+			editorTemplate -l "Temporal Frequency"              -ac "turbulenceTFreq";
+			editorTemplate -l "Scale"                           -ac "turbulenceScale";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Maya Fields";
+			editorTemplate -ccu ZelosClothSimulatorMayaFieldListNew ZelosClothSimulatorMayaFieldListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Cache" -collapse 1;
+			editorTemplate -l "Cache Mode"      -ac "cacheMode";
+			editorTemplate -ccu ZelosClothCacheNew ZelosClothCacheReplace "cachePath";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "inMesh0";
+	editorTemplate -suppress "inMesh1";
+	editorTemplate -suppress "pinConstraints";
+	editorTemplate -suppress "attachConstraints";
+	editorTemplate -suppress "springConstraints";
+	editorTemplate -suppress "colliders";
+	editorTemplate -suppress "fields";
+	editorTemplate -suppress "outMesh";
+	editorTemplate -suppress "selfCollision";
+	editorTemplate -suppress "objCollision";
+
+	editorTemplate -suppress "selfCollisionMap";
+	editorTemplate -suppress "objCollisionMap";
+	editorTemplate -suppress "densityMap";
+	editorTemplate -suppress "frictionMap";
+	editorTemplate -suppress "viscousDampingMap";
+	editorTemplate -suppress "stretchStiffnessUMap";
+	editorTemplate -suppress "stretchStiffnessVMap";
+	editorTemplate -suppress "shearStiffnessMap";
+	editorTemplate -suppress "bendStiffnessMap";
+	editorTemplate -suppress "stretchDampingUMap";
+	editorTemplate -suppress "stretchDampingVMap";
+	editorTemplate -suppress "shearDampingMap";
+	editorTemplate -suppress "bendDampingMap";
+	editorTemplate -suppress "rubberUMap";
+	editorTemplate -suppress "rubberVMap";
+	editorTemplate -suppress "airDragMap";
+	editorTemplate -suppress "goalStiffnessMap";
+	editorTemplate -suppress "goalDampingMap";
+	editorTemplate -suppress "fieldScaleMap";
+}
+

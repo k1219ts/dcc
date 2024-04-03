@@ -1,0 +1,201 @@
+//--------------------//
+// ZUVTransferWin.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.08                               //
+//-------------------------------------------------------//
+
+global proc ZUVTransferOnOff()
+{
+	string $selected = `radioCollection -q -select ZUVTransferRC`;
+
+	if( $selected == "ZUVTransferRC0" ) {
+
+		text      -e -en 1 txSourceMesh_ZUVTransferWin;
+		textField -e -en 1 tfSourceMesh_ZUVTransferWin;
+		button    -e -en 1 btnSourceMesh_ZUVTransferWin;
+		text      -e -en 1 txSourceUVSet_ZUVTransferWin;
+		textField -e -en 1 tfSourceUVSet_ZUVTransferWin;
+
+		text      -e -en 0 txTargetMesh_ZUVTransferWin;
+		textField -e -en 0 tfTargetMesh_ZUVTransferWin;
+		button    -e -en 0 btnTargetMesh_ZUVTransferWin;
+		text      -e -en 0 txTargetUVSet_ZUVTransferWin;
+		textField -e -en 0 tfTargetUVSet_ZUVTransferWin;
+
+		text      -e -en 1 txCacheFile_ZUVTransferWin;
+		textField -e -en 1 tfCacheFile_ZUVTransferWin;
+
+	} else if( $selected == "ZUVTransferRC1" ) {
+
+		text      -e -en 0 txSourceMesh_ZUVTransferWin;
+		textField -e -en 0 tfSourceMesh_ZUVTransferWin;
+		button    -e -en 0 btnSourceMesh_ZUVTransferWin;
+		text      -e -en 0 txSourceUVSet_ZUVTransferWin;
+		textField -e -en 0 tfSourceUVSet_ZUVTransferWin;
+
+		text      -e -en 1 txTargetMesh_ZUVTransferWin;
+		textField -e -en 1 tfTargetMesh_ZUVTransferWin;
+		button    -e -en 1 btnTargetMesh_ZUVTransferWin;
+		text      -e -en 1 txTargetUVSet_ZUVTransferWin;
+		textField -e -en 1 tfTargetUVSet_ZUVTransferWin;
+
+		text      -e -en 1 txCacheFile_ZUVTransferWin;
+		textField -e -en 1 tfCacheFile_ZUVTransferWin;
+
+	} else {
+
+		text      -e -en 1 txSourceMesh_ZUVTransferWin;
+		textField -e -en 1 tfSourceMesh_ZUVTransferWin;
+		button    -e -en 1 btnSourceMesh_ZUVTransferWin;
+		text      -e -en 1 txSourceUVSet_ZUVTransferWin;
+		textField -e -en 1 tfSourceUVSet_ZUVTransferWin;
+
+		text      -e -en 1 txTargetMesh_ZUVTransferWin;
+		textField -e -en 1 tfTargetMesh_ZUVTransferWin;
+		button    -e -en 1 btnTargetMesh_ZUVTransferWin;
+		text      -e -en 1 txTargetUVSet_ZUVTransferWin;
+		textField -e -en 1 tfTargetUVSet_ZUVTransferWin;
+
+		text      -e -en 0 txCacheFile_ZUVTransferWin;
+		textField -e -en 0 tfCacheFile_ZUVTransferWin;
+
+	}
+}
+
+global proc ZUVTransferWin()
+{
+	global string $UVTM0path;
+
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZUVTransferWin` )
+	{
+    	//deleteUI ZUVTransferWin;
+    	showWindow ZUVTransferWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "UV transfer for meshes" ZUVTransferWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 300 -style "none";
+
+		rowLayout -nc 2 -cw2 200 150;
+			text -l "Zelos system" -font "boldLabelFont" -w 200 -al "left";
+			text -l " by Dexter Studios R&D team" -w 150 -al "left";
+			setParent..;
+
+		separator -h 2 -w 400 -style "in";
+		separator -h 15 -w 350 -style "none";
+
+		columnLayout;
+			radioCollection ZUVTransferRC;
+			radioButton -l "Export to file (ZExportUVs)"                          -cc ZUVTransferOnOff ZUVTransferRC0;
+			radioButton -l "Import to file (ZImportUVs)"                          -cc ZUVTransferOnOff ZUVTransferRC1;
+			radioButton -l "Transfer between two different meshes (ZTransferUVs)" -cc ZUVTransferOnOff ZUVTransferRC2;
+			setParent..;
+
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Source Mesh" -font "boldLabelFont" -w 350 -al "left" txSourceMesh_ZUVTransferWin;
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 tfSourceMesh_ZUVTransferWin;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfSourceMesh_ZUVTransferWin\",\"mesh\");") btnSourceMesh_ZUVTransferWin;
+			setParent..;
+
+		text -l "Source UVSet Name" -font "boldLabelFont" -w 350 -al "left" txSourceUVSet_ZUVTransferWin;
+		rowLayout -w 350;
+			textField -tx "map1" -w 300 tfSourceUVSet_ZUVTransferWin;
+			setParent..;
+
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Target Mesh" -font "boldLabelFont" -w 350 -al "left" txTargetMesh_ZUVTransferWin;
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 tfTargetMesh_ZUVTransferWin;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfTargetMesh_ZUVTransferWin\",\"mesh\");") btnTargetMesh_ZUVTransferWin;
+			setParent..;
+
+		text -l "Target UVSet Name" -font "boldLabelFont" -w 350 -al "left" txTargetUVSet_ZUVTransferWin;
+		rowLayout -w 350;
+			textField -tx "map1" -w 300 tfTargetUVSet_ZUVTransferWin;
+			setParent..;
+
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Cache File" -font "boldLabelFont" -w 350 -al "left" txCacheFile_ZUVTransferWin;
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 tfCacheFile_ZUVTransferWin;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c "string $file[] = `fileDialog2 -fm 0 -ds 1`; textField -e -tx $file[0] tfCacheFile_ZUVTransferWin;";
+			setParent ..;
+
+		separator -h 15 -w 350 -style "none";
+
+		button -l "Execute" -w 300 -al "center" -c "ZUVTransferExecute";
+
+		separator -h 15 -w 350 -style "none";
+
+	showWindow ZUVTransferWin;
+
+	radioCollection -e -select ZUVTransferRC0 ZUVTransferRC;
+}
+
+global proc ZUVTransferExecute()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	string $sourceMesh = `textField -q -tx tfSourceMesh_ZUVTransferWin`;
+	string $targetMesh = `textField -q -tx tfTargetMesh_ZUVTransferWin`;
+
+	string $sourceUVSet = `textField -q -tx tfSourceUVSet_ZUVTransferWin`;
+	string $targetUVSet = `textField -q -tx tfTargetUVSet_ZUVTransferWin`;
+
+	string $filePathName = `textField -q -tx tfCacheFile_ZUVTransferWin`;
+	string $selected = `radioCollection -q -select ZUVTransferRC`;
+
+	if( $selected == "ZUVTransferRC0" ) {
+		ZExportUVs -meshName $sourceMesh -uvSetName $sourceUVSet -filePathName $filePathName;
+		return;
+	} else if( $selected == "ZUVTransferRC1" ) {
+		ZImportUVs -meshName $targetMesh -uvSetName $targetUVSet -filePathName $filePathName;
+	} else {
+		if( $sourceMesh == $targetMesh )
+			{ ZPrintError( "You must select two different meshes!" ); return; }
+		ZTransferUVs -sMeshName $sourceMesh -tMeshName $targetMesh -sUVSetName $sourceUVSet -tUVSetName $targetUVSet;
+	}
+
+	///////////////////////////////////
+	// in the case of using deformer //
+	select -r $targetMesh;
+	string $shapes[] = `ls -sl -dag -g`;
+	if( size($shapes) >= 2 )
+	if( `nodeType $shapes[1]` == "mesh" )
+	{
+		// uv transfer for the Orig shape node
+		if( $selected == "ZUVTransferRC0" ) {
+		} else if( $selected == "ZUVTransferRC1" ) {
+			ZImportUVs -meshName $shapes[1] -uvSetName $targetUVSet -filePathName $filePathName;
+		} else {
+			if( $sourceMesh == $shapes[1] )
+				{ ZPrintError( "You must select two different meshes!" ); return; }
+			ZTransferUVs -sMeshName $sourceMesh -tMeshName $shapes[1] -sUVSetName $sourceUVSet -tUVSetName $targetUVSet;
+		}
+
+		// delete "polyMapDel1" node
+		select -r $shapes[0];
+		string $connectedNodes[0] = `listConnections -type "polyMapDel"`;
+		if( `nodeType $connectedNodes[0]` == "polyMapDel" ) { delete $connectedNodes[0]; }
+	}
+}
+

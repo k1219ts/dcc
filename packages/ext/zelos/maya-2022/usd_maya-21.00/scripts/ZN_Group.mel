@@ -1,0 +1,242 @@
+//--------------//
+// ZN_Group.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+global proc ZN_AddNewGroup()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $xform;
+	{
+		string $xforms[] = `ls -sl -l -type transform`;
+		if( size($xforms) == 0 ) { ZPrintError "No selected object."; return; }
+		if( size($xforms) != 1 ) { ZPrintError "Too many selected objects."; return; }
+		$xform = $xforms[0];
+	}
+
+	string $mesh;
+	{
+		string $shapes[] = `listRelatives -shapes -ni $xform`;
+		if( size($shapes) == 0 ) { ZPrintError "No shape node."; return; }
+		if( size($shapes) != 1 ) { ZPrintError "Too many shape nodes."; return; }
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "mesh" )
+		{
+			ZPrintError ($shape+" is not a polygon mesh.");
+			return;
+		}
+
+		$mesh = $xform + "|" + $shape; // as a full path name
+	}
+
+	string $ZN_Global = `GetCurrentZN_Global`;
+	{
+		if( $ZN_Global == "" )
+		{
+			int $count = `NumCurrentZN_Globals`;
+			if( $count == 0 ) { ZPrintError "No current ZN_Global node."; return; }
+			if( $count != 1 ) { ZPrintError "Too many current ZN_Global nodes."; return; }
+			return;
+		}
+	}
+
+	// Create a ZN_Group node.
+	// |ZN_Global1|ZN_Group#
+	string $ZN_Group;
+	{
+		// Create a new group node.
+		$ZN_Group = `createNode ZN_Group -p $ZN_Global`;
+
+		// Lock the transform not to move.
+		setAttr -lock true ($ZN_Group+".translate");
+		setAttr -lock true ($ZN_Group+".rotate"   );
+		setAttr -lock true ($ZN_Group+".scale"    );
+
+		// to the full path
+		$ZN_Group = $ZN_Global + "|" + $ZN_Group;
+
+		// Set the current group.
+		string $groups[] = `ls -l -type ZN_Group`;
+		for( $group in $groups ) { setAttr ($group+".active") false; }
+		setAttr ($ZN_Group+".active") true;
+	}
+
+	int $groupNumber = `GetZN_GroupNumber $ZN_Group`;
+
+	// |ZN_Group#|CurveGroup
+	string $CurveGroup;
+	{
+		// Create a new curve group node.
+		$CurveGroup = `createNode transform -p $ZN_Group -n CurveGroup`;
+
+		// Lock the transform not to move.
+		setAttr -lock true ($CurveGroup+".translate");
+		setAttr -lock true ($CurveGroup+".rotate"   );
+		setAttr -lock true ($CurveGroup+".scale"    );
+
+		// to the full path
+		string $fullPaths[] = `ls -l $CurveGroup`;
+		$CurveGroup = $fullPaths[0];
+	}
+
+	string $ZN_StrandsViewer;
+	{
+		$ZN_StrandsViewer = `createNode ZN_StrandsViewer`;
+	}
+
+	// ZN_Import
+	string $ZN_Import;
+	{
+		$ZN_Import = `createNode ZN_Import -n ("ZN_Import"+$groupNumber)`;
+
+		setAttr ($ZN_Import+".restTime") `currentTime -q`;
+
+		connectAttr time1.outTime ($ZN_Import+".inTime");
+		connectAttr ($mesh+".w") ($ZN_Import+".inBodyMesh");
+		connectAttr ($CurveGroup+".message") ($ZN_Import+".inGuideCurves" );
+		connectAttr ($ZN_Global+".message") ($ZN_Import+".fromGlobal" );
+		connectAttr ($ZN_Group+".message") ($ZN_Import+".fromGroup" );
+
+		connectAttr ($ZN_Import+".outStrands") ($ZN_StrandsViewer+".inStrands");
+	}
+
+	select -r $ZN_Import;
+}
+
+global proc int GetZN_GroupNumber( string $ZN_Group )
+{
+	if( `nodeType $ZN_Group` != "ZN_Group" ) { return 0; }
+	int $number = `match "[0-9]+$" $ZN_Group`;
+	return $number;
+}
+
+global proc int NumCurrentZN_Groups()
+{
+	int $count = 0;
+	string $ZN_Groups[] = `ls -l -type ZN_Group`;
+	for( $ZN_Group in $ZN_Groups ) { if( `getAttr ($ZN_Group+".active")` ) { $count++; } }
+	return $count;
+}
+
+global proc string GetCurrentZN_Group()
+{
+	int $count = `NumCurrentZN_Groups`;
+	if( $count != 1 ) { return ""; }
+
+	string $ZN_Groups[] = `ls -l -type ZN_Group`;
+	for( $ZN_Group in $ZN_Groups ) { if(`getAttr ($ZN_Group+".active")`) { return $ZN_Group; } }
+	return "";
+}
+
+global proc string GetZN_Global( string $ZN_Group )
+{
+	if( `nodeType $ZN_Group` != "ZN_Group" ) { return ""; }
+	string $parents[] = `listRelatives -p $ZN_Group`;
+	if( size($parents) != 1 ) { return ""; }
+	string $ZN_Global = $parents[0];
+
+	// to the full path
+	string $fullPaths[] = `ls -l $ZN_Global`;
+	$ZN_Global = $fullPaths[0];
+
+	return $ZN_Global;
+}
+
+global proc string GetCurrentZN_Import()
+{
+	string $ZN_Group = `GetCurrentZN_Group`;
+	if( $ZN_Group == "" ) { return ""; }
+
+	if( !`connectionInfo -is ($ZN_Group+".message")` )
+	{
+		ZPrintError ($ZN_Group+" has no connection to a ZN_Import node.");
+		return "";
+	}
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($ZN_Group+".message")`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Import" )
+		{
+			return $node;
+		}
+	}
+
+	return "";
+}
+
+global proc string GetZN_BodyMesh( int $toGetXFormOrShape )
+{
+	string $ZN_Import = `GetCurrentZN_Import`;
+	if( $ZN_Import == "" ) { return ""; }
+
+	if( !`connectionInfo -id ($ZN_Import+".inBodyMesh")` )
+	{
+		ZPrintError ($ZN_Import+" has no connection from a mesh node.");
+		return "";
+	}
+
+	string $nodeAttr = `connectionInfo -sfd ($ZN_Import+".inBodyMesh")`;
+
+	string $tokens[];
+	tokenize( $nodeAttr, ".", $tokens );
+	string $meshShape = $tokens[0];
+
+	if( $toGetXFormOrShape != 1 )
+	{
+		return $meshShape;
+	}
+
+	string $parents[] = `listRelatives -p $meshShape`;
+
+	return $parents[0];
+}
+
+global proc string GetCurrentCurveGroup()
+{
+	string $ZN_Group = `GetCurrentZN_Group`;
+	if( $ZN_Group == "" ) { return ""; }
+
+	string $CurveGroup;
+	{
+		string $xforms[] = `listRelatives -c -type transform $ZN_Group`;
+
+		int $count = 0;
+
+		for( $xform in $xforms )
+		{
+			string $curveShapes[] = `listRelatives -c -ad -type nurbsCurve $xform`;
+			if( size($curveShapes) ) { $count++; }
+		}
+
+		if( $count == 0 ) {
+
+			ZPrintError ($ZN_Group+" has no a curve group node.");
+			return "";
+
+		} else if( $count > 1 ) {
+
+			ZPrintError ($ZN_Group+" has too many curve groups node.");
+			return "";
+
+		}
+
+		$CurveGroup = $ZN_Group + "|CurveGroup";
+	}
+
+	return $CurveGroup;
+}
+

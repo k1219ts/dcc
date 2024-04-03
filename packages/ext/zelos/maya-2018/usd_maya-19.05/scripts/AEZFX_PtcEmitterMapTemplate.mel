@@ -1,0 +1,45 @@
+//---------------------------------//
+// AEZFX_PtcEmitterMapTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.11.10                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_PtcEmitterMapTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Curv Range"				-ac "curvRange";
+			editorTemplate -l "Radius Rate"   			-ac "ptcRad";
+			editorTemplate -l "Num Rate"                -ac "ptcNumRate";
+			editorTemplate -l "SubNum"					-ac "ptcSubNum";
+			editorTemplate -l "Velocity"                -ac "ptcVel";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "Noise Scale"   			-ac "noiseScale";
+			editorTemplate -l "Freq Scale"  			-ac "frequencyScale";
+			editorTemplate -l "Offset Scale" 			-ac "offsetScale";			
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inDeform";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "inPtc";
+	editorTemplate -suppress "outPtc";
+}
+

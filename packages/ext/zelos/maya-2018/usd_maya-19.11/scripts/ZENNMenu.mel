@@ -1,0 +1,116 @@
+//--------------//
+// ZENNMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2019.01.16                               //
+//-------------------------------------------------------//
+
+global proc ZENNMenu()
+{
+	menuItem -to 1 -l "ZENN (Hair/Fur/Feather)" -ec 1 -subMenu true ZENN_Item;
+	{
+		menuItem -l "Add a New Global Node"            -ec 1 -c "ZN_AddNewGlobal"                 ZN_AddNewGlobal_Item;
+		menuItem -l "Add a New Group Node"             -ec 1 -c "ZN_AddNewGroup"                  ZN_AddNewGroup_Item;
+
+		menuItem -divider true;
+
+        menuItem -l "Import from XGen"                 -ec 1 -c "ZN_ImportFromXGen"               ZN_ImportFromXGen_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Create a Node Graph Template"     -ec 1 -subMenu true                        ZN_CreateNodeGraphTemplate_Item;
+		menuItem -l "Fur"                              -ec 1 -c "ZN_CreateFurGraph"               ZN_CreateFurGraph_Item;
+		menuItem -l "Feather"                          -ec 1 -c "ZN_CreateFeatherGraph"           ZN_CreateFeatherGraph_Item;
+		setParent -menu ..;
+
+		menuItem -divider true;
+
+		menuItem -l "Show Curve Tools Window"          -ec 1 -c "ZN_CurveToolsWin"                ZN_CurveTools_Item;
+		menuItem -l "Create Groom on Current Group"    -ec 1 -c "CreateZN_GroomCtx"               ZN_Groom_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Feather Designer"                 -ec 1 -c "ZN_FeatherDesigner"              ZN_FeatherDesigner_Item;
+		menuItem -l "Import a Feather"                 -ec 1 -c "ZN_ImportFeatherWin"             ZN_ImportFeather_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Bake Cache"                       -ec 1 -c "ZN_CacheGenWin"                  ZN_CacheGen_Item;
+		menuItem -l "Bake Cache 2"                     -ec 1 -c "ZN_CacheGenWin2"                 ZN_CacheGen2_Item;
+		menuItem -l "Create a Cache Viewer"            -ec 1 -c "ZN_CreateCacheViewer"            ZN_CreateCacheViewer_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Create a Partial Mesh"            -ec 1 -c "ZN_PartialMeshGen"               ZN_PartialMeshGen_Item;
+		menuItem -l "Set ZN_Select's Polygons"         -ec 1 -c "ZN_SetPolygons"                  ZN_SetPolygons_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Change Body Mesh"                 -ec 1 -c "ZN_BodyMeshChangerWin"           ZN_BodyMeshChangerWin_Item;
+        menuItem -l "Create Offset Mesh"               -ec 1 -c "ZN_GenOffsetMesh"                ZN_GenOffsetMesh_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Convert Strands to Maya Curves"   -ec 1 -c "ZN_ConvertStrandsToCurvesCmd"    ZN_ConvertStrandsToCurves_Item;
+		menuItem -l "Convert Feathers to Maya Objects" -ec 1 -c "ZN_ConvertFeathersToMayaObjects" ZN_ConvertFeathersToMayaObjects_Item;
+		menuItem -l "Convert Feathers (Sequence)"      -ec 1 -c "CreateZN_FeatherMeshesGen"       CreateZN_FeatherMeshesGen_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Create ZN_CurvesToMeshBinder"    -ec 1 -c "CreateZN_CurvesToMeshBinder"      ZN_CurvesToMeshBinder_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Print Error Strands"              -ec 1 -c "ZN_PrintErrorStrands"            ZN_PrintErrorStrands_Item;
+		menuItem -l "Print Error Polygons"             -ec 1 -c "ZN_PrintErrorPolygons"           ZN_PrintErrorPolygons_Item;
+
+		menuItem -divider true;
+
+		menuItem -l "Open Source Manager"              -ec 1 -c "ZNSourceManagerWin"              ZNSourceManagerWin_Item;
+		menuItem -l "Convert Feathers to Sources"	   -ec 1 -c "ZN_ConvertFeathersToSources"	  ZN_ConvertFeathersToSources_Item;
+
+		menuItem -divider true;
+		menuItem -l "Create ZN_StrandsArchive"	        -ec 1 -c "CreateZN_StrandsArchive \"\""	  ZN_StrandsArchive_Item;
+		menuItem -l "Create ZN_StrandsArchive Group"    -ec 1 -c "CreateZN_StrandsArchiveGroup"   ZN_StrandsArchiveGroup_Item;
+
+	}
+	setParent -menu ..;
+}
+
+global proc ZENN_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZENNMenu;
+}
+
+global proc ZENN_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZENNMenu;
+
+	if( `menu -exists mainZENNMenu` ) { deleteUI mainZENNMenu; }
+
+	setParent $gMainWindow;
+
+	$gZENNMenu = `menu -l "ZENN" -to true -pmo true mainZENNMenu`;
+	menu -e -pmc ( "ZENN_Menu " + $gZENNMenu ) $gZENNMenu;
+
+	hotBox -um;
+}
+
+global proc ZENN_DeleteMenu()
+{
+	if( `menu -exists mainZENNMenu` ) { deleteUI mainZENNMenu; }
+}
+

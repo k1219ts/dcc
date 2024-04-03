@@ -1,0 +1,250 @@
+//---------------------------------//
+// AEZWebCurvesControlTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.08.22                               //
+//-------------------------------------------------------//
+
+global proc AEZWebCurvesControlTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General" -collapse 0;
+		{
+            editorTemplate -l "Radius"             -ac "radius";
+            editorTemplate -l "Swirl"              -ac "swirl";
+			editorTemplate -l "Segment scale"      -ac "segmentScale";
+			editorTemplate -l "Num. Strands"       -ac "numStrands";
+
+			editorTemplate -ccu ZWebCurvesCon_UpdateNew ZWebCurvesCon_UpdateRep "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise Control" -collapse 0;
+		{
+            editorTemplate -l "Frequency"         -ac "raNoiseFreq";
+            editorTemplate -l "Offset"            -ac "raNoiseOffset";
+            editorTemplate -l "Scale"             -ac "raNoiseScale";
+            editorTemplate -l "Octaves"           -ac "raNoiseOctaves";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Shading" -collapse 1;
+		{
+			editorTemplate -ccu ZWebCurvesCon_AssignShaderNew ZWebCurvesCon_AssignShaderRep "";
+		}
+		editorTemplate -endLayout;        
+        
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inLink";
+	editorTemplate -suppress "outWebData";
+}
+
+///////////////////
+// Update Button //
+global proc ZWebCurvesCon_UpdateNew( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.0 ZWebCon_UpdateBtn;
+	setUITemplate -ppt;
+
+	ZWebCurvesCon_UpdateRep $attr;
+}
+
+global proc ZWebCurvesCon_UpdateRep( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+    button -e -c ("ZWebCurvesCon_Crate "+$nodes[0]) ZWebCon_UpdateBtn;
+}
+
+//////////////////////////
+// Assign Shader Button //
+global proc ZWebCurvesCon_AssignShaderNew( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+	setUITemplate -pst attributeEditorTemplate;
+	button -l "Assign Shader" -bgc 1.0 0.8 0.0 ZWebCurvesCon_AssingBtn;
+	setUITemplate -ppt;
+
+	ZWebCurvesCon_AssignShaderRep $attr;
+}
+
+global proc ZWebCurvesCon_AssignShaderRep( string $attr )
+{
+    string $nodes[];
+    tokenize( $attr, ".", $nodes );
+
+    button -e -c ("ZWebCurvesCon_AssignShader "+$nodes[0]) ZWebCurvesCon_AssingBtn;
+}
+
+global proc ZWebCurvesCon_Crate( string $node )
+{
+    int $i=0;
+
+    int $num = `getAttr ($node+".numStrands")`;
+
+    string $dests[] = `connectionInfo -dfs ($node+".outWebData")`;
+    for( $i=0; $i<size($dests); $i++ )
+    {
+        string $webNodes[];
+        tokenize( $dests[$i], ".", $webNodes );
+        string $webNode = $webNodes[0];
+    
+        ZWebCurvesCon_CrateWebCureves( $webNode, $num );
+    }
+
+    select -r $node;
+}
+
+global proc ZWebCurvesCon_CrateWebCureves( string $node, int $num )
+{
+    int $i=0;
+
+    int $newNum = $num;
+    int $existNum = `getAttr -s ($node+".outWebCurves")`;
+
+    string $connList[];
+    int $count = 0;
+
+    // disconnect all curves
+    for( $i=0; $i<$existNum; $i++ )
+    {
+        string $dests[] = `connectionInfo -dfs ($node+".outWebCurves["+$i+"]")`;        
+
+        if( size($dests) )
+        {
+            string $nodes[];
+            tokenize( $dests[0], ".", $nodes );
+
+            disconnectAttr ($node+".outWebCurves["+$i+"]") ($dests[0]);
+
+            $connList[$count++] = $nodes[0];            
+        }
+    }
+
+    $existNum = $count;
+
+    string $groupName = ($node+"_CurveGroup");
+    if( `objExists $groupName` == false ) 
+    {
+        group -em -name ZWebCurvesGroup;
+        group -em -name $groupName;
+
+        parent $groupName ZWebCurvesGroup;
+    }
+
+    // create new web curves
+    for( $i=0; $i<$newNum-$existNum; $i++ )
+    {
+        string $curveName = `createNode nurbsCurve`;
+
+        $connList[$count++] = $curveName;
+
+        string $parents[] = `listRelatives -fullPath -parent $curveName`;
+        parent $parents[0] $groupName;
+    }
+
+    // delete curves
+    int $delNum = $newNum - $existNum;
+    if( $delNum < 0 )
+    {
+        $delNum *= -1;
+        for( $i=0; $i<$delNum; $i++ )
+        {
+            string $parents[] = `listRelatives -fullPath -parent $connList[--$count]`;
+            delete $parents[0];
+        }
+    }
+
+    // connect web curves
+    for( $i=0; $i<$count; $i++ )
+    {
+        string $curveName = $connList[$i];
+        
+        connectAttr -f ($node+".outWebCurves["+$i+"]") ($curveName+".create");
+
+        if( `exists rmanGetAttrName` )
+        {
+            string $attrnm = `rmanGetAttrName curveBaseWidth`;
+            rmanAddAttr $curveName $attrnm "";
+
+            $attrnm = `rmanGetAttrName curveTipWidth`;
+            rmanAddAttr $curveName $attrnm "";
+
+            $attrnm = `rmanGetAttrName customShadingGroup`;
+            rmanAddAttr $curveName $attrnm "";
+
+            $attrnm = `rmanGetAttrName dice:hair`;
+            rmanAddAttr $curveName $attrnm "0";
+
+            $attrnm = `rmanGetAttrName dice:roundcurve`;
+            rmanAddAttr $curveName $attrnm "1";
+
+            string $sg = `connectionInfo -sfd ($curveName+".rman__torattr___customShadingGroup")`;
+            if( $sg == "") connectAttr initialShadingGroup.message ($curveName+".rman__torattr___customShadingGroup");
+        }        
+    }
+
+    select -r $node;
+}
+
+global proc ZWebCurvesCon_AssignShader( string $node )
+{
+    if( `exists rmanGetAttrName` == false ) return;
+
+    $attrnm = `rmanGetAttrName customShadingGroup`;    
+    string $sgName = `connectionInfo -sfd ($node+"."+$attrnm)`;
+
+    string $tokens[];
+    tokenize( $sgName, ".", $tokens );
+    $sgName = $tokens[0];
+        
+    //string $curves[] = `ls -sl "ZWebCurves*"`;
+    string $webs[] = `connectionInfo -dfs ($node+".outWebData")`;    
+
+    int $i = 0;
+    int $j = 0;
+
+    for( $i=0; $i<size($webs); $i++ )
+    {
+        string $tokens[];
+        tokenize( $webs[$i], ".", $tokens );
+        $webs[$i] = $tokens[0];
+    }    
+
+    for( $i=0; $i<size($webs); $i++ )
+    {
+        string $web = $webs[$i];
+        int $existNum = `getAttr -s ($web+".outWebCurves")`;
+
+        for( $j=0; $j<$existNum; $j++ )
+        {
+            string $dests[] = `connectionInfo -dfs ($web+".outWebCurves["+$j+"]")`;
+
+            if( size($dests) )
+            {
+                string $cur[];
+                tokenize( $dests[0], ".", $cur );
+
+                if( `isConnected ($sgName+".message") ($cur[0]+".rman__torattr___customShadingGroup")` == false )
+                    connectAttr -f ($sgName+".message") ($cur[0]+".rman__torattr___customShadingGroup");
+
+                setAttr ($cur[0]+".rman__torattr___curveBaseWidth") `getAttr ($node+".rman__torattr___curveBaseWidth")`;
+                setAttr ($cur[0]+".rman__torattr___curveTipWidth") `getAttr ($node+".rman__torattr___curveTipWidth")`;
+                setAttr ($cur[0]+".rman__riattr__dice_hair") `getAttr ($node+".rman__riattr__dice_hair")`;
+                setAttr ($cur[0]+".rman__riattr__dice_roundcurve") `getAttr ($node+".rman__riattr__dice_roundcurve")`;
+            }
+        }        
+    }
+}
+

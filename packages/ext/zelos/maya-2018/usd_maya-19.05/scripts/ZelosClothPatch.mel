@@ -1,0 +1,525 @@
+//---------------------//
+// ZelosClothPatch.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.07.29                               //
+//-------------------------------------------------------//
+
+global proc string[] ZelosClothGetSelectedCurves()
+{
+	string $emptyStrs[], $crvShapes[];
+
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return $emptyStrs;
+	}
+
+	string $xforms[] = `ls -sl -l -type transform`;
+
+	int $numXForms = size($xforms);
+
+	if( $numXForms == 0 )
+	{
+		error("No selected transform nodes.");
+		return $emptyStrs;
+	}
+
+	if( $numXForms == 1 )
+	{
+		select -cl;
+
+		int $i = 0;
+
+		string $children[] = `listRelatives -f $xforms[0]`;
+
+		for( $child in $children )
+		{
+			if( `nodeType $child` == "transform" )
+			{
+				$xforms[$i++] = $child;
+			}
+		}
+
+		select -r $xforms;
+	}
+
+	for( $xform in $xforms )
+	{
+		string $parent = $xform;
+
+		while( 1 )
+		{
+			string $parents[] = `listRelatives -p $parent`;
+
+			if( size($parents) == 0 ) { break; }
+
+			$parent = $parents[0];
+
+			float $sx = `getAttr ($parent+".sx")`;
+			float $sy = `getAttr ($parent+".sy")`;
+			float $sz = `getAttr ($parent+".sz")`;
+
+			if( $sx < 0.9999 || $sx > 1.00001
+			 || $sy < 0.9999 || $sy > 1.00001
+			 || $sz < 0.9999 || $sz > 1.00001 )
+			{
+				string $fullPaths[] = `ls -l $parent`;
+				error($fullPaths[0]+" doesn't have a not-identity matrix.");
+				return $emptyStrs;
+			}
+		}
+
+		string $shapes[] = `listRelatives -f -s -ni $xform`;
+
+		for( $shape in $shapes )
+		{
+			if( `nodeType $shape` != "nurbsCurve" ) { continue; }
+
+			if( `connectionInfo -is ($shape+".ws")` )
+			{
+				string $nodeAttrs[] = `connectionInfo -dfs ($shape+".ws")`;
+
+				for( $nodeAttr in $nodeAttrs )
+				{
+					string $tokens[];
+					tokenize( $nodeAttr, ".", $tokens );
+					string $node = $tokens[0];
+
+					if( `nodeType $node` == "ZelosClothCurve" )
+					{
+						error($shape+" has already a connection to "+$node+".");
+						return $emptyStrs;
+					}
+				}
+			}
+
+			$crvShapes[size($crvShapes)] = $shape;
+		}
+	}
+
+	if( size($crvShapes) == 0 )
+	{
+		error("No nurbscurve nodes.");
+		return $emptyStrs;
+	}
+
+	$crvShapes = ZelosClothCurveReorder(); // re-ordering
+
+	return $crvShapes;
+}
+
+global proc CreateZelosClothPatch()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	// Get the re-ordered selected NURBS curves.
+	string $crvShapes[];
+	{
+		$crvShapes = `ZelosClothGetSelectedCurves`;
+		if( size($crvShapes) == 0 ) { return; }
+	}
+
+	int $newlyCreated = 0;
+
+	// Get the current ZelosClothGlobal node.
+	string $ZelosClothGlobal;
+	{
+		$ZelosClothGlobal = `GetCurrentZelosClothGlobal`;
+
+		if( $ZelosClothGlobal == "" )
+		{
+			$ZelosClothGlobal = `CreateZelosClothGlobal`;
+			$newlyCreated = 1;
+		}
+	}
+
+	// Get the ZelosClothSimulator node.
+	string $ZelosClothSimulator;
+	{
+		$ZelosClothSimulator = `GetZelosClothSimulator $ZelosClothGlobal`;
+
+		if( $ZelosClothSimulator == "" )
+		{
+			error("Failed to find ZelosClothSimulator node.");
+			return;
+		}
+
+		if( `connectionInfo -id ($ZelosClothSimulator+".inMesh1")` )
+		{
+			error($ZelosClothSimulator+" has already connection from Maya mesh.");
+			return;
+		}
+	}
+
+	// Get the ZelosClothMesh node.
+	string $ZelosClothMesh;
+	{
+		$ZelosClothMesh = `GetZelosClothMesh $ZelosClothGlobal`;
+
+		if( $ZelosClothMesh == "" )
+		{
+			error("Failed to find ZelosClothMesh node.");
+			return;
+		}
+
+		setAttr ($ZelosClothMesh+".mode") 1;
+	}
+
+	// Get the outMesh shape node.
+	string $outMeshShape;
+	{
+		$outMeshShape = `GetZelosClothOutMeshShape $ZelosClothGlobal`;
+
+		if( $outMeshShape == "" )
+		{
+			error("Failed to find outMesh shape node.");
+			return;
+		}
+	}
+
+	// Get the designPattern group node.
+	string $designPatternGrp;
+	{
+		$designPatternGrp = $ZelosClothGlobal + "|designPatterns";
+
+		if( !`objExists $designPatternGrp` )
+		{
+			error("Failed to find design pattern group.");
+			return;
+		}
+	}
+
+	// Create a ZelosClothPatch node.
+	string $patchXForm;
+	string $patchShape;
+	{
+		$patchShape = `createNode ZelosClothPatch`;
+		string $xforms[] = `listRelatives -p $patchShape`;
+		$patchXForm = $xforms[0];
+
+		setAttr -lock true ($patchXForm+".translate");
+		setAttr -lock true ($patchXForm+".rotate"   );
+		setAttr -lock true ($patchXForm+".scale"    );
+
+		string $tokens[];
+		tokenize( $patchShape, "ZelosClothPatch", $tokens );
+		int $number = $tokens[size($tokens)-1];
+		$patchXForm = `rename $patchXForm ("patch"+$number)`;
+
+		parent $patchXForm $designPatternGrp;
+
+		$patchXForm = $designPatternGrp + "|" + $patchXForm;
+		$patchShape = $patchXForm + "|" + $patchShape;
+
+		setAttr ($patchShape+".mode") 1;
+	}
+
+	// Create a ZelosClothCurveMerge node.
+	string $mergeShape;
+	{
+		$mergeShape = `createNode ZelosClothCurveMerge`;
+	}
+
+	// Create a outline group.
+	string $outlineGrp;
+	{
+		$outlineGrp = `createNode transform -n outline -p $patchXForm`;
+	}
+
+	int $i = 0;
+
+	for( $crvShape in $crvShapes )
+	{
+		string $curveXForm;
+		string $curveShape;
+		{
+			$curveShape = `createNode ZelosClothCurve`;
+			string $xforms[] = `listRelatives -p $curveShape`;
+			$curveXForm = $xforms[0];
+
+			setAttr -lock true ($curveXForm+".translate");
+			setAttr -lock true ($curveXForm+".rotate"   );
+			setAttr -lock true ($curveXForm+".scale"    );
+
+			string $tokens[];
+			tokenize( $curveShape, "ZelosClothCurve", $tokens );
+			int $number = $tokens[size($tokens)-1];
+			$curveXForm = `rename $curveXForm ("outline"+$number)`;
+
+			parent $curveXForm $outlineGrp;
+
+			$curveXForm = $outlineGrp + "|" + $curveXForm;
+			$curveShape = $curveXForm + "|" + $curveShape;
+		}
+
+		connectAttr ($crvShape+".ws") ($curveShape+".curve");
+		connectAttr ($curveShape+".points") ($mergeShape+".inputs["+$i+"]");
+
+		$i++;
+	}
+
+	connectAttr ($mergeShape+".output") ($patchShape+".outline");
+
+	$i = ZEmptyPort( $ZelosClothMesh, "patches" );
+	connectAttr ($patchShape+".output") ($ZelosClothMesh+".patches["+$i+"]");
+
+	if( $newlyCreated )
+	{
+		connectAttr time1.outTime ($ZelosClothSimulator+".time");
+		connectAttr ($ZelosClothMesh+".output") ($ZelosClothSimulator+".inMesh0");
+		connectAttr ($ZelosClothSimulator+".outMesh") ($outMeshShape+".inMesh");
+	}
+
+	select -r $patchShape;
+}
+
+global proc AddZelosClothPatchHole()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	// Get the re-ordered selected NURBS curves.
+	string $crvShapes[];
+	{
+		$crvShapes = `ZelosClothGetSelectedCurves`;
+		if( size($crvShapes) == 0 ) { return; }
+	}
+
+	// Get the selected ZelosClothPatch shape node.
+	string $patchXForm;
+	string $patchShape;
+	{
+		string $xforms[] = `ls -sl -l -type transform`;
+
+		int $count = 0;
+
+		for( $xform in $xforms )
+		{
+			string $shapes[] = `listRelatives -f -s -ni $xform`;
+
+			for( $shape in $shapes )
+			{
+				if( `nodeType $shape` != "ZelosClothPatch" ) { continue; }
+
+				$patchXForm = $xform;
+				$patchShape = $shape;
+
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("No selected ZelosClothPatch node."); return; }
+		if( $count != 1 ) { error("Too many selected ZelosClothPatch nodes."); return; }
+	}
+
+	// Get the index of this hole group.
+	int $holeIndex;
+	{
+		$holeIndex = ZEmptyPort( $patchShape, "holes" );
+		$holeIndex += 1;
+	}
+
+	// Create a ZelosClothCurveMerge node.
+	string $mergeShape;
+	{
+		$mergeShape = `createNode ZelosClothCurveMerge`;
+	}
+
+	// Create a holeline group.
+	string $holelineGrp;
+	{
+		$holelineGrp = `createNode transform -n ("holeline"+$holeIndex) -p $patchXForm`;
+	}
+
+	int $i = 0;
+
+	for( $crvShape in $crvShapes )
+	{
+		string $curveXForm;
+		string $curveShape;
+		{
+			$curveShape = `createNode ZelosClothCurve`;
+			string $xforms[] = `listRelatives -p $curveShape`;
+			$curveXForm = $xforms[0];
+
+			setAttr -lock true ($curveXForm+".translate");
+			setAttr -lock true ($curveXForm+".rotate"   );
+			setAttr -lock true ($curveXForm+".scale"    );
+
+			string $tokens[];
+			tokenize( $curveShape, "ZelosClothCurve", $tokens );
+			int $number = $tokens[size($tokens)-1];
+			$curveXForm = `rename $curveXForm ("holeline"+$number)`;
+
+			parent $curveXForm $holelineGrp;
+
+			$curveXForm = $holelineGrp + "|" + $curveXForm;
+			$curveShape = $curveXForm + "|" + $curveShape;
+		}
+
+		connectAttr ($crvShape+".ws") ($curveShape+".curve");
+		connectAttr ($curveShape+".points") ($mergeShape+".inputs["+$i+"]");
+
+		$i++;
+	}
+
+	connectAttr ($mergeShape+".output") ($patchShape+".holes["+($holeIndex-1)+"]");
+
+	select -r $patchShape;
+}
+
+global proc AddZelosClothPatchInline()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	// Get the re-ordered selected NURBS curves.
+	string $crvShapes[];
+	{
+		$crvShapes = `ZelosClothGetSelectedCurves`;
+		if( size($crvShapes) == 0 ) { return; }
+	}
+
+	// Get the selected ZelosClothPatch shape node.
+	string $patchXForm;
+	string $patchShape;
+	{
+		string $xforms[] = `ls -sl -l -type transform`;
+
+		int $count = 0;
+
+		for( $xform in $xforms )
+		{
+			string $shapes[] = `listRelatives -f -s -ni $xform`;
+
+			for( $shape in $shapes )
+			{
+				if( `nodeType $shape` != "ZelosClothPatch" ) { continue; }
+
+				$patchXForm = $xform;
+				$patchShape = $shape;
+
+				$count++;
+			}
+		}
+
+		if( $count == 0 ) { error("No selected ZelosClothPatch node."); return; }
+		if( $count != 1 ) { error("Too many selected ZelosClothPatch nodes."); return; }
+	}
+
+	// Get the index of this inline group.
+	int $inlineIndex;
+	{
+		$inlineIndex = ZEmptyPort( $patchShape, "inlines" );
+		$inlineIndex += 1;
+	}
+
+	// Create a ZelosClothCurveMerge node.
+	string $mergeShape;
+	{
+		$mergeShape = `createNode ZelosClothCurveMerge`;
+	}
+
+	// Create a inlineline group.
+	string $inlinelineGrp;
+	{
+		$inlinelineGrp = `createNode transform -n ("inlineline"+$inlineIndex) -p $patchXForm`;
+	}
+
+	int $i = 0;
+
+	for( $crvShape in $crvShapes )
+	{
+		string $curveXForm;
+		string $curveShape;
+		{
+			$curveShape = `createNode ZelosClothCurve`;
+			string $xforms[] = `listRelatives -p $curveShape`;
+			$curveXForm = $xforms[0];
+
+			setAttr -lock true ($curveXForm+".translate");
+			setAttr -lock true ($curveXForm+".rotate"   );
+			setAttr -lock true ($curveXForm+".scale"    );
+
+			string $tokens[];
+			tokenize( $curveShape, "ZelosClothCurve", $tokens );
+			int $number = $tokens[size($tokens)-1];
+			$curveXForm = `rename $curveXForm ("inlineline"+$number)`;
+
+			parent $curveXForm $inlinelineGrp;
+
+			$curveXForm = $inlinelineGrp + "|" + $curveXForm;
+			$curveShape = $curveXForm + "|" + $curveShape;
+		}
+
+		connectAttr ($crvShape+".ws") ($curveShape+".curve");
+		connectAttr ($curveShape+".points") ($mergeShape+".inputs["+$i+"]");
+
+		$i++;
+	}
+
+	connectAttr ($mergeShape+".output") ($patchShape+".inlines["+($inlineIndex-1)+"]");
+
+	select -r $patchShape;
+}
+
+global proc string GetZelosClothPatch( string $ZelosClothCurve )
+{
+	if( `nodeType $ZelosClothCurve` != "ZelosClothCurve" ) { return ""; }
+
+	string $ZelosClothCurveMerge;
+	{
+		if( !`connectionInfo -is ($ZelosClothCurve+".points")` ) { return ""; }
+
+		string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothCurve+".points")`;
+
+		for( $nodeAttr in $nodeAttrs )
+		{
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+			string $node = $tokens[0];
+
+			if( `nodeType $node` == "ZelosClothCurveMerge" )
+			{
+				$ZelosClothCurveMerge = $node;
+				break;
+			}
+		}
+	}
+	if( $ZelosClothCurveMerge == "" ) { return ""; }
+
+	string $ZelosClothPatch;
+	{
+		if( !`connectionInfo -is ($ZelosClothCurveMerge+".output")` ) { return ""; }
+
+		string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothCurveMerge+".output")`;
+
+		for( $nodeAttr in $nodeAttrs )
+		{
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+			string $node = $tokens[0];
+
+			if( `nodeType $node` == "ZelosClothPatch" )
+			{
+				$ZelosClothPatch = $node;
+				break;
+			}
+		}
+	}
+
+	return $ZelosClothPatch;
+}
+

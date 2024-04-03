@@ -1,0 +1,24 @@
+//---------------------------------------//
+// AEZBreakingWaveControllerTemplate.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios					 //
+//         Wanho Choi  @ Dexter Studios                  //
+// last update: 2014.03.26                               //
+//-------------------------------------------------------//
+
+global proc AEZBreakingWaveControllerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Options" -collapse 0;
+			editorTemplate -l "Radius"        -ac "rad";
+			editorTemplate -l "Wave Back"     -ac "waveBack";
+			editorTemplate -l "# of Segments" -ac "numSegments";
+			editorTemplate -l "Opacity"       -ac "alpha";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}
+

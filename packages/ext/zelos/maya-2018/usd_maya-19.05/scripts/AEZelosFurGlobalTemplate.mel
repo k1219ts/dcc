@@ -1,0 +1,127 @@
+//------------------------------//
+// AEZelosFurGlobalTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.23                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZelosFurGlobalUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Update" -c  ("ZelosFurGlobalUpdate "+$attr) ZelosFurGlobalUpdate;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurGlobalUpdateReplace( string $attr )
+{
+	button -e -c ("ZelosFurGlobalUpdate "+$attr) ZelosFurGlobalUpdate;
+}
+
+global proc ZelosFurGlobalUpdate( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	string $shapes[] = `listRelatives -shapes $node[0]`;
+	if( size($shapes) == 0 ) { return; }
+
+	int $indexForSimulator = 0;
+	int $indexForSampler   = 0;
+	int $indexForGenerator = 0;
+
+	string $samplers[];
+	string $simulators[];
+	string $generators[];
+
+	for( $shape in $shapes )
+	{
+		string $nodeType = `nodeType $shape`;
+
+		     if( $nodeType == "ZelosFurSampler"   ) { $samplers  [$indexForSampler++  ] = $shape; }
+		else if( $nodeType == "ZelosFurSimulator" ) { $simulators[$indexForSimulator++] = $shape; }
+		else if( $nodeType == "ZelosFurGenerator" ) { $generators[$indexForGenerator++] = $shape; }
+	}
+
+	int $idx = 0;
+	string $from[];
+	string $to[];
+
+	for( $generator in $generators )
+	{
+		string $nodeAttr = ZConnectedNodeAttr( $generator, "outMesh" );
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		string $nodeType = `nodeType $node`;
+		if( $nodeType == "ZelosFurGenerator" ) { continue; }
+
+		$from[$idx] = ( $generator + ".outMesh" );
+		$to[$idx]   = $nodeAttr;
+
+		$idx++;
+	}
+
+	if( $idx == 0 ) { return; }
+	int $count = $idx;
+
+	int $i = 0;
+	for( ; $i<$count; $i++ )
+	{
+		disconnectAttr $from[$i] $to[$i];
+	}
+
+	for( $simulator in $simulators )
+	{
+		setAttr ( $simulator + ".update" ) 1;
+	}
+
+	for( $sampler in $samplers )
+	{
+		setAttr ( $sampler + ".update" ) 1;
+	}
+
+	$i = 0;
+	for( ; $i<$count; $i++ )
+	{
+		connectAttr $from[$i] $to[$i];
+	}
+
+	// to update view
+	refresh;
+	select -r $node[0];
+}
+
+//////////
+// main //
+global proc AEZelosFurGlobalTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "ZelosFur" -collapse 0;
+			editorTemplate -ccu ZelosFurGlobalUpdateNew ZelosFurGlobalUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Transform" -collapse 0;
+			editorTemplate -l "Translate"                   -ac "translate";
+			editorTemplate -l "Rotate"                      -ac "rotate";
+			editorTemplate -l "Scale"                       -ac "scale";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "shear";
+	editorTemplate -suppress "rotationOrder";
+	editorTemplate -suppress "rotationAxis";
+	editorTemplate -suppress "inheritsTransform";
+	editorTemplate -suppress "mentalRayControls";
+	editorTemplate -suppress "input";
+}
+

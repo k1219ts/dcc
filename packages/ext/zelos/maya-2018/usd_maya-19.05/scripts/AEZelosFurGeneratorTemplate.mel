@@ -1,0 +1,466 @@
+//---------------------------------//
+// AEZelosFurGeneratorTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.04.29                               //
+//-------------------------------------------------------//
+
+/////////////////////////////////
+// When "Display Mode" changed //
+global proc ZelosFurGeneratorDisplayModeChanged( string $node )
+{
+	if( `getAttr ($node+".displayMode")` == 0 ) // none
+	{
+		editorTemplate -dc $node "curveColor"      1;
+		editorTemplate -dc $node "lineWidth"       1;
+		editorTemplate -dc $node "pointSize"       1;
+		editorTemplate -dc $node "displayCVs"      1;
+		editorTemplate -dc $node "displayIndices"  1;
+		editorTemplate -dc $node "rootColorMap"    1;
+		editorTemplate -dc $node "groupDisplayStr" 1;
+		return;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 1 ) // solid color
+	{
+		editorTemplate -dc $node "curveColor"      0;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    1;
+		editorTemplate -dc $node "groupDisplayStr" 0;
+		return;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 2 ) // group color
+	{
+		editorTemplate -dc $node "curveColor"      1;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    1;
+		editorTemplate -dc $node "groupDisplayStr" 0;
+		return;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 3 ) // random color
+	{
+		editorTemplate -dc $node "curveColor"      1;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    1;
+		editorTemplate -dc $node "groupDisplayStr" 0;
+		return;
+	}
+
+	if( `getAttr ($node+".displayMode")` == 4 ) // root color
+	{
+		editorTemplate -dc $node "curveColor"      1;
+		editorTemplate -dc $node "lineWidth"       0;
+		editorTemplate -dc $node "pointSize"       0;
+		editorTemplate -dc $node "displayCVs"      0;
+		editorTemplate -dc $node "displayIndices"  0;
+		editorTemplate -dc $node "rootColorMap"    0;
+		editorTemplate -dc $node "groupDisplayStr" 0;
+		return;
+	}
+}
+
+///////////////////
+// modifier list //
+global proc ZelosFurGeneratorModifierListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				textScrollList -w 200 -dcc ZelosFurGeneratorModifierListSel -dkc ZelosFurGeneratorModifierListDel tsZelosFurGeneratorModifierList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 100 -l "On"   -c ZelosFurGeneratorModifierListOn;
+					button -w 100 -l "Off"  -c ZelosFurGeneratorModifierListOff;
+					setParent ..;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 100 -l "Up"   -c ZelosFurGeneratorModifierListUp;
+					button -w 100 -l "Down" -c ZelosFurGeneratorModifierListDown;
+					setParent ..;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 1;
+					button -w 200 -l "Re-Connect" -c ( "ZelosFurGeneratorModifierListReConnect(\""+$attr+"\")" ) ZelosFurGeneratorModifierListBtn;
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurGeneratorModifierListReplace( $attr );
+}
+
+global proc ZelosFurGeneratorModifierListReplace( string $attr )
+{
+	string $items[] = `textScrollList -q -ai tsZelosFurGeneratorModifierList`;
+	for( $item in $items ) { textScrollList -e -ri $item tsZelosFurGeneratorModifierList; }
+
+	// get the name of this ZelosFurGenerator node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurGeneratorNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurGeneratorNode + ".inModifiers" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i = 0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurGeneratorNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurGeneratorNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		textScrollList -e -a $node[0] tsZelosFurGeneratorModifierList;
+
+		string $mayaVerStr = `about -version`;
+		$mayaVerStr = `substring $mayaVerStr 1 4`;
+		int $mayaVer = (int)$mayaVerStr;
+		if( $mayaVer >= 2014 )
+		{
+			int $onOff = `getAttr ($node[0]+".onOff")`;
+			if( $onOff ) { textScrollList -e -lf ($i+1) "boldLabelFont"     tsZelosFurGeneratorModifierList; }
+			else         { textScrollList -e -lf ($i+1) "tinyBoldLabelFont" tsZelosFurGeneratorModifierList; }
+		}
+	}
+
+	button -e -c ( "ZelosFurGeneratorModifierListReConnect(\""+$attr+"\")" ) ZelosFurGeneratorModifierListBtn;
+}
+
+global proc ZelosFurGeneratorModifierListSel()
+{
+	string $items[] = `textScrollList -q -si tsZelosFurGeneratorModifierList`;
+	if( size($items) == 0 ) { return; }
+	select -r $items[0];
+}
+
+global proc ZelosFurGeneratorModifierListDel()
+{
+	string $items[] = `textScrollList -q -si tsZelosFurGeneratorModifierList`;
+	if( size($items) == 0 ) { return; }
+	delete $items[0];
+}
+
+global proc ZelosFurGeneratorModifierListOn()
+{
+	string $items[] = `textScrollList -q -si tsZelosFurGeneratorModifierList`;
+	if( size($items) == 0 ) { return; }
+	setAttr ($items[0]+".onOff") 1;
+
+	string $mayaVerStr = `about -version`;
+	$mayaVerStr = `substring $mayaVerStr 1 4`;
+	int $mayaVer = (int)$mayaVerStr;
+	if( $mayaVer >= 2014 )
+	{
+		int $idx[] = `textScrollList -q -sii tsZelosFurGeneratorModifierList`;
+		textScrollList -e -lf $idx[0] "boldLabelFont" tsZelosFurGeneratorModifierList;
+	}
+}
+
+global proc ZelosFurGeneratorModifierListOff()
+{
+	string $items[] = `textScrollList -q -si tsZelosFurGeneratorModifierList`;
+	if( size($items) == 0 ) { return; }
+	setAttr ($items[0]+".onOff") 0;
+
+	string $mayaVerStr = `about -version`;
+	$mayaVerStr = `substring $mayaVerStr 1 4`;
+	int $mayaVer = (int)$mayaVerStr;
+	if( $mayaVer >= 2014 )
+	{
+		int $idx[] = `textScrollList -q -sii tsZelosFurGeneratorModifierList`;
+		textScrollList -e -lf $idx[0] "tinyBoldLabelFont" tsZelosFurGeneratorModifierList;
+	}
+}
+
+global proc ZelosFurGeneratorModifierListUp()
+{
+	string $items[] = `textScrollList -q -ai tsZelosFurGeneratorModifierList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	int $selIdx[] = `textScrollList -q -sii tsZelosFurGeneratorModifierList`; // 1-based
+	if( size($selIdx)==0 ) { return; }
+	int $j = $selIdx[0]-1;
+	if( $j==0 ) { return; }
+
+	string $tmp  = $items[$j-1];
+	$items[$j-1] = $items[$j];
+	$items[$j]   = $tmp;
+
+	textScrollList -e -ra tsZelosFurGeneratorModifierList;
+
+	for( $item in $items )
+	{
+		textScrollList -e -a $item tsZelosFurGeneratorModifierList;
+	}
+
+	textScrollList -e -sii $j tsZelosFurGeneratorModifierList;
+}
+
+global proc ZelosFurGeneratorModifierListDown()
+{
+	string $items[] = `textScrollList -q -ai tsZelosFurGeneratorModifierList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	int $selIdx[] = `textScrollList -q -sii tsZelosFurGeneratorModifierList`; // 1-based
+	if( size($selIdx)==0 ) { return; }
+	int $j = $selIdx[0]-1;
+	if( $j==$numItems-1 ) { return; }
+
+	string $tmp  = $items[$j+1];
+	$items[$j+1] = $items[$j];
+	$items[$j]   = $tmp;
+
+	textScrollList -e -ra tsZelosFurGeneratorModifierList;
+
+	for( $item in $items )
+	{
+		textScrollList -e -a $item tsZelosFurGeneratorModifierList;
+	}
+
+	textScrollList -e -sii ($j+2) tsZelosFurGeneratorModifierList;
+}
+
+global proc ZelosFurGeneratorModifierListReConnect( string $attr )
+{
+	string $items[] = `textScrollList -q -ai tsZelosFurGeneratorModifierList`;
+	int $numItems = size($items);
+	if( $numItems<2 ) { return; }
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurGenerator = $node[0];
+
+	// .inModifiers[]
+	string $inModifiers[] = `listAttr -multi ( $ZelosFurGenerator + ".inModifiers" )`;
+	int $numConnections = size($inModifiers);
+
+	// old list
+	int $i = 0;
+	string $oldList[];
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurGenerator + "." + $inModifiers[$i] )` )
+		{
+			continue;
+		}
+		$oldList[$i] = `connectionInfo -sfd ( $ZelosFurGenerator + "." + $inModifiers[$i] )`;
+	}
+
+	// new list
+	$i = 0;
+	string $newList[];
+	for( $item in $items )
+	{
+		$newList[$i++] = $item + ".outModifier";
+	}
+
+	// disconnect
+	string $toOutput = ZConnectedNodeAttr( $node[0], "outMesh" );
+	disconnectAttr ($node[0]+".outMesh") $toOutput;
+
+	for( $i=0; $i<$numItems; $i++ )
+	{
+		disconnectAttr $oldList[$i] ( $ZelosFurGenerator + "." + $inModifiers[$i] );
+	}
+    
+	// re-connect
+	connectAttr ($ZelosFurGenerator+".outMesh") $toOutput;
+	
+	for( $i=0; $i<$numItems; $i++ )
+	{
+		connectAttr $newList[$i] ( $ZelosFurGenerator + "." + $inModifiers[$i] );
+	}
+}
+
+//////////////////
+// sampler list //
+global proc ZelosFurGeneratorSamplerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurGeneratorSamplerList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurGeneratorSamplerList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurGeneratorSamplerListReplace( $attr );
+}
+
+global proc ZelosFurGeneratorSamplerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurGeneratorSamplerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurGenerator node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurGeneratorNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurGeneratorNode + ".inSamples" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurGeneratorNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurGeneratorNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurGeneratorSamplerList;
+	}
+}
+
+////////////////////
+// simulator list //
+global proc ZelosFurGeneratorSimulatorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurGeneratorSimulatorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurGeneratorSimulatorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurGeneratorSimulatorListReplace( $attr );
+}
+
+global proc ZelosFurGeneratorSimulatorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurGeneratorSimulatorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurGenerator node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurGeneratorNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurGeneratorNode + ".inMesh" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZelosFurGeneratorNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosFurGeneratorNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -label $node[0] -p omZelosFurGeneratorSimulatorList;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosFurGeneratorTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 1;
+			editorTemplate -l "Draw While Interaction (>=2015)" -ac "drawWhileInteraction";
+			editorTemplate -as;
+			editorTemplate -l "Display Mode"                    -ac "displayMode" ZelosFurGeneratorDisplayModeChanged;
+			editorTemplate -l "Color"                           -ac "curveColor";
+			editorTemplate -l "Line Width"                      -ac "lineWidth";
+			editorTemplate -l "Point Size"                      -ac "pointSize";
+			editorTemplate -l "Smooth Width"                    -ac "smoothWidth";
+			editorTemplate -l "Smooth Color"                    -ac "smoothColor";
+			editorTemplate -as;
+			editorTemplate -l "Display CVs"                     -ac "displayCVs";
+			editorTemplate -l "Display Indices"                 -ac "displayIndices";
+			editorTemplate -as;
+			editorTemplate -l "Root Color Map"                  -ac "rootColorMap";
+			editorTemplate -as;
+			editorTemplate -l "Per Group On/Off"                -ac "groupDisplayStr";
+			editorTemplate -l "Display Ratio"                   -ac "displayRatio";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 1;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Body Mesh";
+			editorTemplate -l "Vertices"                        -ac "numVertices";
+			editorTemplate -l "Triangles"                       -ac "numTriangles";
+			editorTemplate -l "UVs"                             -ac "numUVs";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Guide Curves";
+			editorTemplate -l "Curves"                          -ac "numGuideCurves";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Fur Curves";
+			editorTemplate -l "Groups"                          -ac "numGroups";
+			editorTemplate -l "Curves"                          -ac "numRootPoints";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Update" -collapse 1;
+			editorTemplate -l "Update Rule"                     -ac "updateRule";
+			editorTemplate -l "Per Group Computation"           -ac "groupOnOffStr";
+			editorTemplate -l "Generate Output Mesh"            -ac "genOutMesh";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Grooming" -collapse 0;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "General";
+			editorTemplate -l "Device"                          -ac "device";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Binding";
+			editorTemplate -l "# to Bind"                       -ac "numToBind";
+			editorTemplate -l "Sampling Ratio"                  -ac "samplingRatio";
+			editorTemplate -beginLayout "Connected Modifier List" -collapse 0;
+				editorTemplate -ccu ZelosFurGeneratorModifierListNew ZelosFurGeneratorModifierListReplace "";
+			editorTemplate -endLayout;
+			editorTemplate -beginLayout "Connected Sampler List" -collapse 0;
+				editorTemplate -ccu ZelosFurGeneratorSamplerListNew ZelosFurGeneratorSamplerListReplace "";
+			editorTemplate -endLayout;
+			editorTemplate -beginLayout "Connected Simulator List" -collapse 0;
+				editorTemplate -ccu ZelosFurGeneratorSimulatorListNew ZelosFurGeneratorSimulatorListReplace "";
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inSamples";
+	editorTemplate -suppress "outMesh";
+	editorTemplate -suppress "cacheGenMode";
+	editorTemplate -suppress "cacheVersion";
+	editorTemplate -suppress "colliders";
+	editorTemplate -suppress "updateMap";
+}
+

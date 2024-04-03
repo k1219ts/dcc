@@ -1,0 +1,26 @@
+global proc AEZAttrTestNodeTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Input & Output" -collapse 0;
+		{
+			editorTemplate -l "Time"    -ac "time";
+			editorTemplate -l "Angle"   -ac "angle";
+			editorTemplate -l "Bool"    -ac "bool";
+			editorTemplate -l "Int"     -ac "int";
+			editorTemplate -l "Float"   -ac "float";
+			editorTemplate -l "Double"  -ac "double";
+			editorTemplate -l "Enum"    -ac "enum";
+			editorTemplate -l "Float2"  -ac "float2";
+			editorTemplate -l "Color"   -ac "color";
+			editorTemplate -l "String"  -ac "string";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+}
+

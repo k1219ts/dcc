@@ -1,0 +1,33 @@
+//-----------------//
+// ZEnvAssemblyArchive.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Dohyun Yang @ Dexter Studios                  //
+// last update: 2017.03.30                               //
+//-------------------------------------------------------//
+
+global proc string CreateZAssemblyArchive()
+{
+    if( !`pluginInfo -q -loaded "ZMayaTools"`)
+	{
+		ZPrintError "ZMayaTools is not loaded.";
+		return "";
+	}
+	
+	string $node = `createNode ZAssemblyArchive`;
+    select -r $node;
+
+    //addAttr -ln "rman__riattr__visibility_camera"       -dv 1 $node;
+    //addAttr -ln "rman__riattr__visibility_indirect"     -dv 1 $node;
+    //addAttr -ln "rman__riattr__visibility_transmission" -dv 1 $node;
+    //
+	//addAttr -ln "rman__torattr___preShapeScript" -dt "string" $node;
+    //setAttr -type "string" ($node + ".rman__torattr___preShapeScript") "rmanOutputZAssemblyArchiveProcedural";
+
+	refresh;
+	updateAE node;
+
+    return $node;
+
+}
+

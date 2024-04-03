@@ -1,0 +1,264 @@
+//--------------------//
+// ZelosClothSeam.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2016.03.25                               //
+//-------------------------------------------------------//
+
+global proc CreateZelosClothSeam()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	// Get the selected curve shape nodes.
+	string $inCrvShapes[];
+	{
+		string $xforms[] = `ls -sl -l -type transform`;
+
+		int $i = 0;
+		for( $xform in $xforms )
+		{
+			string $shapes[] = `listRelatives -f -s -ni $xform`;
+
+			for( $shape in $shapes )
+			{
+				string $nodeType = `nodeType $shape`;
+				if( $nodeType != "nurbsCurve" ) { continue; }
+
+				$inCrvShapes[$i] = $shape;
+				$i++;
+			}
+		}
+
+		int $nCrvs = $i;
+
+		if( $nCrvs == 0 ) { error("No selected curve."); return; }
+		if( $nCrvs != 2 ) { error("Too many selected curves."); return; }
+	}
+
+	// Get the connected ZelosClothCurve nodes.
+	string $curveShapes[];
+	{
+		int $i = 0;
+		for( $inCrvShape in $inCrvShapes )
+		{
+			if( !`connectionInfo -is ($inCrvShape+".worldSpace[0]")` )
+			{
+				error("No connected ZelosClothCurve node.");
+				return;
+			}
+
+			string $nodeAttrs[] = `connectionInfo -dfs ($inCrvShape+".worldSpace[0]")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+				string $node = $tokens[0];
+
+				string $nodeType = `nodeType $node`;
+				if( $nodeType != "ZelosClothCurve" ) { continue; }
+
+				$curveShapes[$i] = $node;
+				$i++;
+			}
+		}
+
+		int $nCrvs = $i;
+
+		if( $nCrvs == 0 ) { error("No selected curve."); return; }
+		if( $nCrvs != 2 ) { error("Too many selected curves."); return; }
+	}
+
+	string $designPatternGrp;
+	string $ZelosClothMesh;
+	{
+		string $ZelosClothPatch0 = `GetZelosClothPatch $curveShapes[0]`;
+		string $ZelosClothPatch1 = `GetZelosClothPatch $curveShapes[1]`;
+
+		if( $ZelosClothPatch0=="" || $ZelosClothPatch1=="" )
+		{
+			error("No ZelosClothPatch.");
+			return;
+		}
+
+		string $ZelosClothGlobal0 = `ZGetTopMostParent $ZelosClothPatch0`;
+		string $ZelosClothGlobal1 = `ZGetTopMostParent $ZelosClothPatch1`;
+
+		if( $ZelosClothGlobal0 != $ZelosClothGlobal1 )
+		{
+			error("Different group");
+			return;
+		}
+
+		$designPatternGrp = "|" + $ZelosClothGlobal0 + "|designPatterns";
+
+		if( !`objExists $designPatternGrp` )
+		{
+			error("No design pattern group");
+			error;
+		}
+
+		if( !`connectionInfo -is ($ZelosClothPatch0+".output")` )
+		{
+			error("No ZelosClothMesh");
+			return;
+		}
+
+		string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothPatch0+".output")`;
+
+		for( $nodeAttr in $nodeAttrs )
+		{
+			string $tokens[];
+			tokenize( $nodeAttr, ".", $tokens );
+			string $node = $tokens[0];
+
+			if( `nodeType $node` == "ZelosClothMesh" )
+			{
+				$ZelosClothMesh = $node;
+				break;
+			}
+		}
+
+		if( $ZelosClothMesh == "" )
+		{
+			error("No ZelosClothMesh");
+			return;
+		}
+	}
+
+	int $numSegs0 = `getAttr ($curveShapes[0] + ".numSegs")`;
+	int $numSegs1 = `getAttr ($curveShapes[1] + ".numSegs")`;
+
+	if( $numSegs0 < $numSegs1 ) {
+		setAttr ( $curveShapes[0] + ".numSegs" ) $numSegs1;
+	} else if( $numSegs1 < $numSegs0 ) {
+		setAttr ( $curveShapes[1] + ".numSegs" ) $numSegs0;
+	}
+
+	// Create a ZelosClothSeam node.
+	string $seamXForm;
+	string $seamShape;
+	int    $seamNumber;
+	{
+		$seamShape = `createNode ZelosClothSeam`;
+		string $xforms[] = `listRelatives -p $seamShape`;
+		$xform = $xforms[0];
+
+		setAttr -lock true ($xform+".translate");
+		setAttr -lock true ($xform+".rotate"   );
+		setAttr -lock true ($xform+".scale"    );
+
+		string $tokens[];
+		tokenize( $seamShape, "ZelosClothSeam", $tokens );
+		$seamNumber = $tokens[size($tokens)-1];
+		$seamXForm = `rename $xform ("seam"+$seamNumber)`;
+
+		parent $seamXForm $designPatternGrp;
+
+		$seamXForm = $designPatternGrp + "|" + $seamXForm;
+		$seamShape = $seamXForm + "|" + $seamShape;
+	}
+
+	// Connect attributes.
+	{
+		setAttr ($seamShape+".mode") 0;
+
+		int $i = 0;
+		for( $curveShape in $curveShapes )
+		{
+			connectAttr ($curveShape+".points") ($seamShape+".curves["+$i+"]");
+			$i++;
+		}
+
+		setAttr ($seamShape+".mode") 1;
+	}
+
+	{
+		int $i = ZEmptyPort( $ZelosClothMesh, "seams" );
+
+		connectAttr ($seamShape+".output") ($ZelosClothMesh+".seams["+$i+"]");
+	}
+
+	select -r $seamShape;
+}
+
+global proc string[] GetConnectedZelosClothCurveFromSeam( string $ZelosClothSeam )
+{
+	string $ZelosClothCurves[];
+
+	if( `nodeType $ZelosClothSeam` != "ZelosClothSeam" ) { return $ZelosClothCurves; }
+
+	if( !`connectionInfo -id ($ZelosClothSeam+".curves[0]")` ) { return $ZelosClothCurves; }
+	if( !`connectionInfo -id ($ZelosClothSeam+".curves[1]")` ) { return $ZelosClothCurves; }
+
+	string $nodeAttr0 = `connectionInfo -sfd ($ZelosClothSeam+".curves[0]")`;
+	string $nodeAttr1 = `connectionInfo -sfd ($ZelosClothSeam+".curves[1]")`;
+
+	if( $nodeAttr0 == "" || $nodeAttr1 == "" )
+	{
+		error( $ZelosClothSeam + " has not enough input curves." );
+		return $ZelosClothCurves;
+	}
+
+	string $tokens[];
+
+	tokenize( $nodeAttr0, ".", $tokens );
+	$ZelosClothCurve[0] = $tokens[0];
+
+	tokenize( $nodeAttr1, ".", $tokens );
+	$ZelosClothCurve[1] = $tokens[0];
+
+	if( `nodeType $ZelosClothCurve[0]` != "ZelosClothCurve"
+	 || `nodeType $ZelosClothCurve[1]` != "ZelosClothCurve" )
+	{
+		error( "Failed to find connected ZelosClothCurve nodes." );
+		return $ZelosClothCurves;
+	}
+
+	$tokens = `ls -l $ZelosClothCurve[0]`;
+	if( size($tokens) != 1 ) { return $ZelosClothCurves; }
+	$ZelosClothCurves[0] = $tokens[0];
+
+	$tokens = `ls -l $ZelosClothCurve[1]`;
+	if( size($tokens) != 1 ) { return $ZelosClothCurves; }
+	$ZelosClothCurves[1] = $tokens[0];
+
+	return $ZelosClothCurves;
+}
+
+global proc string GetConnectedZelosClothMeshFromSeam( string $ZelosClothSeam )
+{
+	if( `nodeType $ZelosClothSeam` != "ZelosClothSeam" ) { return ""; }
+
+	if( !`connectionInfo -is ($ZelosClothSeam+".output")` ) { return ""; }
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothSeam+".output")`;
+
+	if( size($nodeAttrs) != 1 )
+	{
+		error( "Failed to find connected ZelosClothMesh node." );
+		return "";
+	}
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZelosClothMesh" )
+		{
+			string $fullPaths[] = `ls -l $node`;
+			if( size($fullPaths) != 1 ) { continue; }
+			return $fullPaths[0];
+		}
+	}
+
+	return "";
+}
+

@@ -1,0 +1,34 @@
+//-----------------------//
+// ZPseudoSpringTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZPseudoSpringTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	spaceLocator;
+	spaceLocator;
+	polySphere;
+
+	select -r pSphere1;
+	select -add locator2;
+	parent;
+
+	createNode ZPseudoSpringTest;
+	connectAttr time1.outTime ZPseudoSpringTest1.time;
+	connectAttr locatorShape1.worldPosition ZPseudoSpringTest1.goalPosition;
+	connectAttr pSphere1.parentInverseMatrix ZPseudoSpringTest1.parentInverse;
+	connectAttr ZPseudoSpringTest1.outPosition pSphere1.translate;
+
+	playbackOptions -e -maxTime 1000 -aet 1000;
+
+	select -r locator1;
+}
+

@@ -1,0 +1,20 @@
+//--------------------//
+// ZDelaunay2DCmd.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.02.14                               //
+//-------------------------------------------------------//
+
+global proc CreateZDelaunay2DMesh( vector $pos[] )
+{
+	string $posStr = "";
+
+	for( $p in $pos )
+	{
+		$posStr += $p;
+		$posStr += " ";
+	}
+
+	ZDelaunay2DCmd -points $posStr;
+}

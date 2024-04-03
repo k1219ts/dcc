@@ -1,0 +1,44 @@
+//----------------//
+// ZCurveTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZCurveTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+	string $curve;
+	for( $xForm in $selected )
+	{
+		$children = `listRelatives -c $xForm`;
+
+		$type = `nodeType $children[0]`;
+		if( $type == "nurbsCurve" )
+		{
+			$curve = $children[0];
+			break;
+		}
+	}
+
+	if( !size($curve) )
+	{
+		$curve = `curve -d 3 -p 0 -0.210332 12.564576 -p 0 4.461255 6.276753 -p 0 -3.819188 1.782288 -p 0 3.199262 -1.472325 -p 0 -1.162362 -4.926199 -p 0 8.247232 -10.682657 -k 0 -k 0 -k 0 -k 1 -k 2 -k 3 -k 3 -k 3`;
+	}
+
+	$ZCurveTest = `createNode ZCurveTest`;
+	connectAttr time1.outTime ( $ZCurveTest + ".time" );
+	connectAttr ( $curve + ".worldSpace" ) ( $ZCurveTest + ".curve" );
+
+	string $locator[] = `spaceLocator`;
+	connectAttr ( $ZCurveTest + ".outPos" ) ( $locator[1] + ".translate" );
+
+	select -r $ZCurveTest;
+}
+

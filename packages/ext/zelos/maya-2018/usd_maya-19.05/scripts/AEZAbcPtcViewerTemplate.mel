@@ -1,0 +1,122 @@
+//-----------------------------//
+// AEZAbcPtcViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.17                               //
+//-------------------------------------------------------//
+
+//////////
+// File //
+global proc ZAbcPtcViewerFileNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text -label "File (.abc .asb)";
+			textField -ed 0 -tx `getAttr $attr` ZAbcPtcViewerFile;
+			symbolButton -image "navButtonBrowse.xpm" ZAbcPtcViewerFileBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZAbcPtcViewerFileReplace $attr;
+}
+
+global proc ZAbcPtcViewerFileReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` ZAbcPtcViewerFile;
+	button -e -c ("ZAbcPtcViewerSetFile "+$attr) ZAbcPtcViewerFileBtn;
+}
+
+global proc ZAbcPtcViewerSetFile( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZAbcPtcViewer = $tokens[0];
+	string $filter = "Alembic Files (*.abc *.asb);;Alembic File (*.abc);;Alembic File (*.asb)";
+	string $fileNames[] = `fileDialog2 -caption "Alembic(.abc .asb) File" -ff $filter -fileMode 1`;
+
+	if( size($fileNames) > 0 )
+	{
+		eval( "setAttr -type \"string\" " + $attr + " \"" + $fileNames[0] + "\"" );
+		textField -e -tx $fileNames[0] ZAbcPtcViewerFile;
+
+		refresh;
+		updateAE $ZAbcPtcViewer;
+	}
+}
+
+/////////////////
+// Frame Range //
+global proc ZAbcPtcViewerRangeNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout -adj 1;
+		{
+			rowLayout -nc 1 -adj 1;
+			{
+				button -l "Set Playback" -c ("ZAbcPtcViewerSetRange "+$attr) ZAbcPtcViewerRangeBtn;
+			}
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+}
+
+global proc ZAbcPtcViewerRangeReplace( string $attr )
+{
+	button -e -c ("ZAbcPtcViewerSetRange "+$attr) ZAbcPtcViewerRangeBtn;
+}
+
+global proc ZAbcPtcViewerSetRange( string $attr )
+{
+	float $frameRange[] = `getAttr $attr`;
+
+	playbackOptions -e -ast $frameRange[0];
+	playbackOptions -e -min $frameRange[0];
+
+	playbackOptions -e -max $frameRange[1];
+	playbackOptions -e -aet $frameRange[1];
+}
+
+//////////
+// main //
+global proc AEZAbcPtcViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display" -collapse 0;
+		{
+			editorTemplate -l "Mode"              -ac "displayMode";
+			editorTemplate -l "Color"             -ac "displayColor";
+			editorTemplate -l "Point Size"        -ac "pointSize";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Count"             -ac "count";
+			editorTemplate -as; 
+			editorTemplate -l "Frame Range"       -ac "frameRange";
+			editorTemplate -ccu ZAbcPtcViewerRangeNew ZAbcPtcViewerRangeReplace "frameRange";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Alembic File (.abc)" -collapse 0;
+		{
+			editorTemplate -ccu ZAbcPtcViewerFileNew ZAbcPtcViewerFileReplace "file";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "batchModeDraw";
+}
+

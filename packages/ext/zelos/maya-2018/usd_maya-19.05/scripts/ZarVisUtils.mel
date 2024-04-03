@@ -1,0 +1,256 @@
+//-----------------//
+// ZarVisUtils.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.04.28                               //
+//-------------------------------------------------------//
+
+global proc CreateZVOceanWithBlend()
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	string $mesh;
+	{
+		string $xforms[] = `ls -sl -type transform`;
+
+		int $count = size($xforms);
+
+		if( $count == 1 ) {
+
+			string $xform = $xforms[0];
+
+			string $shapes[] = `listRelatives -shapes -ni $xform`;
+			     if( size($shapes) == 0 ) { ZPrintError "No shape node."; return; }
+			else if( size($shapes) != 1 ) { ZPrintError "Too many shape nodes."; return; }
+
+			string $shape = $shapes[0];
+
+			if( `nodeType $shape` != "mesh" )
+			{
+				ZPrintError ($shape+" is not a polygon mesh.");
+				return;
+			}
+
+			$mesh = $shape;
+
+		} else if( $count > 1 ) {
+
+			ZPrintError "Too many selected transform nodes.";
+			return;
+
+		}
+	}
+
+	string $ZVMeshConverter = `createNode ZVMeshConverter`;
+	string $ZVOceanWave = `createNode ZVOceanWave`;
+	string $ZVOceanBlend = `createNode ZVOceanBlend`;
+
+	connectAttr ($mesh+".worldMesh") ($ZVMeshConverter+".inMesh");
+	connectAttr ($ZVMeshConverter+".outMesh") ($ZVOceanWave+".inMesh");
+	connectAttr ($ZVMeshConverter+".outMesh") ($ZVOceanBlend+".inMesh");
+	connectAttr ($ZVOceanWave+".outOcean") ($ZVOceanBlend+".inOceans[0]");
+
+	setAttr ($ZVOceanWave+".displayMode") 0;
+	select -r $ZVOceanBlend;
+}
+
+global proc CreateZVOceanWave()
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	string $mesh;
+	{
+		string $xforms[] = `ls -sl -type transform`;
+
+		int $count = size($xforms);
+
+		if( $count == 1 ) {
+
+			string $xform = $xforms[0];
+
+			string $shapes[] = `listRelatives -shapes -ni $xform`;
+			     if( size($shapes) == 0 ) { ZPrintError "No shape node."; return; }
+			else if( size($shapes) != 1 ) { ZPrintError "Too many shape nodes."; return; }
+
+			string $shape = $shapes[0];
+
+			if( `nodeType $shape` != "mesh" )
+			{
+				ZPrintError ($shape+" is not a polygon mesh.");
+				return;
+			}
+
+			$mesh = $shape;
+
+		} else if( $count > 1 ) {
+
+			ZPrintError "Too many selected transform nodes.";
+			return;
+
+		}
+	}
+
+	string $ZVMeshConverter = `createNode ZVMeshConverter`;
+	string $ZVOceanWave = `createNode ZVOceanWave`;
+
+	connectAttr ($mesh+".worldMesh") ($ZVMeshConverter+".inMesh");
+	connectAttr ($ZVMeshConverter+".outMesh") ($ZVOceanWave+".inMesh");
+
+	select -r $ZVOceanWave;
+}
+
+global proc ZVAddOcean()
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	string $xforms[] = `ls -sl -type transform`;
+
+	for( $xform in $xforms )
+	{
+		string $shapes[] = `listRelatives -shapes -ni $xform`;
+		     if( size($shapes) == 0 ) { ZPrintError( "No shape node under " + $xform + "."); return; }
+		else if( size($shapes) != 1 ) { ZPrintError( "Too many shape nodes under " + $xform + "." ); return; }
+
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` == "ZVOceanWave" ) {
+
+			string $nodes[] = `ls -type ZVOceanBlend`;
+
+			if( size( $nodes ) == 0 ) {
+
+				// Create.
+				string $ZVOceanBlend = `createNode ZVOceanBlend`;
+
+				string $meshAttr = `connectionInfo -sfd ($shape+".inMesh")`;
+				connectAttr $meshAttr ($ZVOceanBlend+".inMesh");
+				connectAttr ($shape+".outOcean") ($ZVOceanBlend+".inOceans[0]");
+
+				string $ZVOceanWave = `createNode ZVOceanWave`;
+				connectAttr $meshAttr ($ZVOceanWave+".inMesh");
+				connectAttr ($ZVOceanWave+".outOcean") ($ZVOceanBlend+".inOceans[1]");
+
+				setAttr ($ZVOceanWave+".displayMode") 0;
+				select -r $ZVOceanWave;
+				return;
+
+			} else if( size( $nodes ) == 1 ) {
+
+				string $ZVOceanBlend = $nodes[0];
+
+				string $connected[] = `listConnections ($ZVOceanBlend+".inOceans")`;
+				int $idx = size( $connected );
+
+				string $meshAttr = `connectionInfo -sfd ($ZVOceanBlend+".inMesh")`;
+
+				string $ZVOceanWave = `createNode ZVOceanWave`;
+				connectAttr $meshAttr ($ZVOceanWave+".inMesh");
+				connectAttr ($ZVOceanWave+".outOcean") ($ZVOceanBlend+".inOceans["+$idx+"]");
+
+				setAttr ($ZVOceanWave+".displayMode") 0;
+				select -r $ZVOceanWave;
+				return;
+
+			} else if( size( $nodes ) > 1 ) {
+
+				ZPrintError "There are too many ZVOceanBlend nodes in the scene. Select a specific one.";
+				return;
+
+			}
+
+		} else if( `nodeType $shape` == "ZVOceanBlend" ) {
+
+			// ZVOceanBlend node selected.
+			string $ZVOceanBlend = $shape;
+
+			string $connected[] = `listConnections ($ZVOceanBlend+".inOceans")`;
+			int $idx = size( $connected );
+
+			string $meshAttr = `connectionInfo -sfd ($ZVOceanBlend+".inMesh")`;
+
+			string $ZVOceanWave = `createNode ZVOceanWave`;
+			connectAttr $meshAttr ($ZVOceanWave+".inMesh");
+			connectAttr ($ZVOceanWave+".outOcean") ($ZVOceanBlend+".inOceans["+$idx+"]");
+
+			setAttr ($ZVOceanWave+".displayMode") 0;
+			select -r $ZVOceanWave;
+			return;
+
+		} else {
+
+			continue;
+
+		}
+	}
+}
+
+global proc ZVAddWeight()
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	string $xforms[] = `ls -sl -type transform`;
+
+	for( $xform in $xforms )
+	{
+		string $shapes[] = `listRelatives -shapes -ni $xform`;
+			 if( size($shapes) == 0 ) { ZPrintError "No shape node."; return; }
+		else if( size($shapes) != 1 ) { ZPrintError "Too many shape nodes."; return; }
+
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "ZVOceanWave" ) {
+
+			continue;
+
+		} else {
+
+			string $ZVOceanWave  = $shape;
+			string $ZVOceanBlend = "";
+			int    $idx          = 0;
+
+			if( `connectionInfo -is ($ZVOceanWave+".outOcean")` ) {
+
+				// There is a connection into the existing ZVOceanBlend node.
+				string $oceanAttrs[] = `connectionInfo -dfs ($ZVOceanWave+".outOcean")`;
+
+				string $tokens[];
+				tokenize $oceanAttrs[0] "." $tokens;
+				$ZVOceanBlend = $tokens[0];
+
+				tokenize $tokens[1] "[" $tokens;
+				tokenize $tokens[1] "]" $tokens;
+				$idx = (int)$tokens[0];
+
+			} else {
+
+				// There is no ZVOceanBlend node. Create!
+				$ZVOceanBlend = `createNode ZVOceanBlend`;
+
+				string $meshAttr = `connectionInfo -sfd ($ZVOceanWave+".inMesh")`;
+				connectAttr $meshAttr ($ZVOceanBlend+".inMesh");
+				connectAttr ($ZVOceanWave+".outOcean") ($ZVOceanBlend+".inOceans[0]");
+			}
+
+			string $ZVImage = `createNode ZVImage`;
+			connectAttr ($ZVImage+".outImage") ($ZVOceanBlend+".inWeights["+$idx+"]");
+		}
+	}
+}
+

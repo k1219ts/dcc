@@ -1,0 +1,349 @@
+//--------------------------------//
+// AEZN_Deform_OffsetTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_OffsetExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Offset Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_OffsetExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_OffsetExpr1Win(\""+$attr+"\")") btnZN_Deform_OffsetExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OffsetExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_OffsetExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_OffsetExpr1;
+	button -e -c ("ZN_Deform_OffsetExpr1Win(\""+$attr+"\")") btnZN_Deform_OffsetExpr1;
+}
+
+global proc ZN_Deform_OffsetExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_OffsetExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_OffsetExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_OffsetExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_OffsetExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_OffsetExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_OffsetExpr1;
+}
+
+global proc ZN_Deform_OffsetExpr1Reset( string $attr )
+{
+	string $txt = "offset + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_OffsetExpr1;
+	scrollField -e -tx $txt sfZN_Deform_OffsetExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_OffsetExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_OffsetExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_OffsetExpr2Win(\""+$attr+"\")") btnZN_Deform_OffsetExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OffsetExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_OffsetExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_OffsetExpr2;
+	button -e -c ("ZN_Deform_OffsetExpr2Win(\""+$attr+"\")") btnZN_Deform_OffsetExpr2;
+}
+
+global proc ZN_Deform_OffsetExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_OffsetExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_OffsetExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_OffsetExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_OffsetExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_OffsetExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_OffsetExpr2;
+}
+
+global proc ZN_Deform_OffsetExpr2Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZN_Deform_OffsetExpr2;
+	scrollField -e -tx $txt sfZN_Deform_OffsetExpr2;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_OffsetImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_OffsetImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_OffsetImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OffsetImageListReplace( $attr );
+}
+
+global proc ZN_Deform_OffsetImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_OffsetImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Offset node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Offset = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Offset + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Offset + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Offset + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_OffsetImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_OffsetDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_OffsetDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_OffsetDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OffsetDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_OffsetDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_OffsetDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Offset node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Offset = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Offset + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_OffsetDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_OffsetUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_OffsetUpdateExe "+$attr) ZN_Deform_OffsetUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_OffsetUpdateReplace $attr;
+}
+
+global proc ZN_Deform_OffsetUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_OffsetUpdateExe "+$attr) ZN_Deform_OffsetUpdate;
+}
+
+global proc ZN_Deform_OffsetUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Offset = $node[0];
+
+	updateAE $ZN_Deform_Offset;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_OffsetTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Offset Value";
+			editorTemplate -l "Offset [offset]"     -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"   -ac "r1";
+			editorTemplate -l "Frequency [freq]"    -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_OffsetExpr1New ZN_Deform_OffsetExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZN_Deform_OffsetExpr2New ZN_Deform_OffsetExpr2Replace "e2";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Etc.";
+			editorTemplate -l "Along Curve Tangent" -ac "alongCurveTangent";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_OffsetImageListNew ZN_Deform_OffsetImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_OffsetDeformerListNew ZN_Deform_OffsetDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

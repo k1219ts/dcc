@@ -1,0 +1,37 @@
+//---------------------------------//
+// AEZWrapMeshDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Nayoung Kim @ Dexter Studios                  //
+// last update: 2015.07.14                               //
+//-------------------------------------------------------//
+
+////////////////////
+// Binding Button //
+global proc ZWrapMeshDeformerBindingNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Binding" -c ( "setAttr " + $attr + " 1" ) ZWrapMeshDeformerBinding;
+	setUITemplate -ppt;
+}
+
+global proc ZWrapMeshDeformerBindingReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZWrapMeshDeformerBinding;
+}
+
+//////////
+// main //
+global proc AEZWrapMeshDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Basic Options" -collapse 0;
+		editorTemplate -ccu ZWrapMeshDeformerBindingNew ZWrapMeshDeformerBindingReplace "Binding";
+		editorTemplate -endLayout;
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "driverMesh";
+	editorTemplate -suppress "binding";
+}

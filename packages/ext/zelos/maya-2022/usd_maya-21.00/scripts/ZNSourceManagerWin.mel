@@ -1,0 +1,790 @@
+//------------------------//
+// ZNSourceManagerWin.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2018.04.23                               //
+//-------------------------------------------------------//
+
+
+global proc ZNSourceManager_OpenFileDirectorySetTextField( string $textFieldName ) 
+{
+	string $dirs[] = `fileDialog2 -fm 1 -ds 2`;
+	if( size($dirs) == 0 ) { return; }
+
+	textField -e -tx $dirs[0] $textFieldName;
+}
+
+global proc string ZNSourceManager_checkInputValidity( string $type, string $sel )
+{
+	if( $type == "mayaPolygonMesh" )
+	{
+		string $meshShape;
+		if( $sel != "" )
+		{
+			if( !`objExists $sel` )
+			{
+				ZPrintError ("Failed to find "+$sel);
+				return "";
+			}
+	
+			string $shapes[] = `listRelatives -f -c -ni -shapes $sel`;
+	
+			if( size($shapes) != 1 )
+			{
+				if( size($shapes) == 0 ) { ZPrintError ($sel+" has no shape node."); }
+				if( size($shapes) > 1 ) { ZPrintError ($sel+" has too many shape nodes."); }
+				return "";
+			}
+	
+			if( `nodeType $shapes[0]` != "mesh" )
+			{
+				ZPrintError ($sel+" is not a polygon mesh.");
+				return "";
+			}
+
+			if( !`ZIsFreezed $sel` )
+			{
+				ZPrintError ($sel+" is not freezed.");
+				return "";
+			}
+			$meshShape = $shapes[0];
+			return $meshShape;
+		} else { return ""; }
+	}
+	
+	else if( $type == "curveGroup" )
+	{
+		// Check the curve group.
+		if( $sel != "" )
+		{
+			if( !`objExists $sel` )
+			{
+				ZPrintError ("Failed to find "+$sel);
+				return "";
+			}
+	
+			string $xforms[] = `listRelatives -f -c $sel`;
+	
+			for( $xform in $xforms )
+			{
+				if( `nodeType $xform` != "transform" )
+				{
+					continue;
+				}
+	
+				if( !`ZIsFreezed $xform` )
+				{
+					ZPrintError ($xform+" is not freezed.");
+					return "";
+				}
+	
+				string $shapes[] = `listRelatives -f -c -ni -shapes $xform`;
+	
+				if( size($shapes) == 0 )
+				{
+					ZPrintError ($xform+" has no shape node.");
+					return "";
+				}
+	
+				if( size($shapes) > 1 )
+				{
+					ZPrintError ($xform+" has too many shape nodes.");
+					return "";
+				}
+				string $shape = $shapes[0];
+	
+				if( `nodeType $shape` != "nurbsCurve" )
+				{
+					ZPrintError ($shape+" is not a nurbsCurve.");
+					return "";
+				}
+			}
+			return "isValid";
+		} else { return ""; }
+	} 
+	else 
+	{
+		return "";
+	}
+}
+
+global proc ZNSourceManager_FillTextField( string $textFieldButtonGrpName, string $type )
+{
+	string $objs[] = `ls -sl -l -ni`;
+
+	for( $obj in $objs )
+	{
+		if( `nodeType $obj` == $type )
+		{
+			textFieldButtonGrp -e -tx $obj $textFieldButtonGrpName;
+			if( $textFieldButtonGrpName == "ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp")
+			{
+				string $inProxyMayaPolygonMesh = `textFieldButtonGrp -q -tx ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp`;
+				string $inProxyAlembic = `textField -q -tx ZNSourceManagerProxyGeometryAlembicTextField`;
+				if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+				{
+					string $curveGroupTextField = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+				
+					if ( $curveGroupTextField != "") { intSliderGrp -e -en true ZNSourceManagerLatticeResolution; }
+					else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+				}
+				else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			}
+			else intSliderGrp -e -en false ZNSourceManagerLatticeResolution; 
+			return;
+		}
+
+		string $children[] = `listRelatives -f -s -ni $obj`;
+
+		for( $child in $children )
+		{
+			if( `nodeType $child` == $type )
+			{
+				textFieldButtonGrp -e -tx $obj $textFieldButtonGrpName;
+				if( $textFieldButtonGrpName == "ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp")
+				{
+					string $inProxyMayaPolygonMesh = `textFieldButtonGrp -q -tx ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp`;
+					string $inProxyAlembic = `textField -q -tx ZNSourceManagerProxyGeometryAlembicTextField`;
+					if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+					{
+						string $curveGroupTextField = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+					
+						if ( $curveGroupTextField != "") { intSliderGrp -e -en true ZNSourceManagerLatticeResolution; }
+						else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+					}
+					else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+				}
+				else intSliderGrp -e -en false ZNSourceManagerLatticeResolution; 
+				return;
+			}
+		}
+	}
+
+	textFieldButtonGrp -e -tx "" $textFieldButtonGrpName;
+}
+
+global proc ZNSourceManager_OnProxyGeometryOptionMenuChanged()
+{
+	//get the selected source
+	string $selectedSources[] = `textScrollList -q -si ZNSourceManagerSourceList`; 
+	if( size($selectedSources) <= 0 ) { return; }
+	string $selectedSource = $selectedSources[0];
+
+	string $value = `optionMenu -q -v ZNSourceManagerProxyGeometryOptionMenu`;
+
+	string $inProxyMayaPolygonMesh = `textFieldButtonGrp -q -tx ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp`;
+	string $inProxyAlembic = `textField -q -tx ZNSourceManagerProxyGeometryAlembicTextField`;
+	switch( $value )
+	{
+		case "Maya Polygon Mesh":
+
+			textFieldButtonGrp -e -en true ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp;
+
+			text -e -en false ZNSourceManagerProxyGeometryAlembicText;
+			textField -e -en false ZNSourceManagerProxyGeometryAlembicTextField;
+			symbolButton -e -en false ZNSourceManagerProxyGeometryAlembicSymbolBtn;
+			if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+			{
+				string $curveGroupTextField = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+				
+				if ( $curveGroupTextField != "") { intSliderGrp -e -en true ZNSourceManagerLatticeResolution; }
+				else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			}
+			else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			setAttr ($selectedSource+".proxyGeometryType") 0;
+			break;
+
+		case ".abc":
+			textFieldButtonGrp -e -en false ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp;
+
+			text -e -en true ZNSourceManagerProxyGeometryAlembicText;
+			textField -e -en true ZNSourceManagerProxyGeometryAlembicTextField;
+			symbolButton -e -en true ZNSourceManagerProxyGeometryAlembicSymbolBtn;
+			if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+			{
+				string $curveGroupTextField = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+				if ( $curveGroupTextField != "") { intSliderGrp -e -en true ZNSourceManagerLatticeResolution; }
+				else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			}
+			else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			setAttr ($selectedSource+".proxyGeometryType") 1;
+			break;
+	}
+	
+}
+
+global proc ZNSourceManager_DeleteSource()
+{
+	string $items[] = `textScrollList -q -si ZNSourceManagerSourceList`;
+	if( size($items) == 0 ) { return; }
+	string $selectedSource = $items[0];
+	string $connectedZN_Instances[] = `connectionInfo -dfs ($selectedSource+".outSource")`;
+	if( size($connectedZN_Instances) != 1 ) { return; }
+	
+	string $tokens[];
+	tokenize $connectedZN_Instances[0] "." $tokens;
+	string $ZN_Instance = $tokens[0];
+
+	string $connectedPlgs[] = `listAttr -multi ( $ZN_Instance + ".inSource" )`; 
+	int $numConnections = size($connectedPlgs);
+
+	string $connectedNodes[];
+
+	int $counter = 0;
+	int $i = 0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ($ZN_Instance+"."+$connectedPlgs[$i])` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ($ZN_Instance+"."+$connectedPlgs[$i])`;
+		tokenize $nodeAttr "." $tokens;
+
+		disconnectAttr ($tokens[0]+".outSource") ($ZN_Instance+"."+$connectedPlgs[$i]);
+
+		if( $tokens[0] != $selectedSource )
+		{
+			$connectedNodes[$counter++] = $tokens[0];
+		}
+	}
+
+	delete $selectedSource;
+
+	int $index = 0;
+	$i = 0;
+	for( ; $i<($numConnections-1); $i++ )
+	{
+		connectAttr -f ( $connectedNodes[$i]+".outSource") ( $ZN_Instance+".inSource["+$i+"]" );
+	}
+
+	ZNSourceManager_UpdateSourceList;
+
+}
+
+global proc ZNSourceManager_AddSource()
+{
+	//get the selected ZN_Instance node
+	string $items[] = `textScrollList -q -si ZNSourceManagerInstanceList`;
+	if( size($items) <= 0 ) { return; }
+	string $ZN_InstanceNode = $items[0];
+
+	//Get the connected nodes
+	string $connectedPlgs[] = `listAttr -multi ( $ZN_InstanceNode + ".inSource" )`; 
+	int $numConnections = size($connectedPlgs);
+
+	int $index = 0;
+	if( $numConnections>0 ) 
+	{
+		string $lastIndex = `match "[0-9]+" $connectedPlgs[$numConnections-1]`;
+		int $lastIdx = $lastIndex;
+		$index = $lastIdx + 1;
+	}
+
+	string $ZN_Source = `createNode ZN_Source`;
+
+	connectAttr -f ( $ZN_Source+".outSource") ( $ZN_InstanceNode+".inSource["+$index+"]" );
+
+	ZNSourceManager_UpdateSourceList;
+
+	//select the new item in the list
+	textScrollList -e -si $ZN_Source ZNSourceManagerSourceList;
+
+	//ZNSourceManager_SourceListSelect;
+
+}
+
+global proc ZNSourceManager_UpdateSourceList()
+{
+	//get the selected ZN_Instance node
+	string $selectedInstances[] = `textScrollList -q -si ZNSourceManagerInstanceList`;
+	if( size($selectedInstances) <= 0 ) { return; }
+	string $ZN_Instance = $selectedInstances[0];
+
+	//query what was selected.
+	string $selectedSources[] = `textScrollList -q -si ZNSourceManagerSourceList`;
+	string $selectedSource = "";
+	int $isSelectedExists = 0;
+
+	textScrollList -e -ra ZNSourceManagerSourceList;
+
+	//Get the connected nodes
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Instance + ".inSource" )`; 
+	int $numConnections = size($connectedPlg);
+	if( $numConnections <= 0 ) { return; }
+
+	//Add the connected node names to the option menu
+	int $i = 0;
+	string $node[];
+	for ( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Instance + "." + $connectedPlg[$i] )` )
+		{
+			continue; 
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Instance + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		textScrollList -e -a $node[0] ZNSourceManagerSourceList;
+		if( $node[0] == $selectedSource )
+		{
+			textScrollList -e -si $selectedSource ZNSourceManagerSourceList;
+			$isSelectedExists = 1;
+		}
+
+	}
+	if( !$isSelectedExists )
+	{
+		textScrollList -e -sii 1 ZNSourceManagerInstanceList;
+		ZNSourceManager_SourceListSelect;
+	}
+}
+
+global proc ZNSourceManager_UpdateInstanceList()
+{
+
+	string $ZN_InstanceList[] = `ls -type ZN_Instance`;
+	int $numZN_Instance = size($ZN_InstanceList);
+	if( $numZN_Instance <= 0 ) { return; }
+
+	//query what was selected.
+	string $selectedInstances[] = `textScrollList -q -si ZNSourceManagerInstanceList`;
+	string $selectedInstance = "";
+	int $isSelectedExists = 0;
+	if( size($selectedInstances) > 0 )
+	{
+		$selectedInstance = $selectedInstances[0];
+	}
+	textScrollList -e -ra ZNSourceManagerInstanceList;
+
+	int $i = 0;
+	for ( ; $i<size($ZN_InstanceList); $i++ )
+	{
+		textScrollList -e -a $ZN_InstanceList[$i] ZNSourceManagerInstanceList;
+		if( $ZN_InstanceList[$i] == $selectedInstance ) 
+		{ 
+			textScrollList -e -si $selectedInstance ZNSourceManagerInstanceList;
+			$isSelectedExists = 1;
+		}
+
+	}
+	if( !$isSelectedExists )
+	{
+		textScrollList -e -sii 1 ZNSourceManagerInstanceList;
+	}
+
+}
+
+global proc ZNSourceManager_SourceListSelect() 
+{
+	//get the selected ZN_Instance node
+	string $selectedInstances[] = `textScrollList -q -si ZNSourceManagerInstanceList`;
+	if( size($selectedInstances) <= 0 ) { return; }
+	string $ZN_Instance = $selectedInstances[0];
+
+	//get the selected source
+	string $selectedSources[] = `textScrollList -q -si ZNSourceManagerSourceList`; 
+	if( size($selectedSources) <= 0 ) { return; }
+	string $selectedSource = $selectedSources[0];
+
+	//query the attribute values
+	int $numMeshVertices = `getAttr ($selectedSource+".numMeshVertices")`;
+	int $numMeshTriangles = `getAttr ($selectedSource+".numMeshTriangles")`;
+	int $numMeshUVs = `getAttr ($selectedSource+".numMeshUVs")`;
+	int $numCurves = `getAttr ($selectedSource+".numCurves")`;
+	int $numCurvesTotalCVs = `getAttr ($selectedSource+".numCurvesTotalCVs")`;
+	int $proxyGeometryType = `getAttr ($selectedSource+".proxyGeometryType")`;
+	string $inProxyMayaPolygonMesh = "";
+	string $inProxyAlembic = `getAttr ($selectedSource+".inProxyAlembic")`;
+	string $inRenderMayaPolygonMesh = "";
+	string $inRenderCurveGroup = "";
+	string $inRenderAlembic = `getAttr ($selectedSource+".inRenderAlembic")`;
+	string $inRenderRIB = `getAttr ($selectedSource+".inRenderRIB")`;
+	string $distributionMapPath = `getAttr ($selectedSource+".distributionMapPath")`;
+	int $latticeResolution = `getAttr ($selectedSource+".latticeResolution")`;
+	float $colorId[] = `getAttr ($selectedSource+".colorId")`;
+	int $toDoSubdiv = `getAttr ($selectedSource+".toDoSubdiv")`;
+	string $ZNSourceManagerLatticeResolution = `intSliderGrp -q -v ZNSourceManagerLatticeResolution`;
+
+	if( `connectionInfo -id ($selectedSource+".inProxyMayaPolygonMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($selectedSource+".inProxyMayaPolygonMesh")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		string $xForm = ZGetParent( $tokens[0] );
+		$inProxyMayaPolygonMesh = $xForm;
+	}
+	if( `connectionInfo -id ($selectedSource+".inRenderMayaPolygonMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($selectedSource+".inRenderMayaPolygonMesh")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		string $xForm = ZGetParent( $tokens[0] );
+		$inRenderMayaPolygonMesh = $xForm;
+	}
+	if( `connectionInfo -id ($selectedSource+".inRenderCurveGroup")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($selectedSource+".inRenderCurveGroup")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		$inRenderCurveGroup = $tokens[0];
+	}
+
+
+	//set the attribute values
+	string $numMeshVerticesTextFieldGrp    = `textFieldButtonGrp -e -tx $numMeshVertices ZNSourceManagerNumMeshVerticesTextFieldGrp`;
+	string $numMeshTrianglesTextFieldGrp   = `textFieldButtonGrp -e -tx $numMeshTriangles ZNSourceManagerNumMeshTrianglesTextFieldGrp`;
+	string $numMeshUVsTextFieldGrp         = `textFieldButtonGrp -e -tx $numMeshUVs ZNSourceManagerNumMeshUVsTextFieldGrp`;
+	string $numCurvesTextFieldGrp          = `textFieldButtonGrp -e -tx $numCurves ZNSourceManagerNumCurvesTextFieldGrp`;
+	string $numCurvesTotalCVsTextFieldGrp  = `textFieldButtonGrp -e -tx $numCurvesTotalCVs ZNSourceManagerNumCurvesTotalCVsTextFieldGrp`;
+
+	if( $colorId[0] < 0 ) 
+	{
+		float $r = rand(0,1);
+		float $g = rand(0,1);
+		float $b = rand(0,1);
+
+		string $colorIdSliderGrp = `colorSliderGrp -e -rgb $r $g $b ZNSourceManagerColorIDSliderGrp`;
+		setAttr ($selectedSource+".colorId") -type "float3" $r $g $b;
+	}
+	else { string $colorIdSliderGrp = `colorSliderGrp -e -rgb $colorId[0] $colorId[1] $colorId[2] ZNSourceManagerColorIDSliderGrp`; }
+
+	//fill the textfields with the current value of the attribute
+	switch( $proxyGeometryType )
+	{
+		case 0:
+			optionMenu -e -sl 1 ZNSourceManagerProxyGeometryOptionMenu;
+			textFieldButtonGrp -e -en true ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp;
+
+			text -e -en false ZNSourceManagerProxyGeometryAlembicText;
+			textField -e -en false ZNSourceManagerProxyGeometryAlembicTextField;
+			symbolButton -e -en false ZNSourceManagerProxyGeometryAlembicSymbolBtn;
+			if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+			{
+				string $curveGroupTextField = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+				
+				if ( $curveGroupTextField != "") { intSliderGrp -e -en true ZNSourceManagerLatticeResolution; }
+				else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			}
+			else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			break;
+
+		case 1:
+			optionMenu -e -sl 2 ZNSourceManagerProxyGeometryOptionMenu;
+			textFieldButtonGrp -e -en false ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp;
+
+			text -e -en true ZNSourceManagerProxyGeometryAlembicText;
+			textField -e -en true ZNSourceManagerProxyGeometryAlembicTextField;
+			symbolButton -e -en true ZNSourceManagerProxyGeometryAlembicSymbolBtn;
+			if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+			{
+				string $curveGroupTextField = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+				if ( $curveGroupTextField != "") { intSliderGrp -e -en true ZNSourceManagerLatticeResolution; }
+				else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			}
+			else { intSliderGrp -e -en false ZNSourceManagerLatticeResolution; }
+			break;
+	}
+
+	string $proxyMayaPolygonMeshXForm = `textFieldButtonGrp -e -tx $inProxyMayaPolygonMesh ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp`;
+	string $inProxyAlembicTextField = `textField -e -tx $inProxyAlembic ZNSourceManagerProxyGeometryAlembicTextField`;
+	string $latticeResolutionIntSliderGrp = `intSliderGrp -e -v $latticeResolution ZNSourceManagerLatticeResolution`;
+
+	string $renderMayaPolygonMeshXForm = `textFieldButtonGrp -e -tx $inRenderMayaPolygonMesh ZNSourceManagerRenderGeometryMayaPolygonMeshTextFieldButtonGrp`;
+	string $renderCurveGroup = `textFieldButtonGrp -e -tx $inRenderCurveGroup ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+	string $inRenderAlembicTextField = `textField -e -tx $inRenderAlembic ZNSourceManagerRenderGeometryAlembicTextField`;
+	string $inRenderRIBTextField = `textField -e -tx $inRenderRIB ZNSourceManagerRenderGeometryRIBTextField`;
+
+	string $distributionMapPathTextField = `textField -e -tx $distributionMapPath ZNSourceManagerDistributionMapPath`;
+	string $toDoSubdivCheckBoxGrp = `checkBoxGrp -e -v1 $toDoSubdiv ZNSourceManagerToDoSubdiv`;
+}
+
+
+global proc ZNSourceManager_UpdateGeometryData()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	//get the selected ZN_Instance node
+	string $selectedInstances[] = `textScrollList -q -si ZNSourceManagerInstanceList`;
+	if( size($selectedInstances) <= 0 ) { return; }
+	string $ZN_Instance = $selectedInstances[0];
+
+	//get the selected source
+	string $selectedSources[] = `textScrollList -q -si ZNSourceManagerSourceList`; 
+	if( size($selectedSources) <= 0 ) { return; }
+	string $selectedSource = $selectedSources[0];
+
+	float $colorId[] = `colorSliderGrp -q -rgb ZNSourceManagerColorIDSliderGrp`;
+	setAttr ($selectedSource+".colorId") -type "float3" $colorId[0] $colorId[1] $colorId[2];
+
+	string $proxyGeometryType = `optionMenu -q -v ZNSourceManagerProxyGeometryOptionMenu`;
+	switch( $proxyGeometryType )
+	{
+		case "Maya Polygon Mesh":
+
+			string $proxyMayaPolygonMeshXForm = `textFieldButtonGrp -q -tx ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp`;
+			string $proxyMayaPolygonMeshShape = ZNSourceManager_checkInputValidity( "mayaPolygonMesh", $proxyMayaPolygonMeshXForm );
+			if( `connectionInfo -id ($selectedSource+".inProxyMayaPolygonMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($selectedSource+".inProxyMayaPolygonMesh")`;
+				string $tokens[];
+				tokenize $nodeAttr "." $tokens;
+		
+				disconnectAttr ($tokens[0]+".w") ($selectedSource+".inProxyMayaPolygonMesh");
+			}
+			if( $proxyMayaPolygonMeshShape != "" ) { connectAttr ($proxyMayaPolygonMeshXForm+".w") ($selectedSource+".inProxyMayaPolygonMesh"); }
+			setAttr ($selectedSource+".proxyGeometryType") 0;
+
+			break;
+
+		case ".abc":
+
+			string $inProxyAlembic = `textField -q -tx ZNSourceManagerProxyGeometryAlembicTextField`;
+			setAttr ($selectedSource+".inProxyAlembic") -type "string" $inProxyAlembic;
+			setAttr ($selectedSource+".proxyGeometryType") 1;
+
+			break;
+	}
+
+	int $latticeResolution = `intSliderGrp -q -v ZNSourceManagerLatticeResolution`;
+	setAttr ($selectedSource+".latticeResolution") $latticeResolution;
+
+	string $renderMayaPolygonMeshXForm = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryMayaPolygonMeshTextFieldButtonGrp`;
+	string $renderMayaPolygonMeshShape = ZNSourceManager_checkInputValidity( "mayaPolygonMesh", $renderMayaPolygonMeshXForm );
+	if( `connectionInfo -id ($selectedSource+".inRenderMayaPolygonMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($selectedSource+".inRenderMayaPolygonMesh")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		disconnectAttr ($tokens[0]+".w") ($selectedSource+".inRenderMayaPolygonMesh");
+	}
+	if( $renderMayaPolygonMeshShape != "" ) { connectAttr ($renderMayaPolygonMeshXForm+".w") ($selectedSource+".inRenderMayaPolygonMesh"); }
+
+	string $inRenderAlembic = `textField -q -tx ZNSourceManagerRenderGeometryAlembicTextField`;
+	setAttr ($selectedSource+".inRenderAlembic") -type "string" $inRenderAlembic;
+
+	string $inRenderRIB = `textField -q -tx ZNSourceManagerRenderGeometryRIBTextField`;
+	setAttr ($selectedSource+".inRenderRIB") -type "string" $inRenderRIB;
+
+	string $renderCurveGroup = `textFieldButtonGrp -q -tx ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`;
+	string $renderCurveGroupIsValid = ZNSourceManager_checkInputValidity( "curveGroup", $renderCurveGroup );
+	if( `connectionInfo -id ($selectedSource+".inRenderCurveGroup")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($selectedSource+".inRenderCurveGroup")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		disconnectAttr ($tokens[0]+".message") ($selectedSource+".inRenderCurveGroup");
+	}
+	//is there no real way to check if the input is a curve group? besides checking if it's an xform?
+	if( $renderCurveGroupIsValid != "" ) { connectAttr ($renderCurveGroup+".message") ($selectedSource+".inRenderCurveGroup"); }
+
+	string $distributionMapPath = `textField -q -tx ZNSourceManagerDistributionMapPath`;
+	setAttr ($selectedSource+".distributionMapPath") -type "string" $distributionMapPath;
+
+	int $toDoSubdiv = `checkBoxGrp -q -v1 ZNSourceManagerToDoSubdiv`;
+	setAttr ($selectedSource+".toDoSubdiv") $toDoSubdiv;
+
+	setAttr ($selectedSource+".update") 1;
+
+	ZNSourceManager_SourceListSelect;
+}
+
+global proc ZNSourceManagerWin( )
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZNSourceManagerWin` )
+	{
+    	deleteUI ZNSourceManagerWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZENN Source Manager" ZNSourceManagerWin;
+
+	string $tabs = `tabLayout -p ZNSourceManagerWin ZNSourceManagerTabLayout`;
+
+	string $tab1 = `columnLayout -cw 650 -cal "center" -cat "both" 10 -rs 8 -p $tabs ZNSourceManagerTab1ColumnLayout`;
+	{
+		string $instanceListLabel = `text -l "ZN_Instance List" ZNSourceManagerInstanceListTextLabel`;
+		string $instanceList = `textScrollList -w 600 -h 200 -p $tab1 -sc ("ZNSourceManager_UpdateSourceList") ZNSourceManagerInstanceList`;
+		string $refreshInstanceListBtn = `button -l "refresh" -c ("ZNSourceManager_UpdateInstanceList") ZNSourceManagerRefreshInstanceListBtn`;
+
+		string $sourceInfoRowLayout = `rowLayout -nc 2 -cl2 "center" "center" -ct2 "both" "both" -cw 1 300 -cw 2 350 ZNSourceManagerTabRowLayout1`;
+		{
+			string $sourceListPanel = `columnLayout -cw 300 -cal "center" -cat "both" 10 -rs 8`;
+			{
+				string $sourceListLabel = `text -l "ZN_Source List" ZNSourceManagerSourceListTextLabel`;
+				string $sourceList = `textScrollList -w 200 -h 400 -p $sourceListPanel -sc ("ZNSourceManager_SourceListSelect") ZNSourceManagerSourceList`;
+				string $refreshSourceListBtn = `button -l "refresh" -c ("ZNSourceManager_UpdateSourceList") ZNSourceManagerRefreshSourceListBtn`;
+	
+				string $sourceListBtnPanel = `columnLayout -cw 280 -cal "center" -cat "both" 50 -rs 5`;
+				{
+					string $deleteSourceBtn = `button -l "Delete Source" -c ("ZNSourceManager_DeleteSource") ZNSourceManagerDeleteSourceBtn`;
+					string $addSourceBtn = `button -l "Add a new Source" -c ("ZNSourceManager_AddSource; ZNSourceManager_SourceListSelect;") ZNSourceManagerAddSourceBtn`;
+				}
+				setParent ..; //close sourceListBtnPanel
+			}
+			setParent ..; //close sourceListPanel
+	
+			string $sourceAttrPanel = `columnLayout -cw 400 -cal "center" -cat "both" 10`;
+			{
+		
+				string $informationFrameLayout = `frameLayout -l "Information"`;
+				{
+					string $informationColumnLayout = `columnLayout -cw 330 -cal "center" -cat "both" 10 -rs 1`;
+					{
+						//MESH INFO
+						int $testInt = 0;
+						string $testString = $testInt;
+						int $testInt1 = $testString;
+	
+						string $meshInfoLabel = `text -l "Mesh" -bgc 0.2 0.2 0.2 ZNSourceManagerMeshText`;
+						string $numMeshVerticesTextFieldGrp    = `textFieldButtonGrp -l "Vertices" -tx $testString -ed false -hlc 0 0 0.1 ZNSourceManagerNumMeshVerticesTextFieldGrp`;
+						string $numMeshTrianglesTextFieldGrp   = `textFieldButtonGrp -l "Triangles" -tx $testString -ed false -hlc 0 0 0.1 ZNSourceManagerNumMeshTrianglesTextFieldGrp`;
+						string $numMeshUVsTextFieldGrp         = `textFieldButtonGrp -l "UVs" -tx $testString -ed false -hlc 0 0 0.1 ZNSourceManagerNumMeshUVsTextFieldGrp`;
+						//CURVE INFO
+						string $curveInfoLabel                 = `text -l "Curves" -bgc 0.2 0.2 0.2 ZNSourceManagerCurveText`;
+						string $numCurvesTextFieldGrp          = `textFieldButtonGrp -l "Curves" -tx $testString -ed false -hlc 0 0 0.1 ZNSourceManagerNumCurvesTextFieldGrp`;
+						string $numCurvesTotalCVsTextFieldGrp  = `textFieldButtonGrp -l "Total CVs" -tx $testString -ed false -hlc 0 0 0.1 ZNSourceManagerNumCurvesTotalCVsTextFieldGrp`;
+	
+					}
+					setParent ..;
+				}
+				setParent ..;
+		
+				string $proxyGeometryFrameLayout = `frameLayout -l "Proxy Geometry"`;
+				{
+					string $proxyGeometryColumnLayout = `columnLayout -cw 330 -cal "center" -cat "both" 10 -rs 1 testColumn`; 
+					{
+						string $proxyGeometryEnum = `optionMenu -l "Proxy Geometry Type" -w 330
+							-cc ZNSourceManager_OnProxyGeometryOptionMenuChanged 
+							ZNSourceManagerProxyGeometryOptionMenu`;
+							menuItem -l "Maya Polygon Mesh" -p ZNSourceManagerProxyGeometryOptionMenu;
+							menuItem -l ".abc" -p ZNSourceManagerProxyGeometryOptionMenu;
+	
+						//colorId
+						string $colorIDSliderGrp = `colorSliderGrp -l "Color ID" -w 200 -cw3 150 50 0 ZNSourceManagerColorIDSliderGrp`;
+		
+						//Maya Polygon Mesh
+						string $proxyGeometryMayaPolygonMesh = `textFieldButtonGrp -l "Maya Polygon Mesh" -bl "<<" -w 330 -cw3 150 130 50 
+							-bc ("ZNSourceManager_FillTextField( \"ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp\",\"mesh\");") 
+							ZNSourceManagerProxyGeometryMayaPolygonMeshTextFieldButtonGrp`; 
+		
+						//.abc
+						string $proxyGeometryAlembicPanel = `rowLayout -w 330 -nc 3 -cal 1 "right" -cw3 150 130 50 proxyGeometryAlembicPanel`;
+						{
+							text -l "Alembic File" -w 150 -en false ZNSourceManagerProxyGeometryAlembicText;
+							textField -ed 1 -tx "" -w 130 -en false ZNSourceManagerProxyGeometryAlembicTextField;
+							symbolButton -image "navButtonBrowse.xpm" -w 20 -en false
+								-c ("ZNSourceManager_OpenFileDirectorySetTextField( \"ZNSourceManagerProxyGeometryAlembicTextField\" );") 
+								ZNSourceManagerProxyGeometryAlembicSymbolBtn;
+						}
+						setParent ..;
+		
+						//latticeResolution slider (inactive unless isLatticePreview == true)
+						string $latticeResolutionSliderGrp = `intSliderGrp -l "Lattice Resolution" -w 200 -cw3 150 50 0 -en false
+							-field true -minValue 3 -maxValue 10 -fieldMinValue 3 -fieldMaxValue 10 -value 3 ZNSourceManagerLatticeResolution`;
+					}
+					setParent ..;
+				}
+				setParent ..;
+		
+				string $renderGeometryFrameLayout = `frameLayout -l "Final Render Geometry"`;
+				{
+					string $renderGeometryColumnLayout = `columnLayout -cw 330 -cal "center" -cat "both" 10 -rs 1`;
+					{
+						//Maya Polygon Mesh
+						string $renderGeometryMayaPolygonMesh = `textFieldButtonGrp -l "Maya Polygon Mesh" -bl "<<" -w 330 -cw3 150 130 50 
+							-bc ("ZNSourceManager_FillTextField( \"ZNSourceManagerRenderGeometryMayaPolygonMeshTextFieldButtonGrp\",\"mesh\");") 
+							ZNSourceManagerRenderGeometryMayaPolygonMeshTextFieldButtonGrp`; 
+		
+						//Curve Group 
+						string $renderGeometryCurveGroup = `textFieldButtonGrp -l "Curve Group" -bl "<<" -w 330 -cw3 150 130 50 
+							-bc ("ZNSourceManager_FillTextField( \"ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp\",\"transform\");") 
+							ZNSourceManagerRenderGeometryCurveGroupTextFieldButtonGrp`; 
+		
+						//.abc
+						string $renderGeometryAlembicPanel = `rowLayout -w 330 -nc 3 -cw3 150 130 50 -cal 1 "right" renderGeometryAlembicPanel`;
+						{
+							text -l "Alembic File" -w 150;
+							textField -ed 1 -tx "" -w 130 ZNSourceManagerRenderGeometryAlembicTextField;
+							symbolButton -image "navButtonBrowse.xpm" -w 20 -c ("ZNSourceManager_OpenFileDirectorySetTextField( \"ZNSourceManagerRenderGeometryAlembicTextField\" );");
+						}
+						setParent ..;
+		
+						//.rib
+						string $renderGeometryRIBPanel = `rowLayout -w 330 -nc 3 -cw3 150 130 50 -cal 1 "right" renderGeometryRIBPanel`;
+						{
+							text -l "RIB File" -w 150;
+							textField -ed 1 -tx "" -w 130 ZNSourceManagerRenderGeometryRIBTextField;
+							symbolButton -image "navButtonBrowse.xpm" -w 20 -c ("ZNSourceManager_OpenFileDirectorySetTextField( \"ZNSourceManagerRenderGeometryRIBTextField\" );");
+						}
+						setParent ..;
+		
+						//volume? not for now
+		
+						//toDoSubdiv
+						string $toDoSubdivCheckBoxGrp = `checkBoxGrp -l "" -l1 "Subdivision at Render-time" -w 250 -cw2 150 100 -ncb 1 ZNSourceManagerToDoSubdiv`;
+					}
+					setParent ..;
+				}
+				setParent ..;
+		
+				//separator
+	
+				string $distributionColumnLayout = `columnLayout -cw 330 -cal "center" -cat "both" 10 -rs 1`;
+				{	
+					//distributionMapPath
+					string $distributionMapPathPanel = `rowLayout -w 330 -nc 3 -cw3 150 130 50 -cal 1 "right" distributionMapPathPanel`;
+					{
+						text -l "Distribution Map Path" -w 150;
+						textField -ed 1 -tx "" -w 130 ZNSourceManagerDistributionMapPath;
+						symbolButton -image "navButtonBrowse.xpm" -w 20 -c ("ZNSourceManager_OpenFileDirectorySetTextField( \"ZNSourceManagerDistributionMapPath\");");
+					}
+					setParent ..; //close distributionMapPath
+			
+					//update Geometry Data
+					string $updateBtn = `button -l "Update" -bgc 0.4 0.3 0.3 -c ("ZNSourceManager_UpdateGeometryData") ZNSourceManagerUpdateBtn`;
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..; //close sourceInfoRowLayout
+	}
+	setParent ..;
+
+	string $tab2 = `scrollLayout -p $tabs ZNSourceManagerScrollLayout`;
+	{
+		//string $sourceOverviewLayout = `rowColumnLayout -nr $nr -nc $nc -rs 3 ZNSourceManagerOverview`;
+	}
+	setParent ..; //close tab2
+
+	tabLayout -edit
+	-tabLabel $tab1 "Manage Sources" -tabLabel $tab2 "Source Overview"
+	$tabs;
+
+	showWindow ZNSourceManagerWin;
+
+	select -cl;
+
+
+	ZNSourceManager_UpdateInstanceList;
+	ZNSourceManager_UpdateSourceList;
+
+}
+

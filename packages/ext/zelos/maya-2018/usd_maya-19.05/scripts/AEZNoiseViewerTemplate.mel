@@ -1,0 +1,37 @@
+//----------------------------//
+// AEZNoiseViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.03.28                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZNoiseViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Options" -collapse 0;
+			editorTemplate -beginLayout "Particles" -collapse 0;
+				editorTemplate -l "Display Resolution"     -ac "subdivision";
+				editorTemplate -l "Noise Time"             -ac "noiseTime";
+				editorTemplate -l "Noise Spatial Freqency" -ac "sFreq";
+				editorTemplate -l "Noise Time    Freqency" -ac "tFreq";
+				editorTemplate -l "Noise Scale"            -ac "scale";
+				editorTemplate -l "Noise Lift"             -ac "lift";
+				editorTemplate -l "Noise Offset"           -ac "offset";
+				editorTemplate -as;
+				editorTemplate -l "Min. Point"             -ac "minPoint";
+				editorTemplate -l "Max. Point"             -ac "maxPoint";
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+

@@ -1,0 +1,126 @@
+//---------------------------------//
+// AEZN_TipLocatorsGenTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Create Button //
+global proc ZN_TipLocatorsGenCreateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Create Output Transform Nodes" -bgc 1.0 0.8 0.5 -c ("ZN_TipLocatorsGenCreateExe "+$attr) ZN_TipLocatorsGenCreate;
+	setUITemplate -ppt;
+
+	ZN_TipLocatorsGenCreateReplace $attr;
+}
+
+global proc ZN_TipLocatorsGenCreateReplace( string $attr )
+{
+	button -e -c ("ZN_TipLocatorsGenCreateExe "+$attr) ZN_TipLocatorsGenCreate;
+}
+
+global proc ZN_TipLocatorsGenCreateExe( string $attr )
+{
+	string $ZN_TipLocatorsGen;
+	{
+		string $nodes[];
+		tokenize( $attr, ".", $nodes );
+		$ZN_TipLocatorsGen = $nodes[0];
+	}
+
+	string $fromNode;
+	{
+		$fromNode = ZConnectedNode( $ZN_TipLocatorsGen, "inStrands" );
+
+		if( $fromNode == "" )
+		{
+			ZPrintError "No input connection.";
+			return;
+		}
+	}
+
+	string $toNodes[];
+	{
+		$toNodes = `listConnections ( $ZN_TipLocatorsGen+".outTranslates" )`;
+
+		if( size($toNodes) != 0 )
+		{
+			ZPrintError "Output already has some connections.";
+			return;
+		}
+	}
+
+	int $numStrands = 0;
+	{
+		if( `attributeExists "numStrands" $fromNode` ) {
+
+			$numStrands = `getAttr ($fromNode+".numStrands")`;
+
+		} else if( `attributeExists "numOutputStrands" $fromNode` ) {
+
+			$numStrands = `getAttr ($fromNode+".numOutputStrands")`;
+
+		} else {
+
+			ZPrintError "Invalid input node.";
+			return;
+
+		}
+	}
+
+	if( $numStrands == 0 )
+	{
+		return;
+	}
+
+	disconnectAttr ($fromNode+".outStrands") ($ZN_TipLocatorsGen+".inStrands");
+
+	float $ratio = `getAttr ($ZN_TipLocatorsGen+".ratio")`;
+
+	int $i = 0;
+	for( ; $i<$numStrands; $i++ )
+	{
+		if( rand(1.0) < $ratio )
+		{
+			string $locators[] = `spaceLocator`;
+			string $xform = $locators[0];
+			connectAttr ($ZN_TipLocatorsGen+".outTranslates[" + $i + "]") ($xform+".translate");
+		}
+	}
+
+	connectAttr ($fromNode+".outStrands") ($ZN_TipLocatorsGen+".inStrands");
+
+	select -r $ZN_TipLocatorsGen;
+}
+
+//////////
+// main //
+global proc AEZN_TipLocatorsGenTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Input Strands"     -ac "numInputStrands";
+			editorTemplate -l "Output Transforms" -ac "numOutputTranslates";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connection Creation" -collapse 0;
+		{
+			editorTemplate -l "Ratio" -ac "ratio";
+			editorTemplate -ccu ZN_TipLocatorsGenCreateNew ZN_TipLocatorsGenCreateReplace "ratio"; // ratio: dummy attribute
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outTranslates";
+}
+

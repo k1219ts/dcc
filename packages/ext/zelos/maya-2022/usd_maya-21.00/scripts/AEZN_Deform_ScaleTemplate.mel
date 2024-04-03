@@ -1,0 +1,347 @@
+//-------------------------------//
+// AEZN_Deform_ScaleTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_ScaleExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Scale Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_ScaleExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_ScaleExpr1Win(\""+$attr+"\")") btnZN_Deform_ScaleExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_ScaleExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_ScaleExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_ScaleExpr1;
+	button -e -c ("ZN_Deform_ScaleExpr1Win(\""+$attr+"\")") btnZN_Deform_ScaleExpr1;
+}
+
+global proc ZN_Deform_ScaleExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_ScaleExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_ScaleExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_ScaleExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_ScaleExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_ScaleExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_ScaleExpr1;
+}
+
+global proc ZN_Deform_ScaleExpr1Reset( string $attr )
+{
+	string $txt = "scale + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_ScaleExpr1;
+	scrollField -e -tx $txt sfZN_Deform_ScaleExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_ScaleExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_ScaleExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_ScaleExpr2Win(\""+$attr+"\")") btnZN_Deform_ScaleExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_ScaleExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_ScaleExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_ScaleExpr2;
+	button -e -c ("ZN_Deform_ScaleExpr2Win(\""+$attr+"\")") btnZN_Deform_ScaleExpr2;
+}
+
+global proc ZN_Deform_ScaleExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_ScaleExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_ScaleExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_ScaleExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_ScaleExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_ScaleExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_ScaleExpr2;
+}
+
+global proc ZN_Deform_ScaleExpr2Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZN_Deform_ScaleExpr2;
+	scrollField -e -tx $txt sfZN_Deform_ScaleExpr2;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_ScaleImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_ScaleImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_ScaleImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_ScaleImageListReplace( $attr );
+}
+
+global proc ZN_Deform_ScaleImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_ScaleImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Scale node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Scale = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Scale + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Scale + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Scale + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_ScaleImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_ScaleDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_ScaleDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_ScaleDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_ScaleDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_ScaleDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_ScaleDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Scale node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Scale = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Scale + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_ScaleDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_ScaleUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_ScaleUpdateExe "+$attr) ZN_Deform_ScaleUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_ScaleUpdateReplace $attr;
+}
+
+global proc ZN_Deform_ScaleUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_ScaleUpdateExe "+$attr) ZN_Deform_ScaleUpdate;
+}
+
+global proc ZN_Deform_ScaleUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Scale = $node[0];
+
+	updateAE $ZN_Deform_Scale;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_ScaleTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Scale Value";
+			editorTemplate -l "Scale [scale]"     -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r1";
+			editorTemplate -l "Frequency [freq]"  -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_ScaleExpr1New ZN_Deform_ScaleExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZN_Deform_ScaleExpr2New ZN_Deform_ScaleExpr2Replace "e2";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_ScaleImageListNew ZN_Deform_ScaleImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_ScaleDeformerListNew ZN_Deform_ScaleDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

@@ -1,0 +1,139 @@
+//-----------------------------//
+// ZDetectInsideComponents.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.03.09                               //
+//-------------------------------------------------------//
+
+global proc ZDetectInsideComponentsWin()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZDetectInsideComponentsWin` )
+	{
+    	deleteUI ZDetectInsideComponentsWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "Inside Components Detection Tool" ZDetectInsideComponentsWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 350 -style "none";
+
+		text -l "Mesh" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfZDetectInsideComponentsMesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZDetectInsideComponentsMesh\",\"mesh\");");
+		}
+		setParent ..;
+
+		text -l "Colliders" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -nc 3 -cw3 200 10 120;
+		{
+			textScrollList -w 200 -h 90 -allowMultiSelection 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZDetectInsideComponentsList`; select $items[0];" ) ZDetectInsideComponentsList;
+			text -l "" -w 10;
+			columnLayout -w 120;
+			{
+				button -l "Add"    -w 110 -h 30 -align "center" -c ( "ZTextScrollList_Add( \"ZDetectInsideComponentsList\", \"mesh\" )" );
+				button -l "Remove" -w 110 -h 30 -align "center" -c ( "ZTextScrollList_Remove( \"ZDetectInsideComponentsList\" )" );
+				button -l "Clear"  -w 110 -h 30 -align "center" -c ( "ZTextScrollList_Clear( \"ZDetectInsideComponentsList\" )" );
+			}
+			setParent ..;
+		}
+		setParent ..;
+
+		text -l "Selection Mode" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		//rowLayout -nc 3 -cw3 200 10 120;
+		columnLayout;
+		{
+			radioCollection ZDetectInsideComponentsMode;
+			radioButton -l "Inside Vertices" ZDetectInsideComponentsMode_1;
+			radioButton -l "Fully Inside Polygons" ZDetectInsideComponentsMode_2;
+			radioButton -l "Fully + Partially Inside Polygons" ZDetectInsideComponentsMode_3;
+			radioButton -l "Intersecting Polygons" ZDetectInsideComponentsMode_4;
+			radioCollection -e -sl ZDetectInsideComponentsMode_1 ZDetectInsideComponentsMode;
+		}
+		setParent ..;
+
+		separator -h 30 -w 300 -style "none";
+
+		button -l "Detect" -w 330 -al "center" -c "ZDetectInsideComponentsExe";
+
+		separator -h 15 -w 350 -style "none";
+	}
+	setParent ..;
+
+	showWindow ZDetectInsideComponentsWin;
+}
+
+global proc ZDetectInsideComponentsExe()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		ZPrintError "ZeomForMaya is not loaded.";
+		return;
+	}
+
+	string $meshShape;
+	{
+		string $meshXForm = `textField -q -tx tfZDetectInsideComponentsMesh`;
+
+		if( $meshXForm == "" )
+		{
+			ZPrintError ("Failed to find "+$meshXForm);
+			return;
+		}
+
+		string $shapes[] = `listRelatives -f -c -ni -shapes $meshXForm`;
+
+		if( size($shapes) != 1 )
+		{
+			if( size($shapes) == 0 ) { ZPrintError ($meshXForm+" has no shape node."); }
+			if( size($shapes) > 1 ) { ZPrintError ($meshXForm+" has too many shape nodes."); }
+			return;
+		}
+
+		if( `nodeType $shapes[0]` != "mesh" )
+		{
+			ZPrintError ($meshShape+" is not a polygon mesh.");
+			return;
+		}
+
+		$meshShape = $shapes[0];
+	}
+
+	string $colliderShapes;
+	{
+		string $colliders[] = ZTextScrollList_GetAllItems( "ZDetectInsideComponentsList" );
+
+		if( size($colliders) == 0 )
+		{
+			ZPrintError ("No selected collider mesh.");
+			return;
+		}
+
+		for( $collider in $colliders )
+		{
+			$colliderShapes += " " + $collider;
+		}
+	}
+
+	int $selectionMode;
+	{
+		string $mode = `radioCollection -q -sl ZDetectInsideComponentsMode`;
+
+		if( $mode == "ZDetectInsideComponentsMode_1" ) { $selectionMode = 1; }
+		else if( $mode == "ZDetectInsideComponentsMode_2" ) { $selectionMode = 2; }
+		else if( $mode == "ZDetectInsideComponentsMode_3" ) { $selectionMode = 3; }
+		else if( $mode == "ZDetectInsideComponentsMode_4" ) { $selectionMode = 4; }
+	}
+
+	ZDetectInsideComponentsCmd -meshName $meshShape -colliders $colliderShapes -mode $selectionMode;
+}
+

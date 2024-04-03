@@ -1,0 +1,47 @@
+//--------------------------------------//
+// AEZFX_CurveBasedInstanceTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.12.06                               //
+//-------------------------------------------------------//
+
+global proc AEZFX_CurveBasedInstanceTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Ptc NumRate"     -ac "ptcNumRate";
+			editorTemplate -l "Radius"          -ac "radius";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Density Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "u-Frequency"     -ac "densNoiseXFreq";
+			editorTemplate -l "v-Frequency"     -ac "densNoiseYFreq";
+			editorTemplate -l "w-Frequency"     -ac "densNoiseZFreq";
+			editorTemplate -l "Scale"  			-ac "densNoiseScale";
+			editorTemplate -l "Offset" 			-ac "densNoiseOffset";			
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Displacement Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "u-Frequency"     -ac "dispNoiseXFreq";
+			editorTemplate -l "v-Frequency"     -ac "dispNoiseYFreq";
+			editorTemplate -l "w-Frequency"     -ac "dispNoiseZFreq";
+			editorTemplate -l "Scale"  			-ac "dispNoiseScale";
+			editorTemplate -l "Offset" 			-ac "dispNoiseOffset";	
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inCurves";
+	editorTemplate -suppress "outPoints";
+}
+

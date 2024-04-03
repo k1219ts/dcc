@@ -1,0 +1,28 @@
+//----------------//
+// ZEnvSphere.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.09.26                               //
+//-------------------------------------------------------//
+
+global proc CreateZEnvSphere()
+{
+    if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		error( "You must load the ZeomForMaya plug-in first!" );
+		return;
+	}
+
+	$XForm = `createNode transform -n "ZEnvSphereXForm1"`;
+	$ZEnvSphere = `createNode ZEnvSphere -n "ZEnvSphere1" -p $XForm`;
+
+	$imgFile = `createNode file -n "ZEnvSphereFile1"`;
+
+	connectAttr ( $imgFile + ".fileTextureName" ) ( $ZEnvSphere + ".file"  );
+	connectAttr ( $imgFile + ".outColor"        ) ( $ZEnvSphere + ".color" );
+
+	connectAttr ( $ZEnvSphere + ".output" ) ( $XForm + ".dynamics" );
+
+	select -r $ZEnvSphere;
+}
+

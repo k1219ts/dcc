@@ -1,0 +1,525 @@
+//--------------------------------//
+// AEZFX_BreakingWaveTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.10.26                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_BreakingWaveTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Fall Off"        -ac "falloff"    ;
+			editorTemplate -l "Front Off"       -ac "frontoff"   ;
+			editorTemplate -l "Front CP rate"   -ac "frontRate"  ;
+			editorTemplate -l "Profile CP rate" -ac "profileRate";
+			editorTemplate -l "Wave Type"       -ac "waveType"   ;
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "Noise Type"     -ac "noiseType"  ;
+			editorTemplate -l "Scale"          -ac "noiseScale" ;
+            editorTemplate -l "X-Axis Freq."   -ac "noiseXFreq" ;
+            editorTemplate -l "Y-Axis Freq."   -ac "noiseYFreq" ;
+            editorTemplate -l "Z-Axis Freq."   -ac "noiseZFreq" ;   
+            editorTemplate -l "Offset Scale."  -ac "noiseOffset";
+		}
+		editorTemplate -endLayout; 
+
+        editorTemplate -beginLayout "Developments" -collapse 0;
+		{
+			editorTemplate -l "PrimVar TexCoord"   -ac "useCompTex";
+			editorTemplate -l "Coord V begin"      -ac "texVBegin" ;
+			editorTemplate -l "Coord V end"        -ac "texVEnd"   ;
+		}
+		editorTemplate -endLayout; 
+
+        AEaddRampControl($nodeName + ".blendingRamp");            
+        
+		editorTemplate -beginLayout "Wave Controls" -collapse 0;
+		{       
+            editorTemplate -ccu controlBoxNew controlBoxReplace $nodeName;
+		}
+		editorTemplate -endLayout;     
+        
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inWaveLine";
+	editorTemplate -suppress "inWaveProfiles";
+	editorTemplate -suppress "outMesh";
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "frozen";
+    editorTemplate -suppress "interactive";
+    editorTemplate -suppress "build";
+}
+
+global proc controlBoxNew( string $nodeName )
+{
+	setUITemplate -pst attributeEditorTemplate;
+    {
+        button -l "Control Box"  btnOpenControlBox;
+    }
+	setUITemplate -ppt;
+    
+    controlBoxReplace $nodeName;
+}
+
+global proc controlBoxReplace( string $nodeName )
+{
+    button -e -c ("openControlBox "+$nodeName) btnOpenControlBox;    
+}
+
+global proc openControlBox( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+
+    print ($nodeName + " opens control box");
+    
+    string $inter = getAttr ($nodeName+".interactive");
+    int $checked = 0;
+    if($inter == 1) $checked = 1;
+    
+    window -resizeToFitChildren true -titleBar true -sizeable false -title "Dexter ZFX Breaking Wave" $nodeName;
+        
+    columnLayout -columnOffset "both" 15;
+    {
+        text -l ($nodeName) -font "boldLabelFont" -w 300 -h 15 -al "center";              
+                
+        text -l "" -h 10;
+        frameLayout -l "Wave Front Line" -w 300 -collapsable false;
+        columnLayout -bgc 0.4 0.4 0.4 -ebg true;
+        {
+            rowLayout -nc 2;
+            {
+                button -w 100 -l "Set Plane" -c ("setPlane "+$nodeName) -bgc 0.3 0.3 0.3 -ebg true;           
+                textField -tx "" -w 170 -ed false tfPlane;              
+            }
+            setParent ..;
+            
+            rowLayout -nc 2;
+            {
+                button -w 100 -l "Set FrontLine" -c ("setFrontLine "+$nodeName) -bgc 0.3 0.3 0.3 -ebg true;
+			    textField -tx "" -w 170 -ed false tfFrontLine;                         
+            }
+            setParent ..;
+
+        }
+        setParent ..;
+        setParent ..;
+        
+        text -l "" -h 10;         
+        frameLayout -l "Wave Profiles" -w 300 -collapsable false frameWaveProfiles;
+        columnLayout -bgc 0.4 0.4 0.4 -ebg true;
+        {
+            rowLayout;
+            {
+                textScrollList -w 270 -h 100 -allowMultiSelection true -sc ("selectProfiles "+$nodeName) tslProfiles;
+            }
+            setParent ..;              
+                        
+            rowLayout -nc 3;
+            {
+                button -l "Add Profiles"    -w 88 -c ("addProfiles    "+$nodeName) -bgc 0.5 0.5 1.0 -ebg true;
+                button -l "Remove Profiles" -w 88 -c ("removeProfiles "+$nodeName) -bgc 1.0 0.5 0.5 -ebg true;
+                button -l "Clear"           -w 88 -c ("clearProfiles  "+$nodeName) -bgc 1.0 0.5 0.5 -ebg true;
+            }
+            setParent ..;           
+        }
+        setParent ..;
+        setParent ..;        
+        
+        text -l "" -h 10;
+        frameLayout -l "User Control Option" -w 300 -collapsable false;
+        columnLayout -bgc 0.4 0.4 0.4 -ebg true;
+        {
+            checkBox -l "Interactive" -value $checked -onCommand ("onInteractive "+$nodeName) -offCommand ("offInteractive "+$nodeName);
+            
+            rowLayout;
+            {
+                button -l "Rebuild" -w 100 -h 50 -c ("build "+$nodeName) -bgc 0.5 1.0 0.5 -ebg true;                
+            }   
+            setParent ..;                                                        
+        }
+        setParent ..;
+        setParent ..;
+        
+        text -l "" -h 10;        
+        text -l "" -h 30;               
+    }
+  	setParent ..;     
+
+	showWindow $nodeName;
+
+    // load wave profiles
+    int $i = 0;    
+    int $count = `getAttr -s ($nodeName+".inWaveProfiles")`;   
+
+    while($count > 0)
+    {
+        string $source = `connectionInfo -sfd ($nodeName+".inWaveProfiles["+$i+"]")`;
+        
+        if($source != "")
+        {
+            string $buffer[];
+            tokenize $source "." $buffer;
+            $srcNodeName = $buffer[0];
+                        
+            textScrollList -e -a $srcNodeName tslProfiles;
+            $count--;   
+        }        
+        $i++;
+    }
+
+    $count = `getAttr -s ($nodeName+".inWaveProfiles")`;
+    if($count <= 1)       
+        frameLayout -e -l ($count+" Wave Profile") frameWaveProfiles;
+    else
+        frameLayout -e -l ($count+" Wave Profiles") frameWaveProfiles;
+        
+    // load plane
+    {
+        string $source = `connectionInfo -sfd ($nodeName+".inMesh")`;
+        if($source != "")
+        {                         
+            string $buffer[];
+            tokenize $source "." $buffer;
+            $srcNodeName = $buffer[0];
+            
+            textField -e -tx ($srcNodeName) tfPlane;                                      
+        }        
+    }
+    
+    // load wave frontLine
+    {
+        string $source = `connectionInfo -sfd ($nodeName+".inWaveLine")`;        
+        if($source != "")
+        {
+            string $buffer[];
+            tokenize $source "." $buffer;
+            $srcNodeName = $buffer[0];
+            
+            textField -e -tx ($srcNodeName) tfFrontLine;            
+        }         
+    }
+}
+
+global proc removeProfiles( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+    
+    string $objs[] = `ls -sl -o -sn -ni`;
+    string $type = "nurbsCurve";    
+    
+    string $shapes[];
+    int $ix = 0; 
+    
+    for($obj in $objs)
+    {
+        if(`nodeType $obj` == $type)
+        {   
+            $shapes[$ix] = $obj;
+            $ix++;         
+        }
+        else
+        {
+            string $children[] = `listRelatives -ad -f -s -ni $obj`;            
+            for($child in $children)
+            {
+                if(`nodeType $child` == $type)
+                {
+                    $shapes[$ix] = $obj;
+                    $ix++;         
+                }
+            }        
+        }
+    }
+    
+    for($shape in $shapes)
+    {
+        string $destArray[] = `connectionInfo -dfs ($shape+".worldSpace")`;
+        
+        for($dest in $destArray)
+        {
+            string $buffer[];
+            tokenize $dest "." $buffer;
+            $destNodeName = $buffer[0];
+            
+            if($destNodeName == $nodeName)
+            {
+                disconnectAttr ($shape+".worldSpace") $dest;               
+            } 
+        }
+    } 
+    
+    int $count = `getAttr -s ($nodeName+".inWaveProfiles")`;        
+    frameLayout -e -l ($count+" Wave Profiles") frameWaveProfiles;    
+    
+    getNewListProfiles($nodeName);
+    
+    setAttr ($nodeName+".build") true;        
+}
+
+global proc clearProfiles( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+    
+    int $count = `getAttr -s ($nodeName+".inWaveProfiles")`;
+    
+    int $mul = 1;
+    while($count > 0)
+    {
+        for($i=0; $i<$count*$mul; $i++)
+        {
+            string $source = `connectionInfo -sfd ($nodeName+".inWaveProfiles["+$i+"]")`;        
+            if($source != "") disconnectAttr $source ($nodeName+".inWaveProfiles["+$i+"]");
+        }           
+        $count = `getAttr -s ($nodeName+".inWaveProfiles")`;
+        $mul++;    
+    }         
+                           
+    frameLayout -e -l ("0 Wave Profiles") frameWaveProfiles;            
+    textScrollList -e -ra tslProfiles;
+    
+    setAttr ($nodeName+".build") true;              
+}
+
+global proc getNewListProfiles( string $nodeName )
+{
+    textScrollList -e -ra tslProfiles;    
+    int $total = `getAttr -s ($nodeName+".inWaveProfiles")`; 
+    int $count = 0;
+    
+    int $i = 0;
+    while($total > $count)
+    {
+        string $source = `connectionInfo -sfd ($nodeName+".inWaveProfiles["+$i+"]")`;        
+        if($source != "")
+        {                  
+            string $buffer[];
+            tokenize $source "." $buffer;
+            $appendName = $buffer[0];              
+            
+            textScrollList -e -a $appendName tslProfiles;
+            
+            $count++;            
+        }               
+        $i++;
+    }    
+}
+
+global proc addProfiles( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+    
+    string $objs[] = `ls -sl -l`;
+    string $type = "nurbsCurve";
+    
+    string $shapes[];
+    int $ix = 0; 
+    
+    for($obj in $objs)
+    {
+        string $target = "null";
+        
+        print `nodeType $obj`; 
+        
+        if(`nodeType $obj` == $type)
+        {
+            $target = $obj;
+        }
+        else
+        {
+            string $children[] = `listRelatives -ad -c -f -ad $obj`;            
+            for($child in $children)
+            {   
+                if(`nodeType $child` == $type)
+                {
+                    $target = $child;
+                }
+            }        
+        }
+        
+        if($target != "null")
+        {
+            string $destArray[] = `connectionInfo -dfs ($target+".worldSpace")`;
+            int $check = 0;
+            
+            for($dest in $destArray)
+            {
+                string $buffer[];
+                tokenize $dest "." $buffer;
+                $destNodeName = $buffer[0];
+                
+                if($destNodeName == $nodeName)
+                {
+                    $check = 1;               
+                } 
+            }
+            
+            if($check == 0)
+            {
+                $shapes[$ix] = ($target+".worldSpace");
+                $ix++;                
+            }                   
+        }
+    }  
+    
+    int $count = `getAttr -s ($nodeName+".inWaveProfiles")`;   
+    $count += size($shapes);  
+       
+    for($shape in $shapes)
+    {
+        for($i=0; $i<$count; $i++)
+        {
+            string $source = `connectionInfo -sfd ($nodeName+".inWaveProfiles["+$i+"]")`;            
+            if($source == "")
+            {
+                connectAttr $shape ($nodeName+".inWaveProfiles["+$i+"]");                
+                
+                string $buffer[];
+                tokenize $shape "." $buffer;
+                $appendName = $buffer[0];              
+                
+                textScrollList -e -a $appendName tslProfiles;
+                
+                break;
+            }
+        }
+    }
+        
+    if($count <= 1)       
+        frameLayout -e -l ($count+" Wave Profile") frameWaveProfiles;
+    else
+        frameLayout -e -l ($count+" Wave Profiles") frameWaveProfiles;    
+    
+    setAttr ($nodeName+".build") true;        
+}
+
+global proc setPlane( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+    
+    string $objs[] = `ls -sl -l -ni`;
+    string $type = "mesh";
+    
+    $shape = "null";
+    
+    for($obj in $objs)
+    {
+        if(`nodeType $obj` == $type)
+        {   
+            print $obj;
+            $shape = $obj;         
+            break;
+        }
+        else
+        {
+            string $children[] = `listRelatives -ad -f -s -ni $obj`;            
+            for($child in $children)
+            {
+                if(`nodeType $child` == $type)
+                {
+                    print $obj;
+                    $shape = $child;
+                    break;
+                }
+            }        
+        }
+    }        
+    
+    if($shape != "null")
+    {
+        connectAttr -f ($shape+".w") ($nodeName+".inMesh");
+        textField -e -tx ($shape) tfPlane;              
+    }    
+}
+
+global proc setFrontLine( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+    
+    string $objs[] = `ls -sl -l -ni`;
+    string $type = "nurbsCurve";
+    
+    $shape = "null";
+    
+    for($obj in $objs)
+    {
+        if(`nodeType $obj` == $type)
+        {   
+            $shape = $obj;         
+            break;
+        }
+        else
+        {
+            string $children[] = `listRelatives -ad -f -s -ni $obj`;            
+            for($child in $children)
+            {
+                if(`nodeType $child` == $type)
+                {
+                    $shape = $child;
+                    break;
+                }
+            }        
+        }
+    }
+    
+    if($shape != "null")
+    {
+        connectAttr -f ($shape+".worldSpace") ($nodeName+".inWaveLine");
+        textField -e -tx ($shape) tfFrontLine;                                 
+    }
+}
+
+global proc build( string $nodeName )
+{
+    string $buffer[];
+    tokenize $nodeName "." $buffer;
+    $nodeName = $buffer[0];
+    
+    setAttr ($nodeName+".build") true;    
+}
+
+global proc onInteractive( string $nodeName )
+{
+    setAttr ($nodeName+".interactive") true;
+}
+
+global proc offInteractive( string $nodeName )
+{
+    setAttr ($nodeName+".interactive") false;
+}
+
+global proc selectProfiles( string $nodeName )
+{
+    string $list[];    
+    $list = `textScrollList -q -selectItem tslProfiles`;
+    
+    select -clear;    
+    for($i=0; $i<size($list); $i++)
+        select -add $list[$i];
+}

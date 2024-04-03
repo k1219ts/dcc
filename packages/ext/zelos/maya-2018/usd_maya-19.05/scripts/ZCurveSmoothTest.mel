@@ -1,0 +1,42 @@
+//----------------------//
+// ZCurveSmoothTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZCurveSmoothTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+	string $curve;
+	for( $xForm in $selected )
+	{
+		$children = `listRelatives -c $xForm`;
+
+		$type = `nodeType $children[0]`;
+		if( $type == "nurbsCurve" )
+		{
+			$curve = $children[0];
+			break;
+		}
+	}
+
+	if( !size($curve) )
+	{
+		$curve = `curve -p 0 0 0-p -0.567135 -2.072826 0.483855-p 0.814605 -2.930463 -0.555208-p 1.8632 -1.840281 -2.196683-p 2.465267 -2.342447 -3.301347-p 0.389589 -2.803634 -3.124564-p -1.384148 -1.813498 -2.217661-p -1.099694 -1.34404 -1.807509-p -1.754705 -3.021624 -0.482133-p -2.455398 -4.582056 0.969211-p -2.664324 -6.288526 2.347212-p -1.021502 -7.621711 2.669351-p -0.0927873 -8.361645 0.806833-p 0.832873 -8.893197 0.519494-p -0.451821 -8.388622 1.927987-p -2.266968 -7.714078 0.86465-p -3.252677 -8.240148 -0.917456-p -2.620493 -9.984086 -2.114106-p -0.864463 -10.633858 -2.11925-p -2.208015 -10.514852 -1.013306-p -3.256157 -11.466807 0.454125-p -2.266803 -11.280628 1.665447-p -1.09034 -13.06903 1.140247-p -0.752693 -14.741777 0.497673-p 0.841573 -15.502792 -0.772506-p 0.768789 -16.828128 -1.044748-p -0.722095 -17.973334 -1.169333-p -1.520882 -18.050632 0.90959-p -1.428823 -19.591814 2.109516-p -0.676351 -21.532479 1.318151-p 0.118713 -23.340383 0.257647-p 0.466161 -25.349329 0.0114851-p -0.260298 -26.529112 -1.076577`;
+	}
+
+	$ZCurveSmoothTest = `createNode ZCurveSmoothTest`;
+	connectAttr ( $curve + ".worldSpace" ) ( $ZCurveSmoothTest + ".curve" );
+
+	connectAttr ( $ZCurveSmoothTest + ".output" ) "transform1.shearXY";
+
+	select -r $ZCurveSmoothTest;
+}
+

@@ -1,0 +1,24 @@
+//------------------------//
+// ZTriMeshVolumeTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZTriMeshVolumeTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZTriMeshVolumeTest;
+	polySphere;
+	connectAttr pSphereShape1.worldMesh ZTriMeshVolumeTest1.inMesh;
+	spaceLocator;
+	connectAttr ZTriMeshVolumeTest1.outPosition locator1.translate;
+}
+

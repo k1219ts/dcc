@@ -1,0 +1,72 @@
+//-------------------------------//
+// AEZField3DViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.03.13                               //
+//-------------------------------------------------------//
+
+/////////////////////
+// Load Cache Path //
+global proc ZField3DViewerLoadDirNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4;
+			text "Cache Path";
+			textField -ed 1 tfZField3DViewerLoadDir;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "ZLoadDirectory(\""+$attr+"\",\"tfZField3DViewerLoadDir\")" ) tfZField3DViewerLoadDirBtn;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZField3DViewerLoadReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZField3DViewerLoadDir;
+	symbolButton -e -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZField3DViewerLoadDir\")" ) tfZField3DViewerLoadDirBtn;
+}
+
+//////////
+// main //
+global proc AEZField3DViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			
+			editorTemplate -l "Mode" -ac "displayMode";
+			editorTemplate -l "Grid" -ac "displayGrid";
+
+			editorTemplate -beginLayout "Level-set" -collapse 0;
+				editorTemplate -l "On/Off" 		-ac "lvsOnOff";
+				editorTemplate -l "fileName" 	-ac "lvsFileName";
+
+			editorTemplate -beginLayout "Velocity" -collapse 0;
+				editorTemplate -l "On/Off" 		-ac "velOnOff";
+				editorTemplate -l "fileName" 	-ac "velFileName";
+				editorTemplate -l "Line Scale" 	-ac "velLineScale";
+				editorTemplate -l "Start Color" -ac "velStartColor";
+				editorTemplate -l "End Color" 	-ac "velEndColor";
+
+			editorTemplate -beginLayout "Height" -collapse 0;
+				editorTemplate -l "On/Off" 		-ac "hgtOnOff";
+				editorTemplate -l "MaxValue" 	-ac "hgtMaxValue";
+				editorTemplate -l "fileName" 	-ac "hgtFileName";
+				
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Cache" -collapse 0;
+			editorTemplate -ccu ZField3DViewerLoadDirNew ZField3DViewerLoadReplace "cacheRoot";
+			editorTemplate -l "Offset"        -ac "cacheOffset";
+		editorTemplate -endLayout;
+
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+

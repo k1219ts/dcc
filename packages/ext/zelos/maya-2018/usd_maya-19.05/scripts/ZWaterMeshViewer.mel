@@ -1,0 +1,31 @@
+//----------------------//
+// ZWaterMeshViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.03.07                               //
+//-------------------------------------------------------//
+
+global proc CreateZWaterMeshViewer()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $name = "ZWaterMeshViewer";
+	string $numOfNode[] = `ls -type ZWaterMeshViewer`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZWaterMeshViewerXFormName = $name + "XForm" + $number;
+	string $ZWaterMeshViewerShapeName = $name + "Shape" + $number;
+	string $ZWaterMeshViewerXForm = `createNode transform -n $ZWaterMeshViewerXFormName`;
+	string $ZWaterMeshViewer = `createNode ZWaterMeshViewer -n $ZWaterMeshViewerShapeName -p $ZWaterMeshViewerXForm`;
+
+	connectAttr time1.outTime ( $ZWaterMeshViewer + ".time" );
+	connectAttr ( $ZWaterMeshViewer + ".output" ) ( $ZWaterMeshViewerXForm + ".dynamics" );
+
+	select -r $ZWaterMeshViewer;
+}
+

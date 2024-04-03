@@ -1,0 +1,40 @@
+//------------------------//
+// ZDeltaMushTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.01.11                               //
+//-------------------------------------------------------//
+
+global proc CreateZDeltaMush()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size( $selected ) == 0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	for( $xForm in $selected )
+	{
+		string $shapes[] = `listRelatives -shapes $xForm`;
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "mesh" )
+		{
+			warning( $shape + " is not a mesh. ZDeltaMush does not support non-mesh type." );
+			return;
+		}
+
+		string $ZDeltaMush[] = `deformer -type ZDeltaMush`;
+		select $ZDeltaMush[0];
+	}
+}

@@ -1,0 +1,58 @@
+//-------------------------//
+// AEZN_CutTemplate.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2017.09.21                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_CutUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_CutUpdateExe "+$attr) ZN_CutUpdate;
+	setUITemplate -ppt;
+
+	ZN_CutUpdateReplace $attr;
+}
+
+global proc ZN_CutUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_CutUpdateExe "+$attr) ZN_CutUpdate;
+}
+
+global proc ZN_CutUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Cut = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Cut;
+}
+
+//////////
+// main //
+global proc AEZN_CutTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+			editorTemplate -l "Offset"  -ac "inOffset";
+		}
+		editorTemplate -endLayout;
+		editorTemplate -ccu ZN_CutUpdateNew ZN_CutUpdateReplace "update";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "outStrands";
+}
+

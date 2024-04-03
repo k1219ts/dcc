@@ -1,0 +1,364 @@
+//------------------------//
+// AEZN_GroomTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.09.28                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// Brush Mode Changed //
+global proc ZN_GroomBrushModeChanged( string $node )
+{
+	int $brushMode = `getAttr ($node+".brushMode")`;
+
+	// Scale random.
+	{
+		if( $brushMode == 4 ) {		// Scale
+
+			editorTemplate -dc $node "scaleRandom" 0;
+
+		} else {
+
+			editorTemplate -dc $node "scaleRandom" 1;
+
+		}
+	}
+
+	// Reverse curvature.
+	{
+		if( $brushMode == 7 || $brushMode == 8 ) {	// Comb or Sculpt
+
+			editorTemplate -dc $node "reverseCurvature" 0;
+
+		} else { 
+
+			editorTemplate -dc $node "reverseCurvature" 1;
+
+		}
+	}
+
+	// Curve options.
+	{
+		if( $brushMode == 1 ) {		// Plant
+
+			editorTemplate -dc $node "plantCVs"    0;
+			editorTemplate -dc $node "plantLength" 0;
+			editorTemplate -dc $node "plantCount"  0;
+
+		} else {
+
+			editorTemplate -dc $node "plantCVs"    1;
+			editorTemplate -dc $node "plantLength" 1;
+			editorTemplate -dc $node "plantCount"  1;
+
+		}
+	}
+}
+
+////////////////////////
+// Brush Mode Buttons //
+global proc ZN_GroomBrushModeNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	rowLayout -nc 3 -cw3 145 32 32;
+	{
+		text -l "";
+		iconTextButton -image "ZN_Groom_Plant.png"  -w 32 -h 32 -flat 0 -bgc 0.118 0.565 1.0 -annotation "Plant"  -c "ZN_GroomBrush( 1 )";
+		iconTextButton -image "ZN_Groom_Delete.png" -w 32 -h 32 -flat 0 -bgc 0.118 0.565 1.0 -annotation "Delete" -c "ZN_GroomBrush( 2 )";
+	}
+	setParent ..;
+
+	rowLayout -nc 5 -cw5 145 32 32 32 32;
+	{
+		text -l "";
+		iconTextButton -image "ZN_Groom_Move.png"  -w 32 -h 32 -flat 0 -bgc 0.0 0.749 1.0 -annotation "Move"  -c "ZN_GroomBrush( 3 )";
+		iconTextButton -image "ZN_Groom_Scale.png" -w 32 -h 32 -flat 0 -bgc 0.0 0.749 1.0 -annotation "Scale" -c "ZN_GroomBrush( 4 )";
+		iconTextButton -image "ZN_Groom_Trim.png"  -w 32 -h 32 -flat 0 -bgc 0.0 0.749 1.0 -annotation "Trim"  -c "ZN_GroomBrush( 5 )";
+		iconTextButton -image "ZN_Groom_Clump.png" -w 32 -h 32 -flat 0 -bgc 0.0 0.749 1.0 -annotation "Clump" -c "ZN_GroomBrush( 6 )";
+	}
+	setParent ..;
+
+	rowLayout -nc 6 -cw6 145 32 32 32 32 32;
+	{
+		text -l "";
+		iconTextButton -image "ZN_Groom_Comb.png"     -w 32 -h 32 -flat 0 -bgc 0.529 0.808 0.980 -annotation "Comb"     -c "ZN_GroomBrush( 7  )";
+		iconTextButton -image "ZN_Groom_Sculpt.png"   -w 32 -h 32 -flat 0 -bgc 0.529 0.808 0.980 -annotation "Sculpt"   -c "ZN_GroomBrush( 8  )";
+		iconTextButton -image "ZN_Groom_Straight.png" -w 32 -h 32 -flat 0 -bgc 0.529 0.808 0.980 -annotation "Straight" -c "ZN_GroomBrush( 9  )";
+		iconTextButton -image "ZN_Groom_Lift.png"     -w 32 -h 32 -flat 0 -bgc 0.529 0.808 0.980 -annotation "Lift"     -c "ZN_GroomBrush( 10 )";
+		iconTextButton -image "ZN_Groom_Tilt.png"     -w 32 -h 32 -flat 0 -bgc 0.529 0.808 0.980 -annotation "Tilt"     -c "ZN_GroomBrush( 11 )";
+	}
+	setParent ..;
+
+	setUITemplate -ppt;
+
+	ZN_GroomBrushModeReplace $attr;
+}
+
+global proc ZN_GroomBrushModeReplace( string $attr )
+{
+}
+
+global proc ZN_GroomBrush( int $val )
+{
+	string $ZN_Groom = ZN_GroomGetNodeName();
+	setAttr( $ZN_Groom + ".brushMode" ) $val;
+
+	refresh;
+	updateAE $ZN_Groom;
+}
+
+////////////
+// Mirror //
+global proc ZN_GroomMirrorChanged( string $node )
+{
+	int $mirror = `getAttr( $node+".mirror" )`;
+
+	// disabled
+	if( $mirror == 0 )
+	{
+		editorTemplate -dc $node "mirrorPlane" 1;
+//		editorTemplate -dc $node "mirrorAuto" 1;
+		return;
+	}
+
+	// enabled
+	if( $mirror == 1 )
+	{
+		editorTemplate -dc $node "mirrorPlane" 0;
+//		editorTemplate -dc $node "mirrorAuto" 0;
+		return;
+	}
+}
+
+///////////////////
+//// Mirror Auto //
+//global proc ZN_GroomMirrorAutoNew( string $attr )
+//{
+//	string $node[];
+//	tokenize( $attr, ".", $node );
+//	string $ZN_Groom = $node[0];
+//
+//	setUITemplate -pst attributeEditorTemplate;
+//	{
+//		rowLayout;
+//		{
+//			checkBox -l "Auto Reflect" -cc ( "ZN_GroomMirrorAutoButton "+$attr ) ZN_GroomMirrorAuto;
+//		}
+//		setParent ..;
+//
+//		rowLayout;
+//		{
+//			button -l "Reflect" -w 100 -en 1 -c ( "ZN_GroomMirrorManual "+$attr ) ZN_GroomMirrorButton;
+//		}
+//		setParent ..;
+//	}
+//	setUITemplate -ppt;
+//
+//	ZN_GroomMirrorAutoReplace $attr;
+//}
+//
+//global proc ZN_GroomMirrorAutoReplace( string $attr )
+//{
+//	connectControl ZN_GroomMirrorAuto $attr;
+//	checkBox -e -cc ( "ZN_GroomMirrorAutoButton "+$attr ) ZN_GroomMirrorAuto;
+//	button -e ZN_GroomMirrorButton;
+//}
+//
+//global proc ZN_GroomMirrorAutoButton( string $attr )
+//{
+//	string $node[];
+//	tokenize( $attr, ".", $node );
+//	string $ZN_Groom = $node[0];
+//
+//	int $val = `checkBox -q -v ZN_GroomMirrorAuto`;
+//
+//	if( $val == 1 ) {			// auto
+//
+//		button -e -en 0 ZN_GroomMirrorButton;
+//
+//	} else if( $val == 0 ) {	// manual
+//
+//		button -e -en 1 ZN_GroomMirrorButton;
+//	}
+//
+//	updateAE $ZN_Groom;
+//}
+//
+//global proc ZN_GroomMirrorManual( string $attr )
+//{
+//	string $node[];
+//	tokenize( $attr, ".", $node );
+//	string $ZN_Groom = $node[0];
+//
+//	// Get current mirror group;
+//	string $CurveGroup = ZN_GroomGetCurrentGroup();
+//	string $MirrorGroup = $CurveGroup + "|MirrorGroup";
+//
+//	delete $MirrorGroup;
+//	group -em -name "MirrorGroup" -parent $CurveGroup;
+//
+//	string $mesh = `GetZN_BodyMesh( 0 )`;
+//	int $mod = 0;
+//	int $dir = `getAttr( $ZN_Groom + ".mirrorPlane" )` - 1;
+//
+//	// Select the original curves
+//	select -hi $CurveGroup;
+//	select -d -hi $MirrorGroup;
+//	select -d $CurveGroup;
+//
+//	// Select only transform nodes
+//	string $transform[] = `ls -sl -et transform`;
+//	select -r $transform;
+//
+//	ZN_CurveMirrorCmd
+//		-parent $MirrorGroup
+//		-meshName $mesh
+//		-mode $mod
+//		-direction $dir;	// 0: ZY plane, 1: XZ plane, 2: XY plane
+//
+//	select -r $ZN_Groom;
+//}
+
+/////////////////
+// ZENN update //
+global proc ZN_GroomUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout;
+		{
+			checkBox -l "Auto Update" -cc ( "ZN_GroomChangeUpdateButton " + $attr ) ZN_GroomUpdate;
+		}
+		setParent ..;
+
+		rowLayout;
+		{
+			button -l "ZENN Update" -w 250 -bgc 1.0 0.8 0.5 -en 1 -c "ZN_GroomZENNManualUpdate" ZN_GroomUpdateButton;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_GroomUpdateReplace $attr;
+}
+
+global proc ZN_GroomUpdateReplace( string $attr )
+{
+	connectControl ZN_GroomUpdate $attr;
+	checkBox -e -cc ( "ZN_GroomChangeUpdateButton " + $attr ) ZN_GroomUpdate;
+	button -e ZN_GroomUpdateButton;
+}
+
+global proc ZN_GroomChangeUpdateButton( string $attr )
+{
+	int $val = `checkBox -q -v ZN_GroomUpdate`;
+
+	if( $val == 1 ) {
+
+		string $ZN_Import = `GetCurrentZN_Import`;
+		setAttr( $ZN_Import + ".updateCurves" ) 1;
+
+		checkBox -e -cc ( "ZN_GroomUpdate " + $attr ) ZN_GroomUpdate;
+		button -e -en 0 ZN_GroomUpdateButton;
+
+	} else if( $val == 0 ) {
+
+		checkBox -e -cc ( "ZN_GroomUpdate " + $attr ) ZN_GroomUpdate;
+		button -e -en 1 ZN_GroomUpdateButton;
+	}
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Groom = $node[0];
+
+	updateAE $ZN_Groom;
+}
+
+global proc ZN_GroomZENNManualUpdate()
+{
+	string $ZN_Import = `GetCurrentZN_Import`;
+	setAttr( $ZN_Import + ".updateCurves" ) 1;
+
+	refresh;
+}
+
+//////////
+// main //
+global proc AEZN_GroomTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Brush Mode" -collapse 0;
+		{
+			editorTemplate -l "Current" -ac "brushMode" ZN_GroomBrushModeChanged;
+			editorTemplate -ccu ZN_GroomBrushModeNew ZN_GroomBrushModeReplace "ZN_GroomBrushMode";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Brush Options" -collapse 0;
+		{
+			editorTemplate -l "Brush Radius"      -ac "radius";
+			editorTemplate -l "Brush Strength"    -ac "strength";
+			editorTemplate -l "Scale Random"      -ac "scaleRandom";
+			editorTemplate -l "Reverse Curvature" -ac "reverseCurvature";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Mirror Options" -collapse 0;
+		{
+			editorTemplate -l "Mirror"         -ac "mirror" ZN_GroomMirrorChanged;
+			editorTemplate -l "Mirror Plane"   -ac "mirrorPlane";
+//			editorTemplate -ccu ZN_GroomMirrorAutoNew ZN_GroomMirrorAutoReplace "mirrorAuto";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Curve Options" -collapse 0;
+		{
+			editorTemplate -l "CVs"     -ac "plantCVs";
+			editorTemplate -l "Length"  -ac "plantLength";
+			editorTemplate -l "Count"   -ac "plantCount";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "ZENN Update" -collapse 0;
+		{
+			editorTemplate -ccu ZN_GroomUpdateNew ZN_GroomUpdateReplace "autoUpdate";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Context Tool" -collapse 0;
+		{
+			editorTemplate -ccu ZN_GroomContextNew ZN_GroomContextReplace "";
+//			button -l "Set Tool" -w 250 -bgc 1.0 0.8 0.5 -en 1 -c "setToolTo `ZN_GroomCtx`";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+}
+
+global proc ZN_GroomContextNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout;
+		{
+			button -l "Set Tool" -w 250 -bgc 0.9 0.7 0.4 -en 1 -c "setToolTo `ZN_GroomCtx`" ZN_GroomContextBtn;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_GroomContextReplace $attr;
+}
+
+global proc ZN_GroomContextReplace( string $attr )
+{
+	button -e ZN_GroomContextBtn;
+}

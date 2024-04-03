@@ -1,0 +1,213 @@
+//---------------//
+// ZN_Import.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2019.01.16                               //
+//-------------------------------------------------------//
+
+global proc ZN_BodyMeshChangerWin()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+    if( `window -q -exists ZN_BodyMeshChangerWin` )
+	{
+    	deleteUI ZN_BodyMeshChangerWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZENN Body Mesh Changer" ZN_BodyMeshChangerWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 350 -style "none";
+
+		text -l "Old Body Mesh" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfZN_BodyMeshChangerOldMesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZN_BodyMeshChangerOldMesh\",\"mesh\");");
+		}
+		setParent ..;
+
+		text -l "New Body Mesh" -font "boldLabelFont" -w 350 -h 15 -al "left";
+		rowLayout -w 350 -nc 2 -columnWidth2 300 30;
+		{
+			textField -tx "" -w 300 tfZN_BodyMeshChangerNewMesh;
+			button -l "<<" -w 30 -c ("ZLoadObjByShapeType(\"tfZN_BodyMeshChangerNewMesh\",\"mesh\");");
+		}
+		setParent ..;
+
+		rowLayout;
+		{
+			checkBox -l "Re-initialize ZN_Import Nodes" -v 1 cbZN_tfZN_BodyMeshChangerReinit;
+		}
+		setParent ..;
+
+		separator -h 30 -w 300 -style "none";
+
+		button -l "Change" -w 330 -al "center" -c "ZN_BodyMeshChangerExe";
+
+		separator -h 15 -w 350 -style "none";
+	}
+	setParent ..;
+
+	showWindow ZN_BodyMeshChangerWin;
+}
+
+global proc ZN_BodyMeshChangerExe()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $oldMeshXForm = `textField -q -tx tfZN_BodyMeshChangerOldMesh`;
+	string $newMeshXForm = `textField -q -tx tfZN_BodyMeshChangerNewMesh`;
+
+	int $reInit = `checkBox -q -v cbZN_tfZN_BodyMeshChangerReinit`;
+
+	string $oldMeshShape;
+	{
+		if( $oldMeshXForm != "" )
+		{
+			if( !`objExists $oldMeshXForm` )
+			{
+				ZPrintError ("Failed to find "+$oldMeshXForm);
+				return;
+			}
+
+			string $shapes[] = `listRelatives -f -c -ni -shapes $oldMeshXForm`;
+
+			if( size($shapes) != 1 )
+			{
+				if( size($shapes) == 0 ) { ZPrintError ($oldMeshXForm+" has no shape node."); }
+				if( size($shapes) > 1 ) { ZPrintError ($oldMeshXForm+" has too many shape nodes."); }
+				return;
+			}
+
+			if( `nodeType $shapes[0]` != "mesh" )
+			{
+				ZPrintError ($oldMeshShape+" is not a polygon mesh.");
+				return;
+			}
+
+			$oldMeshShape = $shapes[0];
+		}
+	}
+
+	string $newMeshShape;
+	{
+		if( $newMeshXForm != "" )
+		{
+			if( !`objExists $newMeshXForm` )
+			{
+				ZPrintError ("Failed to find "+$newMeshXForm);
+				return;
+			}
+
+			string $shapes[] = `listRelatives -f -c -ni -shapes $newMeshXForm`;
+
+			if( size($shapes) != 1 )
+			{
+				if( size($shapes) == 0 ) { ZPrintError ($newMeshXForm+" has no shape node."); }
+				if( size($shapes) > 1 ) { ZPrintError ($newMeshXForm+" has too many shape nodes."); }
+				return;
+			}
+
+			if( `nodeType $shapes[0]` != "mesh" )
+			{
+				ZPrintError ($newMeshShape+" is not a polygon mesh.");
+				return;
+			}
+
+			$newMeshShape = $shapes[0];
+		}
+	}
+
+	if( !`connectionInfo -is ($oldMeshShape+".w")` )
+	{
+		ZPrintError ($oldMeshShape+" has no output connections." );
+		return;
+	}
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($oldMeshShape+".w")`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		string $type = `nodeType $node`;
+
+		if( $type == "ZN_Import" ) {
+
+			connectAttr -f ($newMeshShape+".w") ($node+".inBodyMesh");
+
+			if( $reInit )
+			{
+				setAttr ($node+".updateMesh");
+			}
+
+		} else if( $type == "ZN_PartialMeshGen" ) {
+
+			connectAttr -f ($newMeshShape+".w") ($node+".inMesh");
+
+		}
+	}
+}
+
+global proc ZN_ImportFromXGen()
+{
+    string $objs[] = `ls -sl -l`;
+
+    string $xgmSplineDescription;
+    string $ZN_Import;
+    {
+        int $xgen_count = 0;
+        int $zenn_count = 0;
+
+        for( $obj in $objs )
+        {
+            string $nodeType = `nodeType $obj`;
+
+            if( $nodeType == "xgmSplineDescription" )
+            {
+                $xgmSplineDescription = $obj;
+                $xgen_count++;
+            }
+
+            if( $nodeType == "ZN_Import" )
+            {
+                $ZN_Import = $obj;
+                $zenn_count++;
+            }
+        }
+
+        if( $xgen_count != 1 )
+        {
+            if( $xgen_count == 0 ) { ZPrintError "No XGen node selected."; }
+            if( $xgen_count >  1 ) { ZPrintError "Too many XGen nodes selected."; }
+            return;
+        }
+
+        if( $zenn_count != 1 )
+        {
+            if( $zenn_count == 0 ) { ZPrintError "No ZN_Import node selected."; }
+            if( $zenn_count >  1 ) { ZPrintError "Too many ZN_Import nodes selected."; }
+            return;
+        }
+    }
+
+    connectAttr -f ($xgmSplineDescription+".message") ($ZN_Import+".inGuideCurves");
+
+    setAttr ($ZN_Import+".curveDataFrom") 1;
+
+    setAttr ($ZN_Import+".updateCurves") 1;
+}
+

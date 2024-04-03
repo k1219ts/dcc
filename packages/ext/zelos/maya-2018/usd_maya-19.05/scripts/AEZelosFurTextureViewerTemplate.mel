@@ -1,0 +1,26 @@
+//-------------------------------------//
+// AEZelosFurTextureViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.06.10                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZelosFurTextureViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Options" -collapse 0;
+			editorTemplate -l "Image File"                  -ac "filePathName";
+			editorTemplate -l "UV-set Name"                 -ac "uvSetName";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "output";
+}
+

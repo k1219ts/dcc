@@ -1,0 +1,36 @@
+global proc rmanOutputZNGroupProcedural()
+{
+	string $moduleName	= "rmanOutputZNProcedural";
+	string $rmanOutputProceduralName = "rmanOutputZNGroupProcedural";
+	
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+}
+
+global proc rmanOutputZNArchiveProcedural()
+{
+	string $moduleName	= "rmanOutputZNProcedural";
+	string $rmanOutputProceduralName = "rmanOutputZNArchiveProcedural";
+	
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+
+}
+global proc rmanOutputTestProcedural()
+{
+	string $moduleName	= "rmanOutputZNProcedural";
+	string $rmanOutputProceduralName = "rmanOutputTestProcedural";
+	
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+}
+
+global proc rmanOutputZNViewerProcedural()
+{
+	string $moduleName	= "rmanOutputZNProcedural";
+	string $rmanOutputProceduralName = "rmanOutputZNViewerProcedural";
+
+	python(("from " + $moduleName + " import " + $rmanOutputProceduralName));
+	python(($rmanOutputProceduralName + "()"));
+}
+

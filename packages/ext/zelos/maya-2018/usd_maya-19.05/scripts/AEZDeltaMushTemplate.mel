@@ -1,0 +1,27 @@
+//--------------------------//
+// AEZDeltaMushTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.01.11                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZDeltaMushTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Basic Options" -collapse 0;
+		{
+			editorTemplate -l "Smoothing Iteration" -ac "numIter";
+		}
+		editorTemplate -endLayout;
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "origMesh";
+	editorTemplate -suppress "gotDelta";
+}

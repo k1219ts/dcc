@@ -1,0 +1,58 @@
+//---------------------------------//
+// AEZArachneCharacterTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jungmin Lee @ Dexter Studios                  //
+// last update: 2018.01.08                               //
+//-------------------------------------------------------//
+
+// update
+global proc ZA_LoadUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 0.8 0.4 0.4 -c ("ZA_LoadUpdateExe "+$attr) ZA_LoadUpdate;
+	setUITemplate -ppt;
+
+	ZA_LoadUpdateReplace $attr;
+}
+
+global proc ZA_LoadUpdateReplace( string $attr )
+{
+	button -e -c ("ZA_LoadUpdateExe "+$attr) ZA_LoadUpdate;
+}
+
+global proc ZA_LoadUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZA_Load = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZA_Load;
+}
+
+//////////
+// main //
+global proc AEZArachneCharacterTemplate( string $nodeName )
+{
+
+    editorTemplate -beginLayout "retarget" -collapse 0;
+	{
+		editorTemplate -l "filePath"   -ac "filePath";
+		editorTemplate -l "drawMode"   -ac "drawMode";
+		editorTemplate -l "drawRadius" -ac "drawRadius";			
+		editorTemplate -ccu ZA_LoadUpdateNew ZA_LoadUpdateReplace "update";
+	}
+	editorTemplate -endLayout;
+		
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+

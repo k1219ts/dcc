@@ -1,0 +1,23 @@
+//-------------------------------//
+// ZNeighborPointsSearchTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZNeighborPointsSearchTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	file -f -new;
+
+	createNode ZNeighborPointsSearchTest;
+	spaceLocator;
+	connectAttr locator1.translate ZNeighborPointsSearchTest1.inPosition;
+	connectAttr ZNeighborPointsSearchTest1.output transform1.shearXY;
+}
+

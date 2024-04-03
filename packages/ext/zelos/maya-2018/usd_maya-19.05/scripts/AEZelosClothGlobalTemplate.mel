@@ -1,0 +1,138 @@
+//--------------------------------//
+// AEZelosClothGlobalTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.04.30                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothGlobalActiveNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout;
+			checkBox -l "Current Global"  -cc ("ZelosClothGlobalActive "  +$attr) ZelosClothGlobalActive;
+			setParent ..;
+		rowLayout;
+			checkBox -l "Display Patches" -cc ("ZelosClothDisplayPatches "+$attr) ZelosClothDisplayPatches;
+			setParent ..;
+		rowLayout;
+			checkBox -l "Display Seams"   -cc ("ZelosClothDisplaySeams "  +$attr) ZelosClothDisplaySeams;
+			setParent ..;
+		rowLayout;
+			checkBox -l "Display Curves"  -cc ("ZelosClothDisplayCurves " +$attr) ZelosClothDisplayCurves;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosClothGlobalActiveReplace( $attr );
+}
+
+global proc ZelosClothGlobalActiveReplace( string $attr )
+{
+	connectControl ZelosClothGlobalActive $attr;
+
+	checkBox -e -cc ("ZelosClothGlobalActive "  +$attr) ZelosClothGlobalActive;
+	checkBox -e -cc ("ZelosClothDisplayPatches "+$attr) ZelosClothDisplayPatches;
+	checkBox -e -cc ("ZelosClothDisplaySeams "  +$attr) ZelosClothDisplaySeams;
+	checkBox -e -cc ("ZelosClothDisplayCurves " +$attr) ZelosClothDisplayCurves;
+}
+
+global proc ZelosClothGlobalActive( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $global = $node[0];
+
+	string $ZelosClothGlobals[] = `ls -type ZelosClothGlobal`;
+
+	for( $ZelosClothGlobal in $ZelosClothGlobals )
+	{
+		if( $global != $ZelosClothGlobal )
+		{
+			setAttr ($ZelosClothGlobal+".active") 0;
+		}
+	}
+}
+
+global proc ZelosClothDisplayPatches( string $attr )
+{
+	int $display = `checkBox -q -v ZelosClothDisplayPatches`;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $global = $node[0];
+
+	string $shapes[] = `listRelatives -f -c -ad $global`;
+
+	for( $shape in $shapes )
+	{
+		if( `nodeType $shape` != "ZelosClothPatch" ) { continue; }
+
+		setAttr ($shape+".display") $display;
+	}
+}
+
+global proc ZelosClothDisplaySeams( string $attr )
+{
+	int $display = `checkBox -q -v ZelosClothDisplaySeams`;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $global = $node[0];
+
+	string $shapes[] = `listRelatives -f -c -ad $global`;
+
+	for( $shape in $shapes )
+	{
+		if( `nodeType $shape` != "ZelosClothSeam" ) { continue; }
+
+		setAttr ($shape+".display") $display;
+	}
+}
+
+global proc ZelosClothDisplayCurves( string $attr )
+{
+	int $display = `checkBox -q -v ZelosClothDisplayCurves`;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $global = $node[0];
+
+	string $shapes[] = `listRelatives -f -c -ad $global`;
+
+	for( $shape in $shapes )
+	{
+		if( `nodeType $shape` != "ZelosClothCurve" ) { continue; }
+
+		setAttr ($shape+".display") $display;
+	}
+}
+
+//////////
+// main //
+global proc AEZelosClothGlobalTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "ZelosCloth" -collapse 0;
+			//editorTemplate -l "Active"                      -ac "active";
+			editorTemplate -ccu ZelosClothGlobalActiveNew ZelosClothGlobalActiveReplace "active";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Transform" -collapse 0;
+			editorTemplate -l "Translate"                   -ac "translate";
+			editorTemplate -l "Rotate"                      -ac "rotate";
+			editorTemplate -l "Scale"                       -ac "scale";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "shear";
+	editorTemplate -suppress "rotationOrder";
+	editorTemplate -suppress "rotationAxis";
+	editorTemplate -suppress "inheritsTransform";
+	editorTemplate -suppress "mentalRayControls";
+	editorTemplate -suppress "input";
+	editorTemplate -suppress "update";
+}
+

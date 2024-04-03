@@ -1,0 +1,200 @@
+//------------------------//
+// ZelosClothCollider.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.05.08                               //
+//-------------------------------------------------------//
+
+global proc AddZelosClothColliders()
+{
+	if( !`pluginInfo -q -loaded "ZelosClothForMaya"` )
+	{
+		error( "You must load the ZelosCloth plug-in first!" );
+		return;
+	}
+
+	string $xforms[];
+	{
+		$xforms = `ls -sl -l -type transform`;
+
+		if( size($xforms) < 2 )
+		{
+			error( "Not enough selected objects.");
+			return;
+		}
+	}
+
+	string $ZelosClothSimulator;
+	{
+		string $shapes[] = `listRelatives -f -c -ni -shapes $xforms[0]`;
+
+		if( size($shapes) != 1 )
+		{
+			error("Invalid number of shapes.");
+			return;
+		}
+
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "mesh" )
+		{
+			error("Failed to find output mesh.");
+			return;
+		}
+
+		if( !`connectionInfo -id ($shape+".inMesh")` )
+		{
+			error("Failed to find output mesh.");
+			return;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ($shape+".inMesh")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` != "ZelosClothSimulator" )
+		{
+			error("Failed to find ZelosClothSimulator.");
+			return;
+		}
+
+		$ZelosClothSimulator = $node;
+	}
+
+	string $colliderMeshes[];
+	{
+		int $i = -1;
+
+		for( $xform in $xforms )
+		{
+			if( $i < 0 ) { $i=0; continue; }
+
+			string $shapes[] = `listRelatives -f -c -ni -shapes $xform`;
+			string $shape = $shapes[0]; // only for the first shape
+
+			if( `nodeType $shape` != "mesh" )
+			{
+				error($shape+" isn't a mesh type.");
+				return;
+			}
+
+			$colliderMeshes[$i++] = $shape;
+		}
+	}
+
+	string $ZelosClothGlobal;
+	{
+		$ZelosClothGlobal = `GetZelosClothGlobal $ZelosClothSimulator`;
+
+		if( $ZelosClothGlobal == "" )
+		{
+			error( "Failed to get ZelosClothGlobal node." );
+			return;
+		}
+	}
+
+	string $colliderGrp;
+	{
+		$colliderGrp = $ZelosClothGlobal + "|colliders";
+
+		if( !`objExists $colliderGrp` )
+		{
+			error( "Failed to get collider group node." );
+			return;
+		}
+	}
+
+	for( $colliderMesh in $colliderMeshes )
+	{
+		string $ZelosClothColliders[] = `GetConnectedZelosClothCollidersFromColliderMesh $colliderMesh`;
+
+		int $toConnect = 1;
+
+		for( $ZelosClothCollider in $ZelosClothColliders )
+		{
+			string $sim = `GetConnectedZelosClothSimulatorFromCollider $ZelosClothCollider`;
+
+			if( $sim == $ZelosClothSimulator )
+			{
+				$toConnect = 0;
+				break;
+			}
+		}
+
+		if( $toConnect )
+		{
+			string $ZelosClothCollider = `createNode ZelosClothCollider`;
+			connectAttr ($colliderMesh+".w") ($ZelosClothCollider+".inMesh");
+
+			int $port = ZEmptyPort( $ZelosClothSimulator, "colliders" );
+			connectAttr ($ZelosClothCollider+".output") ($ZelosClothSimulator+".colliders["+$port+"]");
+
+			string $parents[] = `listRelatives -p $ZelosClothCollider`;
+			string $parent = $parents[0];
+			int $number = `match "[0-9]+$" $ZelosClothCollider`;
+			string $xform = `rename $parent ("collider"+$number)`;
+
+			select -r $colliderGrp;
+			parent $xform $colliderGrp;
+		}
+	}
+}
+
+global proc string[] GetConnectedZelosClothCollidersFromColliderMesh( string $mesh )
+{
+	string $ZelosClothColliders[];
+
+	if( `nodeType $mesh` != "mesh" ) { return $ZelosClothColliders; }
+
+	if( !`connectionInfo -is ($mesh+".w")` ) { return $ZelosClothColliders; }
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($mesh+".w")`;
+
+	int $i = 0;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZelosClothCollider" )
+		{
+			$ZelosClothColliders[$i++] = $node;
+		}
+	}
+
+	return $ZelosClothColliders;
+}
+
+global proc string GetConnectedZelosClothSimulatorFromCollider( string $ZelosClothCollider )
+{
+	if( `nodeType $ZelosClothCollider` != "ZelosClothCollider" ) { return ""; }
+
+	if( !`connectionInfo -is ($ZelosClothCollider+".output")` ) { return ""; }
+
+	string $nodeAttrs[] = `connectionInfo -dfs ($ZelosClothCollider+".output")`;
+	if( size($nodeAttrs) == 0 ) { return ""; }
+
+	if( size($nodeAttrs) != 1 )
+	{
+		error( $ZelosClothCollider + " has too many connections to ZelosClothSimulator." );
+		return "";
+	}
+
+	string $nodeAttr = $nodeAttrs[0];
+
+	string $tokens[];
+	tokenize( $nodeAttr, ".", $tokens );
+	string $node = $tokens[0];
+
+	if( `nodeType $node` != "ZelosClothSimulator" ) { return ""; }
+
+	string $fullPaths[] = `ls -l $node`;
+	if( size($fullPaths) != 1 ) { return ""; }
+
+	return $fullPaths[0];
+}
+

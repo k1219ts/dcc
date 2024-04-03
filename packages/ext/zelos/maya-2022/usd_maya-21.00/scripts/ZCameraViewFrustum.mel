@@ -1,0 +1,35 @@
+//------------------------//
+// ZCameraViewFrustum.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.04.17                               //
+//-------------------------------------------------------//
+
+global proc CreateZCameraViewFrustum()
+{
+	if( !`pluginInfo -q -loaded "ZelosCameraForMaya"` )
+	{
+		error( "You must load the ZelosCameraForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl`;
+	string $shapes[] = `pickWalk -d down`;
+	string $cameraShape = $shapes[0];
+
+	if( size($selected) != 1 )
+	{
+		error( "Select a camera to create ZCameraFrustum!\n" );
+		return;
+	}
+
+	string $ZCameraViewFrustom = `createNode ZCameraViewFrustum -p $selected[0]`;
+	connectAttr -f ( $cameraShape + ".nearClipPlane"          ) ( $ZCameraViewFrustom + ".nearClipPlane" );
+	connectAttr -f ( $cameraShape + ".farClipPlane"           ) ( $ZCameraViewFrustom + ".farClipPlane" );
+	connectAttr -f ( $cameraShape + ".horizontalFilmAperture" ) ( $ZCameraViewFrustom + ".horizontalFilmAperture" );
+	connectAttr -f ( $cameraShape + ".verticalFilmAperture"   ) ( $ZCameraViewFrustom + ".verticalFilmAperture" );
+	connectAttr -f ( $cameraShape + ".focalLength"            ) ( $ZCameraViewFrustom + ".focalLength" );
+	connectAttr -f ( $cameraShape + ".orthographicWidth"      ) ( $ZCameraViewFrustom + ".orthographicWidth" );
+	connectAttr -f ( $cameraShape + ".orthographic"           ) ( $ZCameraViewFrustom + ".orthographic" );
+}
+

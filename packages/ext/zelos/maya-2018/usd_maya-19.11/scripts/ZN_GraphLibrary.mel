@@ -1,0 +1,172 @@
+//---------------------//
+// ZN_GraphLibrary.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.19                               //
+//-------------------------------------------------------//
+
+global proc string[] GetAllZN_Deform_NodeTypes()
+{
+	string $deformers[];
+
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return $deformers;
+	}
+
+	string $types[] = `pluginInfo  -q  -dn ZENNForMaya`;
+
+	for( $type in $types )
+	{
+		if( `substring $type 1 10` != "ZN_Deform_") { continue; }
+
+		$deformers[size($deformers)] = $type;
+	}
+
+	return $deformers;
+}
+
+global proc ZN_CreateFurGraph()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_Import = `GetCurrentZN_Import`;
+	{
+		if( $ZN_Import == "" )
+		{
+			ZPrintError "No ZN_Import node of the current group.";
+			return;
+		}
+	}
+
+	string $ZN_StrandsViewer;
+	{
+		if( `connectionInfo -is ($ZN_Import+".outStrands")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($ZN_Import+".outStrands")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+				string $node = $tokens[0];
+
+				if( `nodeType $node` == "ZN_StrandsViewer" )
+				{
+					$ZN_StrandsViewer = $node;
+				}
+			}
+		}
+
+		if( $ZN_StrandsViewer == "" )
+		{
+			$ZN_StrandsViewer = `createNode ZN_StrandsViewer`;
+		}
+	}
+
+	string $ZN_Animate  = `createNode ZN_Animate`;
+	string $ZN_Generate = `createNode ZN_Generate`;
+	string $ZN_Deform   = `createNode ZN_Deform`;
+
+	{
+		string $types[] = `GetAllZN_Deform_NodeTypes`;
+
+		int $i = 0;
+		for( $type in $types )
+		{
+			string $node = `createNode $type`;
+
+			connectAttr ($node+".outDeformer") ($ZN_Deform+".inDeformer[" + $i++ + "]");
+		}
+	}
+
+	setAttr ($ZN_Animate+".mode") 2;
+
+	connectAttr -f ($ZN_Import+".outStrands") ($ZN_Animate+".inStrands");
+	connectAttr -f ($ZN_Animate+".outStrands") ($ZN_Generate+".inStrands");
+	connectAttr -f ($ZN_Generate+".outStrands") ($ZN_Deform+".inStrands");
+	connectAttr -f ($ZN_Deform+".outStrands") ($ZN_StrandsViewer+".inStrands");
+
+	select -cl;
+	select -r $ZN_Import;
+}
+
+global proc ZN_CreateFeatherGraph()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_Import = `GetCurrentZN_Import`;
+	{
+		if( $ZN_Import == "" )
+		{
+			ZPrintError "No ZN_Import node of the current group.";
+			return;
+		}
+	}
+
+	string $ZN_StrandsViewer;
+	{
+		if( `connectionInfo -is ($ZN_Import+".outStrands")` )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ($ZN_Import+".outStrands")`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				string $tokens[];
+				tokenize( $nodeAttr, ".", $tokens );
+				string $node = $tokens[0];
+
+				if( `nodeType $node` == "ZN_StrandsViewer" )
+				{
+					$ZN_StrandsViewer = $node;
+				}
+			}
+		}
+
+		if( $ZN_StrandsViewer == "" )
+		{
+			$ZN_StrandsViewer = `createNode ZN_StrandsViewer`;
+		}
+	}
+
+	string $ZN_Animate  = `createNode ZN_Animate`;
+	string $ZN_Generate = `createNode ZN_Generate`;
+	string $ZN_Deform   = `createNode ZN_Deform`;
+
+	{
+		string $types[] = `GetAllZN_Deform_NodeTypes`;
+
+		int $i = 0;
+		for( $type in $types )
+		{
+			string $node = `createNode $type`;
+
+			connectAttr ($node+".outDeformer") ($ZN_Deform+".inDeformer[" + $i++ + "]");
+		}
+	}
+
+	string $ZN_FeatherInstance = `createNode ZN_FeatherInstance`;
+	string $ZN_FeatherSetViewer = `createNode ZN_FeatherSetViewer`;
+
+	setAttr ($ZN_Animate+".mode") 2;
+
+	connectAttr -f ($ZN_Import+".outStrands") ($ZN_Animate+".inStrands");
+	connectAttr -f ($ZN_Animate+".outStrands") ($ZN_Generate+".inStrands");
+	connectAttr -f ($ZN_Generate+".outStrands") ($ZN_Deform+".inStrands");
+	connectAttr -f ($ZN_Deform+".outStrands") ($ZN_StrandsViewer+".inStrands");
+	connectAttr -f ($ZN_Deform+".outStrands") ($ZN_FeatherInstance+".inStrands");
+	connectAttr -f ($ZN_FeatherInstance+".outFeatherSet") ($ZN_FeatherSetViewer+".inFeatherSet");
+
+	select -cl;
+	select -r $ZN_Import;
+}
+

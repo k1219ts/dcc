@@ -1,0 +1,106 @@
+//-------------------------------//
+// AEZelosClothPatchTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.07                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothPatchVDistChanged( string $node )
+{
+	string $ZelosClothPatch = $node;
+
+	float $vDist  = `getAttr ( $ZelosClothPatch + ".vDist"  )`;
+	float $vDist0 = `getAttr ( $ZelosClothPatch + ".vDist0" )`;
+
+	if( $vDist == $vDist0 ) { return; }
+
+	setAttr ( $ZelosClothPatch + ".vDist"  ) $vDist;
+	setAttr ( $ZelosClothPatch + ".vDist0" ) $vDist;
+
+	setAttr ( $ZelosClothPatch + ".mode" ) 0;
+
+	ZelosClothCurveResample -nodeName $ZelosClothPatch;
+	
+	setAttr ( $ZelosClothPatch + ".mode" ) 1;
+}
+
+//////////////////////
+// connnection info //
+global proc ZelosClothPatchConnectionInfoNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		text -l "Input ZelosClothCurveMerge Nodes" -bgc 0.2 0.2 0.2;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 -cc "select -r `optionMenu -q -v omZelosClothPatchList`" omZelosClothPatchList;
+				setParent..;
+			setParent..;
+	setUITemplate -ppt;
+
+	ZelosClothPatchConnectionInfoReplace( $attr );
+}
+
+global proc ZelosClothPatchConnectionInfoReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosClothPatch = $node[0];
+
+	// Input Nodes (ZelosClothCurveMerge nodes)
+	{
+		string $items[] = `optionMenu -q -ill omZelosClothPatchList`;
+		for( $item in $items ) { deleteUI $item; }
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZelosClothPatch + ".outline" )`;
+		tokenize( $nodeAttr, ".", $node );
+
+		if( `nodeType $node[0]` == "ZelosClothCurveMerge" )
+		{
+			menuItem -label $node[0] -p omZelosClothPatchList;
+		}
+	}
+}
+
+//////////
+// main //
+global proc AEZelosClothPatchTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -l "Display"            -ac "display";
+			editorTemplate -l "Front Color"        -ac "frontColor";
+			editorTemplate -l "Back Color"         -ac "backColor";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 0;
+			editorTemplate -l "Point Count"        -ac "pCount";
+			editorTemplate -l "Triangle Count"     -ac "tCount";
+			editorTemplate -as;
+			editorTemplate -l "HoleLine Groups"    -ac "hCount";
+			editorTemplate -l "InsideLine Groups"  -ac "iCount";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Vertex Distance   " -ac "vDist" ZelosClothPatchVDistChanged;
+			editorTemplate -l "Reverse"            -ac "reverse";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Node List" -collapse 0;
+			editorTemplate -ccu ZelosClothPatchConnectionInfoNew ZelosClothPatchConnectionInfoReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "outline";
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "mode";
+	editorTemplate -suppress "vDist0";
+}
+

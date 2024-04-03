@@ -1,0 +1,512 @@
+//------------------------------//
+// AEZN_Deform_KinkTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_KinkExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Kink Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_KinkExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_KinkExpr1Win(\""+$attr+"\")") btnZN_Deform_KinkExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_KinkExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_KinkExpr1;
+	button -e -c ("ZN_Deform_KinkExpr1Win(\""+$attr+"\")") btnZN_Deform_KinkExpr1;
+}
+
+global proc ZN_Deform_KinkExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_KinkExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_KinkExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_KinkExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_KinkExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_KinkExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_KinkExpr1;
+}
+
+global proc ZN_Deform_KinkExpr1Reset( string $attr )
+{
+	string $txt = "kink + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_KinkExpr1;
+	scrollField -e -tx $txt sfZN_Deform_KinkExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_KinkExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Tip Width Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_KinkExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_KinkExpr2Win(\""+$attr+"\")") btnZN_Deform_KinkExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_KinkExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_KinkExpr2;
+	button -e -c ("ZN_Deform_KinkExpr2Win(\""+$attr+"\")") btnZN_Deform_KinkExpr2;
+}
+
+global proc ZN_Deform_KinkExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_KinkExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_KinkExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_KinkExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_KinkExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_KinkExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_KinkExpr2;
+}
+
+global proc ZN_Deform_KinkExpr2Reset( string $attr )
+{
+	string $txt = "tWidth + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_KinkExpr2;
+	scrollField -e -tx $txt sfZN_Deform_KinkExpr2;
+}
+
+////////////////////////
+// the 3rd expression //
+global proc ZN_Deform_KinkExpr3New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Root Width Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_KinkExpr3;
+			button -w 40 -l "Edit" -c ("ZN_Deform_KinkExpr3Win(\""+$attr+"\")") btnZN_Deform_KinkExpr3;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkExpr3Replace( $attr );
+}
+
+global proc ZN_Deform_KinkExpr3Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_KinkExpr3;
+	button -e -c ("ZN_Deform_KinkExpr3Win(\""+$attr+"\")") btnZN_Deform_KinkExpr3;
+}
+
+global proc ZN_Deform_KinkExpr3Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_KinkExpr3;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_KinkExpr3Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_KinkExpr3Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_KinkExpr3Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_KinkExpr3`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_KinkExpr3;
+}
+
+global proc ZN_Deform_KinkExpr3Reset( string $attr )
+{
+	string $txt = "rWidth + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_KinkExpr3;
+	scrollField -e -tx $txt sfZN_Deform_KinkExpr3;
+}
+
+////////////////////////
+// the 4th expression //
+global proc ZN_Deform_KinkExpr4New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Ratio Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_KinkExpr4;
+			button -w 40 -l "Edit" -c ("ZN_Deform_KinkExpr4Win(\""+$attr+"\")") btnZN_Deform_KinkExpr4;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkExpr4Replace( $attr );
+}
+
+global proc ZN_Deform_KinkExpr4Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_KinkExpr4;
+	button -e -c ("ZN_Deform_KinkExpr4Win(\""+$attr+"\")") btnZN_Deform_KinkExpr4;
+}
+
+global proc ZN_Deform_KinkExpr4Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_KinkExpr4;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_KinkExpr4Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_KinkExpr4Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_KinkExpr4Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_KinkExpr4`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_KinkExpr4;
+}
+
+global proc ZN_Deform_KinkExpr4Reset( string $attr )
+{
+	string $txt = "0.0";
+	textField -e -tx $txt tfZN_Deform_KinkExpr4;
+	scrollField -e -tx $txt sfZN_Deform_KinkExpr4;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_KinkImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_KinkImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_KinkImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkImageListReplace( $attr );
+}
+
+global proc ZN_Deform_KinkImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_KinkImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Kink node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Kink = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Kink + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Kink + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Kink + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_KinkImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_KinkDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_KinkDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_KinkDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_KinkDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_KinkDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Kink node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Kink = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Kink + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_KinkDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_KinkUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_KinkUpdateExe "+$attr) ZN_Deform_KinkUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_KinkUpdateReplace $attr;
+}
+
+global proc ZN_Deform_KinkUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_KinkUpdateExe "+$attr) ZN_Deform_KinkUpdate;
+}
+
+global proc ZN_Deform_KinkUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Kink = $node[0];
+
+	updateAE $ZN_Deform_Kink;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_KinkTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Kink Value";
+			editorTemplate -l "Kink [kink]"     -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r1";
+			editorTemplate -l "Frequency [freq]"  -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_KinkExpr1New ZN_Deform_KinkExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Tip Width Value";
+			editorTemplate -l "tWidth [rate]"     -ac "v2";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r2";
+			editorTemplate -l "Frequency [freq]"  -ac "f2";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_KinkExpr2New ZN_Deform_KinkExpr2Replace "e2";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Root Width Value";
+			editorTemplate -l "rWidth [rate]"     -ac "v3";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]" -ac "r3";
+			editorTemplate -l "Frequency [freq]"  -ac "f3";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_KinkExpr3New ZN_Deform_KinkExpr3Replace "e3";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Exception Ratio";
+			editorTemplate -ccu ZN_Deform_KinkExpr4New ZN_Deform_KinkExpr4Replace "e4";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Etc.";
+			editorTemplate -l "Tip Smoothness"   -ac "tipSmoothness";
+			editorTemplate -l "Root Smoothness"  -ac "rootSmoothness";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_KinkImageListNew ZN_Deform_KinkImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_KinkDeformerListNew ZN_Deform_KinkDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

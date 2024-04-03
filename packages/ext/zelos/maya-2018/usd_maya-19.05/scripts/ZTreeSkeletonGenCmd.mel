@@ -1,0 +1,51 @@
+//-------------------------//
+// ZTreeSkeletonGenCmd.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.02.24                               //
+//-------------------------------------------------------//
+
+global proc CreateZTreeSkeleton( int $iter, float $dist )
+{
+	if( !`pluginInfo -q -loaded "ZeomForMaya"` )
+	{
+		error( "ZeomForMaya is not loaded." );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+	if( size( $selected ) != 1 )
+	{
+		error( "Select only one mesh." );
+		return;
+	}
+
+	// Selected tree mesh.
+	string $treeMesh = $selected[0];
+	string $treeShapes[] = `listRelatives -shapes $treeMesh`;
+	string $treeShape = $treeShapes[0];
+
+	if( `nodeType $treeShape` != "mesh" )
+	{
+		error( $treeShape + " is not a mesh." );
+		return;
+	}
+
+	// Separate.
+	// *WILL BE TERMINATED IF USER SELECTED A SINGLE MESH. (NOT COMBINED)
+	string $xforms[] = `polySeparate -ch 0 $treeShape`;	// result: mesh xforms
+
+	// Mesh shape names.
+	string $str = "";
+	for( $xform in $xforms )
+	{
+		string $shapes[] = `listRelatives -shapes $xform`;
+		string $shape = $shapes[0]; 
+
+		$str += $shape;
+		$str += " ";
+	}
+
+	ZTreeSkeletonGenCmd -iterations $iter -distance $dist -nodeNames $str;
+}

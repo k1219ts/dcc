@@ -1,0 +1,26 @@
+//----------------------//
+// ZFX_BreakingWave.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.08.29                               //
+//-------------------------------------------------------//
+
+global proc ZFX_BreakingWaveCreate()
+{
+    if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		ZPrintError "ZFXForMaya is not loaded.";
+		return;
+	}
+    
+    string $ZFX_BreakingWave = `createNode ZFX_BreakingWave`;
+	string $outMeshShape = `createNode mesh`;    
+
+    connectAttr "time1.outTime" ($ZFX_BreakingWave+".inTime");    
+    connectAttr ($ZFX_BreakingWave+".outMesh") ($outMeshShape+".inMesh");
+
+    assignShadingGroup initialShadingGroup;
+    select -r $ZFX_BreakingWave;
+}

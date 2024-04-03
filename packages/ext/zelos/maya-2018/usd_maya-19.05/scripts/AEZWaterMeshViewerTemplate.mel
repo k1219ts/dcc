@@ -1,0 +1,69 @@
+//--------------------------------//
+// AEZWaterMeshViewerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.03.07                               //
+//-------------------------------------------------------//
+
+/////////////////////
+// Load Cache Path //
+global proc ZWaterMeshViewerLoadDirNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4;
+			text "Cache Path";
+			textField -ed 1 tfZWaterMeshViewerLoadDir;
+			symbolButton -image "navButtonBrowse.xpm"
+				-c ( "Zelos_LoadDirectory(\""+$attr+"\",\"tfZWaterMeshViewerLoadDir\")" ) tfZWaterMeshViewerLoadDirBtn;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZWaterMeshViewerLoadReplace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZWaterMeshViewerLoadDir;
+	symbolButton -e -c ( "Zelos_LoadDirectory(\""+$attr+"\",\"tfZWaterMeshViewerLoadDir\")" ) tfZWaterMeshViewerLoadDirBtn;
+}
+
+//////////
+// main //
+global proc AEZWaterMeshViewerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -beginLayout "Mesh" -collapse 1;
+				editorTemplate -l "Mode"                  -ac "displayMeshMode";
+				editorTemplate -as;
+				//editorTemplate -l "Surface Color"         -ac "surfColor";
+				//editorTemplate -as;
+				editorTemplate -l "Normal"                -ac "displayVNrm";
+				editorTemplate -l "Scale"                 -ac "vNrmDispScale";
+				editorTemplate -l "Color"          		  -ac "vNrmColor";
+				editorTemplate -as;
+				editorTemplate -l "Velocity"              -ac "displayVVel";
+				editorTemplate -l "Scale"                 -ac "vVelDispScale";
+				editorTemplate -l "Velocity Color"        -ac "vVelColor";
+				editorTemplate -as;
+				editorTemplate -l "Light Position"        -ac "lightPosition";
+
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Cache" -collapse 0;
+			editorTemplate -l "Cache Type"        -ac "loadCacheType";
+			editorTemplate -ccu ZWaterMeshViewerLoadDirNew ZWaterMeshViewerLoadReplace "loadCacheDir";
+			editorTemplate -l "Offset"        	  -ac "loadCacheOffset";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "output";
+}
+
+
+

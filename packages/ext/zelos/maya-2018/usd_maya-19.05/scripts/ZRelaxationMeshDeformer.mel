@@ -1,0 +1,244 @@
+//-----------------------------//
+// ZRelaxationMeshDeformer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2012.09.19                               //
+//-------------------------------------------------------//
+
+global proc CreateZRelaxationMeshDeformer()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -dag -ni -fl -type "transform"`;
+
+	for( $xForm in $selected )
+	{
+		string $shapes[] = `listRelatives -shapes $xForm`;
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "mesh" )
+		{
+			warning ( $shape + " is not a mesh. ZRelaxationMeshDeformer does not support non-mesh type." );
+			continue;
+		}
+
+		deformer -type ZRelaxationMeshDeformer $xForm;
+	}
+}
+
+global proc AddColliderToZRelaxationMeshDeformer()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -dag -ni -fl -type "transform"`;
+
+	// From the selected objects, the first should get a ZRelaxationMeshDeformer.
+	int $i=0, $cCount=0, $zCount=0;
+	string $colliderXForm[], $colliderShape[], $ZRelaxationMeshDeformer;
+
+	for( $obj in $selected )
+	{
+		int $isDeformer = 0;
+		string $history[] = `listHistory($obj)`;
+
+		for( $i=0; $i<size($history); $i++ )
+		{
+			if( `nodeType($history[$i])` == "ZRelaxationMeshDeformer" )
+			{
+				$ZRelaxationMeshDeformer = $history[$i];
+				$isDeformer = 1;
+				$zCount++;
+			}
+		}
+
+		if( $isDeformer ) { continue; }
+
+		for( $i=0; $i<size($history); $i++ )
+		{
+			if( `nodeType($history[$i])` == "mesh" )
+			{
+				$colliderShape[$cCount] = $history[$i];
+				string $xForm[] = `listRelatives -p $colliderShape[$cCount]`;
+				$colliderXForm[$cCount] = $xForm[0];				
+				$cCount++;
+			}
+		}
+	}
+
+	if( $zCount == 0 ) { error "No ZRelaxationMeshDeformer node is selected."; return; }
+	if( $zCount >= 2 ) { error "Too many ZRelaxationMeshDeformer nodes are selected."; return; }
+
+	// Temporarily disable the ZRelaxationMeshDeformer node so it isn't calculating as we go.
+	setAttr ( ( $ZRelaxationMeshDeformer + ".nodeState" ), 1 );
+
+	for( $i=0; $i<size($colliderXForm); $i++ )
+	{
+		if( `attributeExists "colliderMult" $colliderXForm[$i]` == 0 )
+		{
+			addAttr -ln "colliderMult" -at double -min 0 -max 1 -dv 1 -keyable true $colliderXForm[$i];
+		}
+
+		string $connectedNode = GetConnectedNode( $colliderXForm[$i], "colliderMult" );
+		if( $connectedNode == $ZRelaxationMeshDeformer ) { continue; }
+
+		int $numColliderMults = `getAttr -size ( $ZRelaxationMeshDeformer + ".mshColliderTag" )`;
+		int $portId = GetEmptyPort( $ZRelaxationMeshDeformer, "mshColliderTag" );
+
+		connectAttr ( $colliderXForm[$i] + ".colliderMult" ) ( $ZRelaxationMeshDeformer + ".mshColliderTag[" + $portId + "]" );
+		connectAttr ( $colliderShape[$i] + ".worldMesh[0]" ) ( $ZRelaxationMeshDeformer + ".mshCollider[" + $portId + "]" );
+
+		// We need to initialize the collider per-vertex mults to one,
+		int $numVerts[];
+		$numVerts = `polyEvaluate -vertex $selected[0]`;
+		for( $i=0; $i<$numVerts[0]; ++$i )
+		{
+			setAttr( ( $ZRelaxationMeshDeformer + ".mshColliderVrtMultList[" + $i + "].mshColliderVrtMult[" + $portId + "]" ), 1.0 );
+		}
+
+		connectAttr -f ( $colliderXForm[$i] + ".message" ) ( $ZRelaxationMeshDeformer + ".paintTrans" );
+	}
+
+	// Enable the ZRelaxationMeshDeformer now that we're done
+	setAttr ( ( $ZRelaxationMeshDeformer + ".nodeState" ), 0 );
+}
+
+global proc RemoveColliderFromZRelaxationMeshDeformer()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -dag -ni -fl -type "transform"`;
+
+	// From the selected objects, the first should get a ZRelaxationMeshDeformer.
+	int $i=0, $cCount=0, $zCount=0;
+	string $colliderXForm[], $colliderShape[], $ZRelaxationMeshDeformer;
+
+	for( $obj in $selected )
+	{
+		int $isDeformer = 0;
+		string $history[] = `listHistory($obj)`;
+
+		for( $i=0; $i<size($history); $i++ )
+		{
+			if( `nodeType($history[$i])` == "ZRelaxationMeshDeformer" )
+			{
+				$ZRelaxationMeshDeformer = $history[$i];
+				$isDeformer = 1;
+				$zCount++;
+			}
+		}
+
+		if( $isDeformer ) { continue; }
+
+		for( $i=0; $i<size($history); $i++ )
+		{
+			if( `nodeType($history[$i])` == "mesh" )
+			{
+				string $xForm[] = `listRelatives -p $history[$i]`;
+
+				if( `attributeExists "colliderMult" $xForm[0]` == 0 ) { continue; } // This mesh is not a collider.
+
+				$colliderShape[$cCount] = $history[$i];
+				$colliderXForm[$cCount] = $xForm[0];				
+				$cCount++;
+			}
+		}
+	}
+
+	if( $zCount == 0 ) { error "No ZRelaxationMeshDeformer node is selected."; return; }
+	if( $zCount >= 2 ) { error "Too many ZRelaxationMeshDeformer nodes are selected."; return; }
+
+	// Temporarily disable the ZRelaxationMeshDeformer node so it isn't calculating as we go.
+	setAttr ( ( $ZRelaxationMeshDeformer + ".nodeState" ), 1 );
+
+	for( $i=0; $i<size($colliderXForm); $i++ )
+	{
+		int $portId = GetConnectedPortId( $colliderXForm[$i], "colliderMult" );
+		if( $portId < 0 ) { continue; }
+
+		disconnectAttr ( $colliderXForm[$i] + ".colliderMult" ) ( $ZRelaxationMeshDeformer + ".mshColliderTag[" + $portId + "]" );
+		disconnectAttr ( $colliderShape[$i] + ".worldMesh[0]" ) ( $ZRelaxationMeshDeformer + ".mshCollider[" + $portId + "]" );
+		disconnectAttr -f ( $colliderXForm[$i] + ".message" ) ( $ZRelaxationMeshDeformer + ".paintTrans" );
+
+		$portId = GetEmptyPort( $ZRelaxationMeshDeformer, "mshColliderTag" );
+		while( $portId )
+		{
+			$portId--;
+			string $connectedNode = GetConnectedNode( $ZRelaxationMeshDeformer, "mshColliderTag[" + $portId + "]" );
+			connectAttr -f ( $connectedNode + ".message" ) ( $ZRelaxationMeshDeformer + ".paintTrans" );
+		}
+	}
+
+	// Enable the ZRelaxationMeshDeformer now that we're done
+	setAttr ( ( $ZRelaxationMeshDeformer + ".nodeState" ), 0 );
+}
+
+global proc SetCurrentColliderForZRelaxationMeshDeformer()
+{
+    if( !`pluginInfo -q -loaded "ZelosMeshForMaya"` )
+	{
+		error( "You must load the ZelosMeshForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -dag -ni -fl -type "transform"`;
+
+	// From the selected objects, the first should get a ZRelaxationMeshDeformer.
+	int $i=0, $cCount=0, $zCount=0;
+	string $colliderXForm[], $colliderShape[], $ZRelaxationMeshDeformer;
+
+	for( $obj in $selected )
+	{
+		int $isDeformer = 0;
+		string $history[] = `listHistory($obj)`;
+
+		for( $i=0; $i<size($history); $i++ )
+		{
+			if( `nodeType($history[$i])` == "ZRelaxationMeshDeformer" )
+			{
+				$ZRelaxationMeshDeformer = $history[$i];
+				$isDeformer = 1;
+				$zCount++;
+			}
+		}
+
+		if( $isDeformer ) { continue; }
+
+		for( $i=0; $i<size($history); $i++ )
+		{
+			if( `nodeType($history[$i])` == "mesh" )
+			{
+				string $xForm[] = `listRelatives -p $history[$i]`;
+
+				if( `attributeExists "colliderMult" $xForm[0]` == 0 ) { continue; } // This mesh is not a collider.
+
+				$colliderShape[$cCount] = $history[$i];
+				$colliderXForm[$cCount] = $xForm[0];				
+				$cCount++;
+			}
+		}
+	}
+
+	if( $zCount == 0 ) { error "No ZRelaxationMeshDeformer node is selected."; return; }
+	if( $zCount >= 2 ) { error "Too many ZRelaxationMeshDeformer nodes are selected."; return; }
+
+	for( $i=0; $i<size($colliderXForm); $i++ )
+	{
+		int $portId = GetConnectedPortId( $colliderXForm[$i], "colliderMult" );
+		if( $portId < 0 ) { continue; }
+
+		connectAttr -f ( $colliderXForm[$i] + ".message" ) ( $ZRelaxationMeshDeformer + ".paintTrans" );
+	}
+}
+

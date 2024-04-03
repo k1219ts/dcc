@@ -1,0 +1,147 @@
+//-----------------------------//
+// AEZCurveDividerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.03.23                               //
+//-------------------------------------------------------//
+
+//////////////////////
+// Bind Axes Button //
+global proc ZCurveDividerBindAxesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Bind Axes" -bgc 0.4 0.3 0.3 -c ("setAttr "+$attr+" "+1) ZCurveDividerBindAxes;
+	}
+	setUITemplate -ppt;
+
+	ZCurveDividerBindAxesReplace $attr;
+}
+
+global proc ZCurveDividerBindAxesReplace( string $attr )
+{
+	button -e -c ("setAttr "+$attr+" "+1) ZCurveDividerBindAxes;
+}
+
+////////////////////////////
+// Use Input Axis Changed //
+global proc ZCurveDividerUseInputAxisChanged( string $node )
+{
+	int $mode = `getAttr ($node+".useInputAxis")`;
+
+	if( $mode == 0 )
+	{
+		editorTemplate -dc $node "inputAxis" 1;
+		return;
+	}
+
+	if( $mode == 1 )
+	{
+		editorTemplate -dc $node "inputAxis" 0;
+		return;
+	}
+}
+
+/////////////////////////////
+// Input Object Connection //
+global proc ZCurveDividerInputObjConnectNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Connect" -bgc 0.4 0.3 0.3 -c ("ZCurveDividerInputObjConnectExe "+$attr) ZCurveDividerInputObjConnect;
+	}
+	setUITemplate -ppt;
+
+	ZCurveDividerInputObjConnectReplace $attr;
+}
+
+global proc ZCurveDividerInputObjConnectReplace( string $attr )
+{
+	button -e -c ("ZCurveDividerInputObjConnectExe "+$attr) ZCurveDividerInputObjConnect;
+}
+
+global proc ZCurveDividerInputObjConnectExe( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZCurveDivider = $tokens[0];
+
+	string $obj = `getAttr ($ZCurveDivider+".inputXform")`;
+	connectAttr ($obj+".rotate") ($ZCurveDivider+".inputRot");
+	refresh;
+}
+
+///////////////////
+// Update Button //
+global proc ZCurveDividerUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Update" -bgc 0.4 0.3 0.3 -c ("ZCurveDividerUpdateExe "+$attr) ZCurveDividerUpdate;
+	}
+	setUITemplate -ppt;
+
+	ZCurveDividerUpdateReplace $attr;
+}
+
+global proc ZCurveDividerUpdateReplace( string $attr )
+{
+	button -e -c ("ZCurveDividerUpdateExe "+$attr) ZCurveDividerUpdate;
+}
+
+global proc ZCurveDividerUpdateExe( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZCurveDivider = $tokens[0];
+
+	setAttr $attr 1;							// update total num points
+	refresh;									// for updating the node first!
+	updateAE $ZCurveDivider;
+
+	SetZCurveDividerOutputs( $ZCurveDivider );	// update locators
+	refresh;
+}
+
+//////////
+// main //
+global proc AEZCurveDividerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Information";
+			editorTemplate -l "Output Transforms"            -ac "totalNumPoints";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Normal";
+			editorTemplate -l "Normal Propagation Direction" -ac "propagationDir";
+			editorTemplate -ccu ZCurveDividerBindAxesNew ZCurveDividerBindAxesReplace "bindAxes";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Roll";
+			editorTemplate -l "Use Input Transform"          -ac "useInputAxis" ZCurveDividerUseInputAxisChanged;
+//			editorTemplate -l "Transform Name"               -ac "inputXform";
+//			editorTemplate -ccu ZCurveDividerInputObjConnectNew ZCurveDividerInputObjConnectReplace "update";	// dummy
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Offset";
+			editorTemplate -l "Parameter Offset"             -ac "paramOffset";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Update";
+			editorTemplate -ccu ZCurveDividerUpdateNew ZCurveDividerUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inCurves";
+	editorTemplate -suppress "segmentCounts";
+	editorTemplate -suppress "segmentLengths";
+	editorTemplate -suppress "outPoints";
+	editorTemplate -suppress "inputRot";
+	editorTemplate -suppress "segmentCountsAttr";
+	editorTemplate -suppress "segmentLengthsAttr";
+}
+

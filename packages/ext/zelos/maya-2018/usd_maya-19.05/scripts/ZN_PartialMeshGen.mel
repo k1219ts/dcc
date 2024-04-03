@@ -1,0 +1,89 @@
+//-----------------------//
+// ZN_PartialMeshGen.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_PartialMeshGen()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $meshXForm;
+	string $meshShape;
+	{
+		string $objs[] = `ls -sl`;
+
+		if( size($objs) == 0 )
+		{
+			ZPrintError "No selected objects.";
+			return;
+		}
+
+		string $tokens[];
+		tokenize( $objs[0], ".f[", $tokens );
+
+		string $obj = $tokens[0];
+		string $type = `nodeType $obj`;
+
+		if( $type == "transform" )
+		{
+			string $children[] = `listRelatives -f -s -ni $obj`;
+
+			for( $child in $children )
+			{
+				if( `nodeType $child` == "mesh" )
+				{
+					$meshXForm = $obj;
+					$meshShape = $child;
+					break;
+				}
+			}
+		}
+
+		if( $meshShape == "" )
+		{
+			ZPrintError ($meshShape+" is not a mesh type.");
+			return;
+		}
+
+		for( $obj in $objs )
+		{
+			tokenize( $obj, ".f[", $tokens );
+
+			if( $tokens[0] != $meshXForm )
+			{
+				ZPrintError "Too many meshes.";
+				return;
+			}
+		}
+	}
+
+	int $selectedPolygonList[] = `ZN_GetSelPolyListCmd`;
+	int $numSelectedPolygons = size($selectedPolygonList);
+
+	if( $numSelectedPolygons == 0 )
+	{
+		ZPrintError "No selected polygons.";
+		return;
+	}
+
+	string $selectedPolygonListStr = intArrayToString( $selectedPolygonList, " " );
+
+	string $ZN_PartialMeshGen = `createNode ZN_PartialMeshGen`;
+
+	$cmd = "setAttr " + $ZN_PartialMeshGen + ".polygonList -type Int32Array " + $numSelectedPolygons + " " + $selectedPolygonListStr;
+	eval( $cmd );
+
+	string $outMeshShape = `createNode mesh`;
+
+	connectAttr ($meshShape+".w") ($ZN_PartialMeshGen+".inMesh");
+	connectAttr ($ZN_PartialMeshGen+".outMesh") ($outMeshShape+".inMesh");
+
+	select -r $outMeshShape;
+}
+

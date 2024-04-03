@@ -1,0 +1,90 @@
+//----------------------//
+// ZOceanPtcEmitter.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios				     //
+// last update: 2014.04.28                               //
+//-------------------------------------------------------//
+
+global proc CreateZOceanPtcEmitter()
+{
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	string $name = "ZOceanPtcEmitter";
+	string $numOfNode[] = `ls -type ZOceanPtcEmitter`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZOceanPtcEmitterName = $name + $number;
+	string $ZOceanPtcEmitter = `createNode ZOceanPtcEmitter -n $ZOceanPtcEmitterName`;
+
+	string $ptcName = "OceanParticles";
+	string $numOfPtcNode[] = `ls -type particle`;
+	int    $numPtcNode = size( $numOfPtcNode ) + 1;
+	string $numberPtc = $numPtcNode;
+	string $particlesName = $ptcName + $numberPtc;
+	string $oceanParticles[] = `particle -name $particlesName`;
+
+	connectDynamic -em ($ZOceanPtcEmitterName) ($oceanParticles[0]);
+
+	connectAttr time1.outTime ( $ZOceanPtcEmitter + ".time" );
+	
+	connectAttr ( $selected[0] + ".worldMesh" ) ( $ZOceanPtcEmitter + ".inOceanMesh" );
+
+	select -r $ZOceanPtcEmitter;
+}
+
+global proc LoadZOceanWaveDeformerParamsAtZOceanPtcEmitter()
+{
+	string $nodes[] = `ls -sl -type ZOceanPtcEmitter`;
+	if( size($nodes)==0 )
+	{
+		error( "No selected ZOceanPtcEmitter node." );
+		return;
+	}
+	string $ZOceanPtcEmitter = $nodes[0];
+
+	string $files[] = `fileDialog2 -fm 4 -ds 1 -ff "*.zocean"`;
+	if( size($files)==0 ) { return; }
+	string $filePathName = $files[0];
+
+	// Temporarily disable the ZRelaxationDeformer node so it isn't calculating as we go.
+	setAttr ( ( $ZOceanPtcEmitter + ".nodeState" ), 1 );
+
+	int $fileId = `fopen $filePathName "r"`;
+
+	while( !`feof $fileId` )
+	{
+		string $attrName = `fgetword $fileId`;
+		if( !`attributeExists $attrName $ZOceanPtcEmitter` ) { continue; }
+
+		string $attrType = `fgetword $fileId`;
+
+		if( $attrType == "int" ) {
+			int $value = (int)`fgetword $fileId`;
+			setAttr ( $ZOceanPtcEmitter + "." + $attrName ) $value;
+		} else if( $attrType == "float" ) {
+			float $value = (float)`fgetword $fileId`;
+			setAttr ( $ZOceanPtcEmitter + "." + $attrName ) $value;
+		}
+	}
+
+	fclose $fileId;
+
+	// Enable the ZRelaxationDeformer now that we're done
+	setAttr ( ( $ZOceanPtcEmitter + ".nodeState" ), 0 );
+
+	updateAE $ZOceanPtcEmitter;
+}
+

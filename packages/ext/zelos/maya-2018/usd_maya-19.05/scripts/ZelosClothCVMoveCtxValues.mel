@@ -1,0 +1,24 @@
+//-------------------------------//
+// ZelosClothCVMoveCtxValues.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.03.03                               //
+//-------------------------------------------------------//
+
+global proc ZelosClothCVMoveCtxValues( string $ctxName ) 
+{
+	string $parent = (`toolPropertyWindow -q -location` + "|ZelosClothCVMoveCtxLayout");
+	setParent $parent;
+
+	frameLayout -e -en true -cl false ZelosClothCVMoveCtxFrame;
+
+	int $radius = eval( "ZelosClothCVMoveCtx -q -radius " + $ctxName );
+	intSliderGrp -e -value $radius ZelosClothCVMoveCtxRadius;
+
+	float $strength = eval( "ZelosClothCVMoveCtx -q -strength " + $ctxName );
+	floatSliderGrp -e -value $strength ZelosClothCVMoveCtxStrength;
+
+	toolPropertySelect ZelosClothCVMoveCtxLayout;
+}
+

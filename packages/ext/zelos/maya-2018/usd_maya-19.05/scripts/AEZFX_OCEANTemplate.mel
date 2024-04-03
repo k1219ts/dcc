@@ -1,0 +1,247 @@
+//-------------------------//
+// AEZFX_OCEANTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.08.10                               //
+//-------------------------------------------------------//
+
+/////////////////////////////////////
+// Dispersion Relationship Changed //
+global proc ZFX_OCEANDispersionChanged( string $node )
+{
+	int $dispersionRelation = `getAttr ($node+".dispersionRelation")`;
+
+	// deep water
+	if( $dispersionRelation == 0 )
+	{
+		editorTemplate -dc $node "waterDepth" 1;
+		return;
+	}
+
+	// finite depth water
+	if( $dispersionRelation == 1 )
+	{
+		editorTemplate -dc $node "waterDepth" 0;
+		return;
+	}
+
+	// very small depth water
+	if( $dispersionRelation == 2 )
+	{
+		editorTemplate -dc $node "waterDepth" 0;
+		return;
+	}
+}
+
+////////////////////////////
+// Use Foam Blend Changed //
+global proc ZFX_OCEANUseFoamBlendChanged( string $node )
+{
+	int $useFoamBlend = `getAttr ($node+".useFoamBlend")`;
+
+	if( $useFoamBlend == 0 )
+	{
+		editorTemplate -dc $node "foamBlendAlpha" 1;
+		return;
+	}
+
+	if( $useFoamBlend == 1 )
+	{
+		editorTemplate -dc $node "foamBlendAlpha" 0;
+		return;
+	}
+}
+
+///////////////////////////////
+// Foam Accumulation Changed //
+global proc ZFX_OCEANFoamAccumulationChanged( string $node )
+{
+	int $foamAccumulation = `getAttr ($node+".foamAccumulation")`;
+
+	if( $foamAccumulation == 0 )
+	{
+		editorTemplate -dc $node "foamDecay"     1;
+		editorTemplate -dc $node "foamResetTime" 1;
+		return;
+	}
+
+	if( $foamAccumulation == 1 )
+	{
+		editorTemplate -dc $node "foamDecay"     0;
+		editorTemplate -dc $node "foamResetTime" 0;
+		return;
+	}
+}
+
+//////////////////////////////////
+// Time Input Connection Button //
+global proc ZFX_OCEANTimeConnectBtnNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_OCEAN = $node[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -bgc 0.6 0.6 0.6 -l "Connect Time Input" -c ("connectAttr time1.outTime "+$ZFX_OCEAN+".inTime") ZFX_OCEANTimeConnectBtn;
+	}
+	setUITemplate -ppt;
+
+	ZFX_OCEANTimeConnectBtnReplace $attr;
+}
+
+global proc ZFX_OCEANTimeConnectBtnReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_OCEAN = $node[0];
+
+	connectControl ZFX_OCEANTimeConnectBtn $attr;
+	button -e -bgc 0.6 0.6 0.6 -c ("connectAttr time1.outTime "+$ZFX_OCEAN+".inTime") ZFX_OCEANTimeConnectBtn;
+}
+
+//////////////////////////////////////
+// Ocean To Image Connection Button //
+global proc ZFX_OCEANToImageConnectBtnNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_OCEAN = $node[0];
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -bgc 0.6 0.6 0.6 -l "Connect Ocean Output" -c ("ZFX_OCEANToImageConnectExe(\""+$attr+"\")") ZFX_OCEANToImageConnectBtn;
+	}
+	setUITemplate -ppt;
+
+	ZFX_OCEANToImageConnectBtnReplace $attr;
+}
+
+global proc ZFX_OCEANToImageConnectBtnReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_OCEAN = $node[0];
+
+	connectControl ZFX_OCEANToImageConnectBtn $attr;
+	button -e -bgc 0.6 0.6 0.6 -c ("ZFX_OCEANToImageConnectExe(\""+$attr+"\")") ZFX_OCEANToImageConnectBtn;
+
+}
+
+global proc ZFX_OCEANToImageConnectExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_OCEAN = $node[0];
+
+	string $destination[] = `listConnections -et true -t "ZFX_OceanToImage" -s false $ZFX_OCEAN`;
+
+	if( size( $destination ) == 0 ) {
+
+		string $ZFX_OceanToImage = `createNode ZFX_OceanToImage`;
+		connectAttr ($ZFX_OCEAN+".outOcean") ($ZFX_OceanToImage+".inOcean");
+
+	} else {
+
+		warning ($ZFX_OCEAN+".inOcean is already connected to "+$destination[0]+".");
+
+	}
+}
+
+//////////
+// main //
+global proc AEZFX_OCEANTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Options" -collapse 1;
+		{
+			editorTemplate -l "Calculate Ocean"         -ac "operationMode";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Basic Ocean Controls" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Ocean Size";
+			editorTemplate -l "Grid Level"              -ac "gridLevel";
+			editorTemplate -l "Domain Size"             -ac "domainSize";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Time";
+			editorTemplate -l "Time Scale"              -ac "timeScale";
+			editorTemplate -l "Repeat Time"             -ac "repeatTime";
+
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Wind";
+			editorTemplate -l "Wind Speed"              -ac "windSpeed";
+			editorTemplate -l "Wind Direction"          -ac "windDirection";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Wind Effects";
+			editorTemplate -l "Wind Alignment"          -ac "windAlignment";
+			editorTemplate -l "Directionality"          -ac "directionality";
+			editorTemplate -l "Shortest Wave Length"    -ac "shortestWaveLength";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Displacement";
+			editorTemplate -l "Choppiness"              -ac "choppiness";
+			editorTemplate -l "Wave Scale"              -ac "waveScale";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Advanced Ocean Controls" -collapse 1;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Spectrum";
+			editorTemplate -l "Type"                    -ac "spectrumModel";
+			editorTemplate -l "Spectrum Blend Alpha"    -ac "spectrumBlendAlpha";
+			editorTemplate -l "Wind Fetch Size"         -ac "windFetchSize";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Dispersion Relationship";
+			editorTemplate -l "Type"                    -ac "dispersionRelation" ZFX_OCEANDispersionChanged;
+			editorTemplate -l "Water Depth"             -ac "waterDepth";
+			editorTemplate -l "Gravity"                 -ac "gravity";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Random Distribution";
+			editorTemplate -l "Type"                    -ac "randomDistribution";
+			editorTemplate -l "Random Seed"             -ac "randomSeed";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Foam Controls" -collapse 1;
+		{
+			editorTemplate -l "Use Foam Blend"          -ac "useFoamBlend" ZFX_OCEANUseFoamBlendChanged;
+			editorTemplate -l "Foam Blend Alpha"        -ac "foamBlendAlpha";
+			editorTemplate -as;
+			editorTemplate -l "Gamma"                   -ac "foamGamma";
+			editorTemplate -l "Brightness"              -ac "foamBrightness";
+			editorTemplate -l "Fade"                    -ac "foamFade";
+			editorTemplate -as;
+			editorTemplate -l "Foam Accumulation"       -ac "foamAccumulation" ZFX_OCEANFoamAccumulationChanged;
+			editorTemplate -l "Decay"                   -ac "foamDecay";
+			editorTemplate -l "Reset Time"              -ac "foamResetTime";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Manifold Controls" -collapse 1;
+		{
+			editorTemplate -l "Scale S"              -ac "scaleS";
+			editorTemplate -l "Scale T"              -ac "scaleT";
+			editorTemplate -l "Const S"              -ann "offsetS = frame / constS" -ac "constS";
+			editorTemplate -l "Const T"              -ann "offsetT = frame / constT" -ac "constT";
+			editorTemplate -l "Transform UV"         -ac "uvTransform";
+			editorTemplate -l "Interpolation Scheme" -ac "interpolationScheme";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+		editorTemplate -as;
+		editorTemplate -ccu ZFX_OCEANTimeConnectBtnNew ZFX_OCEANTimeConnectBtnReplace "";
+
+		editorTemplate -as;
+		editorTemplate -ccu ZFX_OCEANToImageConnectBtnNew ZFX_OCEANToImageConnectBtnReplace "";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "outOcean";
+}
+

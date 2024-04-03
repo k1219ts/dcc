@@ -1,0 +1,38 @@
+//-----------------------------------//
+// AEZFX_TurbulenceFieldTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.10.25                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_TurbulenceFieldTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Controls" -collapse 0;
+		{
+			editorTemplate -l "Force Scale"   	-ac "forceScale";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Noise Controls" -collapse 0;
+		{
+			editorTemplate -l "Scale"   		-ac "noiseScale";
+			editorTemplate -l "Frequency"  		-ac "noiseFreq";
+			editorTemplate -l "Offset" 			-ac "noiseOffset";			
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inField";
+	editorTemplate -suppress "outField";
+}
+

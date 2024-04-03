@@ -1,0 +1,73 @@
+//---------------//
+// ZFX_OCEAN.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.07.12                               //
+//-------------------------------------------------------//
+
+global proc CreateZFX_OCEAN()
+{
+	if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		error( "You must load the ZFXForMaya plug-in first!" );
+		return;
+	}
+
+	// Get selected mesh (grid).
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size( $selected ) == 0 ) {
+
+		error( "No object is selected." );
+		return;
+
+	} else if( size( $selected ) != 1 ) {
+
+		error( "Select only one polygon mesh to be deformed." );
+		return;
+
+	}
+
+	for( $xForm in $selected )
+	{
+		string $shapes[] = `listRelatives -shapes $xForm`;
+		string $shape = $shapes[0];
+
+		if( `nodeType $shape` != "mesh" )
+		{
+			error( $shape + " is not a mesh. ZFX does not support non-mesh type." );
+			return;
+		}
+
+		string $ZFX_OCEAN = `createNode ZFX_OCEAN`;
+		connectAttr ("time1.outTime") ($ZFX_OCEAN+".inTime");
+
+		string $ZFX_OceanToImage = `createNode ZFX_OceanToImage`;
+		connectAttr ($ZFX_OCEAN+".outOcean") ($ZFX_OceanToImage+".inOcean");
+
+		string $ZFX_OceanGlobal = `createNode ZFX_OceanGlobal`;
+		connectAttr ($ZFX_OceanToImage+".outImage") ($ZFX_OceanGlobal+".inOceanMap[0]");
+		connectAttr ($shape+".worldMesh") ($ZFX_OceanGlobal+".inMesh");
+
+		string $ZFX_OceanViewer = `createNode ZFX_OceanViewer`;
+		connectAttr ($ZFX_OceanGlobal+".outData") ($ZFX_OceanViewer+".inData");
+	}
+}
+
+global proc AddZFX_OCEANNode()
+{
+	if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		error( "You must load the ZFXForMaya plug-in first!" );
+		return;
+	}
+
+	string $ZFX_OCEAN = `createNode ZFX_OCEAN`;
+	connectAttr ("time1.outTime") ($ZFX_OCEAN+".inTime");
+
+	string $ZFX_OceanToImage = `createNode ZFX_OceanToImage`;
+	connectAttr ($ZFX_OCEAN+".outOcean") ($ZFX_OceanToImage+".inOcean");
+}

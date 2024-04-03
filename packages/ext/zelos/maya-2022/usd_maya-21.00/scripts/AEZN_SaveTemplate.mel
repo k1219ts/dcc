@@ -1,0 +1,25 @@
+//-----------------------//
+// AEZN_SaveTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.08.25                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZN_SaveTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -ccu ZTextBarNew ZTextBarReplace "This Node is obsolete!!!";
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "numStrands";
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

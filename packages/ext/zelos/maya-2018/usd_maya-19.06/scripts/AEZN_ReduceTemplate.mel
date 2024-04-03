@@ -1,0 +1,96 @@
+//-------------------------//
+// AEZN_ReduceTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2018.12.21                               //
+//-------------------------------------------------------//
+
+///////////////////////////
+// Update Button (Body ) //
+global proc ZN_ReduceUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_ReduceUpdateExe "+$attr) ZN_ReduceUpdate;
+	setUITemplate -ppt;
+
+	ZN_ReduceUpdateReplace $attr;
+}
+
+global proc ZN_ReduceUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_ReduceUpdateExe "+$attr) ZN_ReduceUpdate;
+}
+
+global proc ZN_ReduceUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Reduce = $node[0];
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZN_Reduce;
+}
+
+/////////////////////////
+// When "Mode" changed //
+global proc ZN_ReduceModeChanged( string $node )
+{
+	// Set initial dimming state
+	{
+		editorTemplate -dc $node "ratio"      1;
+		editorTemplate -dc $node "randomSeed" 1;
+	}
+
+	int $mode = `getAttr ($node+".mode")`;
+
+	if( $mode == 2 ) // By Specified Ratio
+	{
+		editorTemplate -dc $node "ratio"      0;
+		editorTemplate -dc $node "randomSeed" 0;
+
+		return;
+	}
+    else
+	{
+		editorTemplate -dc $node "ratio"      1;
+		editorTemplate -dc $node "randomSeed" 1;
+
+		return;
+	}
+}
+
+//////////
+// main //
+global proc AEZN_ReduceTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Input Strands"  -ac "numInputStrands";
+			editorTemplate -l "Output Strands" -ac "numOutputStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Mode"           -ac "mode" ZN_ReduceModeChanged;
+			editorTemplate -as;
+			editorTemplate -l "Ratio"          -ac "ratio";
+			editorTemplate -l "Random Seed"    -ac "randomSeed";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_ReduceUpdateNew ZN_ReduceUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inStrands";
+	editorTemplate -suppress "outStrands";
+}
+

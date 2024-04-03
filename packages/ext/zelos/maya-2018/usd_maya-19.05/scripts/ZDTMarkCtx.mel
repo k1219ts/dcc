@@ -1,0 +1,48 @@
+//----------------//
+// ZDTMarkCtx.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jinhyuk Bae @ Dexter Studios                  //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2015.08.03                               //
+//-------------------------------------------------------//
+
+global proc ZDTMarkCtxSetAttr()
+{
+	string $nodes[] = `ls -type ZDeformationTransfer`;
+
+	if( size( $nodes ) )
+	{
+		string $ZDeformationTransfer = $nodes[0];
+
+		string $cmd;
+		{
+			string $vtxList;
+
+			string $items[] = `textScrollList -q -allItems tslZDTWin`;
+
+			int $numElements = 0;
+
+			for( $item in $items )
+			{
+				string $tokens[];
+				tokenize( $item, " ", $tokens );
+
+				int $srcVtxIdx = $tokens[0];
+				int $trgVtxIdx = $tokens[1];
+
+				$vtxList += " " + $srcVtxIdx;
+				$vtxList += " " + $trgVtxIdx;
+
+				$numElements += 2;
+			}
+
+			$cmd  = "setAttr ";
+			$cmd += $ZDeformationTransfer + ".vertCorres ";
+			$cmd += "-type Int32Array ";
+			$cmd += $numElements;
+			$cmd += $vtxList;
+		}
+		eval( $cmd );
+	}
+}

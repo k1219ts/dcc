@@ -1,0 +1,29 @@
+//-----------------------------//
+// AEZFX_WaveToImageTemplate.h //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.07.07                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_WaveToImageTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Options" -collapse 0;
+		{
+			editorTemplate -l "Invert" -ac "invert";
+			editorTemplate -l "Image Resolution" -ac "imgRes";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inWave";
+	editorTemplate -suppress "outImage";
+}

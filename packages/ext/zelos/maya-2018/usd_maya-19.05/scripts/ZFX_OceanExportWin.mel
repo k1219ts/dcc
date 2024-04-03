@@ -1,0 +1,165 @@
+//------------------------//
+// ZFX_OceanExportWin.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.07.13                               //
+//-------------------------------------------------------//
+
+////////////////////
+// Load Directory //
+global proc ZFXOEWLoadDirectory( string $textField )
+{
+	string $file[] = `fileDialog2 -fm 3 -ds 1`;
+	if( !size($file) ) { return; }
+	textField -e -tx $file[0] $textField;
+}
+
+/////////////////////////////
+// Frame Range Dim Control //
+global proc ZFXOEWSetFrameRange( int $mode )
+{
+	intField -e -en ($mode-1) ZFXOEWStartFrame;
+	intField -e -en ($mode-1) ZFXOEWEndFrame;
+}
+
+//////////////////////////////
+// Handle Frame Dim Control //
+global proc ZFXOEWHandleOn()
+{
+	intField -e -en 1 ZFXOEWHandleAhead;
+	intField -e -en 1 ZFXOEWHandleBehind;
+}
+
+global proc ZFXOEWHandleOff()
+{
+	intField -e -en 0 ZFXOEWHandleAhead;
+	intField -e -en 0 ZFXOEWHandleBehind;
+}
+
+//////////
+// main //
+global proc ZFX_OceanExportWin()
+{
+	if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		ZPrintError "ZFXForMaya is not loaded.";
+		return;
+	}
+
+	if( `window -q -exists ZFX_OceanExportWin` )
+	{
+		deleteUI ZFX_OceanExportWin;
+		return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "ZFX Ocean Export Tool" ZFX_OceanExportWin;
+
+	columnLayout -columnOffset "both" 15;
+	{
+		separator -h 10 -w 300 -style "none";
+		text -l "ZFX Ocean Global Node" -font "boldLabelFont" -w 330 -h 20 -al "left";
+		rowLayout -nc 2 -cw2 275 25;
+		{
+			textField -w 275 -ed 0 ZFXOEWGlobalNode;
+			button -l "<<" -w 25 -c ( "ZLoadObjByType(\"ZFXOEWGlobalNode\",\"ZFX_OceanGlobal\")" );
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "File Path" -font "boldLabelFont" -w 330 -h 20 -al "left";
+		rowLayout -nc 2 -cw2 280 20;
+		{
+			textField -w 280 -ed 1 ZFXOEWFilePath;
+			symbolButton -image "navButtonBrowse.xpm" -c ( "ZFXOEWLoadDirectory( \"ZFXOEWFilePath\" )" ) ZFXOEWFilePathBtn;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		text -l "Frame Range" -font "boldLabelFont" -w 330 -h 20 -al "left";
+		rowLayout -nc 4 -cw4 140 65 20 65;
+		{
+			radioButtonGrp -sl 1 -cw2 70 70 -numberOfRadioButtons 2 -labelArray2 "time slider" "start/end:"
+						   -on1 "ZFXOEWSetFrameRange 1" -on2 "ZFXOEWSetFrameRange 2" ZFXOEWFrameRange;
+			intField -v 1001 -w 65 -en 0 ZFXOEWStartFrame;
+			text -l "to" -al "center" -w 20;
+			intField -v 1100 -w 65 -en 0 ZFXOEWEndFrame;
+		}
+		setParent ..;
+
+		rowLayout -nc 4 -cw4 140 65 20 65;
+		{
+			checkBox -l "handle (offset) frame" -v 1 -onc "ZFXOEWHandleOn" -ofc "ZFXOEWHandleOff" ZFXOEWUseHandle;
+			intField -v 50 -w 65 ZFXOEWHandleAhead;
+			text -l "/" -al "center" -w 20;
+			intField -v 0 -w 65 ZFXOEWHandleBehind;
+		}
+		setParent ..;
+
+		separator -h 10 -w 300 -style "none";
+		button -l "Export" -w 300 -al "center" -c "ZFXOEWExport";
+		separator -h 10 -w 300 -style "none";
+	}
+	setParent ..;
+
+	showWindow ZFX_OceanExportWin;
+}
+
+global proc ZFXOEWExport()
+{
+	if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		ZPrintError "ZFXForMaya is not loaded.";
+		return;
+	}
+
+	// Get ocean global node name.
+	string $oceanGlobalNode = `textField -q -tx ZFXOEWGlobalNode`;
+	if( $oceanGlobalNode == "" ) { ZPrintError "No ZFX_OceanGlobalNode selected."; return; }
+
+	// Set the frame range.
+	float $startFrame = 0.0;
+	float $endFrame   = 0.0;
+
+	int $frameRangeMode = `radioButtonGrp -q -sl ZFXOEWFrameRange`;
+	if( $frameRangeMode == 1 ) {
+		$startFrame = `playbackOptions -q -min`;
+		$endFrame   = `playbackOptions -q -max`;
+	} else {
+		$startFrame = `intField -q -v ZFXOEWStartFrame`;
+		$endFrame   = `intField -q -v ZFXOEWEndFrame`; // + 1; one more frame for the motion blur?
+	}
+
+	// Apply the handle.
+	int $useHandle = `checkBox -q -v ZFXOEWUseHandle`;
+	if( $useHandle == 1 )
+	{
+		float $handleAhead  = `intField -q -v ZFXOEWHandleAhead`;
+		float $handleBehind = `intField -q -v ZFXOEWHandleBehind`;
+		$startFrame = $startFrame-$handleAhead+1;
+		$endFrame   = $endFrame+$handleBehind;
+	}
+
+	// Check the invalid frame range.
+	if( $startFrame > $endFrame ) { ZPrintError "Invalid frame range. Start frame cannot be greater than the end frame."; return; }
+	if( $startFrame <= 0 || $endFrame <= 0 ) { ZPrintError "Invalid frame range. Check the handles."; return; }
+
+	// Get the file path.
+	string $filePath = `textField -q -tx ZFXOEWFilePath`;
+	if( $filePath == "" ) { ZPrintError "No file path."; return; }
+
+	// Generate the Json file and passing the map path string to the render job.
+	// ex) "/home/nayoung.kim/work/test/oceanMap01.$F4.exr, /home/nayoung.kim/work/test/weightMap01.$F4.exr,"
+	string $mapPathString = `ZFX_OceanExportStringCmd -nodeNames $oceanGlobalNode 
+													  -startFrame $startFrame 
+													  -endFrame $endFrame 
+													  -filePath $filePath`;
+
+	// Local computation.
+	ZFX_OceanExportCmd	-nodeNames $oceanGlobalNode 
+						-startFrame $startFrame 
+						-endFrame $endFrame 
+						-filePath $filePath;
+
+	select -cl;
+}

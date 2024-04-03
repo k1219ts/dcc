@@ -1,0 +1,113 @@
+//------------------//
+// ZDarkRideAim.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2018.09.14                               //
+//-------------------------------------------------------//
+
+// How To Use)
+//
+//string $Ride_Movement = "place_Trail______RailMovement";
+//string $Spindle = "direction_NUL___Spindle";
+//
+//float $initial_offset_x = -50.0;
+//float $initial_offset_y = 0.0;
+//float $initial_offset_z = 0.0;
+//
+//float $locator_size = 10.0;
+//
+//float $initial_ride_rotate = 180.0;
+//
+//CreateZDarkRideAim $Ride_Movement $Spindle $initial_offset_x $initial_offset_y $initial_offset_z $locator_size $initial_ride_rotate;
+//
+
+
+
+//
+// AimTranslate    (xform) (locked: rx,ry,rz, sx,sy,sz)
+//  - AimRotate    (xform) (locked: tx,ty,tz, rx,rz, sx,sy,sz)
+//    -  AimOffset (xform) (locked: rx,ry,rz, sx,sy,sz)
+//      - Locator  (shape)
+//
+// They must be created at the world origin.
+//
+// "Rail_Movement.translate": the world position of the ride.
+// "Spindle.rotatePivot" must be same as "Rail_Movement.translate".
+// "Rail_Movement.translate" must be connected to "AimTranslate.translate"
+//
+// Artists control the "AimRotate.ry" only for rotating the spindle.
+// "AimOffset.translate" is the offset from the origin to the aiming point.
+//
+// "ZDarkRideAim.spindleRy" musb be connected to "Spindle.ry".
+//
+// "Rail_Movement.ry" (= the initial orientation of the ride) may not be zero.
+//
+
+global proc CreateZDarkRideAim( string $Rail_Movement, string $Spindle, float $initial_offset_x, float $initial_offset_y, float $initial_offset_z, float $locator_size, float $initial_ride_rotate )
+{
+    if( !`pluginInfo -q -loaded "ZMayaTools"` )
+    {
+        ZPrintError "ZMayaTools is not loaded.";
+        return;
+    }
+
+    string $AimTranslate = `createNode transform -n "AimTranslate"`;
+
+    setAttr -lock true ($AimTranslate+".rx");
+    setAttr -lock true ($AimTranslate+".ry");
+    setAttr -lock true ($AimTranslate+".rz");
+    setAttr -lock true ($AimTranslate+".sx");
+    setAttr -lock true ($AimTranslate+".sy");
+    setAttr -lock true ($AimTranslate+".sz");
+
+    string $AimRotate = `createNode transform -n "AimRotate" -p $AimTranslate`;
+
+    setAttr -lock true ($AimRotate+".tx");
+    setAttr -lock true ($AimRotate+".ty");
+    setAttr -lock true ($AimRotate+".tz");
+    setAttr -lock true ($AimRotate+".rx");
+    setAttr -lock true ($AimRotate+".rz");
+    setAttr -lock true ($AimRotate+".sx");
+    setAttr -lock true ($AimRotate+".sy");
+    setAttr -lock true ($AimRotate+".sz");
+
+    string $AimOffset[] = `spaceLocator -n "AimOffset"`;
+ 
+    string $shapes[] = `listRelatives -c $AimOffset[0]`;
+    rename $shapes[0] "AimShape";
+
+    setAttr ($AimOffset[0]+".sx") $locator_size;
+    setAttr ($AimOffset[0]+".sy") $locator_size;
+    setAttr ($AimOffset[0]+".sz") $locator_size;
+    makeIdentity -apply true -t 1 -r 1 -n 0 -pn 1;
+
+    setAttr -lock true ($AimOffset[0]+".rx");
+    setAttr -lock true ($AimOffset[0]+".ry");
+    setAttr -lock true ($AimOffset[0]+".rz");
+    setAttr -lock true ($AimOffset[0]+".sx");
+    setAttr -lock true ($AimOffset[0]+".sy");
+    setAttr -lock true ($AimOffset[0]+".sz");
+
+    // to align the ride to the initial direction
+    setAttr ($AimOffset[0]+".tx") $initial_offset_x;
+    setAttr ($AimOffset[0]+".ty") $initial_offset_y;
+    setAttr ($AimOffset[0]+".tz") $initial_offset_z;
+
+    parent $AimOffset[0] $AimRotate;
+    
+    connectAttr -f ($Rail_Movement+".translate") ($AimTranslate+".translate");
+
+    string $ZDarkRideAim = `createNode ZDarkRideAim`;
+
+    setAttr ($ZDarkRideAim+".initialRideRotate") $initial_ride_rotate;
+
+    connectAttr -f ($Rail_Movement+".translate") ($ZDarkRideAim+".rideTranslate");
+    connectAttr -f ($Rail_Movement+".ry") ($ZDarkRideAim+".rideRotate");
+
+    connectAttr -f ($AimTranslate+".translate") ($ZDarkRideAim+".aimTranslate");
+    connectAttr -f ($AimRotate+".ry") ($ZDarkRideAim+".aimRotate");
+    connectAttr -f ($AimOffset[0]+".translate") ($ZDarkRideAim+".aimOffset");
+
+    connectAttr -f ($ZDarkRideAim+".spindleRotate") ($Spindle+".ry");
+}
+

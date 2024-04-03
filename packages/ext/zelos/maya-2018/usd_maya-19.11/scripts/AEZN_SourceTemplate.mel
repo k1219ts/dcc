@@ -1,0 +1,492 @@
+//--------------------------------//
+// AEZN_SourceTemplate.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2017.03.17                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_SourceUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update Geometry Data" -bgc 1.0 0.8 0.5 -c ("ZN_SourceUpdateExe "+$attr) ZN_SourceUpdate;
+	setUITemplate -ppt;
+
+	ZN_SourceUpdateReplace $attr;
+}
+
+global proc ZN_SourceUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_SourceUpdateExe "+$attr) ZN_SourceUpdate;
+}
+
+global proc ZN_SourceUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Source = $node[0];
+
+	int $proxyGeometryType = `getAttr ($ZN_Source+".proxyGeometryType")`;
+	switch( $proxyGeometryType )
+	{
+		case 0:
+
+			string $proxyMayaPolygonMeshXForm = `textFieldButtonGrp -q -tx tfZN_SourceinProxyMayaPolygonMesh`;
+			string $proxyMayaPolygonMeshShape = ZNSourceManager_checkInputValidity( "mayaPolygonMesh", $proxyMayaPolygonMeshXForm );
+			if( `connectionInfo -id ($ZN_Source+".inProxyMayaPolygonMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inProxyMayaPolygonMesh")`;
+				string $tokens[];
+				tokenize $nodeAttr "." $tokens;
+		
+				disconnectAttr ($tokens[0]+".w") ($ZN_Source+".inProxyMayaPolygonMesh");
+			}
+			if( $proxyMayaPolygonMeshShape != "" ) 
+			{
+				connectAttr ($proxyMayaPolygonMeshXForm+".w") ($ZN_Source+".inProxyMayaPolygonMesh");
+				textFieldButtonGrp -e -tx $proxyMayaPolygonMeshXForm tfZN_SourceinProxyMayaPolygonMesh;
+			}
+			else { textFieldButtonGrp -e -tx "" tfZN_SourceinProxyMayaPolygonMesh; }
+			setAttr ($ZN_Source+".proxyGeometryType") 0;
+
+			break;
+
+		case 1:
+
+			string $inProxyAlembic = `textField -q -tx tfZN_SourceinProxyAlembic`;
+			setAttr ($ZN_Source+".inProxyAlembic") -type "string" $inProxyAlembic;
+			setAttr ($ZN_Source+".proxyGeometryType") 1;
+
+			break;
+	}
+	string $renderMayaPolygonMeshXForm = `textFieldButtonGrp -q -tx tfZN_SourceinRenderMayaPolygonMesh`;
+	string $renderMayaPolygonMeshShape = ZNSourceManager_checkInputValidity( "mayaPolygonMesh", $renderMayaPolygonMeshXForm );
+	if( `connectionInfo -id ($ZN_Source+".inRenderMayaPolygonMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inRenderMayaPolygonMesh")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		disconnectAttr ($tokens[0]+".w") ($ZN_Source+".inRenderMayaPolygonMesh");
+	}
+	if( $renderMayaPolygonMeshShape != "" ) 
+	{
+		connectAttr ($renderMayaPolygonMeshXForm+".w") ($ZN_Source+".inRenderMayaPolygonMesh");
+		textFieldButtonGrp -e -tx $renderMayaPolygonMeshXForm tfZN_SourceinRenderMayaPolygonMesh;
+	}
+	else { textFieldButtonGrp -e -tx "" tfZN_SourceinRenderMayaPolygonMesh; }
+
+	string $inRenderAlembic = `textField -q -tx tfZN_SourceinRenderAlembic`;
+	setAttr ($ZN_Source+".inRenderAlembic") -type "string" $inRenderAlembic;
+
+	string $inRenderRIB = `textField -q -tx tfZN_SourceinRenderRIB`;
+	setAttr ($ZN_Source+".inRenderRIB") -type "string" $inRenderRIB;
+
+	string $renderCurveGroup = `textFieldButtonGrp -q -tx tfZN_SourceinRenderCurveGroup`;
+	string $renderCurveGroupIsValid = ZNSourceManager_checkInputValidity( "curveGroup", $renderCurveGroup );
+	if( `connectionInfo -id ($ZN_Source+".inRenderCurveGroup")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inRenderCurveGroup")`;
+		string $tokens[];
+		tokenize $nodeAttr "." $tokens;
+
+		disconnectAttr ($tokens[0]+".message") ($ZN_Source+".inRenderCurveGroup");
+	}
+	//is there no real way to check if the input is a curve group? besides checking if it's an xform?
+	if( $renderCurveGroupIsValid != "" ) 
+	{
+		connectAttr ($renderCurveGroup+".message") ($ZN_Source+".inRenderCurveGroup");
+		textFieldButtonGrp -e -tx $renderCurveGroup tfZN_SourceinRenderCurveGroup;
+	}
+	else { textFieldButtonGrp -e -tx "" tfZN_SourceinRenderCurveGroup; }
+
+	string $distributionMapPath = `textField -q -tx ("tfZN_SourcedistributionMapPath")`;
+	setAttr ($ZN_Source+".distributionMapPath") -type "string" $distributionMapPath;
+
+
+
+	setAttr $attr 1;
+
+	updateAE $ZN_Source;
+}
+
+///////////////////////////////////
+// Select Source Geometry Button //
+global proc ZN_SourceSelectSourcesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Select Source Geometry" -bgc 1.0 1.0 0.8 -c ("ZN_SourceSelectSourcesExe \""+$attr+"\"") ZN_SourceSelectSources;
+	setUITemplate -ppt;
+
+	ZN_SourceSelectSourcesReplace $attr;
+}
+
+global proc ZN_SourceSelectSourcesReplace( string $attr )
+{
+	button -e -c ("ZN_SourceSelectSourcesExe \""+$attr+"\"") ZN_SourceSelectSources;
+}
+
+global proc ZN_SourceSelectSourcesExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Source = $node[0];
+
+	string $objs[];
+
+	if( `connectionInfo -id ($ZN_Source+".inMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inMesh")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		$objs[size($objs)] = $node + " ";
+	}
+
+	if( `connectionInfo -id ($ZN_Source+".inCurveGroup")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inCurveGroup")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		$objs[size($objs)] = $node + " ";
+	}
+
+	select -cl;
+	select -r $node[0] $objs;
+}
+
+///////////////////
+// instance list //
+global proc ZN_SourceInstanceListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_SourceInstanceList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_SourceInstanceList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_SourceInstanceListReplace( $attr );
+}
+
+global proc ZN_SourceInstanceListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_SourceInstanceList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Source node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Source = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Source + ".outSource" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Instance" )
+		{
+			menuItem -l $node -p omZN_SourceInstanceList;
+		}
+	}
+}
+
+//////////
+// Path //
+global proc ZN_SourcePathNew( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZN_Source = $tokens[0];
+	string $attrToSet = $tokens[1];
+	string $text = "textZN_Source"+$attrToSet;
+	string $tf = "tfZN_Source"+$attrToSet;
+	string $tfBtn = "tfBtnZN_Source"+$attrToSet; 
+
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 4;
+		{
+			text -l $attrToSet $text;
+			textField -ed 1 -tx `getAttr $attr` $tf;
+			string $filter = "*";
+			symbolButton -image "navButtonBrowse.xpm" -c ("ZLoadFile(\""+$attr+"\", \""+$tf+"\","+"\""+$filter+"\"); refresh;") $tfBtn;
+			setParent ..;
+		}
+	}
+	setUITemplate -ppt;
+
+	refresh;
+}
+
+global proc ZN_SourcePathReplace( string $attr )
+{
+	string $tokens[];
+	tokenize $attr "." $tokens;
+	string $ZN_Source = $tokens[0];
+	string $attrToSet = $tokens[1];
+	string $text = "textZN_Source"+$attrToSet;
+	string $tf = "tfZN_Source"+$attrToSet;
+	string $tfBtn = "tfBtnZN_Source"+$attrToSet;
+
+	//text?
+	textField -e -tx `getAttr $attr` $tf;
+	string $filter = "*";
+	symbolButton -e -c ("ZLoadFile(\""+$attr+"\", \""+$tf+"\","+"\""+$filter+"\"); refresh;") $tfBtn;
+
+}
+
+
+//////////////////////////////////////
+// Select Geometry -> Set Textfield //
+global proc ZN_SourceSelectGeometrySetTextfield( string $attributes )
+{
+	string $tokens[];
+	tokenize( $attributes, ".", $tokens );
+	string $ZN_Source = $tokens[0];
+	string $attrLabel = $tokens[1];
+	string $attrToSet = $tokens[2];
+	string $type      = $tokens[3];
+	string $tf = "tfZN_Source"+$attrToSet;
+
+	textFieldButtonGrp -l $attrLabel -tx "" -bl "<<" -bc ("ZN_SourceFillTextField(\""+$tf+"\",\""+$type+"\",\""+$ZN_Source+"\")") $tf;
+
+}
+
+global proc ZN_SourceSelectGeometrySetTextfieldReplace( string $attributes )
+{
+	string $tokens[];
+	tokenize( $attributes, ".", $tokens );
+	string $ZN_Source = $tokens[0];
+	string $attrLabel = $tokens[1];
+	string $attrToSet = $tokens[2];
+	string $type      = $tokens[3];
+	string $tf = "tfZN_Source"+$attrToSet;
+	string $value = "";
+	switch($attrToSet)
+	{
+		case "inProxyMayaPolygonMesh":
+
+			if( `connectionInfo -id ($ZN_Source+".inProxyMayaPolygonMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inProxyMayaPolygonMesh")`;
+				string $tokens[];
+				tokenize $nodeAttr "." $tokens;
+		
+				string $xForm = ZGetParent( $tokens[0] );
+				$value = $xForm;
+			}
+
+			break;
+
+		case "inRenderMayaPolygonMesh":
+
+			if( `connectionInfo -id ($ZN_Source+".inRenderMayaPolygonMesh")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inRenderMayaPolygonMesh")`;
+				string $tokens[];
+				tokenize $nodeAttr "." $tokens;
+		
+				string $xForm = ZGetParent( $tokens[0] );
+				$value = $xForm;
+			}
+
+			break;
+
+		case "inRenderCurveGroup":
+
+			if( `connectionInfo -id ($ZN_Source+".inRenderCurveGroup")` )
+			{
+				string $nodeAttr = `connectionInfo -sfd ($ZN_Source+".inRenderCurveGroup")`;
+				string $tokens[];
+				tokenize $nodeAttr "." $tokens;
+		
+				$value = $tokens[0];
+			}
+
+			break;
+	}
+
+	textFieldButtonGrp -e -tx $value -bc ("ZN_SourceFillTextField(\""+$tf+"\",\""+$type+"\",\""+$ZN_Source+"\")") $tf;
+}
+
+global proc ZN_SourceFillTextField( string $textFieldButtonGrpName, string $type, string $ZN_Source )
+{
+	string $objs[] = `ls -sl -l -ni`;
+
+	for( $obj in $objs )
+	{
+		if( `nodeType $obj` == $type )
+		{
+			textFieldButtonGrp -e -tx $obj $textFieldButtonGrpName;
+			if( $textFieldButtonGrpName == "tfZN_SourceinRenderCurveGroup" )
+			{
+				string $inProxyMayaPolygonMesh = `textFieldButtonGrp -q -tx "tfZN_SourceinProxyMayaPolygonMesh"`;
+				string $inProxyAlembic = `getAttr ($ZN_Source+".inProxyAlembic")`;
+				if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+				{
+					string $curveGroupTextField = `textFieldButtonGrp -q -tx "tfZN_SourceinRenderCurveGroup"`;
+				
+					if ( $curveGroupTextField != "") { editorTemplate -dc $ZN_Source "latticeResolution" 0; }
+					else { editorTemplate -dc $ZN_Source "latticeResolution" 1; }
+				}
+				else { editorTemplate -dc $ZN_Source "latticeResolution" 1; }
+			}
+			else { editorTemplate -dc $ZN_Source "latticeResolution" 1; }
+			return;
+		}
+
+		string $children[] = `listRelatives -f -s -ni $obj`;
+
+		for( $child in $children )
+		{
+			if( `nodeType $child` == $type )
+			{
+				textFieldButtonGrp -e -tx $obj $textFieldButtonGrpName;
+				if( $textFieldButtonGrpName == ("tf"+$ZN_Source+"inRenderCurveGroup"))
+				{
+					string $inProxyMayaPolygonMesh = `textFieldButtonGrp -q -tx "tfZN_SourceinProxyMayaPolygonMesh"`;
+					string $inProxyAlembic = `getAttr ($ZN_Source+".inProxyAlembic")`;
+					if( ($inProxyMayaPolygonMesh + $inProxyAlembic) == "" )
+					{
+						string $curveGroupTextField = `textFieldButtonGrp -q -tx "tfZN_SourceinRenderCurveGroup"`;
+					
+						if ( $curveGroupTextField != "") { editorTemplate -dc $ZN_Source "latticeResolution" 0; }
+						else { editorTemplate -dc $ZN_Source "latticeResolution" 1; }
+					}
+					else { editorTemplate -dc $ZN_Source "latticeResolution" 1; }
+				}
+				else { editorTemplate -dc $ZN_Source "latticeResolution" 1; }
+				return;
+			}
+		}
+	}
+
+	textFieldButtonGrp -e -tx "" $textFieldButtonGrpName;
+}
+
+global proc ZN_SourceProxyGeometryTypeChanged( string $ZN_Source )
+{
+	//return if the textfields and stuff havent been made yet
+	if( !`textFieldButtonGrp -ex "tfZN_SourceinProxyMayaPolygonMesh"` ) { return; }
+
+	int $proxyGeometryType = `getAttr ($ZN_Source+".proxyGeometryType")`;
+	switch( $proxyGeometryType )
+	{
+		case 0:
+			
+			textFieldButtonGrp -e -en 1 "tfZN_SourceinProxyMayaPolygonMesh";
+			text -e -en 0 "textZN_SourceinProxyAlembic";
+			textField -e -en 0 "tfZN_SourceinProxyAlembic";
+			symbolButton -e -en 0 "tfBtnZN_SourceinProxyAlembic";
+
+			break;
+
+		case 1:
+
+			textFieldButtonGrp -e -en 0 "tfZN_SourceinProxyMayaPolygonMesh";
+			text -e -en 1 "textZN_SourceinProxyAlembic";
+			textField -e -en 1 "tfZN_SourceinProxyAlembic";
+			symbolButton -e -en 1 "tfBtnZN_SourceinProxyAlembic";
+
+			break;
+	}
+}
+
+//////////
+// main //
+global proc AEZN_SourceTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Mesh";
+			editorTemplate -l "Vertices"                  -ac "numMeshVertices";
+			editorTemplate -l "Triangles"                 -ac "numMeshTriangles";
+			editorTemplate -l "UVs"                       -ac "numMeshUVs";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Curves";
+			editorTemplate -l "Curves"                    -ac "numCurves";
+			editorTemplate -l "Total CVs"                 -ac "numCurvesTotalCVs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Proxy Geometry" -collapse 0;
+		{
+			editorTemplate -l "Proxy Geometry Type"       -ac "proxyGeometryType" ZN_SourceProxyGeometryTypeChanged;
+			editorTemplate -l "Color ID"                  -ac "colorId";
+			editorTemplate -ccu ZN_SourceSelectGeometrySetTextfield ZN_SourceSelectGeometrySetTextfieldReplace "Maya Polygon Mesh.inProxyMayaPolygonMesh.mesh" ;
+			editorTemplate -ccu ZN_SourcePathNew ZN_SourcePathReplace "inProxyAlembic";
+			editorTemplate -l "Lattice Resolution"        -ac "latticeResolution";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_SourceSelectSourcesNew ZN_SourceSelectSourcesReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Render Geometry" -collapse 0;
+		{
+
+			editorTemplate -ccu ZN_SourceSelectGeometrySetTextfield ZN_SourceSelectGeometrySetTextfieldReplace "Maya Polygon Mesh.inRenderMayaPolygonMesh.mesh";
+			editorTemplate -ccu ZN_SourceSelectGeometrySetTextfield ZN_SourceSelectGeometrySetTextfieldReplace "Curve Group.inRenderCurveGroup.transform";
+			editorTemplate -ccu ZN_SourcePathNew ZN_SourcePathReplace "inRenderAlembic";
+			editorTemplate -ccu ZN_SourcePathNew ZN_SourcePathReplace "inRenderRIB";
+			editorTemplate -as;
+			editorTemplate -l "Subdivision At Render-time" -ac "toDoSubdiv";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -ccu ZN_SourcePathNew ZN_SourcePathReplace "distributionMapPath";
+		editorTemplate -ccu ZN_SourceUpdateNew ZN_SourceUpdateReplace "update";
+
+
+		editorTemplate -beginLayout "Connected ZN_Instance Node List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_SourceInstanceListNew ZN_SourceInstanceListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inCurveGroup";
+	editorTemplate -suppress "inProxyAlembic";
+	editorTemplate -suppress "inRenderAlembic";
+	editorTemplate -suppress "distributionMapPath";
+	editorTemplate -suppress "inRenderRIB";
+	editorTemplate -suppress "outSource";
+	editorTemplate -suppress "inProxyMayaPolygonMesh";
+	editorTemplate -suppress "inRenderMayaPolygonMesh";
+	editorTemplate -suppress "inRenderCurveGroup";
+}
+

@@ -1,0 +1,121 @@
+//-------------------------------//
+// AEZelosClothCurveTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Inyong Jeon @ SNU University                  //
+// last update: 2015.05.07                               //
+//-------------------------------------------------------//
+
+//////////////////////
+// connnection info //
+global proc ZelosClothCurveConnectionInfoNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		text -l "Output ZelosClothCurveMerge Nodes" -bgc 0.2 0.2 0.2;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 -cc "select -r `optionMenu -q -v omZelosClothCurveList0`" omZelosClothCurveList0;
+				setParent..;
+			setParent..;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		text -l "Output ZelosClothSeam Nodes" -bgc 0.2 0.2 0.2;
+	setUITemplate -ppt;
+
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 -cc "select -r `optionMenu -q -v omZelosClothCurveList1`" omZelosClothCurveList1;
+				setParent..;
+			setParent..;
+	setUITemplate -ppt;
+
+	ZelosClothCurveConnectionInfoReplace( $attr );
+}
+
+global proc ZelosClothCurveConnectionInfoReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosClothCurve = $node[0];
+
+	// Output Nodes (ZelosClothCurveMerge nodes)
+	{
+		string $items[] = `optionMenu -q -ill omZelosClothCurveList0`;
+		for( $item in $items ) { deleteUI $item; }
+
+		string $plgs[] = `listAttr ( $ZelosClothCurve + ".points" )`;
+
+		for( $plg in $plgs )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ( $ZelosClothCurve + "." + $plg )`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				tokenize( $nodeAttr, ".", $node );
+
+				if( `nodeType $node[0]` == "ZelosClothCurveMerge" )
+				{
+					menuItem -label $node[0] -p omZelosClothCurveList0;
+				}
+			}
+		}
+	}
+
+	// Output Nodes (ZelosClothCurveMerge nodes)
+	{
+		string $items[] = `optionMenu -q -ill omZelosClothCurveList1`;
+		for( $item in $items ) { deleteUI $item; }
+
+		string $plgs[] = `listAttr ( $ZelosClothCurve + ".points" )`;
+
+		for( $plg in $plgs )
+		{
+			string $nodeAttrs[] = `connectionInfo -dfs ( $ZelosClothCurve + "." + $plg )`;
+
+			for( $nodeAttr in $nodeAttrs )
+			{
+				tokenize( $nodeAttr, ".", $node );
+
+				if( `nodeType $node[0]` == "ZelosClothSeam" )
+				{
+					menuItem -label $node[0] -p omZelosClothCurveList1;
+				}
+			}
+		}
+	}
+}
+
+//////////
+// main //
+global proc AEZelosClothCurveTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 0;
+			editorTemplate -l "Display"        -ac "display";
+			editorTemplate -l "Point Color"    -ac "pointColor";
+			editorTemplate -l "Point Size"     -ac "pointSize";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Control" -collapse 0;
+			editorTemplate -l "Segments"       -ac "numSegs";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Node List" -collapse 0;
+			editorTemplate -ccu ZelosClothCurveConnectionInfoNew ZelosClothCurveConnectionInfoReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "curve";
+	editorTemplate -suppress "points";
+	editorTemplate -suppress "mode";
+}
+

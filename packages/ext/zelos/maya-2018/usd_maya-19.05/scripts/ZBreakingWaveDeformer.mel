@@ -1,0 +1,48 @@
+//---------------------------------//
+// CreateZBreakingWaveDeformer.mel //
+//-------------------------------------------------------//
+// author: Jinhyuk Bae @ Dexter Studios					 //
+//         Wanho Choi @ Dexter Studios                   //
+// last update: 2014.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZBreakingWaveDeformer()
+{
+	if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{
+		error( "You must load the ZelosWaterForMaya plug-in first!" );
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+
+	if( size($selected)==0 )
+	{
+		error( "No objects are selected." );
+		return;
+	}
+
+	for( $xForm in $selected )
+	{
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0;
+
+		$shape = `listRelatives -c $xForm`;
+		string $ZBreakingWaveDeformer[] = `deformer -type ZBreakingWaveDeformer $shape`;
+
+		// controller
+		string $ZBreakingWaveControllerXForm = `createNode transform -n ZBreakingWaveControllerXForm1`;
+		string $ZBreakingWaveControllerShape = `createNode ZBreakingWaveController -p $ZBreakingWaveControllerXForm -n ZBreakingWaveController1`;
+
+		setAttr ( $ZBreakingWaveControllerXForm + ".translate" ) -6.21 19.1466 28.3308;
+		setAttr ( $ZBreakingWaveControllerXForm + ".rotate"    ) 0 0 -1.75108;
+
+		connectAttr ( $ZBreakingWaveControllerXForm + ".translate" ) ( $ZBreakingWaveDeformer[0] + ".translation" );
+		connectAttr ( $ZBreakingWaveControllerXForm + ".rotate"    ) ( $ZBreakingWaveDeformer[0] + ".rotation"    );
+
+		connectAttr ( $ZBreakingWaveDeformer[0] + ".radius"   ) ( $ZBreakingWaveControllerShape + ".radius"   );
+		connectAttr ( $ZBreakingWaveDeformer[0] + ".waveBack" ) ( $ZBreakingWaveControllerShape + ".waveBack" );
+
+		select $ZBreakingWaveDeformer[0];
+	}
+}
+

@@ -1,0 +1,81 @@
+//-------------------//
+// ZelosTestMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.03.29                               //
+//-------------------------------------------------------//
+
+global proc ZelosTestMenu()
+{
+	menuItem -to 1 -l "ZelosTest" -ec 1 -subMenu true ZelosTest_Item;
+	{
+		menuItem -l "Neighbor Points Search Test"     -ec 1 -c "ZNeighborPointsSearchTest"      ZelosTest_ZNeighborPointsSearchTest_Item;
+		menuItem -l "Mesh Convert Test"               -ec 1 -c "ZMeshConvertTest"               ZelosTest_ZMeshConvertTest_Item;
+		menuItem -l "Meshes Convert Test"             -ec 1 -c "ZMeshesConvertTest"             ZelosTest_ZMeshesConvertTest_Item;
+		menuItem -l "Triangle Test"                   -ec 1 -c "ZTriangleTest"                  ZelosTest_ZTriangleTest_Item;
+		menuItem -l "Plane Test"                      -ec 1 -c "ZPlaneTest"                     ZelosTest_ZPlaneTest_Item;
+		menuItem -l "Frustum Test with AABB"          -ec 1 -c "ZFrustumTestWithAABB"           ZelosTest_ZFrustumTestWithAABB_Item;
+		menuItem -l "Frustum Test with Sphere"        -ec 1 -c "ZFrustumTestWithSphere"         ZelosTest_ZFrustumTestWithSphere_Item;
+		menuItem -l "AABB Triangle Intersection Test" -ec 1 -c "ZAABBTriangleIntersectionTest"  ZelosTest_ZAABBTriangleIntersectionTest_Item;
+		menuItem -l "AABB Line Intersection Test"     -ec 1 -c "ZAABBLineIntersectionTest"      ZelosTest_ZAABBLineIntersectionTest_Item;
+		menuItem -l "Mesh to Height Field Test"       -ec 1 -c "ZMeshToHeightFieldTest"         ZelosTest_ZMeshToHeightFieldTest_Item;
+		menuItem -l "Mesh to 2D LevelSet Field Test"  -ec 1 -c "ZMeshTo2DLevelSetFieldTest"     ZelosTest_ZMeshTo2DLevelSetFieldTest_Item;
+		menuItem -l "Mesh to 3D LevelSet Field Test"  -ec 1 -c "ZMeshTo3DLevelSetFieldTest"     ZelosTest_ZMeshTo3DLevelSetFieldTest_Item;
+		menuItem -l "Noise Test"                      -ec 1 -c "ZNoiseTest"                     ZelosTest_ZNoiseTest_Item;
+		menuItem -l "Curl Noise Test"                 -ec 1 -c "ZCurlNoiseTest"                 ZelosTest_ZCurlNoiseTest_Item;
+		menuItem -l "Sampling Test"                   -ec 1 -c "ZSamplingTest"                  ZelosTest_ZSamplingTest_Item;
+		menuItem -l "Tangent Space Test"              -ec 1 -c "ZTangentSpaceTest"              ZelosTest_ZTangentSpaceTest_Item;
+		menuItem -l "Curve Test"                      -ec 1 -c "ZCurveTest"                     ZelosTest_ZCurveTest_Item;
+		menuItem -l "Pseudo Spring Test"              -ec 1 -c "ZPseudoSpringTest"              ZelosTest_ZPseudoSpringTest_Item;
+		menuItem -l "Arrow Locator Test"              -ec 1 -c "ZArrowLocatorTest"              ZelosTest_ZArrowLocatorTest_Item;
+		menuItem -l "InNOut Locator Test"             -ec 1 -c "ZInNOutLocatorTest"             ZelosTest_ZInNOutLocatorTest_Item;
+		menuItem -l "Mesh Sampling Test"              -ec 1 -c "ZMeshSamplingTest"              ZelosTest_ZMeshSamplingTest_Item;
+		menuItem -l "Context Test"                    -ec 1 -c "ZContextTest"                   ZelosTest_ZContextTest_Item;
+		menuItem -l "Chain Field Test"                -ec 1 -c "ZChainFieldTest"                ZelosTest_ZChainFieldTest_Item;
+		menuItem -l "TriMesh Volume Test"             -ec 1 -c "ZTriMeshVolumeTest"             ZelosTest_ZTriMeshVolumeTest_Item;
+		menuItem -l "Curve Smooth Test"               -ec 1 -c "ZCurveSmoothTest"               ZelosTest_CurveSmoothTest_Item;
+		menuItem -l "Tessellation Test"               -ec 1 -c "ZTessellationTest"              ZelosTest_TessellationTest_Item;
+		menuItem -l "Custom Shape Test"               -ec 1 -c "ZShapeNodeTest"                 ZelosTest_ShapeNodeTest_Item;
+		menuItem -l "FFT Test"                        -ec 1 -c "ZFftTest"                       ZelosTest_FFtTest_Item;
+		menuItem -l "Attr Type Test"                  -ec 1 -c "ZAttrTestNode"                  ZelosTest_AttrTest_Item;
+	}
+	setParent -menu ..;
+}
+
+global proc ZelsoTest_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZelsoTestForMaya"` )
+	{
+		ZPrintError "ZelsoTestForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZelsoTestMenu;
+}
+
+global proc ZelsoTest_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZelsoTestMenu;
+
+	if( `menu -exists mainZelsoTestMenu` ) { deleteUI mainZelsoTestMenu; }
+
+	setParent $gMainWindow;
+
+	$gZelsoTestMenu = `menu -l "ZelsoTest" -to true -pmo true mainZelsoTestMenu`;
+	menu -e -pmc ( "ZelsoTest_Menu " + $gZelsoTestMenu ) $gZelsoTestMenu;
+
+	hotBox -um;
+}
+
+global proc ZelsoTest_DeleteMenu()
+{
+	if( `menu -exists mainZelsoTestMenu` ) { deleteUI mainZelsoTestMenu; }
+}
+

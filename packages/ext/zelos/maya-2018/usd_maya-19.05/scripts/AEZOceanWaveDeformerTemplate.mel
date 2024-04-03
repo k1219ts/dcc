@@ -1,0 +1,82 @@
+//----------------------------------//
+// AEZOceanWaveDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.04.04                               //
+//-------------------------------------------------------//
+
+///////////////////////////
+// when "normal" changed //
+global proc ZOceanWaveDeformerNormalChanged( string $node )
+{
+}
+
+/////////////////////////
+// when "foam" changed //
+global proc ZOceanWaveDeformerFoamChanged( string $node )
+{
+	if( `getAttr ($node+".foam")` ) {
+		editorTemplate -dc $node "foamGamma" 0;
+		editorTemplate -dc $node "foamBrightness" 0;
+		editorTemplate -dc $node "foamFade" 0;
+		editorTemplate -dc $node "startFrame" 0;
+		editorTemplate -dc $node "foamDecay" 0;
+		editorTemplate -dc $node "onFoamDecay" 0;
+	} else {
+		editorTemplate -dc $node "foamGamma" 1;
+		editorTemplate -dc $node "foamBrightness" 1;
+		editorTemplate -dc $node "foamFade" 1;
+		editorTemplate -dc $node "startFrame" 1;
+		editorTemplate -dc $node "foamDecay" 1;
+		editorTemplate -dc $node "onFoamDecay" 1;
+	}
+}
+
+//////////
+// main //
+global proc AEZOceanWaveDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+		editorTemplate -beginLayout "Control Parameters" -collapse 0;
+			editorTemplate -l "Computing Method"        -ac "computingMethod";
+			editorTemplate -l "Time Scale"              -ac "timeScale";
+			editorTemplate -l "Global Scale"            -ac "globalScale";
+			editorTemplate -l "Grid Level"              -ac "gridLevel";
+			editorTemplate -l "Domain Size"             -ac "domainSize";
+			editorTemplate -l "Gravity"                 -ac "gravity";
+			editorTemplate -l "Wind Speed"              -ac "windSpeed";
+			editorTemplate -l "Wind Direction"          -ac "windDirection";
+			editorTemplate -l "Wind Alignment"          -ac "windAlignment";
+			editorTemplate -l "Wave Scale"              -ac "waveScale";
+			editorTemplate -l "Shortest Wave"           -ac "shortestWave";
+			editorTemplate -l "Choppiness"              -ac "choppiness";
+			editorTemplate -l "Damp Reflection"         -ac "dampReflection";
+			editorTemplate -l "Water Depth"             -ac "waterDepth";
+			editorTemplate -l "Random Seed"             -ac "randomSeed";
+			editorTemplate -l "Dispersion Relationship" -ac "whichOmega";
+			editorTemplate -l "Global Offset"           -ac "globalOffset";
+			editorTemplate -l "Smooth Interpolation"    -ac "smoothInterpolation";
+		editorTemplate -endLayout;
+		editorTemplate -beginLayout "Normal" -collapse 0;
+			editorTemplate -l "Calculate"               -ac "normal" ZOceanWaveDeformerNormalChanged;
+		editorTemplate -endLayout;
+		editorTemplate -beginLayout "Foam" -collapse 0;
+			editorTemplate -l "Calculate"               -ac "foam" ZOceanWaveDeformerFoamChanged;
+			editorTemplate -l "Foam Gamma"              -ac "foamGamma";
+			editorTemplate -l "Foam Brightness"         -ac "foamBrightness";
+			editorTemplate -l "Foam Fade"               -ac "foamFade";
+			editorTemplate -as;
+			editorTemplate -l "Use Decay"               -ac "onFoamDecay";
+			editorTemplate -l "Start Frame"             -ac "startFrame";
+			editorTemplate -l "Foam Decay"		        -ac "foamDecay";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "time";
+	editorTemplate -suppress "foamMap";
+	editorTemplate -suppress "hasExporter";
+}
+

@@ -1,0 +1,43 @@
+//-----------------------//
+// ZTessellationTest.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZTessellationTest()
+{
+	if( !`pluginInfo -q -loaded "ZelosTestForMaya"` )
+	{
+		ZPrintError "You must load the ZelosTestForMaya plug-in first!";
+		return;
+	}
+
+	string $selected[] = `ls -sl -type transform`;
+	string $mesh;
+	for( $xForm in $selected )
+	{
+		$children = `listRelatives -c $xForm`;
+
+		$type = `nodeType $children[0]`;
+		if( $type == "mesh" )
+		{
+			$mesh = $children[0];
+			break;
+		}
+	}
+
+	if( $mesh == "" )
+	{
+		ZPrintError "No selected mesh.";
+		return;
+	}
+
+	$ZTessellationTest = `createNode ZTessellationTest`;
+	connectAttr ( $mesh + ".w" ) ( $ZTessellationTest + ".inMesh" );
+
+	connectAttr ( $ZTessellationTest + ".output" ) "transform1.shearXY";
+
+	select -r $ZTessellationTest;
+}
+

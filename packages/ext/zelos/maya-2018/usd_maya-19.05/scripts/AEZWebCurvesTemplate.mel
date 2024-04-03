@@ -1,0 +1,46 @@
+//--------------------------//
+// AEZWebCurvesTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2017.08.24                               //
+//-------------------------------------------------------//
+
+global proc AEZWebCurvesTemplate( string $nodeName )
+{
+    print "fefefe";
+
+	editorTemplate -beginScrollLayout;
+	{
+        //editorTemplate -ccu ZWebCurves_InfoNew ZWebCurves_InfoRep "info";
+
+        /*
+		editorTemplate -beginLayout "Noise Control" -collapse 0;
+		{
+            editorTemplate -l "Frequency"         -ac "raNoiseFreq";
+            editorTemplate -l "Offset"            -ac "raNoiseOffset";
+            editorTemplate -l "Scale"             -ac "raNoiseScale";
+		}
+		editorTemplate -endLayout;
+        */
+        
+        AEaddRampControl( $nodeName + ".rampSwirl"  );
+        AEaddRampControl( $nodeName + ".rampNoise"  );
+
+        /*
+		editorTemplate -beginLayout "Shading" -collapse 1;
+		{
+			editorTemplate -ccu ZWebCurves_AssignShaderNew ZWebCurves_AssignShaderRep "";
+		}
+		editorTemplate -endLayout;        
+        */
+        
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+    editorTemplate -suppress "inGuideCurve";
+    editorTemplate -suppress "inWebData";
+	editorTemplate -suppress "outWebCurves";
+}
+

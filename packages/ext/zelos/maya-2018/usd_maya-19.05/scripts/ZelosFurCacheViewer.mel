@@ -1,0 +1,152 @@
+//-------------------------//
+// ZelosFurCacheViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.02.13                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurCacheViewerWin()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+    if( `window -q -exists ZelosFurCacheViewerWin` )
+	{
+    	deleteUI ZelosFurCacheViewerWin;
+    	return;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "ZelosFur Cache Viewer" ZelosFurCacheViewerWin;
+
+	columnLayout -columnOffset "both" 15;
+
+		separator -h 15 -w 300 -style "none";
+
+		rowLayout -nc 2 -cw2 200 150;
+			text -l "Zelos system" -font "boldLabelFont" -w 200 -al "left";
+			text -l " by Dexter Studios R&D team" -w 150 -al "left";
+			setParent ..;
+
+		separator -h 2 -w 350 -style "single";
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Instructions" -al "left" -w 350 -font "boldLabelFont";
+		text -l "1) Select a ZelosFur cache root path." -al "left" -w 350;
+		text -l "2) Click the 'Create' button."         -al "left" -w 350;
+
+		separator -h 2 -w 350 -style "in";
+		separator -h 15 -w 350 -style "none";
+
+		text -l "Path" -font "boldLabelFont" -w 330 -al "left";
+		rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+			textField -tx "" -w 300 ZelosFurCacheViewerPath;
+			symbolButton -image "navButtonBrowse.xpm" -c "string $dir[] = `fileDialog2 -fm 3 -ds 1`; textField -e -tx $dir[0] ZelosFurCacheViewerPath;";
+			setParent ..;
+
+		separator -h 15 -w 350 -style "none";
+
+		button -l "Create" -w 330 -al "center" -c "CreateZelosFurCacheViewer";
+
+		separator -h 15 -w 350 -style "none";
+
+	showWindow ZelosFurCacheViewerWin;
+}
+
+global proc CreateZelosFurCacheViewer()
+{
+    if( !`pluginInfo -q -loaded "ZelosFurForMaya"` )
+	{
+		error( "You must load the ZelosFurForMaya plug-in first!" );
+		return;
+	}
+
+	string $path = `textField -q -tx ZelosFurCacheViewerPath`;
+
+	string $generatorList[];
+	string $samplerList[];
+	int    $numGroups[];
+
+	float  $version = 0.0;
+	int    $numGenerators = 0;
+	{
+		string $infoFile = $path + "/info";
+		int $fileId = `fopen $infoFile "r"`;
+		if( $fileId == 0 )
+		{
+			error( "Failed to open info file." );
+			return;
+		}
+
+		string $Cache_Version     = (string)`fgetword $fileId`;
+		       $version           = (float )`fgetword $fileId`;
+
+		string $ZelosFurGenerator = (string)`fgetword $fileId`;
+		       $numGenerators     = (int   )`fgetword $fileId`;
+
+		int $i = 0;
+		for( ; $i<$numGenerators; $i++ )
+		{
+			$generatorList[$i]    = (string)`fgetword $fileId`;
+		}
+
+		string $ZelosFurSampler   = (string)`fgetword $fileId`;
+		int    $numSamplers       = (int   )`fgetword $fileId`;
+
+		if( $numGenerators != $numSamplers )
+		{
+			error( "Invalid info file." );
+			return;
+		}
+
+		$i = 0;
+		for( ; $i<$numSamplers; $i++ )
+		{
+			$samplerList[$i]      = (string)`fgetword $fileId`;
+			$numGroups[$i]        = (int   )`fgetword $fileId`;
+		}
+
+		fclose $fileId;
+	}
+
+	if( !( $version == 0.1 || $version == 0.3 ) )
+	{
+		error( "Invalid cache version." );
+		return;
+	}
+
+	if( $numGenerators < 1 )
+	{
+		error( "Invalid data." );
+		return;
+	}
+
+	string $xform   = `createNode transform -n ZelosFurCacheViewerXForm1`;
+	string $merge   = `createNode polyUnite -n ZelosFurCacheViewerOutputMerge`;
+	string $outMesh = `createNode mesh      -n ZelosFurCacheViewerOutput -p $xform`;
+	connectAttr ( $merge + ".output" ) ( $outMesh + ".inMesh" );
+
+	int $i = 0;
+	for( ; $i<$numGenerators; $i++ )
+	{
+		string $ZelosFurCacheViewer = `createNode ZelosFurCacheViewer -p $xform -n $generatorList[$i]`;
+
+		string $subPath = $path + "/" + $generatorList[$i];
+		setAttr -type "string" ( $ZelosFurCacheViewer + ".path" ) $subPath;
+
+		setAttr ( $ZelosFurCacheViewer + ".version"   ) $version;
+		setAttr ( $ZelosFurCacheViewer + ".numGroups" ) $numGroups[$i];
+
+		connectAttr time1.outTime ( $ZelosFurCacheViewer + ".time" );
+
+		connectAttr ( $ZelosFurCacheViewer + ".output" ) ( $merge + ".inputPoly[" + $i + "]" );
+	}
+
+    if( `window -q -exists ZelosFurCacheViewerWin` )
+	{
+    	deleteUI ZelosFurCacheViewerWin;
+	}
+}
+

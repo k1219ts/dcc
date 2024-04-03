@@ -1,0 +1,352 @@
+//---------------------------------//
+// AEZN_Deform_OpacityTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+////////////////////////
+// the 1st expression //
+global proc ZN_Deform_OpacityExpr1New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Opacity Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_OpacityExpr1;
+			button -w 40 -l "Edit" -c ("ZN_Deform_OpacityExpr1Win(\""+$attr+"\")") btnZN_Deform_OpacityExpr1;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OpacityExpr1Replace( $attr );
+}
+
+global proc ZN_Deform_OpacityExpr1Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_OpacityExpr1;
+	button -e -c ("ZN_Deform_OpacityExpr1Win(\""+$attr+"\")") btnZN_Deform_OpacityExpr1;
+}
+
+global proc ZN_Deform_OpacityExpr1Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_OpacityExpr1;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_OpacityExpr1Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_OpacityExpr1Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_OpacityExpr1Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_OpacityExpr1`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_OpacityExpr1;
+}
+
+global proc ZN_Deform_OpacityExpr1Reset( string $attr )
+{
+	string $txt = "tOpacity + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_OpacityExpr1;
+	scrollField -e -tx $txt sfZN_Deform_OpacityExpr1;
+}
+
+////////////////////////
+// the 2nd expression //
+global proc ZN_Deform_OpacityExpr2New( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		rowLayout -nc 3;
+		{
+			text "Opacity Expr.";
+			textField -w 200 -ed 0 tfZN_Deform_OpacityExpr2;
+			button -w 40 -l "Edit" -c ("ZN_Deform_OpacityExpr2Win(\""+$attr+"\")") btnZN_Deform_OpacityExpr2;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OpacityExpr2Replace( $attr );
+}
+
+global proc ZN_Deform_OpacityExpr2Replace( string $attr )
+{
+	textField -e -tx `getAttr $attr` tfZN_Deform_OpacityExpr2;
+	button -e -c ("ZN_Deform_OpacityExpr2Win(\""+$attr+"\")") btnZN_Deform_OpacityExpr2;
+}
+
+global proc ZN_Deform_OpacityExpr2Win( string $attr )
+{
+    if( `window -q -exists ZNDeformerWin` )
+	{
+    	deleteUI ZNDeformerWin;
+	}
+
+	window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable false -title "Expression Editor" ZNDeformerWin;
+	{
+		columnLayout;
+		{
+			scrollField -wordWrap true -w 300 -h 100 -text `getAttr $attr` sfZN_Deform_OpacityExpr2;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 1;
+				{
+					button -w 300 -l "Update" -c ("ZN_Deform_OpacityExpr2Update(\""+$attr+"\")");
+				}
+				setParent ..;
+			}
+			setParent ..;
+
+			rowColumnLayout -nc 2;
+			{
+				button -w 150 -l "Close"  -c ("deleteUI ZNDeformerWin");
+				button -w 150 -l "Reset"  -c ("ZN_Deform_OpacityExpr2Reset(\""+$attr+"\")");
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	showWindow ZNDeformerWin;
+}
+
+global proc ZN_Deform_OpacityExpr2Update( string $attr )
+{
+	string $txt = `scrollField -q -tx sfZN_Deform_OpacityExpr2`;
+	setAttr -type "string" $attr $txt;
+	textField -e -tx $txt tfZN_Deform_OpacityExpr2;
+}
+
+global proc ZN_Deform_OpacityExpr2Reset( string $attr )
+{
+	string $txt = "rOpacity + rand*znoise(freq,x,y,z)";
+	textField -e -tx $txt tfZN_Deform_OpacityExpr2;
+	scrollField -e -tx $txt sfZN_Deform_OpacityExpr2;
+}
+
+////////////////
+// image list //
+global proc ZN_Deform_OpacityImageListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_OpacityImageList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_OpacityImageList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OpacityImageListReplace( $attr );
+}
+
+global proc ZN_Deform_OpacityImageListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_OpacityImageList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Opacity node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Opacity = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZN_Deform_Opacity + ".inImage" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -id ( $ZN_Deform_Opacity + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr = `connectionInfo -sfd ( $ZN_Deform_Opacity + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr, ".", $node );
+		menuItem -l $node[0] -p omZN_Deform_OpacityImageList;
+	}
+}
+
+///////////////////
+// deformer list //
+global proc ZN_Deform_OpacityDeformerListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_Deform_OpacityDeformerList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_Deform_OpacityDeformerList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_Deform_OpacityDeformerListReplace( $attr );
+}
+
+global proc ZN_Deform_OpacityDeformerListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_Deform_OpacityDeformerList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_Deform_Opacity node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_Deform_Opacity = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_Deform_Opacity + ".outDeformer" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_Deform" )
+		{
+			menuItem -l $node -p omZN_Deform_OpacityDeformerList;
+		}
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZN_Deform_OpacityUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update" -bgc 1.0 0.8 0.5 -c ("ZN_Deform_OpacityUpdateExe "+$attr) ZN_Deform_OpacityUpdate;
+	setUITemplate -ppt;
+
+	ZN_Deform_OpacityUpdateReplace $attr;
+}
+
+global proc ZN_Deform_OpacityUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_Deform_OpacityUpdateExe "+$attr) ZN_Deform_OpacityUpdate;
+}
+
+global proc ZN_Deform_OpacityUpdateExe( string $attr )
+{
+	setAttr $attr 1;
+
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_Deform_Opacity = $node[0];
+
+	updateAE $ZN_Deform_Opacity;
+}
+
+//////////
+// main //
+global proc AEZN_Deform_OpacityTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -l "Strands" -ac "numStrands";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Controls" -collapse 0;
+		{
+			editorTemplate -l "Active"  -ac "active";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Tip Opacity Value";
+			editorTemplate -l "Tip Opacity [tOpacity]" -ac "v1";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"      -ac "r1";
+			editorTemplate -l "Frequency [freq]"       -ac "f1";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_OpacityExpr1New ZN_Deform_OpacityExpr1Replace "e1";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Root Opacity Value";
+			editorTemplate -l "Root Opacity [rOpacity]" -ac "v2";
+			editorTemplate -as;
+			editorTemplate -l "Randomness [rand]"       -ac "r2";
+			editorTemplate -l "Frequency [freq]"        -ac "f2";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_Deform_OpacityExpr2New ZN_Deform_OpacityExpr2Replace "e2";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Image List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_OpacityImageListNew ZN_Deform_OpacityImageListReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Deformer List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_Deform_OpacityDeformerListNew ZN_Deform_OpacityDeformerListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inImage";
+	editorTemplate -suppress "outDeformer";
+}
+

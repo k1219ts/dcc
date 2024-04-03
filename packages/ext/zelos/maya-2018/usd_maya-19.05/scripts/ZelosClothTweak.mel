@@ -1,0 +1,80 @@
+//---------------------//
+// ZelosClothTweak.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         inyong Jeon @ SNU University                  //
+// last update: 2015.04.30                               //
+//-------------------------------------------------------//
+
+global proc SetZelosClothTweak()
+{
+    int $meshCount = 0;
+    string $meshShape;
+    string $objs[] = `ls -sl -type transform`;
+    for( $obj in $objs )
+    {
+        string $shapes[] = `listRelatives -shapes $obj`;
+        $meshShape = $shapes[0];
+        $meshCount++;
+    }
+    
+    if( $meshCount == 0 )
+    {
+        error( "No selected mesh." );
+        return;
+    }
+    
+    if( $meshCount != 1 )
+    {
+        error( "Too many selected mesh." );
+        return;
+    }
+    
+    string $ZelosClothSim;
+    {
+        if( !`connectionInfo -id ($meshShape+".inMesh")` ) { return; }
+    
+        string $nodeAttr = `connectionInfo -sfd ($meshShape+".inMesh")`;
+
+        string $tokens[];
+        tokenize( $nodeAttr, ".", $tokens );
+        string $node = $tokens[0];
+        
+        string $nodeType = `nodeType $node`;
+        if( $nodeType != "ZelosClothSimulator" )
+        {
+            error( "Failed to find ZelosClothSimulator node." );
+            return;
+        }
+        
+        $ZelosClothSim = $node;
+    }
+
+    if( $ZelosClothSim == "" )
+    {
+        error( "Failed to find ZelosClothSimulator node." );
+        return;
+    }
+
+    int $res[] = `polyEvaluate -vertex $meshShape`;
+    int $nVerts = $res[0];
+    
+    float $p[4]; $p[3]=1;
+    string $pStr = " " + $nVerts;
+    int $i=0;
+    for( ; $i<$nVerts; $i++ )
+    {
+        $p = `pointPosition ($meshShape+".vtx["+$i+"]")`;
+        
+        $pStr += " " + $p[0] + " " + $p[1] + " " + $p[2] + " 1";
+    }
+
+    string $cmd = "setAttr " + $ZelosClothSim + ".tweakPos -type pointArray" + $pStr;
+    eval($cmd);
+    
+    for( $i=0; $i<$nVerts; $i++ )
+    {
+        string $mp = $meshShape + ".pnts[" + $i + "]";
+        setAttr $mp 0 0 0;
+    }
+}

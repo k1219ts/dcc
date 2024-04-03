@@ -1,0 +1,44 @@
+//------------------------//
+// AEZFX_GRIDTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.04.07                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZFX_GRIDTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Display Controls" -collapse 0;
+		{
+			editorTemplate -l "Display Mode"            -ac "displayMode";
+			editorTemplate -as;
+			editorTemplate -l "Line Color"              -ac "lineColor";
+			editorTemplate -l "Line Width"              -ac "lineWidth";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Grid Controls" -collapse 0;
+		{
+			editorTemplate -l "Max. Resolution"         -ac "maxResolution";
+			editorTemplate -l "Cell Size Scale"         -ac "cellSizeScale";
+			editorTemplate -as;
+			editorTemplate -l "Resolution"              -ac "resolution";
+			editorTemplate -l "Dimension "              -ac "dimension";
+			editorTemplate -as;
+			editorTemplate -l "Open Boundary"           -ac "openBoundary";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inXForm";
+	editorTemplate -suppress "outGrid";
+}
+

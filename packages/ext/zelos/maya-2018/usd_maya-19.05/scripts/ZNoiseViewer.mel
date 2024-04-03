@@ -1,0 +1,60 @@
+//------------------//
+// ZNoiseViewer.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//		   Jinhyuk Bae @ Dexter Studios					 //
+// last update: 2014.03.30                               //
+//-------------------------------------------------------//
+
+global proc CreateZNoiseViewer()
+{
+	string $selected[] = `ls -sl -dag -type transform`;
+
+    if( !`pluginInfo -q -loaded "ZelosWaterForMaya"` )
+	{ 
+		error( "You must load the ZelosWaterForMaya plug-in first!" ); return; 
+	}
+
+	string $selectedT[] = `ls -sl -dag -type transform`;
+	string $selectedM[] = `ls -sl -dag -type mesh`;
+	
+	string $name = "ZNoiseViewer";
+	string $numOfNode[] = `ls -type ZNoiseViewer`;
+	int    $numNode = size( $numOfNode )+1;
+	string $number = $numNode;
+	string $ZNoiseViewerXFormName = $name + "XForm" + $number;
+	string $ZNoiseViewerShapeName = $name + "Shape" + $number;
+	string $ZNoiseViewerXForm = `createNode transform -n $ZNoiseViewerXFormName`;
+	string $ZNoiseViewer = `createNode ZNoiseViewer -n $ZNoiseViewerShapeName -p $ZNoiseViewerXForm`;
+	
+	if( size($selectedT) == 0 )
+	{
+    	connectAttr time1.outTime ( $ZNoiseViewer + ".time" );
+	    connectAttr ( $ZNoiseViewer + ".output" ) ( $ZNoiseViewerXForm + ".dynamics" );
+    	select -r $ZNoiseViewer;
+	}
+	
+	else if( size($selectedT) == 1 )
+	{
+    	connectAttr time1.outTime ( $ZNoiseViewer + ".time" );
+	    connectAttr ( $ZNoiseViewer + ".output" ) ( $ZNoiseViewerXForm + ".dynamics" );
+	    // bounding box
+        float $bbox[] = `exactWorldBoundingBox $selectedT`;
+        setAttr ( $ZNoiseViewer + ".minPoint" ) -type float3 $bbox[0] $bbox[1] $bbox[2];
+        setAttr ( $ZNoiseViewer + ".maxPoint" ) -type float3 $bbox[3] $bbox[4] $bbox[5];        
+        // deformer attribute
+        string $deformer[] = `listConnections -type ZTwoOceanWaveDeformer $selectedM[0]`;
+        
+        connectAttr ($deformer[0] + ".noiseTime")  ( $ZNoiseViewer + ".noiseTime" );
+        connectAttr ($deformer[0] + ".noiseSFreq") ( $ZNoiseViewer + ".sFreq0" );
+        connectAttr ($deformer[0] + ".noiseSFreq") ( $ZNoiseViewer + ".sFreq1" );
+        connectAttr ($deformer[0] + ".noiseSFreq") ( $ZNoiseViewer + ".sFreq2" );
+        
+    	select -r $ZNoiseViewer;
+	}
+	else
+	{
+		error( "You should select only one polyPlane which is applied by ZTwoOceanWaveDeformer or not." );
+	}
+}
+

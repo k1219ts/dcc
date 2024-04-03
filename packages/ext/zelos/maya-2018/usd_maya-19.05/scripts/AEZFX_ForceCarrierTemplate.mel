@@ -1,0 +1,40 @@
+//--------------------------------//
+// AEZFX_ForceCarrierTemplate.mel //
+//-------------------------------------------------------//
+// author: Jaegwang Lim @ Dexter Studios                 //
+// last update: 2016.09.20                               //
+//-------------------------------------------------------//
+
+global proc AEZFX_ForceCarrierTemplate( string $nodeName )
+{
+    editorTemplate -beginScrollLayout;
+    {
+        editorTemplate -beginLayout "Wind Force Parameters" -collapse 0;
+        {
+            editorTemplate -l "Gravity"             -ac "gravity";
+            editorTemplate -l "Wind Direction"      -ac "windDir";
+            editorTemplate -l "Wind Scale"          -ac "windScale";
+			editorTemplate -l "dt Scale"			-ac "dtScale";
+        }
+        editorTemplate -endLayout;        
+        
+        editorTemplate -beginLayout "Wind Noise Controls" -collapse 0;
+        {
+            editorTemplate -l "Scale"               -ac "noiseScale";
+            editorTemplate -l "Freq.X"              -ac "freqX";
+            editorTemplate -l "Freq.Y"              -ac "freqY";
+            editorTemplate -l "Freq.Z"              -ac "freqZ";
+            editorTemplate -l "Offset"              -ac "offsetScale";
+        }
+        editorTemplate -endLayout;
+        
+        editorTemplate -addExtraControls;
+            
+    }
+    editorTemplate -endScrollLayout;    
+    
+    
+    editorTemplate -suppress "output";
+    editorTemplate -suppress "outPtcSet";
+    editorTemplate -suppress "inPtcs";
+}

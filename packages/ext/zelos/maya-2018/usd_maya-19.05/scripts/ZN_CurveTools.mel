@@ -1,0 +1,1215 @@
+//-------------------//
+// ZN_CurveTools.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_CurveToolsWin()
+{
+	if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	$win = "ZN_CurveToolsWin";
+
+	if( `window -exists $win` )
+	{
+		deleteUI $win;
+		windowPref -remove $win;
+	}
+	
+	if( `window -exists $win` )
+	{
+		showWindow $win;
+		return;
+	}
+
+	$window = `window -title "ZENN Curve Tools" -wh 10 10 -s 1 -rtf 1 $win`;
+	$form = `formLayout -nd 100`;
+
+	string $row = `rowLayout -adj 1 -nc 1`;
+	{
+		button -en 0 -l "Update" -h 30 -c "ZN_CurveToolsUpdate";
+	}
+	setParent ..;
+
+	$tabs = `tabLayout -imw 2 -imh 2`;
+	formLayout -e -af $tabs "top" 0 -af $tabs "left" 0 -af $tabs "bottom" 50 -af $tabs "right" 0 $form;
+	formLayout -e -an $row "top" -af $row "left" 0 -af $row "bottom" 15 -ap $row "right" 0 100 $form;
+
+	///////////
+	// Plant //
+	$tabPlt = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Method" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsPltMtd`;
+			$rb1 = `radioButton -l "Monte Carlo"  ZNCrvTlsPltMtd0`;
+			$rb2 = `radioButton -l "Poisson Disk" ZNCrvTlsPltMtd1`;
+			radioCollection -e -select $rb2 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 5 -cw5 80 80 80 80 80;
+		{
+			text -h 20 -l "Location" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsPltLoc`;
+			$rb1 = `radioButton -l "Vertex"   ZNCrvTlsPltLoc0`;
+			$rb2 = `radioButton -l "Facet"    ZNCrvTlsPltLoc1`;
+			$rb3 = `radioButton -l "Triangle" ZNCrvTlsPltLoc2`;
+			$rb4 = `radioButton -l "Random"   ZNCrvTlsPltLoc3`;
+			radioCollection -e -select $rb4 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Degrees" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsPltDgr`;
+			$rb1 = `radioButton -l "1" ZNCrvTlsPltDgr0`;
+			$rb2 = `radioButton -l "3" ZNCrvTlsPltDgr1`;
+			radioCollection -e -select $rb2 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Type" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsPltTyp`;
+			$rb1 = `radioButton -l "CP" ZNCrvTlsPltTyp0`;
+			$rb2 = `radioButton -l "EP" ZNCrvTlsPltTyp1`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Count" -fn "boldLabelFont" "left";
+			intSliderGrp -v 1000 -min 1 -max 100000 -f 1 -w 300 ZNCrvTlsPltCnt;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "CVs" -fn "boldLabelFont" "left";
+			intSliderGrp -v 6 -min 2 -max 100 -f 1 -w 300 ZNCrvTlsPltCvs;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Length" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.01 -max 1000.0 -s 0.01 -f 1 -w 300 ZNCrvTlsPltLen;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Seed" -fn "boldLabelFont" "left";
+			intSliderGrp -v 0 -min 0 -max 10000 -f 1 -w 300 ZNCrvTlsPltSed;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsPltExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	/////////////
+	// Between //
+	$tabBtw = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Count" -fn "boldLabelFont" "left";
+			intSliderGrp -v 3 -min 1 -max 100 -f 1 -w 300 ZNCrvTlsBtwCnt;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsBtwExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Mirror //
+	$tabMrr = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 3 -cw3 80 80 80;
+		{
+			text -h 20 -l "Mode" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsMrrMod`;
+			$rb1 = `radioButton -l "Copy" ZNCrvTlsMrrMod0`;
+			$rb2 = `radioButton -l "Move" ZNCrvTlsMrrMod1`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 4 -cw4 80 50 50 50;
+		{
+			text -h 20 -l "Direction" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsMrrDir`;
+			$rb1 = `radioButton -l "X" ZNCrvTlsMrrDir0`;
+			$rb2 = `radioButton -l "Y" ZNCrvTlsMrrDir1`;
+			$rb3 = `radioButton -l "Z" ZNCrvTlsMrrDir2`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		checkBox -l "Attach after mirroring" -v 1 ZNCrvTlsMrrAtc;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsMrrExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Around //
+	$tabArd = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Count" -fn "boldLabelFont" "left";
+			intSliderGrp -v 10 -min 1 -max 100 -f 1 -w 300 ZNCrvTlsArdCnt;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Near Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 0.1 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZNCrvTlsArdNer;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Far Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZNCrvTlsArdFar;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsArdExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Attach //
+	$tabAtc = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsAtcExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	//////////////
+	// Resample //
+	$tabRsp = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 4 -cw4 80 100 100 100;
+		{
+			text -h 20 -l "Method" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsRspTyp`;
+			$rb1 = `radioButton -l "By Ratio" ZNCrvTlsRspTyp0`;
+			$rb2 = `radioButton -l "Absolute" ZNCrvTlsRspTyp1`;
+			$rb3 = `radioButton -l "Relative" ZNCrvTlsRspTyp2`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Value" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1 -min 0.0 -max 100.0 -f 1 -w 300 ZNCrvTlsRspVal;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsRspExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Select //
+	$tabSel = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		rowLayout -nc 3 -cw3 80 100 100;
+		{
+			text -h 20 -l "Method" -fn "boldLabelFont" "left";
+			$rc = `radioCollection ZNCrvTlsSelMod`;
+			$rb1 = `radioButton -l "By Distance" ZNCrvTlsSelMod0`;
+			$rb2 = `radioButton -l "By Ratio"    ZNCrvTlsSelMod1`;
+			radioCollection -e -select $rb1 $rc;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.0 -max 1000.0 -s 0.01 -f 1 -w 300 ZNCrvTlsSelDst;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Ratio" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 0.5 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZNCrvTlsSelRat;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsSelExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	////////////
+	// Modify //
+	$tabMdf = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Scale" -w 400 -ec "ZN_CurveToolsSclFrm" ZNCrvTlsScl;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 2.0 -min 0.0 -max 10.0 -s 0.01 ZNCrvTlsSclVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsSclRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsSclExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Cut" -w 400 -ec "ZN_CurveToolsCutFrm" ZNCrvTlsCut;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.5 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsCutVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsCutRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsCutExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Bend" -w 400 -ec "ZN_CurveToolsBndFrm" ZNCrvTlsBnd;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 3.0 -min 0.0 -max 90.0 -s 0.1 ZNCrvTlsBndVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Rate" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 2.0 -min 0.0 -max 10.0 -s 0.1 ZNCrvTlsBndRte;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsBndRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsBndExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Frizz" -w 400 -ec "ZN_CurveToolsFrzFrm" ZNCrvTlsFrz;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value (Tip)" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.1 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsFrzTip;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value (Rot)" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.1 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsFrzRot;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsFrzExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Smoothen" -w 400 -ec "ZN_CurveToolsSmtFrm" ZNCrvTlsSmt;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 1.0 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsSmtVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsSmtRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsSmtExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Straighten" -w 400 -ec "ZN_CurveToolsStrFrm" ZNCrvTlsStr;
+		{
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Value" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 1.0 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsStrVal;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 2 -cw2 80 300;
+    		{
+    			text -l "Randomness" -font "boldLabelFont" "left";
+    			floatSliderGrp -f true -v 0.3 -min 0.0 -max 1.0 -s 0.01 ZNCrvTlsStrRnd;
+    		}
+    		setParent ..;
+
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsStrExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		frameLayout -cl 1 -cll 1 -l "Average Length Scale" -w 400 -ec "ZN_CurveToolsAlsFrm" ZNCrvTlsAls;
+		{
+    		rowLayout -adj 1 -nc 3 -cw3 50 295 50;
+    		{
+				text -l "" -w 50;
+        		button -l "Execute" -w 295 -al "center" -c "ZN_CurveToolsAlsExe";
+				text -l "" -w 50;
+    		}
+    		setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		checkBox -l "Resample CVs after modification" -v 1 ZNCrvTlsRsp;
+	}
+	setParent ..;
+
+	//////////
+	// Flow //
+	$tabFlw = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+		text -l "Flow Curves" -font "boldLabelFont" -h 15 -al "left";
+		rowLayout -adj 1 -nc 2;
+		{
+			textScrollList -w 300 -h 90 -ams 0 -selectCommand ( "string $items[] = `textScrollList -q -si ZFGTFlwLst`; select $items[0];" ) ZFGTFlwLst;
+
+            columnLayout -adj 1;
+            {
+			    button -l "Add"    -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Add( \"ZFGTFlwLst\", \"nurbsCurve\" )" );
+			    button -l "Remove" -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Remove( \"ZFGTFlwLst\" )" );
+			    button -l "Clear"  -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Clear( \"ZFGTFlwLst\" )" );
+			    button -l "Delete" -w 90 -h 23 -al "center" -c ( "ZTextScrollList_Delete( \"ZFGTFlwLst\" )" );
+            }
+            setParent ..;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Distance" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 1.0 -min 0.0 -max 1000.0 -s 0.01 -f 1 -w 300 ZNCrvTlsFlwDst;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Degrees" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 10.0 -min -90.0 -max 90.0 -s 0.01 -f 1 -w 300 ZNCrvTlsFlwDgr;
+		}
+		setParent ..;
+
+		separator -h 5 -st "none";
+		rowLayout -nc 2 -cw2 80 300;
+		{
+			text -h 20 -l "Randomness" -fn "boldLabelFont" "left";
+			floatSliderGrp -v 0.3 -min 0.0 -max 1.0 -s 0.01 -f 1 -w 300 ZNCrvTlsFlwRnd;
+		}
+		setParent ..;
+
+		separator -h 20 -st "none";
+		button -l "Execute" -w 400 -al "center" -c "ZN_CurveToolsFlwExe";
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	/////////////////
+	// Interactive //
+	$tabItr = `columnLayout -co "both" 30`;
+	{
+		separator -h 10 -st "none";
+
+		separator -h 5 -st "none";
+		button -l "Guide Curve Draw Tool"  -w 400 -al "center" -c "ZN_CurveToolsItrExe(0)";
+
+		separator -h 5 -st "none";
+		button -l "Flow Curve Draw Tool"   -w 400 -al "center" -c "ZN_CurveToolsItrExe(1)";
+
+		separator -h 5 -st "none";
+		button -l "Guide Curve Brush Tool" -w 400 -al "center" -c "ZN_CurveToolsItrExe(2)";
+
+		separator -h 5 -st "none";
+		button -l "Guide Curve Brush Tool 2" -w 400 -al "center" -c "ZN_CurveToolsItrExe(3)";
+
+		separator -h 20 -st "none";
+	}
+	setParent ..;
+
+	tabLayout -e
+		-tl $tabPlt "Plant"
+		-tl $tabBtw "Between"
+		-tl $tabMrr "Mirror"
+		-tl $tabArd "Around"
+		-tl $tabAtc "Attach"
+		-tl $tabRsp "Resample"
+		-tl $tabSel "Select"
+		-tl $tabMdf "Modify"
+		-tl $tabFlw "Flow"
+		-tl $tabItr "Interactive"
+		$tabs;
+
+	showWindow $win;
+}
+
+////////////
+// Common //
+global proc string[] ZN_CurveToolsInfo()
+{
+	string $ret[];
+
+	string $ZN_Group = `GetCurrentZN_Group`;
+	{
+		if( $ZN_Group == "" )
+		{
+			ZPrintError "No current ZN_Group node.";
+			return $ret;
+		}
+	}
+
+	string $ZN_Import = `GetCurrentZN_Import`;
+	{
+		float $currentTime = `currentTime -q`;
+		float $restTime = `getAttr ($ZN_Import+".restTime")`;
+
+		if( $currentTime != $restTime )
+		{
+			ZPrintError ( "It is not the rest time. (The rest time of " + $ZN_Import + ": " + $restTime + ")" );
+			return $ret;
+		}
+	}
+
+	string $CurveGroup = $ZN_Group + "|CurveGroup";
+	{
+		if( !`objExists $CurveGroup` )
+		{
+			ZPrintError "No CurveGroup node.";
+			return $ret;
+		}
+	}
+
+	string $animMeshXForm;
+	string $animMeshShape;
+	{
+		$animMeshXForm = `GetZN_BodyMesh 1`;
+
+		if( $animMeshXForm == "" || !`objExists $animMeshXForm` )
+		{
+			ZPrintError "No rest mesh in the ZN_Global node.";
+			return $ret;
+		}
+
+		$animMeshShape = `GetZN_BodyMesh 0`;
+
+		if( $animMeshShape == "" || !`objExists $animMeshShape` )
+		{
+			ZPrintError "No rest mesh in the ZN_Global node.";
+			return $ret;
+		}
+	}
+
+	$ret = { $ZN_Group, $CurveGroup, $animMeshXForm, $animMeshShape };
+
+	return $ret;
+}
+
+///////////
+// Plant //
+global proc ZN_CurveToolsPltExe()
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	string $selectedTrianglesStr;
+	{
+		string $sList[] = `ls -sl -l`;
+
+		if( size($sList) )
+		{
+			string $str = $sList[0];
+
+			string $tokens[];
+			tokenize( $str, ".f[", $tokens );
+
+			if( size($tokens) > 1 )
+			{
+				if( $tokens[0] != $animMeshXForm )
+				{
+					ZPrintError "Mesh name mismatch";
+					return;
+				}
+
+				int $selectedTriangles[] = `ZN_GetSelTriListCmd`;
+				$selectedTrianglesStr = intArrayToString( $selectedTriangles, " " );
+			}
+		}
+	}
+
+	$mtdStr = `radioCollection -q -sl ZNCrvTlsPltMtd`;
+	$locStr = `radioCollection -q -sl ZNCrvTlsPltLoc`;
+	$dgrStr = `radioCollection -q -sl ZNCrvTlsPltDgr`;
+	$typStr = `radioCollection -q -sl ZNCrvTlsPltTyp`;
+
+	int $mtd = 0;
+	if( $mtdStr == "ZNCrvTlsPltMtd0" )      { $mtd = 0; }
+	else if( $mtdStr == "ZNCrvTlsPltMtd1" ) { $mtd = 1; }
+
+	int $loc = 0;
+	if( $locStr == "ZNCrvTlsPltLoc0" )      { $loc = 0; }
+	else if( $locStr == "ZNCrvTlsPltLoc1" ) { $loc = 1; }
+	else if( $locStr == "ZNCrvTlsPltLoc2" ) { $loc = 2; }
+	else if( $locStr == "ZNCrvTlsPltLoc3" ) { $loc = 3; }
+
+	int $dgr = 0;
+	if( $dgrStr == "ZNCrvTlsPltDgr0" )      { $dgr = 1; }
+	else if( $dgrStr == "ZNCrvTlsPltDgr1" ) { $dgr = 3; }
+
+	int $typ = 0;
+	if( $typStr == "ZNCrvTlsPltTyp0" )      { $typ = 0; }
+	else if( $typStr == "ZNCrvTlsPltTyp1" ) { $typ = 1; }
+
+	int   $cnt = `intSliderGrp   -q -v ZNCrvTlsPltCnt`;
+	int   $cvs = `intSliderGrp   -q -v ZNCrvTlsPltCvs`;
+	float $len = `floatSliderGrp -q -v ZNCrvTlsPltLen`;
+	int   $sed = `intSliderGrp   -q -v ZNCrvTlsPltSed`;
+
+	ZN_CurvePlantCmd
+		-parent   $CurveGroup
+		-meshName $animMeshXForm
+		-method   $mtd
+		-location $loc
+		-degree   $dgr
+		-type     $typ
+		-count    $cnt
+		-number   $cvs
+		-length   $len
+		-seed     $sed
+		-indices  $selectedTrianglesStr;
+}
+
+/////////////
+// Between //
+global proc ZN_CurveToolsBtwExe()
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	int $cnt = `intSliderGrp -q -v ZNCrvTlsBtwCnt`;
+
+	ZN_CurveBetweenCmd
+		-parent   $CurveGroup
+		-meshName $animMeshXForm
+		-count    $cnt;
+}
+
+////////////
+// Mirror //
+global proc ZN_CurveToolsMrrExe()
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	$modStr = `radioCollection -q -sl ZNCrvTlsMrrMod`;
+	$dirStr = `radioCollection -q -sl ZNCrvTlsMrrDir`;
+
+	int $mod = 0;
+	if( $modStr == "ZNCrvTlsMrrMod0" )      { $mod = 0; }
+	else if( $modStr == "ZNCrvTlsMrrMod1" ) { $mod = 1; }
+
+	int $dir = 0;
+	if( $dirStr == "ZNCrvTlsMrrDir0" )      { $dir = 0; }
+	else if( $dirStr == "ZNCrvTlsMrrDir1" ) { $dir = 1; }
+	else if( $dirStr == "ZNCrvTlsMrrDir2" ) { $dir = 2; }
+
+	ZN_CurveMirrorCmd
+		-parent    $CurveGroup
+		-meshName  $animMeshXForm
+		-mode      $mod
+		-direction $dir;
+
+	if( `checkBox -q -v ZNCrvTlsMrrAtc` )
+	{
+		ZN_CurveAttachCmd
+			-meshName $animMeshXForm;
+	}
+}
+
+////////////
+// Around //
+global proc ZN_CurveToolsArdExe()
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	int   $cnt = `intSliderGrp   -q -v ZNCrvTlsArdCnt`;
+	float $ner = `floatSliderGrp -q -v ZNCrvTlsArdNer`;
+	float $far = `floatSliderGrp -q -v ZNCrvTlsArdFar`;
+
+	ZN_CurveAroundCmd
+		-parent   $CurveGroup
+		-meshName $animMeshXForm
+		-count    $cnt
+		-v1       $ner
+		-v2       $far;
+}
+
+////////////
+// Attach //
+global proc ZN_CurveToolsAtcExe()
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	ZN_CurveAttachCmd
+		-meshName $animMeshXForm;
+}
+
+//////////////
+// Resample //
+global proc ZN_CurveToolsRspExe()
+{
+	$typeStr = `radioCollection -q -sl ZNCrvTlsRspTyp`;
+
+	int $type = 0;
+	if( $typeStr == "ZNCrvTlsRspTyp0" )      { $type = 0; }
+	else if( $typeStr == "ZNCrvTlsRspTyp1" ) { $type = 1; }
+	else if( $typeStr == "ZNCrvTlsRspTyp2" ) { $type = 2; }
+
+	float $value = `floatSliderGrp -q -v ZNCrvTlsRspVal`;
+
+	ZN_CurveResampleCmd
+		-type  $type
+		-mode  true
+		-value $value;
+}
+
+////////////
+// Select //
+global proc ZN_CurveToolsSelExe()
+{
+	$modStr = `radioCollection -q -sl ZNCrvTlsSelMod`;
+
+	int $mod = 0;
+	if( $modStr == "ZNCrvTlsSelMod0" )      { $mod = 0; }
+	else if( $modStr == "ZNCrvTlsSelMod1" ) { $mod = 1; }
+
+	float $distance = `floatSliderGrp -q -v ZNCrvTlsSelDst`;
+	float $ratio    = `floatSliderGrp -q -v ZNCrvTlsSelRat`;
+
+	ZN_CurveSelectCmd
+		-mode     $mod
+		-distance $distance
+		-ratio    $ratio;
+}
+
+///////////
+// Scale //
+global proc ZN_CurveToolsSclFrm()
+{
+	frameLayout -e -cl 0 ZNCrvTlsScl;
+	frameLayout -e -cl 1 ZNCrvTlsCut;
+	frameLayout -e -cl 1 ZNCrvTlsBnd;
+	frameLayout -e -cl 1 ZNCrvTlsFrz;
+	frameLayout -e -cl 1 ZNCrvTlsSmt;
+	frameLayout -e -cl 1 ZNCrvTlsStr;
+	frameLayout -e -cl 1 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsSclExe()
+{
+	float $val, $rnd;
+
+	$val = `floatSliderGrp -q -v ZNCrvTlsSclVal`;
+	$rnd = `floatSliderGrp -q -v ZNCrvTlsSclRnd`;
+
+	ZN_CurveScaleCmd
+		-value      $val
+		-randomness $rnd;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+/////////
+// Cut //
+global proc ZN_CurveToolsCutFrm()
+{
+	frameLayout -e -cl 1 ZNCrvTlsScl;
+	frameLayout -e -cl 0 ZNCrvTlsCut;
+	frameLayout -e -cl 1 ZNCrvTlsBnd;
+	frameLayout -e -cl 1 ZNCrvTlsFrz;
+	frameLayout -e -cl 1 ZNCrvTlsSmt;
+	frameLayout -e -cl 1 ZNCrvTlsStr;
+	frameLayout -e -cl 1 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsCutExe()
+{
+	float $val, $rnd;
+
+	$val = `floatSliderGrp -q -v ZNCrvTlsCutVal`;
+	$rnd = `floatSliderGrp -q -v ZNCrvTlsCutRnd`;
+
+	ZN_CurveCutCmd
+		-value      $val
+		-randomness $rnd;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+//////////
+// Bend //
+global proc ZN_CurveToolsBndFrm()
+{
+	frameLayout -e -cl 1 ZNCrvTlsScl;
+	frameLayout -e -cl 1 ZNCrvTlsCut;
+	frameLayout -e -cl 0 ZNCrvTlsBnd;
+	frameLayout -e -cl 1 ZNCrvTlsFrz;
+	frameLayout -e -cl 1 ZNCrvTlsSmt;
+	frameLayout -e -cl 1 ZNCrvTlsStr;
+	frameLayout -e -cl 1 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsBndExe()
+{
+	float $val, $rnd;
+
+	$val  = `floatSliderGrp -q -v ZNCrvTlsBndVal`;
+	$rate = `floatSliderGrp -q -v ZNCrvTlsBndRte`;
+	$rnd  = `floatSliderGrp -q -v ZNCrvTlsBndRnd`;
+
+	ZN_CurveBendCmd
+		-value      $val
+		-rate       $rate
+		-randomness $rnd;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+///////////
+// Frizz //
+global proc ZN_CurveToolsFrzFrm()
+{
+	frameLayout -e -cl 1 ZNCrvTlsScl;
+	frameLayout -e -cl 1 ZNCrvTlsCut;
+	frameLayout -e -cl 1 ZNCrvTlsBnd;
+	frameLayout -e -cl 0 ZNCrvTlsFrz;
+	frameLayout -e -cl 1 ZNCrvTlsSmt;
+	frameLayout -e -cl 1 ZNCrvTlsStr;
+	frameLayout -e -cl 1 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsFrzExe()
+{
+	float $val, $rnd;
+
+	$tip = `floatSliderGrp -q -v ZNCrvTlsFrzTip`;
+	$rot = `floatSliderGrp -q -v ZNCrvTlsFrzRot`;
+
+	ZN_CurveFrizzCmd
+		-value1     $tip
+		-value2     $rot;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+//////////////
+// Smoothen //
+global proc ZN_CurveToolsSmtFrm()
+{
+	frameLayout -e -cl 1 ZNCrvTlsScl;
+	frameLayout -e -cl 1 ZNCrvTlsCut;
+	frameLayout -e -cl 1 ZNCrvTlsBnd;
+	frameLayout -e -cl 1 ZNCrvTlsFrz;
+	frameLayout -e -cl 0 ZNCrvTlsSmt;
+	frameLayout -e -cl 1 ZNCrvTlsStr;
+	frameLayout -e -cl 1 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsSmtExe()
+{
+	float $val, $rnd;
+
+	$val = `floatSliderGrp -q -v ZNCrvTlsSmtVal`;
+	$rnd = `floatSliderGrp -q -v ZNCrvTlsSmtRnd`;
+
+	ZN_CurveSmoothenCmd
+		-value      $val
+		-randomness $rnd;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+////////////////
+// Straighten //
+global proc ZN_CurveToolsStrFrm()
+{
+	frameLayout -e -cl 1 ZNCrvTlsScl;
+	frameLayout -e -cl 1 ZNCrvTlsCut;
+	frameLayout -e -cl 1 ZNCrvTlsBnd;
+	frameLayout -e -cl 1 ZNCrvTlsFrz;
+	frameLayout -e -cl 1 ZNCrvTlsSmt;
+	frameLayout -e -cl 0 ZNCrvTlsStr;
+	frameLayout -e -cl 1 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsStrExe()
+{
+	float $val, $rnd;
+
+	$val = `floatSliderGrp -q -v ZNCrvTlsStrVal`;
+	$rnd = `floatSliderGrp -q -v ZNCrvTlsStrRnd`;
+
+	ZN_CurveStraightenCmd
+		-value      $val
+		-randomness $rnd;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+//////////////////////////
+// Average Length Scale //
+global proc ZN_CurveToolsAlsFrm()
+{
+	frameLayout -e -cl 1 ZNCrvTlsScl;
+	frameLayout -e -cl 1 ZNCrvTlsCut;
+	frameLayout -e -cl 1 ZNCrvTlsBnd;
+	frameLayout -e -cl 1 ZNCrvTlsFrz;
+	frameLayout -e -cl 1 ZNCrvTlsSmt;
+	frameLayout -e -cl 1 ZNCrvTlsStr;
+	frameLayout -e -cl 0 ZNCrvTlsAls;
+}
+
+global proc ZN_CurveToolsAlsExe()
+{
+	string $xforms[] = `ls -sl -type transform`;
+
+	for( $xform in $xforms )
+	{
+		string $shapes[] = `listRelatives -c -shapes $xform`;
+
+		for( $shape in $shapes )
+		{
+			if( `nodeType $shape` == "nurbsCurve" )
+			{
+				makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1 $xform;
+			}
+		}
+	}
+
+	ZN_CurveSetAvgLengthCmd;
+
+	if( `checkBox -q -v ZNCrvTlsRsp` )
+	{
+		ZN_CurveResampleCmd -type 0 -mode 0 -value 1.0;
+	}
+}
+
+//////////
+// Flow //
+global proc ZN_CurveToolsFlwExe()
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	string $flowCrvs[] = ZTextScrollList_GetAllItems( "ZFGTFlwLst" );
+
+	string $flowCrvStr;
+	for( $flowCrv in $flowCrvs )
+	{
+		$flowCrvStr += $flowCrv + " ";
+	}
+
+	float  $dst = `floatSliderGrp -q -v ZNCrvTlsFlwDst`;
+	float  $dgr = `floatSliderGrp -q -v ZNCrvTlsFlwDgr`;
+	float  $rnd = `floatSliderGrp -q -v ZNCrvTlsFlwRnd`;
+
+	ZN_CurveFlowCmd
+		-meshName   $animMeshXForm
+		-curveName  $flowCrvStr
+		-distance   $dst
+		-degree     $dgr
+		-randomness $rnd;
+}
+
+/////////////////
+// Interactive //
+global proc ZN_CurveToolsItrExe( int $type )
+{
+	string $info[] = `ZN_CurveToolsInfo`;
+	if( !size($info) ) { return; }
+
+	string $ZN_Group      = $info[0];
+	string $CurveGroup    = $info[1];
+	string $animMeshXForm = $info[2];
+	string $animMeshShape = $info[3];
+
+	if( $type == 0 ) {
+
+		select -r $animMeshXForm;
+		setToolTo `ZN_CurveDrawCtx`;
+
+	} else if( $type == 1 ) {
+
+		select -r $animMeshXForm;
+		setToolTo `ZN_FlowCurveDrawCtx`;
+
+	} else if( $type == 2 ) {
+
+//		select -r $animMeshXForm;
+//		setToolTo `ZN_CurveBrushCtx`;
+		setToolTo `ZN_GroomCtx`;
+
+	} else if( $type == 3 ) {
+
+		setToolTo `ZN_BrushCtx`;
+
+	}
+}
+
+global proc ZN_CurveToolsUpdate()
+{
+//	$ZENNGroup = `textField -q -tx ZNGTGlbGlb`;
+//
+//	string $shapes[] = `listRelatives -shapes -ni $ZENNGroup`;
+//	if( size($shapes) == 0 ) { return; }
+//
+//	int $indexForSimulator = 0;
+//	int $indexForSampler   = 0;
+//	int $indexForGenerator = 0;
+//
+//	string $samplers[];
+//	string $simulators[];
+//	string $generators[];
+//
+//	for( $shape in $shapes )
+//	{
+//		string $nodeType = `nodeType $shape`;
+//
+//		     if( $nodeType == "ZENNSampler"   ) { $samplers  [$indexForSampler++  ] = $shape; }
+//		else if( $nodeType == "ZENNSimulator" ) { $simulators[$indexForSimulator++] = $shape; }
+//		else if( $nodeType == "ZENNGenerator" ) { $generators[$indexForGenerator++] = $shape; }
+//	}
+//
+//	int $idx = 0;
+//	string $from[];
+//	string $to[];
+//
+//	for( $generator in $generators )
+//	{
+//		string $nodeAttr = ZConnectedNodeAttr( $generator, "outMesh" );
+//
+//		string $tokens[];
+//		tokenize( $nodeAttr, ".", $tokens );
+//		string $node = $tokens[0];
+//
+//		string $nodeType = `nodeType $node`;
+//		if( $nodeType == "ZENNGenerator" ) { continue; }
+//
+//		$from[$idx] = ( $generator + ".outMesh" );
+//		$to[$idx]   = $nodeAttr;
+//
+//		$idx++;
+//	}
+//
+//	if( $idx == 0 ) { return; }
+//	int $count = $idx;
+//
+//	int $i = 0;
+//	for( ; $i<$count; $i++ )
+//	{
+//		disconnectAttr $from[$i] $to[$i];
+//	}
+//
+//	for( $simulator in $simulators )
+//	{
+//		setAttr ( $simulator + ".update" ) 1;
+//	}
+//
+//	for( $sampler in $samplers )
+//	{
+//		setAttr ( $sampler + ".update" ) 1;
+//	}
+//
+//	$i = 0;
+//	for( ; $i<$count; $i++ )
+//	{
+//		connectAttr $from[$i] $to[$i];
+//	}
+//
+//	// to update view
+//	refresh;
+}
+

@@ -1,0 +1,74 @@
+//------------------------//
+// ZN_FeatherDesigner.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.02.17                               //
+//-------------------------------------------------------//
+
+global proc ZN_FeatherDesigner()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		ZPrintError "ZENNForMaya is not loaded.";
+		return;
+	}
+
+	string $ZN_FeatherDesigner = `createNode ZN_FeatherDesigner`;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarbScaleRamp[0].leftBarbScaleRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".leftBarbScaleRamp[0].leftBarbScaleRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbScaleRamp[0].leftBarbScaleRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarbScaleRamp[0].rightBarbScaleRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".rightBarbScaleRamp[0].rightBarbScaleRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbScaleRamp[0].rightBarbScaleRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarbRotationRamp[0].leftBarbRotationRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".leftBarbRotationRamp[0].leftBarbRotationRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbRotationRamp[0].leftBarbRotationRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarbRotationRamp[0].rightBarbRotationRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".rightBarbRotationRamp[0].rightBarbRotationRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbRotationRamp[0].rightBarbRotationRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarbBendRamp[0].leftBarbBendRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".leftBarbBendRamp[0].leftBarbBendRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbBendRamp[0].leftBarbBendRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarbBendRamp[0].rightBarbBendRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".rightBarbBendRamp[0].rightBarbBendRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbBendRamp[0].rightBarbBendRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarbFoldRamp[0].leftBarbFoldRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".leftBarbFoldRamp[0].leftBarbFoldRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbFoldRamp[0].leftBarbFoldRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarbFoldRamp[0].rightBarbFoldRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".rightBarbFoldRamp[0].rightBarbFoldRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbFoldRamp[0].rightBarbFoldRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarbRollRamp[0].leftBarbRollRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".leftBarbRollRamp[0].leftBarbRollRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbRollRamp[0].leftBarbRollRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarbRollRamp[0].rightBarbRollRamp_FloatValue") 0.5;
+	setAttr ($ZN_FeatherDesigner+".rightBarbRollRamp[0].rightBarbRollRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbRollRamp[0].rightBarbRollRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarbFrizzRamp[0].leftBarbFrizzRamp_FloatValue") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbFrizzRamp[0].leftBarbFrizzRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarbFrizzRamp[0].leftBarbFrizzRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarbFrizzRamp[0].rightBarbFrizzRamp_FloatValue") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbFrizzRamp[0].rightBarbFrizzRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarbFrizzRamp[0].rightBarbFrizzRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".leftBarblessRamp[0].leftBarblessRamp_FloatValue") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarblessRamp[0].leftBarblessRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".leftBarblessRamp[0].leftBarblessRamp_Interp") 3;
+
+	setAttr ($ZN_FeatherDesigner+".rightBarblessRamp[0].rightBarblessRamp_FloatValue") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarblessRamp[0].rightBarblessRamp_Position") 0.0;
+	setAttr ($ZN_FeatherDesigner+".rightBarblessRamp[0].rightBarblessRamp_Interp") 3;
+}
+

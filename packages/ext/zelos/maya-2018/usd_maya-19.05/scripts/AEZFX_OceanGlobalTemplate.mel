@@ -1,0 +1,104 @@
+//-------------------------------//
+// AEZFX_OceanGlobalTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Jaegwang Lim @ Dexter Studios                 //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.07.12                               //
+//-------------------------------------------------------//
+
+///////////////////////////
+// Update Button Changed //
+global proc ZFX_OceanGlobalUpdateChanged( string $node )
+{
+	int $perFrame = `getAttr ($node+".updateMeshPerFrame")`;
+
+	if( $perFrame == 0 )
+	{
+		editorTemplate -dc $node "updateMesh" 0;
+		return;
+	}
+
+	if( $perFrame == 1 )
+	{
+		setAttr ($node+".updateMesh") 1;
+		editorTemplate -dc $node "updateMesh" 1;
+		return;
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZFX_OceanGlobalUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Update Input Mesh" -c ("ZFX_OceanGlobalUpdateExe "+$attr ) ZFX_OceanGlobalUpdate;
+	}
+	setUITemplate -ppt;
+
+	ZFX_OceanGlobalUpdateReplace $attr;
+}
+
+global proc ZFX_OceanGlobalUpdateReplace( string $attr )
+{
+	connectControl ZFX_OceanGlobalUpdate $attr;
+	button -e -c ("ZFX_OceanGlobalUpdateExe "+$attr ) ZFX_OceanGlobalUpdate;
+}
+
+global proc ZFX_OceanGlobalUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZFX_OceanGlobal = $node[0];
+
+	setAttr $attr 1;
+
+	refresh;
+	updateAE $ZFX_OceanGlobal;
+}
+
+//////////////////////////
+// Export Window Button //
+global proc ZFX_OceanGlobalExportBtnNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -l "Open Export Window" -c ("ZFX_OceanExportWin" ) ZFX_OceanGlobalExportBtn;
+	}
+	setUITemplate -ppt;
+
+	ZFX_OceanGlobalExportBtnReplace $attr;
+}
+
+global proc ZFX_OceanGlobalExportBtnReplace( string $attr )
+{
+	connectControl ZFX_OceanGlobalExportBtn $attr;
+	button -e -c ("ZFX_OceanExportWin" ) ZFX_OceanGlobalExportBtn;
+}
+
+//////////
+// main //
+global proc AEZFX_OceanGlobalTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "General Options" -collapse 0;
+		{
+			editorTemplate -l "Update Input Mesh Every Frame" -ac "updateMeshPerFrame" ZFX_OceanGlobalUpdateChanged;
+			editorTemplate -ccu ZFX_OceanGlobalUpdateNew ZFX_OceanGlobalUpdateReplace "updateMesh";
+			editorTemplate -as;
+			editorTemplate -ccu ZFX_OceanGlobalExportBtnNew ZFX_OceanGlobalExportBtnReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "output";
+	editorTemplate -suppress "outData";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inOceanMap";
+	editorTemplate -suppress "inWeightMap";
+}

@@ -1,0 +1,15 @@
+//--------------------------//
+// ZN_CurveBrushLocator.mel //
+//-------------------------------------------------------//
+// author: Nayoung Kim @ Dexter Studios                  //
+// last update: 2015.10.07                               //
+//-------------------------------------------------------//
+
+global proc CreateZN_CurveBrushLocator()
+{
+    if( !`pluginInfo -q -loaded "ZENNForMaya"` )
+	{
+		error( "You must load the ZENNForMaya plug-in first!" );
+		return;
+	}
+}

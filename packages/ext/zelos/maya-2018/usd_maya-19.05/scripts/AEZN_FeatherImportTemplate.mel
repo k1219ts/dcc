@@ -1,0 +1,191 @@
+//--------------------------------//
+// AEZN_FeatherImportTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2017.01.12                               //
+//-------------------------------------------------------//
+
+///////////////////
+// Update Button //
+global proc ZN_FeatherImportUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Update Geometry Data" -bgc 1.0 0.8 0.5 -c ("ZN_FeatherImportUpdateExe "+$attr) ZN_FeatherImportUpdate;
+	setUITemplate -ppt;
+
+	ZN_FeatherImportUpdateReplace $attr;
+}
+
+global proc ZN_FeatherImportUpdateReplace( string $attr )
+{
+	button -e -c ("ZN_FeatherImportUpdateExe "+$attr) ZN_FeatherImportUpdate;
+}
+
+global proc ZN_FeatherImportUpdateExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_FeatherImport = $node[0];
+
+	setAttr $attr 1;
+
+	updateAE $ZN_FeatherImport;
+}
+
+///////////////////////////////////
+// Select Source Geometry Button //
+global proc ZN_FeatherSelectSourcesNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		button -l "Select Source Geometry" -bgc 1.0 1.0 0.8 -c ("ZN_FeatherSelectSourcesExe \""+$attr+"\"") ZN_FeatherSelectSources;
+	setUITemplate -ppt;
+
+	ZN_FeatherSelectSourcesReplace $attr;
+}
+
+global proc ZN_FeatherSelectSourcesReplace( string $attr )
+{
+	button -e -c ("ZN_FeatherSelectSourcesExe \""+$attr+"\"") ZN_FeatherSelectSources;
+}
+
+global proc ZN_FeatherSelectSourcesExe( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZN_FeatherImport = $node[0];
+
+	string $objs[];
+
+	if( `connectionInfo -id ($ZN_FeatherImport+".inMesh")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($ZN_FeatherImport+".inMesh")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		$objs[size($objs)] = $node + " ";
+	}
+
+	if( `connectionInfo -id ($ZN_FeatherImport+".inCurveGroup")` )
+	{
+		string $nodeAttr = `connectionInfo -sfd ($ZN_FeatherImport+".inCurveGroup")`;
+
+		string $tokens[];
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		$objs[size($objs)] = $node + " ";
+	}
+
+	select -cl;
+	select -r $node[0] $objs;
+}
+
+///////////////////
+// instance list //
+global proc ZN_FeatherImportInstanceListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		columnLayout;
+		{
+			rowLayout;
+			{
+				optionMenu -w 200 omZN_FeatherImportInstanceList;
+			}
+			setParent ..;
+
+			rowLayout -nc 1;
+			{
+				rowColumnLayout -nc 2;
+				{
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZN_FeatherImportInstanceList`";
+				}
+				setParent ..;
+			}
+			setParent ..;
+		}
+		setParent ..;
+	}
+	setUITemplate -ppt;
+
+	ZN_FeatherImportInstanceListReplace( $attr );
+}
+
+global proc ZN_FeatherImportInstanceListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZN_FeatherImportInstanceList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZN_FeatherImport node.
+	string $tokens[];
+	tokenize( $attr, ".", $tokens );
+	string $ZN_FeatherImport = $tokens[0];
+
+	string $nodeAttrs[] = `connectionInfo -dfs ( $ZN_FeatherImport + ".outFeather" )`;
+
+	for( $nodeAttr in $nodeAttrs )
+	{
+		tokenize( $nodeAttr, ".", $tokens );
+		string $node = $tokens[0];
+
+		if( `nodeType $node` == "ZN_FeatherInstance" )
+		{
+			menuItem -l $node -p omZN_FeatherImportInstanceList;
+		}
+	}
+}
+
+//////////
+// main //
+global proc AEZN_FeatherImportTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Information" -collapse 0;
+		{
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Mesh";
+			editorTemplate -l "Vertices"                  -ac "numMeshVertices";
+			editorTemplate -l "Triangles"                 -ac "numMeshTriangles";
+			editorTemplate -l "UVs"                       -ac "numMeshUVs";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Curves";
+			editorTemplate -l "Curves"                    -ac "numCurves";
+			editorTemplate -l "Total CVs"                 -ac "numCurvesTotalCVs";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Feather" -collapse 0;
+		{
+			editorTemplate -l "Color ID"                  -ac "colorId";
+			editorTemplate -l "Distribution Map Path"     -ac "distributionMapPath";
+			editorTemplate -l "Lattice Resolution"        -ac "latticeResolution";
+			editorTemplate -as;
+			editorTemplate -l "Subdivison At Render-time" -ac "toDoSubdiv";
+			editorTemplate -l "Archive File Path"         -ac "archiveFilePath";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_FeatherImportUpdateNew ZN_FeatherImportUpdateReplace "update";
+			editorTemplate -as;
+			editorTemplate -ccu ZN_FeatherSelectSourcesNew ZN_FeatherSelectSourcesReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected ZN_FeatherInstance Node List" -collapse 0;
+		{
+			editorTemplate -ccu ZN_FeatherImportInstanceListNew ZN_FeatherImportInstanceListReplace "";
+		}
+		editorTemplate -endLayout;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "caching";
+	editorTemplate -suppress "nodeState";
+	editorTemplate -suppress "frozen";
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh";
+	editorTemplate -suppress "inCurveGroup";
+	editorTemplate -suppress "outFeather";
+}
+

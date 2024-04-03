@@ -1,0 +1,23 @@
+//-----------------------------------//
+// AEZOffsetMeshDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.03.31                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZOffsetMeshDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Control Parameters" -collapse 0;
+			editorTemplate -l "Offset" -ac "offset";
+			editorTemplate -l "Scale"  -ac "scale";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+}
+

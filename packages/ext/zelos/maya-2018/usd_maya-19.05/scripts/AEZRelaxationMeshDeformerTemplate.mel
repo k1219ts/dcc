@@ -1,0 +1,42 @@
+//---------------------------------------//
+// AEZRelaxationMeshDeformerTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2014.09.19                               //
+//-------------------------------------------------------//
+
+//////////
+// main //
+global proc AEZRelaxationMeshDeformerTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Options" -collapse 0;
+			editorTemplate -l "Enable Scale Safe"      -ac "enableScaleSafe";
+			editorTemplate -l "Iterations"             -ac "iterations";
+			editorTemplate -l "Collision On/Off"       -ac "doCollision";
+			editorTemplate -l "Collision Steps"        -ac "collisionSteps";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "connVrtId";
+	editorTemplate -suppress "connVrtIdList";
+	editorTemplate -suppress "connVrtIdNrmOrder";
+	editorTemplate -suppress "connVrtIdNrmOrderList";
+	editorTemplate -suppress "b";
+	editorTemplate -suppress "bScalable";
+	editorTemplate -suppress "bScaleList";
+	editorTemplate -suppress "meanValueWeight";
+	editorTemplate -suppress "meanValueWeightList";
+	editorTemplate -suppress "stiffness";
+	editorTemplate -suppress "paintTrans";
+	editorTemplate -suppress "colliderMap";
+	editorTemplate -suppress "mshCollider";
+	editorTemplate -suppress "mshColliderTag";
+	editorTemplate -suppress "mshColliderVrtMult";
+	editorTemplate -suppress "mshColliderVrtMultList";
+}
+

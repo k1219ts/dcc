@@ -1,0 +1,179 @@
+//-----------------------//
+// AEZVImageTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2017.06.09                               //
+//-------------------------------------------------------//
+
+/////////////
+// Preview //
+global proc ZVImagePreviewNew( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZVImage = $node[0];
+
+	formLayout swatchDisplayForm;
+	{
+		text -l "" swatchLabel;
+		swatchDisplayPort -wh 64 64 -rs 64 swatchDisplay;
+	}
+	setParent ..;
+
+	global int $gTextColumnWidthIndex;
+
+	formLayout -e
+		-ac swatchDisplay left 100 swatchLabel
+		-af swatchDisplay top 0
+		-af swatchDisplay bottom 0
+		-an swatchDisplay right
+		swatchDisplayForm;
+
+	columnLayout -parent swatchDisplayForm swatchFileInfo;
+	{
+		text -l "Name"  txSwatchFileName;
+		text -l "Size"  txSwatchFileSize;
+		text -l "Alpha" txSwatchFileAlpha;
+		text -l "Ext"   txSwatchFileExt;
+	}
+	setParent ..;
+
+	formLayout -e
+		-ac swatchFileInfo left 5 swatchDisplay
+		-af swatchFileInfo top 0
+		-af swatchFileInfo bottom 0
+		-an swatchFileInfo right
+		swatchDisplayForm;
+
+	ZVImagePreviewReplace( $attr );
+}
+
+global proc ZVImagePreviewReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZVImage = $node[0];
+
+	string $ZVFile = "ZVFile";
+	{
+		if( !`objExists ZVFile` )
+		{
+			$ZVFile = `createNode file -n ZVFile`;
+			select -r $ZVImage;
+		}
+	}
+
+	string $fileName = `getAttr ($ZVImage+".filePathName")`;
+	setAttr ZVFile.fileTextureName -type "string" $fileName;
+
+    // Please make sure that the render priority specified by -rp 
+    // has the same value with the predefined priority for AE.
+    // For details, please refer to the documentation of swatchDisplayPort command.
+	//swatchDisplayPort -e -sn "ZN_File" -rp 3 swatchDisplay;
+	swatchDisplayPort -e -sn "ZVFile" swatchDisplay;
+
+	float $size[] = `getAttr ZVFile.outSize`;
+	int $hasAlpha = `getAttr ZVFile.fileHasAlpha`;
+	string $path  = `getAttr ZVFile.fileTextureName`;
+	string $name  = `basenameEx $path`;
+	string $type  = `fileExtension $path`;
+
+	string $fileNames = "Name: " + $name;
+	string $fileSize  = "Size: " + $size[0] + " x " + $size[1];
+	string $fileAlpha = "Alpha: ";
+	if( $hasAlpha ) { $fileAlpha += "Exists"; }
+	else            { $fileAlpha += "None";   }
+	string $fileExt   = "Format: " + $type;
+
+	text -e -l $fileNames txSwatchFileName;
+	text -e -l $fileSize  txSwatchFileSize;
+	text -e -l $fileAlpha txSwatchFileAlpha;
+	text -e -l $fileExt   txSwatchFileExt;
+}
+
+//////////////////////////
+// Use Sequence Changed //
+global proc ZVImageUseSequenceChanged( string $nodeName )
+{
+	int $use = `getAttr( $nodeName+".useSequence")`;
+
+	if( $use == 0 )
+	{
+		editorTemplate -dc $nodeName "frameOffset" 1;
+		return;
+	}
+
+	if( $use == 1 )
+	{
+		editorTemplate -dc $nodeName "frameOffset" 0;
+		return;
+	}
+}
+
+///////////////////
+// Update Button //
+global proc ZVImageUpdateNew( string $nodeAttr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+	{
+		button -bgc 0.6 0.6 0.6 -l "Update" -c ("ZVImageUpdateExe "+$nodeAttr) ZVImageUpdateBtn;
+	}
+	setUITemplate -ppt;
+
+	ZVImageUpdateReplace( $nodeAttr );
+}
+
+global proc ZVImageUpdateReplace( string $nodeAttr )
+{
+	button -e -bgc 0.6 0.6 0.6 -c ("ZVImageUpdateExe "+$nodeAttr) ZVImageUpdateBtn;
+}
+
+global proc ZVImageUpdateExe( string $nodeAttr )
+{
+	string $node[];
+	tokenize( $nodeAttr, ".", $node );
+	string $ZVImage = $node[0];
+
+	setAttr $nodeAttr 1;
+	updateAE $ZVImage;
+}
+
+//////////
+// main //
+global proc AEZVImageTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+	{
+		editorTemplate -beginLayout "Preview" -collapse 0;
+		{
+			editorTemplate -ccu ZVImagePreviewNew ZVImagePreviewReplace "";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "File Attributes" -collapse 0;
+		{
+			editorTemplate -l "File Path"    -ac "filePathName";
+			editorTemplate -as;
+			editorTemplate -l "Use Sequence" -ac "useSequence" ZVImageUseSequenceChanged;
+			editorTemplate -l "Frame Offset" -ac "frameOffset";
+			editorTemplate -as;
+			editorTemplate -ccu ZVImageUpdateNew ZVImageUpdateReplace "update";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Weight Map Controls" -collapse 0;
+		{
+			editorTemplate -l "Invert"       -ac "invert";
+//			editorTemplate -l "Multiplier"   -ac "factor";
+		}
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+	}
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "outImage";
+}
+

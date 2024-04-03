@@ -1,0 +1,277 @@
+//---------------------------------//
+// AEZelosFurSimulatorTemplate.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2015.07.07                               //
+//-------------------------------------------------------//
+
+global proc ZelosFurSimulatorMethodChanged( string $node )
+{
+	int $method = `getAttr ($node+".simulationMethod")`;
+
+	if( $method == 0 ) // none
+	{
+		editorTemplate -dc $node "timeScale"      1;
+		editorTemplate -dc $node "startFrame"     1;
+		editorTemplate -dc $node "gravity"        1;
+		editorTemplate -dc $node "stiffnessValue" 1;
+		editorTemplate -dc $node "dampingValue"   1;
+		editorTemplate -dc $node "amplitudeValue" 1;
+		return;
+	}
+
+	if( $method == 1 ) // rigid binding
+	{
+		editorTemplate -dc $node "timeScale"      1;
+		editorTemplate -dc $node "startFrame"     1;
+		editorTemplate -dc $node "gravity"        1;
+		editorTemplate -dc $node "stiffnessValue" 1;
+		editorTemplate -dc $node "dampingValue"   1;
+		editorTemplate -dc $node "amplitudeValue" 1;
+		return;
+	}
+
+	if( $method == 2 ) // From Cache files
+	{
+		editorTemplate -dc $node "timeScale"      1;
+		editorTemplate -dc $node "startFrame"     1;
+		editorTemplate -dc $node "gravity"        1;
+		editorTemplate -dc $node "stiffnessValue" 1;
+		editorTemplate -dc $node "dampingValue"   1;
+		editorTemplate -dc $node "amplitudeValue" 1;
+		setAttr ( $node + ".exportCache" ) 0;
+		return;
+	}
+
+	if( $method == 3 ) // From Maya Curves
+	{
+		editorTemplate -dc $node "timeScale"      1;
+		editorTemplate -dc $node "startFrame"     1;
+		editorTemplate -dc $node "gravity"        1;
+		editorTemplate -dc $node "stiffnessValue" 1;
+		editorTemplate -dc $node "dampingValue"   1;
+		editorTemplate -dc $node "amplitudeValue" 1;
+		return;
+	}
+
+	if( $method == 4 ) // Position Based Dynamics
+	{
+		editorTemplate -dc $node "timeScale"      0;
+		editorTemplate -dc $node "startFrame"     0;
+		editorTemplate -dc $node "gravity"        0;
+		editorTemplate -dc $node "stiffnessValue" 0;
+		editorTemplate -dc $node "dampingValue"   0;
+		editorTemplate -dc $node "amplitudeValue" 1;
+		return;
+	}
+
+	if( $method == 5 ) // Angular Spring
+	{
+		editorTemplate -dc $node "timeScale"      0;
+		editorTemplate -dc $node "startFrame"     0;
+		editorTemplate -dc $node "gravity"        0;
+		editorTemplate -dc $node "stiffnessValue" 0;
+		editorTemplate -dc $node "dampingValue"   0;
+		editorTemplate -dc $node "amplitudeValue" 0;
+		return;
+	}
+
+	int $startFrame = `getAttr ( $node + ".startFrame" )`;
+	currentTime -e $startFrame;
+}
+
+///////////////////
+// Update Button //
+global proc ZelosFurSimulatorUpdateNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Update" -c ( "setAttr " + $attr + " 1" ) ZelosFurSimulatorUpdate;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurSimulatorUpdateReplace( string $attr )
+{
+	button -e -c ( "setAttr " + $attr + " 1" ) ZelosFurSimulatorUpdate;
+}
+
+////////////////////
+// generator list //
+global proc ZelosFurSimulatorGeneratorListNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		columnLayout;
+			rowLayout;
+				optionMenu -w 200 omZelosFurSimulatorGeneratorList;
+				setParent ..;
+			rowLayout -nc 1;
+				rowColumnLayout -nc 2;
+					button -w 200 -l "Select" -c "select -r `optionMenu -q -v omZelosFurSimulatorGeneratorList`";
+					setParent ..;
+				setParent ..;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurSimulatorGeneratorListReplace( $attr );
+}
+
+global proc ZelosFurSimulatorGeneratorListReplace( string $attr )
+{
+	// remove the old menu items of the option menu.
+	string $menuItems[] = `optionMenu -q -ill omZelosFurSimulatorGeneratorList`;
+	for( $menuItem in $menuItems ) { deleteUI $menuItem; }
+
+	// get the name of this ZelosFurSimulator node.
+	string $node[];
+	tokenize( $attr, ".", $node );
+	string $ZelosFurSimulatorNode = $node[0];
+
+	// Get the connected nodes.
+	string $connectedPlg[] = `listAttr -multi ( $ZelosFurSimulatorNode + ".outMesh" )`;
+	int $numConnections = size($connectedPlg);
+
+	// Add the connected node names to the option menu.
+	int $i=0;
+	for( ; $i<$numConnections; $i++ )
+	{
+		if( !`connectionInfo -is ( $ZelosFurSimulatorNode + "." + $connectedPlg[$i] )` )
+		{
+			continue;
+		}
+
+		string $nodeAttr[] = `connectionInfo -dfs ( $ZelosFurSimulatorNode + "." + $connectedPlg[$i] )`;
+		tokenize( $nodeAttr[0], ".", $node );
+		menuItem -label $node[0] -p omZelosFurSimulatorGeneratorList;
+	}
+}
+
+//////////////////
+// Export Cache //
+global proc ZelosFurSimCacheNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 4;
+			text "Path";
+			textField -ed 0 tfZelosFurSimPath;
+			symbolButton -image "navButtonBrowse.xpm" -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZelosFurSimPath\")" ) tfZelosFurSimPathBtn;
+			setParent ..;
+	setUITemplate -ppt;
+
+	ZelosFurSimCacheReplace( $attr );
+}
+
+global proc ZelosFurSimCacheReplace( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+	textField -e -tx `getAttr $attr` tfZelosFurSimPath;
+	symbolButton -e -c ( "ZLoadDirectory(\""+$attr+"\",\"tfZelosFurSimPath\")" ) tfZelosFurSimPathBtn;
+}
+
+global proc ZelosFurSimulatorClearCacheNew( string $attr )
+{
+	setUITemplate -pst attributeEditorTemplate;
+		rowLayout -nc 1;
+			button -w 200 -l "Clear Cache" -c ("ZelosFurSimulatorClearCacheExecute "+$attr) ZelosFurSimulatorClearCache;
+			setParent ..;
+	setUITemplate -ppt;
+}
+
+global proc ZelosFurSimulatorClearCacheReplace( string $attr )
+{
+	button -e -c ("ZelosFurSimulatorClearCacheExecute "+$attr) ZelosFurSimulatorClearCache;
+}
+
+global proc ZelosFurSimulatorClearCacheExecute( string $attr )
+{
+	string $node[];
+	tokenize( $attr, ".", $node );
+
+}
+
+//////////
+// main //
+global proc AEZelosFurSimulatorTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Display" -collapse 1;
+			editorTemplate -l "Draw While Interaction (>=2015)" -ac "drawWhileInteraction";
+			editorTemplate -as;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Curve Lines";
+			editorTemplate -l "Display"                         -ac "displayCurves";
+			editorTemplate -l "Line Width"                      -ac "curvesDisplayWidth";
+			editorTemplate -l "Line Color"                      -ac "curvesDisplayColor";
+			editorTemplate -as;
+			editorTemplate -l "Smooth Width"                    -ac "smoothWidth";
+			editorTemplate -l "Smooth Color"                    -ac "smoothColor";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Control Vertices";
+			editorTemplate -l "Display"                         -ac "displayCVs";
+			editorTemplate -l "Point Size"                      -ac "cvsDisplaySize";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Curve Indices";
+			editorTemplate -l "Display"                         -ac "displayIndices";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Information" -collapse 1;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Body Mesh";
+			editorTemplate -l "Vertices"                        -ac "numVertices";
+			editorTemplate -l "Triangles"                       -ac "numTriangles";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Guide Curves";
+			editorTemplate -l "Curves"                          -ac "numCurves";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Re-Initialization" -collapse 0;
+			editorTemplate -ccu ZelosFurSimulatorUpdateNew ZelosFurSimulatorUpdateReplace "update";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Simulation" -collapse 0;
+			editorTemplate -l "Simulation Method"               -ac "simulationMethod" ZelosFurSimulatorMethodChanged;
+			editorTemplate -l "Time Scale"                      -ac "timeScale";
+			editorTemplate -l "Start Frame "                    -ac "startFrame";
+			editorTemplate -l "Gravity"                         -ac "gravity";
+			editorTemplate -as;
+			editorTemplate -l "Stiffness"                       -ac "stiffnessValue";
+			editorTemplate -l "Damping"                         -ac "dampingValue";
+			editorTemplate -l "Amplitude"                       -ac "amplitudeValue";
+			editorTemplate -endLayout;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Force Field" -collapse 1;
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Wind";
+			editorTemplate -l "Direction"                       -ac "windDirection";
+			editorTemplate -l "Scale"                           -ac "windScale";
+			editorTemplate -ccu ZTextBarNew ZTextBarReplace "Turbulence";
+			editorTemplate -l "Type"                            -ac "turbulenceType";
+			editorTemplate -l "Spatial Frequency"               -ac "turbulenceSFreq";
+			editorTemplate -l "Temporal Frequency"              -ac "turbulenceTFreq";
+			editorTemplate -l "Scale"                           -ac "turbulenceScale";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Cache" -collapse 1;
+			editorTemplate -ccu ZelosFurSimCacheNew ZelosFurSimCacheReplace "cachePath";
+			editorTemplate -l "Export Cache"                    -ac "exportCache";
+			editorTemplate -ccu ZelosFurSimulatorClearCacheNew ZelosFurSimulatorClearCacheReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Connected Generator List" -collapse 1;
+			editorTemplate -ccu ZelosFurSimulatorGeneratorListNew ZelosFurSimulatorGeneratorListReplace "";
+		editorTemplate -endLayout;
+
+		editorTemplate -addExtraControls;
+
+	editorTemplate -endScrollLayout;
+
+	editorTemplate -suppress "inTime";
+	editorTemplate -suppress "inMesh0";
+	editorTemplate -suppress "inMesh1";
+	editorTemplate -suppress "inCurveGrp";
+	editorTemplate -suppress "collidersObj";
+	editorTemplate -suppress "outMesh";
+	editorTemplate -suppress "dynamicsMap";
+	editorTemplate -suppress "collisionMap";
+	editorTemplate -suppress "stiffnessMap";
+	editorTemplate -suppress "dampingMap";
+}
+

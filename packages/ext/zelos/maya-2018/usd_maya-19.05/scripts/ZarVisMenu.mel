@@ -1,0 +1,68 @@
+//----------------//
+// ZarVisMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+//         Jaegwang Lim @ Dexter Studios                 //
+// last update: 2018.08.22                               //
+//-------------------------------------------------------//
+
+global proc ZarVisMenu()
+{
+	menuItem -to 1 -l "ZarVis (Ocean/Fluid)" -ec 1 -subMenu true ZarVis_Item;
+	{
+		menuItem -to 1 -l "Ocean" -ec 1 -subMenu true ZarVisOcean_Item;
+		{
+			menuItem -l "Create Ocean with Blend" -ec 1 -c "CreateZVOceanWithBlend" CreateZVOceanWaveWithBlend_Item;
+			menuItem -l "Create a Single Ocean"   -ec 1 -c "CreateZVOceanWave"      CreateZVOceanWave_Item;
+			menuItem -divider true;
+			menuItem -l "Add Ocean"               -ec 1 -c "ZVAddOcean"            ZVAddOcean_Item;
+			menuItem -l "Add Weight"              -ec 1 -c "ZVAddWeight"           ZVAddWeight_Item;
+			menuItem -divider true;
+			menuItem -l "Save Parameters"         -ec 1 -c "SaveZVOceanWaveParams" SaveZarVisOceanWaveParams_Item;
+			menuItem -l "Load Parameters"         -ec 1 -c "LoadZVOceanWaveParams" LoadZarVisOceanWaveParams_Item;
+			menuItem -divider true;
+			menuItem -l "Export Ocean Map"        -ec 1 -c "ZVOceanExportWin"      ZarVisOceanExportWin_Item;
+		}
+		setParent -menu ..;
+	}
+	setParent -menu ..;
+}
+
+global proc ZarVis_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZarVisForMaya"` )
+	{
+		ZPrintError "ZarVisForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZarVisMenu;
+}
+
+global proc ZarVis_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZarVisMenu;
+
+	if( `menu -exists mainZarVisMenu` ) { deleteUI mainZarVisMenu; }
+
+	setParent $gMainWindow;
+
+	$gZarVisMenu = `menu -l "ZarVis" -to true -pmo true mainZarVisMenu`;
+	menu -e -pmc ( "ZarVis_Menu " + $gZarVisMenu ) $gZarVisMenu;
+
+	hotBox -um;
+}
+
+global proc ZarVis_DeleteMenu()
+{
+	if( `menu -exists mainZarVisMenu` ) { deleteUI mainZarVisMenu; }
+}
+

@@ -1,0 +1,110 @@
+//------------------------//
+// ZFX_PartialMeshGen.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+//         Nayoung Kim @ Dexter Studios                  //
+// last update: 2016.08.02                               //
+//-------------------------------------------------------//
+
+global proc ZFX_PartialMeshGen()
+{
+	if( !`pluginInfo -q -loaded "ZFXForMaya"` )
+	{
+		ZPrintError "ZFXForMaya is not loaded.";
+		return;
+	}
+
+	string $meshXForm;
+	string $meshShape;
+	{
+		string $objs[] = `ls -sl`;
+
+		if( size($objs) == 0 )
+		{
+			ZPrintError "No selected objects.";
+			return;
+		}
+
+		string $tokens[];
+		tokenize( $objs[0], ".f[", $tokens );
+
+		string $obj = $tokens[0];
+		string $type = `nodeType $obj`;
+
+		if( $type == "transform" )
+		{
+			string $children[] = `listRelatives -f -s -ni $obj`;
+
+			for( $child in $children )
+			{
+				if( `nodeType $child` == "mesh" )
+				{
+					$meshXForm = $obj;
+					$meshShape = $child;
+					break;
+				}
+			}
+		}
+
+		if( $meshShape == "" )
+		{
+			ZPrintError ($meshShape+" is not a mesh type." );
+			return;
+		}
+
+		for( $obj in $objs )
+		{
+			tokenize( $obj, ".f[", $tokens );
+
+			if( $tokens[0] != $meshXForm )
+			{
+				ZPrintError "Too many meshed.";
+				return;
+			}
+		}
+	}
+
+	int $selectedPolygonList[] = `ZFX_GetSelPolyListCmd`;
+	int $numSelectedPolygons = size($selectedPolygonList);
+
+	if( $numSelectedPolygons == 0 )
+	{
+		ZPrintError "No selected polygons.";
+		return;
+	}
+
+	string $selectedPolygonListStr = intArrayToString( $selectedPolygonList, " " );
+
+	string $ZFX_PartialMeshGen = `createNode ZFX_PartialMeshGen`;
+
+	$cmd = "setAttr " + $ZFX_PartialMeshGen + ".polygonList -type Int32Array "
+			+ $numSelectedPolygons + " " + $selectedPolygonListStr;
+	eval( $cmd );
+
+	// Find the exact plug (ZFX_OceanGlobal.inMesh) which the meshShape.worldMesh connected into.
+	int $globalExist = `connectionInfo -is ($meshShape+".w")`;
+	string $ZFX_OceanGlobalPlug;
+	if( $globalExist == 0 ) {
+
+		warning "There is no ZFX_OceanGlobal node.";
+
+	} else {
+
+		string $plugs[] = `connectionInfo -dfs ($meshShape+".w")`;
+		$ZFX_OceanGlobalPlug = $plugs[0];
+
+	}
+
+	string $outMeshShape = `createNode mesh`;
+	connectAttr ($meshShape+".w") ($ZFX_PartialMeshGen+".inMesh");
+	connectAttr ($ZFX_PartialMeshGen+".outMesh") ($outMeshShape+".inMesh");
+
+	if( $globalExist == 1 )
+	{
+		// Connect to the ZFX_OceanGlobal.inMesh
+		disconnectAttr ($meshShape+".w") ($ZFX_OceanGlobalPlug);
+		connectAttr ($outMeshShape+".w") ($ZFX_OceanGlobalPlug);
+	}
+
+	select -r $outMeshShape;
+}

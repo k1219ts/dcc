@@ -1,0 +1,44 @@
+//--------------------//
+// ZN_BrushCtxProperties.mel //
+//-------------------------------------------------------//
+// author: Julie Jang @ Dexter Studios                   //
+// last update: 2017.07.05                               //
+//-------------------------------------------------------//
+
+// This file allows you to setup the UI for the Tool Properties Window.
+// The Tool Property Window is your main way of accessing the variables inside the context.
+// In this file you should setup any kind of UI elements you need for accessing your variables.
+
+global proc ZN_BrushCtxProperties()
+{	
+	if( `control -exists ZN_BrushCtxLayout` )
+	{
+		return;
+	}
+
+	string $parent = `toolPropertyWindow -q -location`;
+	setParent $parent;
+
+	setUITemplate -pushTemplate OptionsTemplate;
+		columnLayout ZN_BrushCtxLayout;
+			frameLayout -collapsable true -collapse false -l "ZN_BrushCtx Tool Settings" ZN_BrushCtxFrame;
+				columnLayout ZN_BrushCtxLayoutOptions;
+				$parent = `setParent -query`;
+					separator -style "none";
+					checkBoxGrp -l "On/Off" -numberOfCheckBoxes 1 -l1 " " ZN_BrushCtxOnOff;
+				setParent ..;
+			setParent ..;
+		setParent ..;
+	setUITemplate -popTemplate;
+
+	ZN_BrushCtxSetCallbacks( $parent );
+}
+
+global proc ZN_BrushCtxSetCallbacks( string $parent )
+{
+	setParent $parent;
+	string $whichCtx = `currentCtx`;
+
+	checkBoxGrp -e -on1 ("ZN_BrushCtx -e -onOff 1 `currentCtx`") -of1 ("ZN_BrushCtx -e -onOff 0 `currentCtx`") ZN_BrushCtxOnOff;
+}
+

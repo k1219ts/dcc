@@ -1,0 +1,54 @@
+//---------------------//
+// ZelosCameraMenu.mel //
+//-------------------------------------------------------//
+// author: Wanho Choi @ Dexter Studios                   //
+// last update: 2016.11.01                               //
+//-------------------------------------------------------//
+
+global proc ZelosCameraMenu()
+{
+	menuItem -to 1 -l "ZelosCamera" -ec 1 -subMenu true ZelosCamera_Item;
+	{
+		menuItem -l "Create ZCameraViewFrustum" -ec 1 -c "CreateZCameraViewFrustum" ZelosCamera_CreateZCameraViewFrustum_Item;
+		menuItem -l "ZLinesFromCamera"          -ec 1 -c "CreateZLinesFromCamera"   ZelosCamera_CreateZLinesFromCamera_Item;
+	}
+	setParent -menu ..;
+}
+
+global proc ZelosCamera_Menu( string $parent )
+{
+	if( !`pluginInfo -q -loaded "ZelosCameraForMaya"` )
+	{
+		ZPrintError "ZelosCameraForMaya is not loaded.";
+		return;
+	}
+
+	setParent -m $parent;
+	if( `menu -q -ni $parent` != 0 ) { return; }
+
+	ZelosCameraMenu;
+}
+
+global proc ZelosCamera_BuildMenu()
+{
+	string $menuModeText;
+
+	global string $gMainWindow;
+	global string $gMainHelpMenu;
+	global string $gZelosCameraMenu;
+
+	if( `menu -exists mainZelosCameraMenu` ) { deleteUI mainZelosCameraMenu; }
+
+	setParent $gMainWindow;
+
+	$gZelosCameraMenu = `menu -l "ZelosCamera" -to true -pmo true mainZelosCameraMenu`;
+	menu -e -pmc ( "ZelosCamera_Menu " + $gZelosCameraMenu ) $gZelosCameraMenu;
+
+	hotBox -um;
+}
+
+global proc ZelosCamera_DeleteMenu()
+{
+	if( `menu -exists mainZelosCameraMenu` ) { deleteUI mainZelosCameraMenu; }
+}
+
