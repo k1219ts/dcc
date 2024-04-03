@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#
+# 3DE4 startup script, modify it to your own needs!
+#
+
+# run 3DE4
+/opt/3DE4_linux64_r5/bin/3DE4_r5 "$@"

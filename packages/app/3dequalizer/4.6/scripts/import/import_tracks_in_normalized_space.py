@@ -1,0 +1,79 @@
+#
+#
+# 3DE4.script.name:	Import 2D Tracks in Normalized Space...
+#
+# 3DE4.script.version:	v1.1.1
+#
+# 3DE4.script.gui:	Main Window::3DE4::File::Import
+# 3DE4.script.gui:	Object Browser::Context Menu Point
+# 3DE4.script.gui:	Object Browser::Context Menu Points
+# 3DE4.script.gui:	Object Browser::Context Menu PGroup
+#
+#
+# 3DE4.script.comment:	Imports 2D tracking curves from an Ascii file in normalized space.
+#
+#
+
+#
+# main script...
+
+c	= tde4.getCurrentCamera()
+pg	= tde4.getCurrentPGroup()
+orX = 2880
+orY = 2160
+tgX = 3424
+tgY = 2202
+asX = float(orX) / float(tgX)
+asY = float(orY) / float(tgY)
+
+if c!=None and pg!=None:
+	frames	= tde4.getCameraNoFrames(c)
+	
+	req	= tde4.createCustomRequester()
+	tde4.addFileWidget(req,"file_browser","Filename...","*.txt")
+	tde4.addOptionMenuWidget(req,"mode_menu","","Always Create New Points","Replace Existing Points If Possible")
+	
+	ret	= tde4.postCustomRequester(req,"Import 2D Tracks...",500,120,"Ok","Cancel")
+	if ret==1:
+		create_new = tde4.getWidgetValue(req,"mode_menu")
+		path	= tde4.getWidgetValue(req,"file_browser")
+		if path!=None:
+			#
+			# main block...
+			
+			f	= open(path,"r")
+			if not f.closed:
+				string	= f.readline()
+				n	= int(string)
+				for i in range(n):
+					name	= f.readline()
+					name	= name.strip()
+					p	= tde4.findPointByName(pg,name)
+					if create_new==1 or p==None: p = tde4.createPoint(pg)
+					tde4.setPointName(pg,p,name)
+					
+					string	= f.readline()
+					color	= int(string)
+					tde4.setPointColor2D(pg,p,color)
+					
+					l	= []
+					for j in range(frames): l.append([-1.0,-1.0])
+					string	= f.readline()
+					n0	= int(string)
+					for j in range(n0):
+						string	= f.readline()
+						line	= string.split()
+						l[int(line[0])-1] = [float(line[1])*asX+(0.5-asX*0.5),float(line[2])*asY+(0.5-asY*0.5)]
+					tde4.setPointPosition2DBlock(pg,p,c,1,l)
+				f.close()
+			else:
+				tde4.postQuestionRequester("Import 2D Tracks...","Error, couldn't open file.","Ok")
+			
+			# end main block...
+			#
+else:
+	tde4.postQuestionRequester("Import 2D Tracks...","There is no current Point Group or Camera.","Ok")
+
+
+
+
