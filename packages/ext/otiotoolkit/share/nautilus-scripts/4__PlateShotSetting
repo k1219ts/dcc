@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xterm -hold -e /backstage/dcc/DCC dev rez-env otiotoolkit-1.0 otio-0.13.2 -- PlateShotSettingExec

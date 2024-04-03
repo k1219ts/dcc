@@ -1,0 +1,34 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys
+from PySide2 import QtWidgets
+
+if __name__ == '__main__':
+    selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+    if not selected:
+        sys.exit(0)
+
+    selected = selected.split('\n')[0]
+
+    app = QtWidgets.QApplication(sys.argv)
+    from core.ShotSetupArgument import ShotSetupArgumentDialog
+    import ShotSetup
+
+    dialog = ShotSetupArgumentDialog()
+    dialog.exec_()
+    if dialog.result == True:
+        ShotSetup.shotSetup(selected,
+                           dialog.shotBurnCheckBox.isChecked(),
+                           dialog.effectBurnCheckBox.isChecked(),
+                           dialog.velozSeqMov.isChecked(),
+                           dialog.editOrder.isChecked(),
+                            float(dialog.editFPS.currentText()),
+                            dialog.velozUpdate.isChecked(),
+                            dialog.shotNameEdit.text(),
+                            dialog.velozStatus,
+                            dialog.vfxDetailUpdate.isChecked(),
+                            dialog.velozDurationUpdate.isChecked())
+
+    print("# Complete!")
+
+    sys.exit(0)

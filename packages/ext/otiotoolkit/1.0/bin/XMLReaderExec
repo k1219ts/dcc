@@ -1,0 +1,20 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys, pprint
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+        if not selected:
+            sys.exit(0)
+
+        selected = selected.split('\n')[0]
+    else:
+        selected = sys.argv[-1]
+
+    import XMLReader
+    XMLReader.main(selected)
+
+    print("# Complete!")
+
+    sys.exit(0)

@@ -1,0 +1,17 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys
+
+if __name__ == '__main__':
+    selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+    if not selected:
+        sys.exit(0)
+
+    selected = selected.split('\n')[0]
+
+    import UpdateDB
+    UpdateDB.main(selected)
+
+    print("# Complete!")
+
+    sys.exit(0)

@@ -1,0 +1,32 @@
+#!/usr/bin/python2.7
+from __future__ import print_function
+import os, sys
+from PySide2 import QtWidgets
+
+if __name__ == '__main__':
+    selected = os.getenv('NAUTILUS_SCRIPT_SELECTED_FILE_PATHS')
+    if not selected:
+        sys.exit(0)
+
+    selected = selected.split('\n')[0]
+
+    app = QtWidgets.QApplication(sys.argv)
+    from core.PlateSpoolArgument import PlateSpoolArgumentDialog
+    import plateSetupSpool
+
+    print(plateSetupSpool.__file__)
+
+    dialog = PlateSpoolArgumentDialog()
+    dialog.exec_()
+    if dialog.result == True:
+        shotNameList = []
+        if dialog.shotNameEdit.text() != '':
+            shotNameList = dialog.shotNameEdit.text().split(' ')
+        plateSetupSpool.spool(selected, shotNameList, int(dialog.inOffsetEdit.text()), int(dialog.outOffsetEdit.text()))
+    else:
+        # plateSetupSpool.spool(selected)
+        pass
+
+    print("# Complete")
+
+    sys.exit(0)
