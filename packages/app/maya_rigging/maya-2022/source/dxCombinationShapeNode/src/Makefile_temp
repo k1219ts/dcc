@@ -1,0 +1,7 @@
+include buildconfig
+
+%.so : %.cpp
+	$(CXX) -o $@ $(INCLUDES) $(C++FLAGS) $< $(LFLAGS) $(LIB)
+
+clean:
+	rm -f *.o *.so

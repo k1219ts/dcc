@@ -1,0 +1,9 @@
+/.metadata/
+/dxFaceDragTool/
+/dxFaceDragTool/src/
+/dxFaceDragTool/src/dxFaceDragTool.cpp
+/dxFaceDragTool/src/dxFaceDragTool.o
+/dxFaceDragTool/src/dxFaceDragTool.so
+/dxFaceDragTool/src/Makefile
+/dxFaceDragTool/.cproject
+/dxFaceDragTool/.project

@@ -1,0 +1,9 @@
+﻿  getMeshTangents.cpp
+     Creating library Release\getMeshTangents.lib and object Release\getMeshTangents.exp
+  Generating code
+  5 of 12 functions (41.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    3 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  getMeshTangents.vcxproj -> D:\Proj\Programming\Maya\dexter\MayaProjects\getMeshTangents\Release\getMeshTangents.mll
+  getMeshTangents.vcxproj -> Release\getMeshTangents.pdb (Full PDB)

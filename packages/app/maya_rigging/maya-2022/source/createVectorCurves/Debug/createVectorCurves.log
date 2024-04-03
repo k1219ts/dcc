@@ -1,0 +1,6 @@
+﻿  createVectorCurves.cpp
+d:\proj\programming\maya\dexter\mayaprojects\createvectorcurves\createvectorcurves.cpp(279): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\proj\programming\maya\dexter\mayaprojects\createvectorcurves\createvectorcurves.cpp(280): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\proj\programming\maya\dexter\mayaprojects\createvectorcurves\createvectorcurves.cpp(281): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  createVectorCurves.vcxproj -> D:\Proj\Programming\Maya\dexter\MayaProjects\createVectorCurves\Debug\createVectorCurves.mll
+  createVectorCurves.vcxproj -> Debug\createVectorCurves.pdb (Partial PDB)
