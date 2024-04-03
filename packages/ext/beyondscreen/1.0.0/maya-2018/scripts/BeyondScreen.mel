@@ -1,0 +1,303 @@
+
+global proc string CacheFileName()
+{
+    string $mayaFile = `file -q -sn -shn`;
+
+    string $tokens[];
+    int $numTokens = `tokenize $mayaFile "." $tokens`;
+
+    string $fileName;
+    {
+        int $i = 0;
+        for( ; $i<$numTokens-1; $i++ )
+        {
+            $fileName += $tokens[$i] + ".";
+        }
+
+        $fileName += "data";
+    }
+
+    return $fileName;
+}
+
+global proc BeyondScreen_SetRange( int $mode )
+{
+	intField -e -en ($mode-1) BeyondScreen_Start;
+	intField -e -en ($mode-1) BeyondScreen_End;
+}
+
+global proc BeyondScreenExportWin()
+{
+    if( !`pluginInfo -q -loaded "BeyondScreenForMaya"` )
+    {
+        error -n "BeyondScreenForMaya is not loaded.";
+        return;
+    }
+
+    if( `window -q -exists BeyondScreenExportWin` )
+    {
+        deleteUI BeyondScreenExportWin;
+        return;
+    }
+
+    window -wh 10 10 -resizeToFitChildren true -titleBar true -sizeable true -title "BeyondScreen Export" BeyondScreenExportWin;
+
+    columnLayout -columnOffset "both" 15;
+    {
+        separator -h 10 -w 300 -style "none";
+        text -l "Screen Mesh" -font "boldLabelFont" -w 330 -al "left";
+        rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+        {
+            textField -tx "" -w 300 BeyondScreen_Screen;
+            button -l "<<" -c "string $l[]=`ls -sl -l -type transform`; string $c[]=`listRelatives -f -c -type mesh`; textField -e -tx $c[0] BeyondScreen_Screen;";
+        }
+		setParent ..;
+
+        separator -h 10 -w 300 -style "none";
+        text -l "Camera" -font "boldLabelFont" -w 330 -al "left";
+        rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+        {
+            textField -tx "" -w 300 BeyondScreen_Camera;
+            button -l "<<" -c "string $l[]=`ls -sl -l -type transform`; textField -e -tx $l[0] BeyondScreen_Camera;";
+        }
+		setParent ..;
+
+        separator -h 10 -w 300 -style "none";
+        text -l "Aim" -font "boldLabelFont" -w 330 -al "left";
+        rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+        {
+            textField -tx "" -w 300 BeyondScreen_Aim;
+            button -l "<<" -c "string $l[]=`ls -sl -l -type transform`; textField -e -tx $l[0] BeyondScreen_Aim;";
+        }
+		setParent ..;
+
+        separator -h 10 -w 300 -style "none";
+        text -l "File Path" -font "boldLabelFont" -w 330 -al "left";
+        rowLayout -w 330 -nc 2 -columnWidth2 300 30;
+        {
+            textField -tx "" -w 300 BeyondScreen_Path;
+            symbolButton -image "navButtonBrowse.xpm" -c "string $l[]=`fileDialog2 -fm 3 -ds 2`; textField -e -tx $l[0] BeyondScreen_Path;";
+        }
+		setParent ..;
+
+        separator -h 10 -w 300 -style "none";
+        text -l "File Name" -font "boldLabelFont" -w 330 -al "left";
+        textField -tx `eval CacheFileName` -w 320 BeyondScreen_Name;
+
+        separator -h 10 -w 300 -style "none";
+        text -l "Frame Range" -font "boldLabelFont" -w 330 -al "left";
+        columnLayout -w 300;
+        {
+            rowLayout -nc 4 -cw4 150 70 30 50;
+            {
+                radioButtonGrp -sl 1 -cw2 70 70 -numberOfRadioButtons 2 -labelArray2 "time slider" "start/end:" -on1 "BeyondScreen_SetRange 1" -on2 "BeyondScreen_SetRange 2" BeyondScreen_RangeMode;
+                intField -v 0   -w 65 -en 0 BeyondScreen_Start;
+                text -l "to" -al "center" -w 20;
+                intField -v 100 -w 65 -en 0 BeyondScreen_End;
+            }
+            setParent ..;
+        }
+        setParent ..;
+
+        separator -h 15 -w 330 -style "none";
+        button -l "Execute" -w 330 -al "center" -c "BeyondScreenExportExe";
+        separator -h 15 -w 330 -style "none";
+    }
+    showWindow BeyondScreenExportWin;
+}
+
+global proc BeyondScreenExportExe()
+{
+    if( !`pluginInfo -q -loaded "BeyondScreenForMaya"` )
+    {
+        error -n "BeyondScreenForMaya is not loaded.";
+        return;
+    }
+
+    string $screen    = `textField -q -tx BeyondScreen_Screen`;
+    string $camera    = `textField -q -tx BeyondScreen_Camera`;
+    string $aim       = `textField -q -tx BeyondScreen_Aim`;
+
+    string $filePath  = `textField -q -tx BeyondScreen_Path`;
+    string $fileName  = `textField -q -tx BeyondScreen_Name`;
+
+    if( $screen == "" )
+    {
+        error -n "No screen mesh.";
+        return;
+    }
+
+    if( $camera == "" )
+    {
+        error -n "No camera.";
+        return;
+    }
+
+    if( $aim == "" )
+    {
+        error -n "No aim.";
+        return;
+    }
+
+    if( $fileName == "" )
+    {
+        error -n "No file name.";
+        return;
+    }
+
+    int $startFrame = 0;
+    int $endFrame   = 0;
+
+    int $frameRangeMode = `radioButtonGrp -q -sl BeyondScreen_RangeMode`;
+
+    if( $frameRangeMode==1 )
+    {
+        $startFrame = `playbackOptions -q -min`;
+        $endFrame   = `playbackOptions -q -max`;
+    }
+    else
+    {
+        $startFrame = `intField -q -v BeyondScreen_Start`;
+        $endFrame   = `intField -q -v BeyondScreen_End`;
+    }
+
+    if( $startFrame > $endFrame )
+    {
+        error -n "Invalid frame range.";
+        return;
+    }
+
+    BeyondScreenExport -screen $screen -camera $camera -aimPoint $aim -filePath $filePath -fileName $fileName -startFrame $startFrame -endFrame $endFrame;
+}
+
+global proc BeyondScreenAutoExport()
+{
+    string $TechGroupNode;
+    {
+        string $selected[] = `ls -type transform -sl`;
+
+        int $numSelected = size( $selected );
+
+        if( $numSelected == 0 )
+        {
+            error -n "No selected group node.";
+            return;
+        }
+
+        if( $numSelected != 1 )
+        {
+            error -n "Too many selected nodes.";
+            return;
+        }
+
+        string $tokens[];
+        int $numTokens = `tokenize $selected[0] "_" $tokens`;
+
+        if( $numTokens < 3 )
+        {
+            error -n "Invalid Tech Group Node.";
+            return;
+        }
+
+        if( $tokens[$numTokens-1] != "grp" )
+        {
+            error -n "Invalid Tech Group Node.";
+            return;
+        }
+
+        if( $tokens[$numTokens-2] != "tech" )
+        {
+            error -n "Invalid Tech Group Node.";
+            return;
+        }
+
+        $TechGroupNode = $selected[0];
+    }
+
+    string $children[] = `listRelatives -f -type transform -c $TechGroupNode`;
+
+    string $SCREEN, $CAM, $AIM, $PROJECTOR;
+    {
+        for( $child in $children )
+        {
+            string $tokens[];
+            int $numTokens = `tokenize $child "|" $tokens`;
+
+            string $nodeName = $tokens[$numTokens-1];
+
+            if( $nodeName == "SCREEN"    ) { $SCREEN    = $child; }
+            if( $nodeName == "CAM"       ) { $CAM       = $child; }
+            if( $nodeName == "AIM"       ) { $AIM       = $child; }
+            if( $nodeName == "PROJECTOR" ) { $PROJECTOR = $child; }
+        }
+
+        if( $SCREEN    == "" ) { error -n "Failed to find SCREEN.";    return; }
+        if( $CAM       == "" ) { error -n "Failed to find CAM.";       return; }
+        if( $AIM       == "" ) { error -n "Failed to find AIM.";       return; }
+        if( $PROJECTOR == "" ) { error -n "Failed to find PROJECTOR."; return; }
+
+        string $shapes[] = `listRelatives -f -shapes $SCREEN`;
+        $SCREEN = $shapes[0];
+    }
+
+    string $filePath = "/home/wanho.choi/BeyondScreenCache";
+    string $fileName = `eval CacheFileName`;
+
+    int $startFrame = `playbackOptions -q -min`;
+    int $endFrame   = `playbackOptions -q -max`;
+
+    BeyondScreenExport -screen $SCREEN -camera $CAM -aimPoint $AIM -filePath $filePath -fileName $fileName -startFrame $startFrame -endFrame $endFrame;
+}
+
+global proc CreateBeyondScreenCacheViewer()
+{
+    string $polyPlane[] = `polyPlane`;
+    string $refPoint[] = `spaceLocator`;
+
+    string $xform = `createNode transform -n BeyondScreenCacheViewerXForm`;
+    string $shape = `createNode BeyondScreenCacheViewer -p $xform`;
+
+    setAttr -lock true ($xform+".translate"        );
+    setAttr -lock true ($xform+".rotate"           );
+    setAttr -lock true ($xform+".scale"            );
+    setAttr -lock true ($xform+".shear"            );
+    setAttr -lock true ($xform+".rotateAxis"       );
+    setAttr -lock true ($xform+".inheritsTransform");
+
+    select -cl;
+    select -r $shape;
+
+    setRendererInModelPanel base_OpenGL_Renderer modelPanel4;
+
+    connectAttr ($refPoint[0]+".translate") ($shape+".worldViewPoint");
+    connectAttr ($polyPlane[0]+".matrix") ($shape+".imgPlaneXForm");
+
+    connectAttr time1.outTime ($shape+".time");
+    connectAttr ($shape+".output") ($xform+".dynamics");
+}
+
+global proc float[] WorldPosition( string $xform )
+{
+    float $p[];
+
+    string $shapes[] = `listRelatives -f -shapes $xform`;
+    string $shape = $shapes[0];
+    string $type = `nodeType $shape`;
+
+    if( $type == "camera" || $type == "mesh" )
+    {
+        $p = `xform -q -ws -t $xform`;
+    }
+    else if( $type == "locator" )
+    {
+        $p = `pointPosition $xform`;
+    }
+
+    return $p;
+}
+
+global proc float[] WorldUpvector( string $xform )
+{
+    return `camera -q -wup $xform`;
+}
+

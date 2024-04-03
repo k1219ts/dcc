@@ -1,0 +1,179 @@
+//////////
+// File //
+global proc BeyondScreenCacheViewerFileNew( string $nodeAttr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+    {
+        rowLayout -nc 3;
+        {
+            text -label "File";
+            textField -ed 0 -tx `getAttr $nodeAttr` BeyondScreenCacheViewerFile;
+            symbolButton -image "navButtonBrowse.xpm" BeyondScreenCacheViewerFileBtn;
+        }
+
+        setParent ..;
+    }
+    setUITemplate -ppt;
+
+    BeyondScreenCacheViewerFileReplace $nodeAttr;
+}
+
+global proc BeyondScreenCacheViewerFileReplace( string $nodeAttr )
+{
+    textField -e -tx `getAttr $nodeAttr` BeyondScreenCacheViewerFile;
+    button -e -c ("BeyondScreenCacheViewerSetFile "+$nodeAttr) BeyondScreenCacheViewerFileBtn;
+}
+
+global proc BeyondScreenCacheViewerSetFile( string $nodeAttr )
+{
+    string $tokens[];
+    tokenize $nodeAttr "." $tokens;
+    string $BeyondScreenCacheViewer = $tokens[0];
+    string $fileNames[] = `fileDialog2 -caption "Cache File" -fileMode 1`;
+
+    if( size($fileNames) > 0 )
+    {
+        eval( "setAttr -type \"string\" " + $nodeAttr + " \"" + $fileNames[0] + "\"" );
+        textField -e -tx $fileNames[0] BeyondScreenCacheViewerFile;
+
+        refresh;
+        updateAE $BeyondScreenCacheViewer;
+    }
+}
+
+/////////////////
+// Frame Range //
+global proc BeyondScreenCacheViewerRangeNew( string $nodeAttr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+    {
+        columnLayout -adj 1;
+        {
+            rowLayout -nc 1 -adj 1;
+            {
+                button -l "Set Playback" -c ("BeyondScreenCacheViewerSetRange "+$nodeAttr) BeyondScreenCacheViewerRangeBtn;
+            }
+        }
+
+        setParent ..;
+    }
+    setUITemplate -ppt;
+}
+
+global proc BeyondScreenCacheViewerRangeReplace( string $nodeAttr )
+{
+    button -e -c ("BeyondScreenCacheViewerSetRange "+$nodeAttr) BeyondScreenCacheViewerRangeBtn;
+}
+
+global proc BeyondScreenCacheViewerSetRange( string $nodeAttr )
+{
+    int $frameRange[] = `getAttr $nodeAttr`;
+
+    playbackOptions -e -ast $frameRange[0];
+    playbackOptions -e -min $frameRange[0];
+
+    playbackOptions -e -max $frameRange[1];
+    playbackOptions -e -aet $frameRange[1];
+}
+
+////////////
+// Center //
+global proc BeyondScreenCacheViewerCenterNew( string $nodeAttr )
+{
+    setUITemplate -pst attributeEditorTemplate;
+    {
+        columnLayout -adj 1;
+        {
+            rowLayout -nc 1 -adj 1;
+            {
+                button -l "Set to Center" -c ("BeyondScreenCacheViewerSetCenter "+$nodeAttr) BeyondScreenCacheViewerCenterBtn;
+            }
+        }
+
+        setParent ..;
+    }
+    setUITemplate -ppt;
+}
+
+global proc BeyondScreenCacheViewerCenterReplace( string $nodeAttr )
+{
+    button -e -c ("BeyondScreenCacheViewerSetCenter "+$nodeAttr) BeyondScreenCacheViewerCenterBtn;
+}
+
+global proc BeyondScreenCacheViewerSetCenter( string $nodeAttr )
+{
+    string $tokens[];
+	tokenize $nodeAttr "." $tokens;
+
+    string $node = $tokens[0];
+    float $c[] = `getAttr ($node+".worldScreenCenter")`;
+
+    {
+        string $connectedNodeAttr = `connectionInfo -sfd ($node+".imgPlaneXForm")`;
+
+        tokenize $connectedNodeAttr "." $tokens;
+        string $imgPlaneXForm = $tokens[0];
+
+        setAttr ($imgPlaneXForm+".rz") 90;
+        setAttr ($imgPlaneXForm+".translate") $c[0] $c[1] $c[2];
+    }
+
+    {
+        string $connectedNodeAttr = `connectionInfo -sfd ($node+".worldViewPoint")`;
+
+        tokenize $connectedNodeAttr "." $tokens;
+        string $viewPointXForm = $tokens[0];
+
+        setAttr ($viewPointXForm+".translate") $c[0] $c[1] $c[2];
+    }
+}
+
+//////////
+// main //
+global proc AEBeyondScreenCacheViewerTemplate( string $nodeName )
+{
+    editorTemplate -beginScrollLayout;
+    {
+        editorTemplate -beginLayout "Display" -collapse 0;
+        {
+            editorTemplate -l "Screen Mesh"        -ac "drawScreenMesh";
+            editorTemplate -l "Color"              -ac "screenMeshColor";
+            editorTemplate -as;
+            editorTemplate -l "Aiming Point"       -ac "drawAimingPoint";
+            editorTemplate -l "Color"              -ac "aimingPointColor";
+            editorTemplate -as;
+            editorTemplate -l "Camera Position"    -ac "drawCameraPosition";
+            editorTemplate -l "Color"              -ac "cameraPositionColor";
+            editorTemplate -as;
+            editorTemplate -l "Projector Position" -ac "drawProjectorPosition";
+            editorTemplate -l "Color"              -ac "projectorPositionColor";
+            editorTemplate -as;
+        }
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Information" -collapse 0;
+        {
+            editorTemplate -l "Frame Range" -ac "frameRange";
+            editorTemplate -ccu BeyondScreenCacheViewerRangeNew BeyondScreenCacheViewerRangeReplace "frameRange";
+            editorTemplate -as;
+            editorTemplate -ccu BeyondScreenCacheViewerCenterNew BeyondScreenCacheViewerCenterReplace "worldScreenCenter";
+        }
+        editorTemplate -endLayout;
+
+        editorTemplate -beginLayout "Cache File" -collapse 0;
+        {
+            editorTemplate -ccu BeyondScreenCacheViewerFileNew BeyondScreenCacheViewerFileReplace "cacheFile";
+        }
+        editorTemplate -endLayout;
+
+        editorTemplate -addExtraControls;
+    }
+    editorTemplate -endScrollLayout;
+
+    editorTemplate -suppress "time";
+    editorTemplate -suppress "imgPlaneXForm";
+    editorTemplate -suppress "worldPlaneXForm";
+    editorTemplate -suppress "worldViewPoint";
+    editorTemplate -suppress "output";
+}
+

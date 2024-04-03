@@ -1,0 +1,34 @@
+global proc BeyondScreenMenu( string $parent )
+{
+    setParent -m $parent;
+    if( `menu -q -ni $parent` != 0 ) { return; } // check if menu is built already
+
+    menuItem -l "Export Window" -ec 1 -c "BeyondScreenExportWin"  BeyondScreenExportWin_Item;
+    menuItem -l "Auto Export"   -ec 1 -c "BeyondScreenAutoExport" BeyondScreenAutoExport_Item;
+    menuItem -divider true;
+    menuItem -l "Create BeyondScreenCacheViewer" -ec 1 -c "CreateBeyondScreenCacheViewer" BeyondScreenCacheViewer_Item;
+	setParent -menu ..;
+}
+
+global proc CreateBeyondScreenMenu()
+{
+    // maya menus
+    global string $gMainWindow;
+    global string $gMainHelpMenu;
+    // BeyondScreen menu
+    global string $gBeyondScreenMenu;
+
+    if( `menu -exists BeyondScreenMainMenu` ) { deleteUI BeyondScreenMainMenu; }
+
+    setParent $gMainWindow;
+    $gBeyondScreenMenu = `menu -l "BeyondScreen" -to true -pmo true BeyondScreenMainMenu`;
+    menu -e -pmc ( "BeyondScreenMenu " + $gBeyondScreenMenu ) $gBeyondScreenMenu;
+
+    hotBox -um;
+}
+
+global proc DeleteBeyondScreenMenu()
+{
+    if( `menu -exists BeyondScreenMainMenu` ) { deleteUI BeyondScreenMainMenu; }
+}
+
