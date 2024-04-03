@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+gnome-terminal -- bash -c "/backstage/dcc/DCC rez-env assetbrowser2 pyside2-5.12.6 python-2.7 -- AssetBackup"
+
+#xterm -hold -e /backstage/dcc/DCC rez-env pyside2-5.15.2 python-2.7 -- python /show/pipe/user/taeseob/ui/main.py

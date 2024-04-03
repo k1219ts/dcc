@@ -1,0 +1,19 @@
+<RCC>
+  <qresource prefix="/">
+    <file>Resources/icon/list-2-16.png</file>
+    <file>Resources/icon/tag-5-16.png</file>
+    <file>Resources/icon/plus-2-16.png</file>
+    <file>Resources/icon/minus-2-16.png</file>
+    <file>Resources/icon/minus-2-24.png</file>
+    <file>Resources/icon/plus-2-24.png</file>
+    <file>Resources/setuplogo.png</file>
+    <file>Resources/USDattr.png</file>
+    <file>Resources/icon/checked_iconMode.png</file>
+    <file>Resources/icon/checked_listMode.png</file>
+    <file>Resources/icon/reload.png</file>
+    <file>Resources/icon/unchecked_iconMode.png</file>
+    <file>Resources/icon/unchecked_listMode.png</file>
+    <file>Resources/icon/arrow-left.png</file>
+    <file>Resources/icon/arrow-right.png</file>
+  </qresource>
+</RCC>
