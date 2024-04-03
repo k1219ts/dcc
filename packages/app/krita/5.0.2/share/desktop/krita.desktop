@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Krita 5.0.2
+Comment=
+Exec=/backstage/dcc/DCC rez-env krita-5.0.2 -- krita-5.0.2-x86_64.appimage %F
+Terminal=false
+Icon=/backstage/share/icons/krita_icon.png
+Type=Application
+Categories=Graphics;
+MimeType=application/krita;

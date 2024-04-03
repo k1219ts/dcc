@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mari -x ${REZ_MARI_ROOT}/scripts/batch_sample.py $*

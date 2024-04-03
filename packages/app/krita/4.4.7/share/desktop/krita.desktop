@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Krita 4.4.7
+Comment=
+Exec=/backstage/dcc/DCC rez-env krita-4.4.7 -- krita-4.4.7-x86_64.appimage %F
+Terminal=false
+Icon=/opt/krita/krita_icon.png
+Type=Application
+Categories=Graphics;
+MimeType=application/krita;
